@@ -1,0 +1,29 @@
+{
+  "name": "cvrx",
+  "version": "0.0.1",
+  "description": "A friend/world/avatar/spawnable management app extension to ChilloutVR.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AstroDogeDX/CVRX.git"
+  },
+  "keywords": [
+    "chilloutvr",
+    "social",
+    "extension",
+    "app"
+  ],
+  "author": "AstroDoge & Kafeijao",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AstroDogeDX/CVRX/issues"
+  },
+  "homepage": "https://github.com/AstroDogeDX/CVRX#readme",
+  "devDependencies": {
+    "electron": "^22.0.3"
+  }
+}
