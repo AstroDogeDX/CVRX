@@ -4,6 +4,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    font-family: sans-serif;
 }
 
 /* Parent Container */
@@ -93,4 +94,43 @@
 .cvrx-friends-bar {
     grid-area: cvrx-friends-bar;
     background: #171010;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    color: white;
+}
+
+.cvrx-friends-bar :is(h1) {
+    font-size: 24px;
+    padding: 5px;
+}
+
+.friends-bar-container {
+    width: calc(100% - 10px);
+    padding: 5px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.friends-bar-item {
+    margin-bottom: 10px;
+    min-height: 35px;
+}
+
+.friends-bar-item :is(img) {
+    float: left;
+    padding-right: 5px;
+}
+
+.friends-bar-item :is(.friend-name) {
+    font-size: 14px;
+}
+
+.friends-bar-item :is(.friend-world) {
+    font-size: 12px;
+}
+
+.friends-bar-item:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.1);
 }
