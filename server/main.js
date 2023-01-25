@@ -3,7 +3,9 @@ const createWindow = () => {
     const win = new BrowserWindow({
         minWidth: 800,
         minHeight: 600,
-        icon: './client/img/ico.png'
+        width: 1280,
+        height: 720,
+        icon: './client/img/ico.ico'
     })
 
     win.loadFile('index.html')

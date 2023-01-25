@@ -5,6 +5,7 @@
     margin: 0;
     padding: 0;
     font-family: sans-serif;
+    color: white;
 }
 
 /* Parent Container */
@@ -62,14 +63,9 @@
     opacity: 1;
 }
 
-.navbar-tooltip {
-    all: initial;
-    margin: 0;
-    box-sizing: border-box;
+.navbar-button :is(.navbar-tooltip) {
     position: relative;
-    font-family: sans-serif;
-    color: white;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.75);
     border-radius: 5px;
     padding: 5px;
     font-size: 35%;
@@ -80,6 +76,7 @@
     pointer-events: none;
     user-select: none;
     display: none;
+    z-index: 100;
 }
 
 /* Main Display Area */
@@ -87,6 +84,72 @@
 .cvrx-display {
     grid-area: cvrx-display;
     background: #2b2929;
+}
+
+.display-wrapper {
+    width: 100%;
+    height: 100%;
+    padding: 5px;
+}
+
+.display-seg {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 5px;
+}
+
+#display-home {
+    display: grid;
+    gap: 5px;
+    grid-template-rows: 30px 100px auto;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+        "home-header home-header"
+        "home-requests home-requests"
+        "home-activity home-showcase";
+}
+
+.home-header {
+    grid-area: home-header;
+    font-size: 20px;
+}
+
+.home-requests {
+    grid-area: home-requests;
+}
+
+.home-activity {
+    grid-area: home-activity;
+}
+
+.home-showcase {
+    grid-area: home-showcase;
+}
+
+#display-search {
+    display: grid;
+    gap: 5px;
+    grid-template-rows: 50px 1fr;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+        "search-bar"
+        "search-output";
+}
+
+#display-search :is(input) {
+    grid-area: search-bar;
+    border-radius: 10px;
+    padding: 5px;
+    font-size: 32px;
+    color: black;
+}
+
+#display-search :is(input)::placeholder {
+    font-style: italic;
+}
+
+.search-output {
+    grid-area: search-output;
 }
 
 /* Friends Bar Area */
@@ -106,6 +169,15 @@
     padding: 5px;
 }
 
+.cvrx-friends-bar :is(h2) {
+    font-size: 16px;
+    padding: 5px;
+    text-align: center;
+    font-weight: normal;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.1);
+}
+
 .friends-bar-container {
     width: calc(100% - 10px);
     padding: 5px;
@@ -116,6 +188,8 @@
 .friends-bar-item {
     margin-bottom: 10px;
     min-height: 35px;
+    max-height: 35px;
+    overflow: hidden;
 }
 
 .friends-bar-item :is(img) {
@@ -129,6 +203,14 @@
 
 .friends-bar-item :is(.friend-world) {
     font-size: 12px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.friends-bar-item :is(.friend-world-count) {
+    all: initial;
+    float: right;
 }
 
 .friends-bar-item:nth-child(odd) {

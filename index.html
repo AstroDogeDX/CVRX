@@ -16,136 +16,84 @@
   <div class="cvrx-main">
     <div class="cvrx-navbar">
       <div class="navbar-seg">
-        <div class="navbar-button material-symbols-outlined">
+        <div data-page="home" class="navbar-button material-symbols-outlined">
           home
           <div class="navbar-tooltip">Home</div>
         </div>
-        <div class="navbar-button material-symbols-outlined">
+        <div data-page="search" class="navbar-button material-symbols-outlined">
           search
           <div class="navbar-tooltip">Search</div>
         </div>
       </div>
       <div class="navbar-seg">
-        <div class="navbar-button material-symbols-outlined">
+        <div data-page="friends" class="navbar-button material-symbols-outlined">
           groups
           <div class="navbar-tooltip">Friends</div>
         </div>
-        <div class="navbar-button material-symbols-outlined">
+        <div data-page="avatars" class="navbar-button material-symbols-outlined">
           emoji_people
           <div class="navbar-tooltip">Avatars</div>
         </div>
-        <div class="navbar-button material-symbols-outlined">
+        <div data-page="worlds" class="navbar-button material-symbols-outlined">
           language
           <div class="navbar-tooltip">Worlds</div>
         </div>
-        <div class="navbar-button material-symbols-outlined">
+        <div data-page="props" class="navbar-button material-symbols-outlined">
           view_in_ar
           <div class="navbar-tooltip">Props</div>
         </div>
       </div>
       <div class="navbar-seg">
-        <div class="navbar-button material-symbols-outlined">
+        <div data-page="settings" class="navbar-button material-symbols-outlined">
           settings
           <div class="navbar-tooltip">Settings</div>
         </div>
       </div>
     </div>
     <div class="cvrx-display">
-
+      <div class="display-wrapper" id="display-home">
+        <div class="display-seg home-header">Greetings PROGRAM</div>
+        <div class="display-seg home-requests">You have &infin; Pending Requests</div>
+        <div class="display-seg home-activity">Look at all these nerds</div>
+        <div class="display-seg home-showcase">Buuuuuuh</div>
+      </div>
+      <div class="display-wrapper" id="display-search">
+        <input id="search-bar" type="text" placeholder="Type to Search">
+        <div class="display-seg search-output"></div>
+      </div>
+      <div class="display-wrapper" id="display-friends">
+        Friends
+      </div>
+      <div class="display-wrapper" id="display-avatars">
+        Avatars
+      </div>
+      <div class="display-wrapper" id="display-worlds">
+        Worlds
+      </div>
+      <div class="display-wrapper" id="display-props">
+        Props
+      </div>
+      <div class="display-wrapper" id="display-settings">
+        Settings
+      </div>
     </div>
     <div class="cvrx-friends-bar">
       <h1>Online Friends</h1>
       <div class="friends-bar-container">
+        <h2>No friends online :(</h2>
+        <!--
         <div class="friends-bar-item">
           <img src="https://placekitten.com/35/35" loading="lazy">
           <p class="friend-name">Imaginary Kitten</p>
-          <p class="friend-world">The Purble Fops (3/24)</p>
+          <p class="friend-world">The Purble Fops With A Really Long Name<span class="friend-world-count">(3/24)</span>
+          </p>
         </div>
         <div class="friends-bar-item">
           <img src="https://placekitten.com/g/35/35" loading="lazy">
           <p class="friend-name">Mysterious Kitten</p>
           <p class="friend-world">Las Pollos Hermanos (7/12)</p>
         </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/35/35" loading="lazy">
-          <p class="friend-name">Imaginary Kitten</p>
-          <p class="friend-world">The Purble Fops (3/24)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/35/35" loading="lazy">
-          <p class="friend-name">Imaginary Kitten</p>
-          <p class="friend-world">The Purble Fops (3/24)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/g/35/35" loading="lazy">
-          <p class="friend-name">Mysterious Kitten</p>
-          <p class="friend-world">Las Pollos Hermanos (7/12)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/35/35" loading="lazy">
-          <p class="friend-name">Imaginary Kitten</p>
-          <p class="friend-world">The Purble Fops (3/24)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/35/35" loading="lazy">
-          <p class="friend-name">Imaginary Kitten</p>
-          <p class="friend-world">The Purble Fops (3/24)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/g/35/35" loading="lazy">
-          <p class="friend-name">Mysterious Kitten</p>
-          <p class="friend-world">Las Pollos Hermanos (7/12)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/35/35" loading="lazy">
-          <p class="friend-name">Imaginary Kitten</p>
-          <p class="friend-world">The Purble Fops (3/24)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/35/35" loading="lazy">
-          <p class="friend-name">Imaginary Kitten</p>
-          <p class="friend-world">The Purble Fops (3/24)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/g/35/35" loading="lazy">
-          <p class="friend-name">Mysterious Kitten</p>
-          <p class="friend-world">Las Pollos Hermanos (7/12)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/35/35" loading="lazy">
-          <p class="friend-name">Imaginary Kitten</p>
-          <p class="friend-world">The Purble Fops (3/24)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/35/35" loading="lazy">
-          <p class="friend-name">Imaginary Kitten</p>
-          <p class="friend-world">The Purble Fops (3/24)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/g/35/35" loading="lazy">
-          <p class="friend-name">Mysterious Kitten</p>
-          <p class="friend-world">Las Pollos Hermanos (7/12)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/35/35" loading="lazy">
-          <p class="friend-name">Imaginary Kitten</p>
-          <p class="friend-world">The Purble Fops (3/24)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/35/35" loading="lazy">
-          <p class="friend-name">Imaginary Kitten</p>
-          <p class="friend-world">The Purble Fops (3/24)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/g/35/35" loading="lazy">
-          <p class="friend-name">Mysterious Kitten</p>
-          <p class="friend-world">Las Pollos Hermanos (7/12)</p>
-        </div>
-        <div class="friends-bar-item">
-          <img src="https://placekitten.com/35/35" loading="lazy">
-          <p class="friend-name">Imaginary Kitten</p>
-          <p class="friend-world">The Purble Fops (3/24)</p>
-        </div>
+        -->
       </div>
     </div>
   </div>

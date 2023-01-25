@@ -2,7 +2,7 @@
   "name": "cvrx",
   "version": "0.0.1",
   "description": "A friend/world/avatar/spawnable management app extension to ChilloutVR.",
-  "main": "main.js",
+  "main": "server/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron ."
