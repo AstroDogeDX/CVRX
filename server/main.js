@@ -6,8 +6,8 @@ const path = require('path');
 
 const { Core } = require('./data');
 
-const CVRHttp = require('./api_cvr_http');
 const CVRWebsocket = require('./api_cvr_ws');
+const Cache = require('./cache');
 
 
 // // Test server
@@ -41,17 +41,13 @@ const createWindow = async () => {
 
     // and load the index.html of the app.
     await mainWindow.loadFile('index.html');
+
+    // Initialize Cache
+    Cache.Initialize(mainWindow);
+
     // And now we can do our stuff
     const core = new Core(mainWindow);
-
-    // Fetch and update the friends
-    if (process.env.HTTP_REQUESTS === 'true') core.updateFriendsInfo(await CVRHttp.GetMyFriends());
-
-    // Add listener for friends state updates
-    CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, core.updateFriendsInfo.bind(core));
-
-    // Initialize the websocket
-    if (process.env.CONNECT_TO_SOCKET === 'true') await CVRWebsocket.ConnectWebsocket();
+    await core.initialize();
 };
 
 app.whenReady().then(async () => {
