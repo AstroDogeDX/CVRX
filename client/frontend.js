@@ -43,11 +43,23 @@ window.API.onFriendsUpdates((_event, updatedFriends) => {
     }
 })
 
-window.API.onFriendsImageLoaded((_event, friendsImage) => {
+window.API.onImageLoaded((_event, image) => {
     // Get image original url
-    const imageUrl = friendsImage.url;
+    const imageUrl = image.url;
     console.log(imageUrl);
 
     // Image data in base64
-    const imageData = friendsImage.imgBase64;
+    const imageData = image.imgBase64;
 })
+
+// Get user detailed info, images will be sent later via: window.API.onImageLoaded, check data.js for the structure
+// const user = await window.API.getUserById(userId);
+
+// Get active worlds, images will be sent later via: window.API.onImageLoaded, check data.js for the structure
+// const worlds = await window.API.getWorldsActive();
+
+// Get world detailed info, images will be sent later via: window.API.onImageLoaded, check data.js for the structure
+// const world = await window.API.getWorldById(worldId);
+
+// Get instance detailed info, images will be sent later via: window.API.onImageLoaded, check data.js for the structure
+// const instance = await window.API.getInstanceById(instanceId);
