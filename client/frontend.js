@@ -30,3 +30,24 @@ document.querySelectorAll(".navbar-button").forEach((e) => {
         }
     })
 })
+
+window.API.onFriendsUpdates((_event, updatedFriends) => {
+    // Array of:
+    // categories: [],
+    //     id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+    //     name: 'uSeRnAmE',
+    //     imageUrl: 'https://files.abidata.io/user_images/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.png'
+    // }
+    for (const updatedFriend of updatedFriends) {
+        console.log(updatedFriend.id);
+    }
+})
+
+window.API.onFriendsImageLoaded((_event, friendsImage) => {
+    // Get image original url
+    const imageUrl = friendsImage.url;
+    console.log(imageUrl);
+
+    // Image data in base64
+    const imageData = friendsImage.imgBase64;
+})
