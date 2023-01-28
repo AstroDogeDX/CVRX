@@ -47,7 +47,7 @@ const createWindow = async () => {
 
     // And now we can do our stuff
     const core = new Core(mainWindow);
-    await core.initialize();
+    await core.initialize(process.env.CVR_USERNAME, process.env.CVR_ACCESS_KEY);
 };
 
 app.whenReady().then(async () => {

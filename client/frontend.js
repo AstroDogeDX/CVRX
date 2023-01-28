@@ -31,6 +31,11 @@ document.querySelectorAll(".navbar-button").forEach((e) => {
     })
 })
 
+
+window.API.onSelfLoad((_event, ourUser) => {
+    // ourUser = Same result as await window.API.getUserById(userId);
+})
+
 window.API.onFriendsUpdates((_event, updatedFriends) => {
     // Array of:
     // categories: [],
