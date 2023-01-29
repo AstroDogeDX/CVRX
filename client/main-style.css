@@ -90,6 +90,8 @@
     width: 100%;
     height: 100%;
     padding: 5px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .display-seg {
@@ -150,6 +152,37 @@
 
 .search-output {
     grid-area: search-output;
+}
+
+.friends-wrapper :is(div) {
+    padding: 5px;
+    min-height: 60px;
+}
+
+.friends-wrapper :is(div):nth-child(odd) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.friends-wrapper :is(img) {
+    position: relative;
+    float: left;
+    max-height: 50px;
+    max-width: 50px;
+    margin-right: 10px;
+}
+
+/* Generic Table Styling */
+
+table {
+    border: thin solid white;
+}
+
+thead {
+    border-collapse: collapse;
+}
+
+tr:nth-child(odd) {
+    background: pink;
 }
 
 /* Friends Bar Area */
