@@ -3,6 +3,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('API', {
+    onSelfLoad: (callback) => ipcRenderer.on('self-load', callback),
     onFriendsUpdates: (callback) => ipcRenderer.on('friends-update', callback),
     onImageLoaded: (callback) => ipcRenderer.on('image-load', callback),
     getUserById: (userId) => ipcRenderer.invoke('get-user-by-id', userId),

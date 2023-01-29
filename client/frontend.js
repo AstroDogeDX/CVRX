@@ -31,6 +31,10 @@ document.querySelectorAll(".navbar-button").forEach((e) => {
     })
 })
 
+window.API.onSelfLoad((_event, ourUser) => {
+    // ourUser = Same result as await window.API.getUserById(userId);
+})
+
 // Friend Element Builder 
 function generateFriendSegment(username, image) {
     return;

@@ -16,20 +16,29 @@ class Core {
 
     constructor(mainWindow) {
         this.mainWindow = mainWindow;
+        this.userId = "";
         this.friends = {};
         this.categories = {};
     }
 
-    async initialize() {
+    async initialize(username, accessKey) {
 
-        ipcMain.handle('get-user-by-id', this.GetUserById.bind(this));
+        ipcMain.handle('get-user-by-id', (_event, userId) => this.GetUserById(userId));
         ipcMain.handle('get-worlds-active', this.GetWorldsActive.bind(this));
         ipcMain.handle('get-world-by-id', this.GetWorldById.bind(this));
         ipcMain.handle('get-instance-by-id', this.GetInstanceById.bind(this));
 
         // Fetch and update the friends and categories
         if (process.env.HTTP_REQUESTS === 'true') {
+            // Get the user id
+            await this.authenticate(username, accessKey);
+            // Get our own user details
+            const ourUser = await this.GetUserById(this.userId);
+            // Send our user to the frontend
+            this.mainWindow.webContents.send('self-load', ourUser);
+            // Load our friends list
             await this.updateFriendsInfo(await CVRHttp.GetMyFriends());
+            // Load the categories
             await this.updateCategories(CVRHttp.GetCategories());
         }
 
@@ -38,6 +47,22 @@ class Core {
 
         // Initialize the websocket
         if (process.env.CONNECT_TO_SOCKET === 'true') await CVRWebsocket.ConnectWebsocket();
+    }
+
+    async authenticate(username, accessKey) {
+        const authentication = await CVRHttp.AuthenticateViaAccessKey(username, accessKey);
+        this.userId = authentication.userId;
+
+        // const authentication = {
+        //     username: 'XXXXXXXXX',
+        //     accessKey: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+        //     userId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+        //     currentAvatar: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+        //     currentHomeWorld: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+        //     videoUrlResolverExecutable: 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe',
+        //     videoUrlResolverHashes: 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS',
+        //     blockedUsers: [],
+        // }
     }
 
     async updateFriendsInfo(friendsInfo) {
@@ -64,7 +89,7 @@ class Core {
         this.categories = categories;
     }
 
-    async GetUserById(_event, userId) {
+    async GetUserById(userId) {
 
         if (process.env.HTTP_REQUESTS === 'true') {
             const user = await CVRHttp.GetUserById(userId);

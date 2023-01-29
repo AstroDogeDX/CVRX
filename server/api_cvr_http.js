@@ -8,6 +8,8 @@ const APIUserAgent = "ChilloutVR API-Requests";
 const APIBase = `${APIAddress}/${APIVersion}`;
 
 
+const UnauthenticatedCVRApi = axios.create({ baseURL: APIBase });
+
 const CVRApi = axios.create({
     baseURL: APIBase,
     headers: {
@@ -31,9 +33,9 @@ async function Get(url) {
 }
 
 
-async function Post(url, data) {
+async function Post(url, data, authenticated = true) {
     try {
-        const response = await CVRApi.post(url, data);
+        const response = await (authenticated ? CVRApi : UnauthenticatedCVRApi).post(url, data);
         console.log(`[Post] ${response.request.url}`)
         console.log(util.inspect(response.data, {showHidden: false, depth: null, colors: true}));
         return response.data.data;
@@ -55,6 +57,9 @@ const CATEGORY_TYPES = Object.freeze({
 
 
 // API Endpoints
+
+// Authenticate
+exports.AuthenticateViaAccessKey = async (username, accessKey) => Post(`/users/auth`, { AuthType: 1, Username: username, Password: accessKey }, false);
 
 // Friends
 exports.GetMyFriends = async () => Get(`/friends`);
