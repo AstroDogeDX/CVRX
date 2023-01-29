@@ -1,38 +1,56 @@
-function swapNavPages(page) {
+// ===========
+// GLOBAL VARS
+// ===========
+
+let currentUser;
+let loadedFriends = {}; // NOTE: Temporary object; should probably replaced with a lite DB!
+
+// =========
+// FUNCTIONS
+// =========
+
+function swapNavPages(page) { // Page changes via the Nav Bar
     document.querySelectorAll(".display-wrapper").forEach((e) => {
         e.style.display = "none";
         document.getElementById(`display-${page}`).style.display = "grid";
-        document.title = "CVRX - " + page.charAt(0).toUpperCase() + page.slice(1);
+        document.title = "CVRX - " + page.charAt(0).toUpperCase() + page.slice(1); // Sets the window title to 'CVRX - [Page Name]'
     })
 }
 
-function initSearchPage() {
+function initSearchPage() { // Resets the search bar to an empty value and focus the search bar when the page is init'd
     document.querySelector("#search-bar").value = "";
-    document.querySelector("#search-bar").focus({focusVisible: true});
+    document.querySelector("#search-bar").focus({ focusVisible: true }); // FIXME: Figure out why the f*ck this doesn't work...
 }
 
-// On start up, set page to Home
-swapNavPages("home");
+// ===============
+// EVERYTHING ELSE
+// ===============
 
-// Navbar Control Logic
-document.querySelectorAll(".navbar-button").forEach((e) => {
-    let tooltip = e.querySelector(".navbar-tooltip");
+swapNavPages("home"); // On start up, set page to Home
+
+document.querySelectorAll(".navbar-button").forEach((e) => { // Navbar Control Logic
+    let tooltip = e.querySelector(".navbar-tooltip"); // Tooltips!
     e.addEventListener("mouseenter", () => {
         tooltip.style.display = "block";
     });
     e.addEventListener("mouseleave", () => {
         tooltip.style.display = "none";
     });
-    e.addEventListener("mousedown", () => {
+    e.addEventListener("mousedown", () => { // Page changing!
         swapNavPages(e.dataset.page);
-        if(e.dataset.page == "search") {
+        if (e.dataset.page == "search") {
             initSearchPage();
         }
     })
 })
 
+// Friends Page & Online Sidebar
+// -----------------------------
+
 window.API.onSelfLoad((_event, ourUser) => {
     // ourUser = Same result as await window.API.getUserById(userId);
+    currentUser = ourUser.name;
+    document.getElementById.innerHTML = currentUser;
 })
 
 // Friend Element Builder 
@@ -49,7 +67,7 @@ window.API.onFriendsUpdates((_event, updatedFriends) => {
     // }
     let p = document.createElement("p");
     for (const updatedFriend of updatedFriends) {
-        if(updatedFriend.name === undefined) {
+        if (updatedFriend.name === undefined) {
             return;
         }
         let div = document.createElement("div");
