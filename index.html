@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; img-src *;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; img-src * data:;">
   <link rel="stylesheet" href="./client/fonts/material-symbols.css">
   <link rel="stylesheet" href="./client/main-style.css">
   <script src="./client/async.js" async></script>
@@ -62,7 +62,7 @@
         <div class="display-seg search-output"></div>
       </div>
       <div class="display-wrapper" id="display-friends">
-        Friends
+        <div class="friends-wrapper"></div>
       </div>
       <div class="display-wrapper" id="display-avatars">
         Avatars

@@ -31,6 +31,11 @@ document.querySelectorAll(".navbar-button").forEach((e) => {
     })
 })
 
+// Friend Element Builder 
+function generateFriendSegment(username, image) {
+    return;
+}
+
 window.API.onFriendsUpdates((_event, updatedFriends) => {
     // Array of:
     // categories: [],
@@ -38,19 +43,44 @@ window.API.onFriendsUpdates((_event, updatedFriends) => {
     //     name: 'uSeRnAmE',
     //     imageUrl: 'https://files.abidata.io/user_images/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.png'
     // }
+    let p = document.createElement("p");
     for (const updatedFriend of updatedFriends) {
+        if(updatedFriend.name === undefined) {
+            return;
+        }
+        let div = document.createElement("div");
+        let img = new Image();
+        img.src = updatedFriend.imageUrl;
+        img.alt = `${updatedFriend.name}'s Avatar`;
+        div.id = updatedFriend.id;
+        div.innerHTML = `<p>${updatedFriend.name}</p>`;
+        theFirstChild = div.firstChild;
+        div.insertBefore(img, theFirstChild);
+        document.querySelector(".friends-wrapper").appendChild(div);
         console.log(updatedFriend.id);
     }
 })
 
-window.API.onImageLoaded((_event, image) => {
+/*window.API.onImageLoaded((_event, image) => {
     // Get image original url
     const imageUrl = image.url;
     console.log(imageUrl);
 
+    let userID = imageUrl.slice(37,73)
+    console.log(userID);
+
+    let userEntry = document.getElementById(userID);
+
+    let p = document.createElement("p");
+
     // Image data in base64
     const imageData = image.imgBase64;
-})
+    let img = new Image();
+    img.src = imageData;
+    userEntry.insertBefore(img, p);
+    //document.querySelector(".friends-wrapper").appendChild(img);
+    //console.log(imageData);
+})*/
 
 // Get user detailed info, images will be sent later via: window.API.onImageLoaded, check data.js for the structure
 // const user = await window.API.getUserById(userId);
