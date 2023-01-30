@@ -169,6 +169,7 @@
     max-height: 50px;
     max-width: 50px;
     margin-right: 10px;
+    border-radius: 5px;
 }
 
 /* Generic Table Styling */
@@ -232,6 +233,7 @@ tr:nth-child(odd) {
     gap: 5px;
     padding: 2.5px;
     margin-bottom: 5px;
+    user-select: none;
     grid-template-areas: 
         "online-friend-image online-friend-name online-friend-name"
         "online-friend-image online-friend-world online-friend-world-count";

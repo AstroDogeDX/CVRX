@@ -145,13 +145,6 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) =>  {
     for (const friend of friends) {
 
         let friendStatus;
-        let friendName;
-
-        if (friend.name == null || friend.name == undefined) {
-            friendName = document.querySelector(`[data-friend-id="${friend.id}"]`).querySelector(".friend-name").innerText;
-        } else {
-            friendName = friend.name;
-        }
 
         switch (friend.isOnline) {
             case true: // If user is online...
@@ -162,15 +155,15 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) =>  {
                         updateOnlineFriend(friendStatus, friend.id);
                     } else {
                         // ...if it doesn't exist, we add it.
-                        addOnlineFriend(friendName, friendStatus, friend.imageHash, friend.id);
+                        addOnlineFriend(friend.name, friendStatus, friend.imageHash, friend.id);
                     }
                     // Checking if the user exists in the Friends List page, if so; we update their entry...
                     if (document.querySelectorAll(`[data-friend-id="${friend.id}"]`).length) {
                         updateFriendListEntry(friendStatus, friend.id);
-                        return;
+                        continue;
                     } // ... 'else' we add a new entry since we assume there wasn't one before.
-                    addToFriendList(friendName, friendStatus, friend.imageHash, friend.id);
-                    return; // ...and STOP!
+                    addToFriendList(friend.name, friendStatus, friend.imageHash, friend.id);
+                    continue;
                 }
                 // ...and is connected to an instance
                 friendStatus = friend.instance["name"]; // Instead of 'Online', we say what instance they're in!
@@ -179,14 +172,14 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) =>  {
                     updateOnlineFriend(friendStatus, friend.id);
                 } else {
                     // ...if it doesn't exist, we add it.
-                    addOnlineFriend(friendName, friendStatus, friend.imageHash, friend.id);
+                    addOnlineFriend(friend.name, friendStatus, friend.imageHash, friend.id);
                 }
                 // Checking if they're on our Friends List page...
                 if (document.querySelectorAll(`[data-friend-id="${friend.id}"]`).length) {
                     updateFriendListEntry(friendStatus, friend.id);
-                    return;
+                    continue;
                 } // ... 'else' we add a new entry since we assume there wasn't one before.
-                addToFriendList(friendName, friendStatus, friend.imageHash, friend.id);
+                addToFriendList(friend.name, friendStatus, friend.imageHash, friend.id);
                 break;
             default: // If 'isOnline' returns null, false (or similar) then we assume they're offline.
                 friendStatus = "Offline";
@@ -194,9 +187,9 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) =>  {
                 // Checking if they're on our Friends List page (this might be the init call, so there's a chance there won't be one here)
                 if (document.querySelectorAll(`[data-friend-id="${friend.id}"]`).length) {
                     updateFriendListEntry(friendStatus, friend.id);
-                    return;
+                    continue;
                 } // ... 'else' we add a new entry since we assume there wasn't one before. (likely if it's the init call!)
-                addToFriendList(friendName, friendStatus, friend.imageHash, friend.id);
+                addToFriendList(friend.name, friendStatus, friend.imageHash, friend.id);
         }
     }
 
