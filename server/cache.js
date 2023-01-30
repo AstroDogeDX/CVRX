@@ -11,7 +11,7 @@ const CachePath = path.join(AppDataPath, 'CVRCache');
 const CacheImagesPath = path.join(CachePath, 'Images');
 
 
-function GetHash(string) {
+exports.GetHash = (string) => {
     return crypto.createHash('sha1').update(string).digest('hex');
 }
 
@@ -22,22 +22,22 @@ exports.Initialize = (win) => {
     window = win;
 }
 
-exports.QueueFetchImage = (url) => {
-    if (url) {
-        queue.push(url);
+exports.QueueFetchImage = (urlObj) => {
+    if (urlObj) {
+        queue.push(urlObj);
         ProcessQueue().then().catch(console.error);
     }
 }
 
 async function ProcessQueue() {
     if (queue.length > 0) {
-        const url = queue.shift();
-        const nativeImg = await FetchImage(url);
+        const urlObj = queue.shift();
+        const nativeImg = await FetchImage(urlObj);
 
         if (nativeImg) {
             // Send the loaded image to the main window
             window.webContents.send('image-load', {
-                url: url,
+                url: urlObj.url,
                 imgBase64: nativeImg.toDataURL(),
             });
         }
@@ -72,11 +72,12 @@ async function DownloadImage(url) {
     }
 }
 
-async function FetchImage(url) {
+async function FetchImage(urlObj) {
 
-    const hashedFileName = GetHash(url);
+    const { url, hash } = urlObj;
+
     const fileExtension = path.extname(urlLib.parse(url).pathname);
-    const imagePath = path.join(CacheImagesPath, hashedFileName + fileExtension);
+    const imagePath = path.join(CacheImagesPath, hash + fileExtension);
 
     // Check if the image, and grab it if it does!
     if (fs.existsSync(imagePath)) {

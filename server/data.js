@@ -4,11 +4,25 @@ const CVRHttp = require('./api_cvr_http');
 const CVRWebsocket = require('./api_cvr_ws');
 
 
+function LoadImage(url) {
+    const hashedFileName = cache.GetHash(url);
+    cache.QueueFetchImage({ url: url, hash: hashedFileName });
+    return hashedFileName;
+}
+
 function LoadUserImages(userObject) {
-    cache.QueueFetchImage(userObject?.imageUrl);
-    cache.QueueFetchImage(userObject?.avatar?.imageUrl);
-    cache.QueueFetchImage(userObject?.featuredBadge?.image);
-    cache.QueueFetchImage(userObject?.featuredGroup?.image);
+    if (userObject?.imageUrl) {
+        userObject.imageHash = LoadImage(userObject.imageUrl);
+    }
+    if (userObject?.avatar?.imageUrl) {
+        userObject.avatar.imageHash = LoadImage(userObject.avatar.imageUrl);
+    }
+    if (userObject?.featuredBadge?.image) {
+        userObject.featuredBadge.imageHash = LoadImage(userObject.featuredBadge.image);
+    }
+    if (userObject?.featuredGroup?.image) {
+        userObject.featuredGroup.imageHash = LoadImage(userObject.featuredGroup.image);
+    }
 }
 
 
@@ -23,6 +37,7 @@ class Core {
 
     async initialize(username, accessKey) {
 
+        // Setup handlers
         ipcMain.handle('get-user-by-id', (_event, userId) => this.GetUserById(userId));
         ipcMain.handle('get-worlds-active', this.GetWorldsActive.bind(this));
         ipcMain.handle('get-world-by-id', this.GetWorldById.bind(this));
@@ -35,15 +50,15 @@ class Core {
             // Get our own user details
             const ourUser = await this.GetUserById(this.userId);
             // Send our user to the frontend
-            this.mainWindow.webContents.send('self-load', ourUser);
+            this.mainWindow.webContents.send('active-user-load', ourUser);
             // Load our friends list
-            await this.updateFriendsInfo(await CVRHttp.GetMyFriends());
+            await this.friendsRefresh(await CVRHttp.GetMyFriends());
             // Load the categories
-            await this.updateCategories(CVRHttp.GetCategories());
+            // await this.updateCategories(CVRHttp.GetCategories());
         }
 
         // Add listener for friends state updates
-        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, this.updateFriendsInfo.bind(this));
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, this.friendsRefresh.bind(this));
 
         // Initialize the websocket
         if (process.env.CONNECT_TO_SOCKET === 'true') await CVRWebsocket.ConnectWebsocket();
@@ -65,24 +80,72 @@ class Core {
         // }
     }
 
-    async updateFriendsInfo(friendsInfo) {
-        let updatedFriends = [];
+    async friendsRefresh(friendsInfo) {
+
+        const updatedFriends = [];
+        const newFriendsObject = {};
+
         for (let friendInfo of friendsInfo) {
-            // Create the friend instance if it doesn't exist
+            if (!friendInfo || !friendInfo.id) continue;
+
+            // Grab the previous friend info (if available) so we don't lose previous socket updates
             const friendInstance = this.friends[friendInfo.id] ??= {};
+
             // Merge the new properties we're getting from the usersOnlineChange
             Object.assign(friendInstance, friendInfo);
+
+            // Queue the images grabbing (if available)
+            LoadUserImages(friendInstance);
+
+            // Add the friend info to our cache
+            newFriendsObject[friendInstance.id] = friendInstance;
+
             // Add friend to the list that will be sent to the frontend for updates
             updatedFriends.push(friendInstance);
         }
 
-        // Send the friend results to the main window
-        this.mainWindow.webContents.send('friends-update', friendsInfo);
+        // Overwrite our cache
+        this.friends = newFriendsObject;
 
-        // If there are image urls, fetch them (1 by 1)
-        for (const updatedFriend of updatedFriends) {
-            cache.QueueFetchImage(updatedFriend?.imageUrl);
+        // Send the friend results to the main window
+        this.mainWindow.webContents.send('friends-refresh', updatedFriends);
+    }
+
+    async updateFriend(friendsInfo) {
+
+        // [{
+        // "id":"2ff016ef-1d3b-4aff-defb-c167ed99b416",
+        // "isOnline":true,
+        // "isConnected":true,
+        // "instance": {
+        //      "id":"i+51985e5559117d5f-951509-ff0a95-1a3dc443",
+        //      "name":"The Purple Fox (#417388)",
+        //      "privacy":1
+        // }
+        // }]'
+
+        for (let friendInfo of friendsInfo) {
+            if (!friendInfo || !friendInfo.id) continue;
+
+            if (!this.friends[friendInfo.id]) {
+                console.error("We got an friend update for someone that was not in our friends list!");
+                // Todo: When this happens trigger a refresh!
+                return;
+            }
+
+            // Grab the previous friend info (if available) so we don't lose previous socket updates
+            const friendInstance = this.friends[friendInfo.id];
+            // Merge the new properties we're getting from the usersOnlineChange
+            Object.assign(friendInstance, friendInfo);
+            this.friends[friendInstance.id] = friendInstance;
+
+            // Queue the images grabbing (if available)
+            LoadUserImages(friendInstance);
+
+            // Send the friend result to the main window
+            this.mainWindow.webContents.send('friend-update', friendInstance);
         }
+
     }
 
     async updateCategories(categories) {
@@ -131,7 +194,9 @@ class Core {
         if (process.env.HTTP_REQUESTS === 'true') {
             const worlds = await CVRHttp.GetWorldsActive();
             for (const world of worlds) {
-                cache.QueueFetchImage(world?.imageUrl);
+                if (world?.imageUrl) {
+                    world.imageHash = LoadImage(world.imageUrl);
+                }
             }
             return worlds;
         }
@@ -150,8 +215,12 @@ class Core {
 
         if (process.env.HTTP_REQUESTS === 'true') {
             const world = await CVRHttp.GetWorldById(worldId);
-            cache.QueueFetchImage(world?.imageUrl);
-            cache.QueueFetchImage(world?.author?.imageUrl);
+            if (world?.imageUrl) {
+                world.imageHash = LoadImage(world.imageUrl);
+            }
+            if (world?.author?.imageUrl) {
+                world.author.imageHash = LoadImage(world.author.imageUrl);
+            }
             return world;
         }
 
@@ -191,7 +260,9 @@ class Core {
 
         if (process.env.HTTP_REQUESTS === 'true') {
             const instance = await CVRHttp.GetInstanceById(instanceId);
-            cache.QueueFetchImage(instance?.world?.imageUrl);
+            if (instance?.world?.imageUrl) {
+                instance.world.imageHash = LoadImage(instance.world.imageUrl);
+            }
             LoadUserImages(instance?.author);
             LoadUserImages(instance?.owner);
             for (const instanceMember of instance?.members ?? []) {
