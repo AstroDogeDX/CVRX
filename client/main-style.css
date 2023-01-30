@@ -213,39 +213,61 @@ tr:nth-child(odd) {
 
 .friends-bar-container {
     width: calc(100% - 10px);
+    height: 100%;
     padding: 5px;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
-.friends-bar-item {
-    margin-bottom: 10px;
-    min-height: 35px;
-    max-height: 35px;
-    overflow: hidden;
+.friends-bar-container :is(.online-friend-node):nth-child(odd) {
+    background: rgba(255,255,255,0.1);
 }
 
-.friends-bar-item :is(img) {
-    float: left;
-    padding-right: 5px;
+.online-friend-node {
+    display: grid;
+    height: 55px;
+    border-radius: 5px;
+    grid-template-columns: 50px 1fr 2.5em;
+    grid-template-rows: 18px 1fr;
+    gap: 5px;
+    padding: 2.5px;
+    margin-bottom: 5px;
+    grid-template-areas: 
+        "online-friend-image online-friend-name online-friend-name"
+        "online-friend-image online-friend-world online-friend-world-count";
 }
 
-.friends-bar-item :is(.friend-name) {
-    font-size: 14px;
+.online-friend-image {
+    grid-area: online-friend-image;
+    border-radius: 5px;
+    max-width: 50px;
+    max-height: 50px;
+    min-width: 50px;
+    min-height: 50px;
 }
 
-.friends-bar-item :is(.friend-world) {
+.online-friend-name {
+    grid-area: online-friend-name;
+    font-size: 18px;
+    height: auto;
+}
+
+.online-friend-world {
+    grid-area: online-friend-world;
     font-size: 12px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    font-style: italic;
+    height: auto;
 }
 
-.friends-bar-item :is(.friend-world-count) {
-    all: initial;
-    float: right;
-}
-
-.friends-bar-item:nth-child(odd) {
-    background: rgba(255, 255, 255, 0.1);
+.online-friend-world-count {
+    grid-area: online-friend-world-count;
+    font-size: 12px;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    font-style: italic;
+    height: auto;
 }
