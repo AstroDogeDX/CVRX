@@ -145,6 +145,13 @@ window.API.onFriendsRefresh((_event, friends) => {
     for (const friend of friends) {
 
         let friendStatus;
+        let friendName;
+
+        if (friend.name == null || friend.name == undefined) {
+            friendName = document.querySelector(`[data-friend-id="${friend.id}"]`).querySelector(".friend-name").innerText;
+        } else {
+            friendName = friend.name;
+        }
 
         switch (friend.isOnline) {
             case true: // If user is online...
@@ -155,14 +162,14 @@ window.API.onFriendsRefresh((_event, friends) => {
                         updateOnlineFriend(friendStatus, friend.id);
                     } else {
                         // ...if it doesn't exist, we add it.
-                        addOnlineFriend(friend.name, friendStatus, friend.imageHash, friend.id);
+                        addOnlineFriend(friendName, friendStatus, friend.imageHash, friend.id);
                     }
                     // Checking if the user exists in the Friends List page, if so; we update their entry...
                     if (document.querySelectorAll(`[data-friend-id="${friend.id}"]`).length) {
                         updateFriendListEntry(friendStatus, friend.id);
                         return;
                     } // ... 'else' we add a new entry since we assume there wasn't one before.
-                    addToFriendList(friend.name, friendStatus, friend.imageHash, friend.id);
+                    addToFriendList(friendName, friendStatus, friend.imageHash, friend.id);
                     return; // ...and STOP!
                 }
                 // ...and is connected to an instance
@@ -172,14 +179,14 @@ window.API.onFriendsRefresh((_event, friends) => {
                     updateOnlineFriend(friendStatus, friend.id);
                 } else {
                     // ...if it doesn't exist, we add it.
-                    addOnlineFriend(friend.name, friendStatus, friend.imageHash, friend.id);
+                    addOnlineFriend(friendName, friendStatus, friend.imageHash, friend.id);
                 }
                 // Checking if they're on our Friends List page...
                 if (document.querySelectorAll(`[data-friend-id="${friend.id}"]`).length) {
                     updateFriendListEntry(friendStatus, friend.id);
                     return;
                 } // ... 'else' we add a new entry since we assume there wasn't one before.
-                addToFriendList(friend.name, friendStatus, friend.imageHash, friend.id);
+                addToFriendList(friendName, friendStatus, friend.imageHash, friend.id);
                 break;
             default: // If 'isOnline' returns null, false (or similar) then we assume they're offline.
                 friendStatus = "Offline";
@@ -189,7 +196,7 @@ window.API.onFriendsRefresh((_event, friends) => {
                     updateFriendListEntry(friendStatus, friend.id);
                     return;
                 } // ... 'else' we add a new entry since we assume there wasn't one before. (likely if it's the init call!)
-                addToFriendList(friend.name, friendStatus, friend.imageHash, friend.id);
+                addToFriendList(friendName, friendStatus, friend.imageHash, friend.id);
         }
     }
 
@@ -201,6 +208,12 @@ window.API.onFriendsRefresh((_event, friends) => {
     //     imageUrl: 'https://files.abidata.io/user_images/c4eee443-98a0-bab8-a583-f1d9fa10a7d7-63cfb4a4061d4.png',
     //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
     // }];
+
+    // As we have seen these updates can have the instance to null, or have the instance with different levels
+    // Of privacy:
+    // 0: Public
+    // 1: Friends of Friends
+    // 2: Friends Only (with a friend of mine)
 
     // But in case the refresh is not the first one at app start, some other info might be included
     // All the possible information is:
@@ -238,71 +251,6 @@ window.API.onFriendsRefresh((_event, friends) => {
     //         imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
     //     }
     // ]
-});
-
-
-window.API.onFriendUpdate((_event, friend) => {
-    console.log("Friend update!");
-    console.log(friend);
-
-    let friendName = "Mystery Meat";// TODO: Grab the user NAME from the master friends list by ID, since we don't know what it is here either (thanks Marm :| )
-    let friendImage = "https://placekitten.com/50/50";// TODO: Grab the user avatar src from the master friends list to use here.
-
-    let friendStatus;
-
-    let friendNode = document.createElement("div");
-    friendNode.setAttribute("class", "online-friend-node");
-
-    if (friend.isOnline != true) {
-        // Set to offline in the Friends Tab and remove from the Online Friends list (if present)
-        // We will do all offline formatting here - both for the 'master' friends list **and** the online panel.
-        friendStatus = "Offline";
-        return // ... and STOP HERE!
-    }
-    // If the user is online in some form, we continue through as below.
-    if (friend.isOnline == true && friend.isConnected == false) {
-        // Set to online but not connected to an instance
-        friendStatus = "Online";
-        // ... and CONTINUE!
-    }
-    // If the user is online but not recognised as being in an instance, we simply say they're online!
-    if (friend.instance == null) {
-        friendNode.innerHTML(`<img class="online-friend-image" src="${friendImage}"></img>
-        <p class="online-friend-name">${friendName}</p>
-        <p class="online-friend-world">${friendStatus}</p>`);
-        document.querySelector(".friends-bar-container").appendChild(friendNode);
-        return; // ... and STOP HERE!
-    }
-
-    // We only get here if we are sure that our friend is online **and** connected to a public instance - we also include the instance info (name and player count)
-    let instancePlayerCount = "69" // TODO: Poke getInstanceById to get the instance count (bit excessive but annoyingly not included here, apparently - can promiseify it anyway so no rush)
-
-    friendNode.innerHTML(`<img class="online-friend-image" src="${friendImage}"></img>
-    <p class="online-friend-name">${friendName}</p>
-    <p class="online-friend-world">${friend.instance.name}</p>`);
-    document.querySelector(".friends-bar-container").appendChild(friendNode); //TODO: This just unceremoniously slaps the new entry to the end right now. Do some magic to have the list organised A-Z later.
-
-    // TODO: Right now the above code ONLY ADDS - it does not update; but this is just a proof of concept to make sure it at least works, so don't bully!
-
-    // As we have seen these updates can have the instance to null, or have the instance with different levels
-    // Of privacy:
-    // 0: Public
-    // 1: Friends of Friends
-    // 2: Friends Only (with a friend of mine)
-
-    // Joined Friends of Friends
-    //
-    //friend = {
-    //     "id":"2ff016ef-1d3b-4aff-defb-c167ed99b416",
-    //     "isOnline":true,
-    //     "isConnected":true,
-    //     "instance": {
-    //          "id":"i+51985e5559117d5f-951509-ff0a95-1a3dc443",
-    //          "name":"The Purple Fox (#417388)",
-    //          "privacy":1
-    //     }
-    //     // OR: "instance": null
-    // }
 });
 
 window.API.onImageLoaded((_event, image) => { // returns .imageBase64, .imageHash, .imageUrl
