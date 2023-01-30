@@ -37,8 +37,9 @@ async function ProcessQueue() {
         if (nativeImg) {
             // Send the loaded image to the main window
             window.webContents.send('image-load', {
-                url: urlObj.url,
-                imgBase64: nativeImg.toDataURL(),
+                imageUrl: urlObj.url,
+                imageHash: urlObj.hash,
+                imageBase64: nativeImg.toDataURL(),
             });
         }
 

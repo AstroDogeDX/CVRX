@@ -226,3 +226,12 @@ window.API.onFriendUpdate((_event, friend) =>  {
     //     // OR: "instance": null
     // }
 });
+
+window.API.onImageLoaded((_event, image) => {
+    console.log(image);
+    // image = {
+    //     imageBase64: "data:image/png;base64,iVBORw0KG......................",
+    //     imageHash: "d4fd45441c34e1d408c9d764953c1c9cfa236b16",
+    //     imageUrl: "https://files.abidata.io/static_web/NoHolderImage.png"
+    // }
+});
