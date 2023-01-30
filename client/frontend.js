@@ -138,8 +138,8 @@ window.API.onGetActiveUser((_event, activeUser) => {
     // }
 });
 
-window.API.onFriendsRefresh((_event, friends) => {
-    console.log("Friends Refresh!");
+window.API.onFriendsRefresh((_event, friends, isRefresh) =>  {
+    console.log("Friends Refresh! isRefresh: " + isRefresh);
     console.log(friends);
 
     for (const friend of friends) {

@@ -52,13 +52,13 @@ class Core {
             // Send our user to the frontend
             this.mainWindow.webContents.send('active-user-load', ourUser);
             // Load our friends list
-            await this.friendsRefresh(await CVRHttp.GetMyFriends());
+            await this.friendsUpdate(await CVRHttp.GetMyFriends(), true);
             // Load the categories
             // await this.updateCategories(CVRHttp.GetCategories());
         }
 
         // Add listener for friends state updates
-        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, this.friendsRefresh.bind(this));
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, (friendsInfo) => this.friendsUpdate(friendsInfo, false));
 
         // Initialize the websocket
         if (process.env.CONNECT_TO_SOCKET === 'true') await CVRWebsocket.ConnectWebsocket();
@@ -80,15 +80,32 @@ class Core {
         // }
     }
 
-    async friendsRefresh(friendsInfo) {
+    async friendsUpdate(friendsInfo, isRefresh) {
+
+        // [{
+        // "id":"2ff016ef-1d3b-4aff-defb-c167ed99b416",
+        // "isOnline":true,
+        // "isConnected":true,
+        // "instance": {
+        //      "id":"i+51985e5559117d5f-951509-ff0a95-1a3dc443",
+        //      "name":"The Purple Fox (#417388)",
+        //      "privacy":1
+        // }
+        // }]'
 
         const updatedFriends = [];
-        const newFriendsObject = {};
+        const newFriendsObject = isRefresh ? {} : this.friends;
 
         for (let friendInfo of friendsInfo) {
             if (!friendInfo || !friendInfo.id) continue;
 
-            // Grab the previous friend info (if available) so we don't lose previous socket updates
+            if (!isRefresh && !this.friends[friendInfo.id]) {
+                // We got a friend update from someone that's not on our cache. Let's refresh the friends list!
+                await this.friendsUpdate(await CVRHttp.GetMyFriends(), true);
+                return;
+            }
+
+            // Grab the previous friend info we don't lose previous socket updates
             const friendInstance = this.friends[friendInfo.id] ??= {};
 
             // Merge the new properties we're getting from the usersOnlineChange
@@ -104,48 +121,11 @@ class Core {
             updatedFriends.push(friendInstance);
         }
 
-        // Overwrite our cache
-        this.friends = newFriendsObject;
+        // Overwrite our cache if it's a refresh
+        if (isRefresh) this.friends = newFriendsObject;
 
         // Send the friend results to the main window
-        this.mainWindow.webContents.send('friends-refresh', updatedFriends);
-    }
-
-    async updateFriend(friendsInfo) {
-
-        // [{
-        // "id":"2ff016ef-1d3b-4aff-defb-c167ed99b416",
-        // "isOnline":true,
-        // "isConnected":true,
-        // "instance": {
-        //      "id":"i+51985e5559117d5f-951509-ff0a95-1a3dc443",
-        //      "name":"The Purple Fox (#417388)",
-        //      "privacy":1
-        // }
-        // }]'
-
-        for (let friendInfo of friendsInfo) {
-            if (!friendInfo || !friendInfo.id) continue;
-
-            if (!this.friends[friendInfo.id]) {
-                console.error("We got an friend update for someone that was not in our friends list!");
-                // Todo: When this happens trigger a refresh!
-                return;
-            }
-
-            // Grab the previous friend info (if available) so we don't lose previous socket updates
-            const friendInstance = this.friends[friendInfo.id];
-            // Merge the new properties we're getting from the usersOnlineChange
-            Object.assign(friendInstance, friendInfo);
-            this.friends[friendInstance.id] = friendInstance;
-
-            // Queue the images grabbing (if available)
-            LoadUserImages(friendInstance);
-
-            // Send the friend result to the main window
-            this.mainWindow.webContents.send('friend-update', friendInstance);
-        }
-
+        this.mainWindow.webContents.send('friends-refresh', updatedFriends, isRefresh);
     }
 
     async updateCategories(categories) {
