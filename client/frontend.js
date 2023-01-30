@@ -118,14 +118,21 @@ window.API.onFriendsRefresh((_event, friends) => {
             case true: // If user is online...
                 if (friend.instance == null) { // ...and NOT connected to an instance
                     friendStatus = "Online";
-                    // Adding the user to the Online Friends list!
-                    onlineFriendNode.innerHTML = `<img class="online-friend-image" src="${placeholderImage}" data-hash="${friend.imageHash}"></img>
-                        <p class="online-friend-name">${friend.name}</p>
-                        <p class="online-friend-world">${friendStatus}</p>`;
-                    document.querySelector(".friends-bar-container").appendChild(onlineFriendNode);
+                    // Checking if entry exists in Online List to update...
+                    if (document.querySelectorAll(`[data-online-name="${friend.name}"]`)) {
+                        document.querySelectorAll(`[data-online-name="${friend.name}"]`).forEach((e) => {
+                            e.querySelector(".online-friend-world").innerHTML = `${friendStatus}`;
+                        })
+                    } else {
+                        // ...if it doesn't exist, we add it.
+                        onlineFriendNode.innerHTML = `<img class="online-friend-image" src="${placeholderImage}" data-hash="${friend.imageHash}"></img>
+                            <p class="online-friend-name">${friend.name}</p>
+                            <p class="online-friend-world">${friendStatus}</p>`;
+                        document.querySelector(".friends-bar-container").appendChild(onlineFriendNode);
+                    }
                     // Checking if the user exists in the Friends List page, if so; we update their entry...
-                    if (document.querySelectorAll(`[data-friend-name=""]`)) {
-                        document.querySelectorAll(`[data-friend-name=""]`).forEach((e) => {
+                    if (document.querySelectorAll(`[data-friend-name="${friend.name}"]`)) {
+                        document.querySelectorAll(`[data-friend-name="${friend.name}"]`).forEach((e) => {
                             e.querySelector(".friend-status").innerHTML = `${friendStatus}`;
                             return; // ...and STOP!
                         })
@@ -138,14 +145,21 @@ window.API.onFriendsRefresh((_event, friends) => {
                 }
                 // ...and is connected to an instance
                 friendStatus = friend.instance["name"]; // Instead of 'Online', we say what instance they're in!
-                // Adding to the Online Friends list!
-                onlineFriendNode.innerHTML = `<img class="online-friend-image" src="${placeholderImage}" data-hash="${friend.imageHash}"></img>
-                    <p class="online-friend-name">${friend.name}</p>
-                    <p class="online-friend-world">${friendStatus}</p>`;
-                document.querySelector(".friends-bar-container").appendChild(onlineFriendNode);
+                // Checking if entry exists in Online List to update...
+                if (document.querySelectorAll(`[data-online-name="${friend.name}"]`)) {
+                    document.querySelectorAll(`[data-online-name="${friend.name}"]`).forEach((e) => {
+                        e.querySelector(".online-friend-world").innerHTML = `${friendStatus}`;
+                    })
+                } else {
+                    // ...if it doesn't exist, we add it.
+                    onlineFriendNode.innerHTML = `<img class="online-friend-image" src="${placeholderImage}" data-hash="${friend.imageHash}"></img>
+                        <p class="online-friend-name">${friend.name}</p>
+                        <p class="online-friend-world">${friendStatus}</p>`;
+                    document.querySelector(".friends-bar-container").appendChild(onlineFriendNode);
+                }
                 // Checking if they're on our Friends List page...
-                if (document.querySelectorAll(`[data-friend-name=""]`)) {
-                    document.querySelectorAll(`[data-friend-name=""]`).forEach((e) => {
+                if (document.querySelectorAll(`[data-friend-name="${friend.name}"]`)) {
+                    document.querySelectorAll(`[data-friend-name="${friend.name}"]`).forEach((e) => {
                         e.querySelector(".friend-status").innerHTML = `${friendStatus}`;
                         return; // ...and STOP!
                     })
@@ -161,8 +175,8 @@ window.API.onFriendsRefresh((_event, friends) => {
                     e.remove(); // SEEK AND DESTROY any entry in the Online Friends list! (should only be one but a querySelectorAll will make sure!)
                 });
                 // Checking if they're on our Friends List page (this might be the init call, so there's a chance there won't be one here)
-                if (document.querySelectorAll(`[data-friend-name=""]`)) {
-                    document.querySelectorAll(`[data-friend-name=""]`).forEach((e) => {
+                if (document.querySelectorAll(`[data-friend-name="${friend.name}"]`)) {
+                    document.querySelectorAll(`[data-friend-name="${friend.name}"]`).forEach((e) => {
                         e.querySelector(".friend-status").innerHTML = `${friendStatus}`;
                         return; // ...and STOP!
                     })
