@@ -6,7 +6,6 @@ contextBridge.exposeInMainWorld('API', {
     onGetActiveUser: (callback) => ipcRenderer.on('active-user-load', callback),
 
     onFriendsRefresh: (callback) => ipcRenderer.on('friends-refresh', callback),
-    onFriendUpdate: (callback) => ipcRenderer.on('friend-update', callback),
 
     onImageLoaded: (callback) => ipcRenderer.on('image-load', callback),
 
