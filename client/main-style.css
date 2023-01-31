@@ -140,6 +140,8 @@
 
 #display-search :is(input) {
     grid-area: search-bar;
+    position: sticky;
+    top: 0px;
     border-radius: 10px;
     padding: 5px;
     font-size: 32px;
