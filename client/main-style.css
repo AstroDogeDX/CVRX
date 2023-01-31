@@ -234,7 +234,7 @@ tr:nth-child(odd) {
     background: pink;
 }
 
-/* Friends Bar Area */
+/* Friends Sidebar Area */
 
 .cvrx-friends-bar {
     grid-area: cvrx-friends-bar;
@@ -274,7 +274,7 @@ tr:nth-child(odd) {
 
 .online-friend-node {
     display: grid;
-    height: 55px;
+    height: 56px;
     border-radius: 5px;
     grid-template-columns: 50px 1fr 2.5em;
     grid-template-rows: 18px 1fr;
