@@ -13,4 +13,6 @@ contextBridge.exposeInMainWorld('API', {
     getWorldsActive: () => ipcRenderer.invoke('get-worlds-active'),
     getWorldById: (worldId) => ipcRenderer.invoke('get-world-by-id', worldId),
     getInstanceById: (instanceId) => ipcRenderer.invoke('get-instance-by-id', instanceId),
+
+    search: (term) => ipcRenderer.invoke('search', term),
 });
