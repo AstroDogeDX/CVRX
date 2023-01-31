@@ -286,8 +286,8 @@ const searchBar = document.getElementById('search-bar');
 searchBar.addEventListener('keypress', async function (event) {
     const searchTerm = searchBar.value;
 
-    // Ignore if the search term is empty, or the key pressed was not ENTER
-    if (!searchTerm || event.key !== "Enter") return;
+    // Ignore if the search term is empty, or the key pressed was not ENTER - or if the search term is <3 characters
+    if (!searchTerm || searchTerm.length < 3 || event.key !== "Enter") return;
     event.preventDefault();
 
     // Disable the search while we're fetching and populating the results
