@@ -86,7 +86,6 @@ exports.SetWorldCategories = async (worldId, categoryIds) => SetAvatarCategories
 exports.GetWorldById = async (worldId) => Get(`/worlds/${worldId}`);
 exports.GetWorldMetaById = async (worldId) => Get(`/worlds/${worldId}/meta`);
 exports.GetWorldsByCategory = async (worldCategoryId) => Get(`/worlds/list/${worldCategoryId}`);
-exports.GetWorldsActive = async () => exports.GetWorldsByCategory('wrldactive');
 exports.GetWorldPortalById = async (worldId) => Get(`/portals/world/${worldId}`);
 exports.SetWorldAsHome = async (worldId) => Get(`/worlds/${worldId}/sethome`);
 

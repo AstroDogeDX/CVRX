@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld('API', {
     onImageLoaded: (callback) => ipcRenderer.on('image-load', callback),
 
     getUserById: (userId) => ipcRenderer.invoke('get-user-by-id', userId),
-    getWorldsActive: () => ipcRenderer.invoke('get-worlds-active'),
+    getWorldsByCategory: (worldCategory) => ipcRenderer.invoke('get-worlds-by-category', worldCategory),
     getWorldById: (worldId) => ipcRenderer.invoke('get-world-by-id', worldId),
     getInstanceById: (instanceId) => ipcRenderer.invoke('get-instance-by-id', instanceId),
 

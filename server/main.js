@@ -38,6 +38,9 @@ const createWindow = async () => {
         }
     });
 
+    // Initialize the core and Load the listeners
+    const core = new Core(mainWindow);
+
     // and load the index.html of the app.
     await mainWindow.loadFile('index.html');
 
@@ -45,8 +48,7 @@ const createWindow = async () => {
     Cache.Initialize(mainWindow);
 
     // And now we can do our stuff
-    const core = new Core(mainWindow);
-    await core.initialize(process.env.CVR_USERNAME, process.env.CVR_ACCESS_KEY);
+    await core.Initialize(process.env.CVR_USERNAME, process.env.CVR_ACCESS_KEY);
 };
 
 app.whenReady().then(async () => {

@@ -328,3 +328,46 @@ searchBar.addEventListener('keypress', async function (event) {
     // Re-enable the search
     searchBar.disabled = false;
 });
+
+
+// Janky Get Active Worlds
+// -----------------------------
+getActiveWorlds().then().catch(console.error);
+async function getActiveWorlds() {
+
+    const homeActivity = document.querySelector('.home-activity');
+
+    // Disable the element because we're loading stuffs (better if there is a spinner or something idk)
+    homeActivity.disabled = true;
+
+    const activeWorlds = await window.API.getWorldsByCategory('wrldactive');
+
+    console.log('Grabbed active worlds!');
+    console.log(activeWorlds);
+
+    // activeWorlds = [{
+    //     playerCount: 1,
+    //     id: 'e17e2d00-61fc-4d27-8031-4b9bdda50756',
+    //     name: 'Avatarie & Glitch',
+    //     imageUrl: 'https://files.abidata.io/user_content/worlds/e17e2d00-61fc-4d27-8031-4b9bdda50756/e17e2d00-61fc-4d27-8031-4b9bdda50756.png',
+    //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
+    // }];
+
+    // Create the search result elements
+    const elementsOfResults = [];
+    for (const result of activeWorlds) {
+        let activeWorldNode = document.createElement("div");
+        activeWorldNode.setAttribute("class", "active-world-node");
+        activeWorldNode.innerHTML = `
+        <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
+        <p class="search-result-name">${result.name}</p>
+        <p class="search-result-player-count">${result.playerCount}</p>`;
+        elementsOfResults.push(activeWorldNode);
+    }
+
+    // Replace previous search results with the new ones
+    homeActivity.replaceChildren(...elementsOfResults);
+
+    // Re-enable the element because we're loading stuffs (better if there is a spinner or something idk)
+    searchBar.disabled = false;
+}
