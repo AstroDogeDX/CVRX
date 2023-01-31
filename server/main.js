@@ -5,7 +5,6 @@ const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
 const { Core } = require('./data');
-
 const CVRWebsocket = require('./api_cvr_ws');
 const Cache = require('./cache');
 

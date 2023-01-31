@@ -39,9 +39,10 @@ class Core {
 
         // Setup handlers
         ipcMain.handle('get-user-by-id', (_event, userId) => this.GetUserById(userId));
-        ipcMain.handle('get-worlds-active', this.GetWorldsActive.bind(this));
-        ipcMain.handle('get-world-by-id', this.GetWorldById.bind(this));
-        ipcMain.handle('get-instance-by-id', this.GetInstanceById.bind(this));
+        ipcMain.handle('get-worlds-active', (_event) => this.GetWorldsActive());
+        ipcMain.handle('get-world-by-id', (_event, worldId) => this.GetWorldById(worldId));
+        ipcMain.handle('get-instance-by-id', (_event, instanceId) => this.GetInstanceById(instanceId));
+        ipcMain.handle('search', (_event, term) => this.Search(term));
 
         // Fetch and update the friends and categories
         if (process.env.HTTP_REQUESTS === 'true') {
@@ -169,7 +170,7 @@ class Core {
 
     }
 
-    async GetWorldsActive(_event) {
+    async GetWorldsActive() {
 
         if (process.env.HTTP_REQUESTS === 'true') {
             const worlds = await CVRHttp.GetWorldsActive();
@@ -191,7 +192,7 @@ class Core {
         // ];
     }
 
-    async GetWorldById(_event, worldId) {
+    async GetWorldById(worldId) {
 
         if (process.env.HTTP_REQUESTS === 'true') {
             const world = await CVRHttp.GetWorldById(worldId);
@@ -236,7 +237,7 @@ class Core {
 
     }
 
-    async GetInstanceById(_event, instanceId) {
+    async GetInstanceById(instanceId) {
 
         if (process.env.HTTP_REQUESTS === 'true') {
             const instance = await CVRHttp.GetInstanceById(instanceId);
@@ -331,6 +332,25 @@ class Core {
 
 
     }
+
+    async Search(term) {
+
+        // term = [{
+        //     type: 'prop',
+        //     id: '5cb59af7-2d39-4ad4-9650-437d38ebd09d',
+        //     name: 'Staff Of Cheese 1/3 Size (Free Grip)',
+        //     imageUrl: 'https://files.abidata.io/user_content/spawnables/5cb59af7-2d39-4ad4-9650-437d38ebd09d/5cb59af7-2d39-4ad4-9650-437d38ebd09d.png'
+        // }];
+
+        const searchResults = await CVRHttp.Search(term);
+        for (const searchResult of searchResults) {
+            if (searchResult?.imageUrl) {
+                searchResult.imageHash = LoadImage(searchResult.imageUrl);
+            }
+        }
+        return searchResults;
+    }
+
 }
 
 module.exports = {

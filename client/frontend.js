@@ -251,3 +251,52 @@ window.API.onImageLoaded((_event, image) => { // returns .imageBase64, .imageHas
         e.src = image.imageBase64;
     });
 });
+
+
+// Janky Search
+// -----------------------------
+const searchBar = document.getElementById('search-bar');
+searchBar.addEventListener('keypress', async function (event) {
+    const searchTerm = searchBar.value;
+
+    // Ignore if the search term is empty, or the key pressed was not ENTER
+    if (!searchTerm || event.key !== "Enter") return;
+    event.preventDefault();
+
+    // Disable the search while we're fetching and populating the results
+    searchBar.disabled = true;
+
+    // Fetch the search results
+    const results = await window.API.search(searchTerm);
+    console.log('Searched!');
+    console.log(results);
+
+    // Types: avatar, prop, user, world
+    //
+    // results = [{
+    //     type: 'prop',
+    //     id: '5cb59af7-2d39-4ad4-9650-437d38ebd09d',
+    //     name: 'Staff Of Cheese 1/3 Size (Free Grip)',
+    //     imageUrl: 'https://files.abidata.io/user_content/spawnables/5cb59af7-2d39-4ad4-9650-437d38ebd09d/5cb59af7-2d39-4ad4-9650-437d38ebd09d.png',
+    //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
+    // }];
+
+    const searchOutput = document.querySelector(".search-output");
+    const elementsOfResults = [];
+
+    // Create the search result elements
+    for (const result of results) {
+        let searchResult = document.createElement("div");
+        searchResult.innerHTML = `
+        <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
+        <p class="search-result-name">${result.name}</p>
+        <p class="search-result-type">${result.type}</p>`;
+        elementsOfResults.push(searchResult);
+    }
+
+    // Replace previous search results with the new ones
+    searchOutput.replaceChildren(...elementsOfResults);
+
+    // Re-enable the search
+    searchBar.disabled = false;
+});
