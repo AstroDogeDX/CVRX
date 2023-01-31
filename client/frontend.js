@@ -26,19 +26,32 @@ function addOnlineFriend(name, status, hash, id) {
     let onlineFriendNode = document.createElement("div"); // Setting up the HTMLElement used for the Online Friends panel.
     onlineFriendNode.setAttribute("class", "online-friend-node");
     onlineFriendNode.setAttribute("data-online-id", id);
-    onlineFriendNode.innerHTML = `<img class="online-friend-image" src="https://placekitten.com/50/50" data-hash="${hash}"></img>
-        <p class="online-friend-name">${name}</p>
-        <p class="online-friend-world">${status}</p>`;
-    document.querySelector(".friends-bar-container").appendChild(onlineFriendNode);
-    console.log(`Added ${name} to Online Friends list!`);
+    if (status === "Private Instance") {
+        onlineFriendNode.innerHTML =
+            `<img class="online-friend-image" src="https://placekitten.com/50/50" data-hash="${hash}"></img>
+            <p class="online-friend-name">${name}</p>
+            <p class="online-friend-world friend-is-offline">${status}</p>`;
+        document.querySelector(".friends-bar-container").appendChild(onlineFriendNode);
+    } else {
+        onlineFriendNode.innerHTML =
+            `<img class="online-friend-image" src="https://placekitten.com/50/50" data-hash="${hash}"></img>
+            <p class="online-friend-name">${name}</p>
+            <p class="online-friend-world">${status}</p>`;
+        document.querySelector(".friends-bar-container").appendChild(onlineFriendNode);
+    }
 }
 
 // - Updating the Online Friends list
 function updateOnlineFriend(status, id) {
     document.querySelectorAll(`[data-online-id="${id}"]`).forEach((e) => {
-        e.querySelector(".online-friend-world").innerHTML = `${status}`;
+        if (status === "Private Instance") {
+            e.querySelector(".online-friend-world").innerHTML = `${status}`;
+            e.querySelector(".online-friend-world").classList.add("friend-is-offline");
+        } else {
+            e.querySelector(".online-friend-world").innerHTML = `${status}`;
+            e.querySelector(".online-friend-world").classList.remove("friend-is-offline");
+        }
     })
-    console.log(`Updated Online Friends List - ${id}`);
 }
 
 // - Removing from the Online Friends list
@@ -46,23 +59,37 @@ function removeOnlineFriend(id) {
     document.querySelectorAll(`[data-online-id="${id}"]`).forEach((e) => {
         e.remove(); // SEEK AND DESTROY any entry in the Online Friends list! (should only be one but a querySelectorAll will make sure!)
     });
-    console.log(`Removed ${id} from Online Friends List`);
 }
 
 // FRIENDS LIST PAGE FUNCTIONS
 
 function addToFriendList(name, status, hash, id) {
     let listFriendNode = document.createElement("div"); // Setting up the HTMLElement used for the Friends List page.
+    listFriendNode.setAttribute("class", "friend-list-node");
     listFriendNode.setAttribute("data-friend-id", id);
-    listFriendNode.innerHTML = `<img src="https://placekitten.com/50/50" data-hash="${hash}"></img>
-        <p class="friend-name">${name}</p>
-        <p class="friend-status">${status}</p>`;
-    document.querySelector(".friends-wrapper").appendChild(listFriendNode);
+    if (status === "Offline") {
+        listFriendNode.innerHTML =
+            `<img src="https://placekitten.com/50/50" data-hash="${hash}"></img>
+            <p class="friend-name">${name}</p>
+            <p class="friend-status friend-is-offline">${status}</p>`;
+        document.querySelector(".friends-wrapper").appendChild(listFriendNode);
+    } else {
+        listFriendNode.innerHTML =
+            `<img src="https://placekitten.com/50/50" data-hash="${hash}"></img>
+            <p class="friend-name">${name}</p>
+            <p class="friend-status">${status}</p>`;
+        document.querySelector(".friends-wrapper").appendChild(listFriendNode);
+    }
 }
 
 function updateFriendListEntry(status, id) {
     document.querySelectorAll(`[data-friend-id="${id}"]`).forEach((e) => {
         e.querySelector(".friend-status").innerHTML = `${status}`;
+        if (status === "Offline") {
+            e.querySelector(".friend-status").classList.add("friend-is-offline");
+        } else {
+            e.querySelector(".friend-status").classList.remove("friend-is-offline");
+        }
     });
 }
 
@@ -138,7 +165,7 @@ window.API.onGetActiveUser((_event, activeUser) => {
     // }
 });
 
-window.API.onFriendsRefresh((_event, friends, isRefresh) =>  {
+window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     console.log("Friends Refresh! isRefresh: " + isRefresh);
     console.log(friends);
 
@@ -149,7 +176,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) =>  {
         switch (friend.isOnline) {
             case true: // If user is online...
                 if (friend.instance == null) { // ...and NOT connected to an instance
-                    friendStatus = "Online";
+                    friendStatus = "Private Instance";
                     // Checking if entry exists in Online List to update...
                     if (document.querySelectorAll(`[data-online-id="${friend.id}"]`).length) {
                         updateOnlineFriend(friendStatus, friend.id);
@@ -287,6 +314,7 @@ searchBar.addEventListener('keypress', async function (event) {
     // Create the search result elements
     for (const result of results) {
         let searchResult = document.createElement("div");
+        searchResult.setAttribute("class", "search-result-node");
         searchResult.innerHTML = `
         <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
         <p class="search-result-name">${result.name}</p>

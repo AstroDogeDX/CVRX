@@ -150,9 +150,24 @@
     font-style: italic;
 }
 
+#display-search :is(img) {
+    max-width: 50px;
+    max-height: 50px;
+    float: left;
+    margin-right: 5px;
+    border-radius: 5px;
+}
+
 .search-output {
     grid-area: search-output;
 }
+
+.search-result-node {
+    min-height: 50px;
+    margin-bottom: 5px;
+}
+
+/* Friends Page */
 
 .friends-wrapper :is(div) {
     padding: 5px;
@@ -164,12 +179,43 @@
 }
 
 .friends-wrapper :is(img) {
-    position: relative;
     float: left;
     max-height: 50px;
     max-width: 50px;
     margin-right: 10px;
     border-radius: 5px;
+}
+
+.friend-list-node {
+    border-radius: 5px;
+    min-height: 60px;
+}
+
+.friend-name {
+    margin-bottom: 5px;
+    font-size: 18px;
+}
+
+.friend-status {
+    font-size: 14px;
+}
+
+.friend-is-offline {
+    color: rgba(255,255,255,0.5);
+    font-style: italic;
+}
+
+.friend-indicator-led {
+    max-width: 5px;
+    max-height: 5px;
+    border-radius: 100%;
+    background: red;
+    bottom: 5px;
+    right: 5px;
+}
+
+.indicator-on {
+    background: lime;
 }
 
 /* Generic Table Styling */
@@ -221,7 +267,7 @@ tr:nth-child(odd) {
 }
 
 .friends-bar-container :is(.online-friend-node):nth-child(odd) {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .online-friend-node {
@@ -234,7 +280,7 @@ tr:nth-child(odd) {
     padding: 2.5px;
     margin-bottom: 5px;
     user-select: none;
-    grid-template-areas: 
+    grid-template-areas:
         "online-friend-image online-friend-name online-friend-name"
         "online-friend-image online-friend-world online-friend-world-count";
 }
