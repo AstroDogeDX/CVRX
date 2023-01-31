@@ -133,6 +133,7 @@ document.querySelectorAll(".navbar-button").forEach((e) => { // Navbar Control L
 window.API.onGetActiveUser((_event, activeUser) => {
     console.log("Active User!");
     console.log(activeUser);
+    document.querySelector("#user-greeting").innerHTML = activeUser.name;
     // activeUser = {
     //     onlineState: false,
     //     isConnected: false,
@@ -316,9 +317,9 @@ searchBar.addEventListener('keypress', async function (event) {
         let searchResult = document.createElement("div");
         searchResult.setAttribute("class", "search-result-node");
         searchResult.innerHTML = `
-        <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
-        <p class="search-result-name">${result.name}</p>
-        <p class="search-result-type">${result.type}</p>`;
+            <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
+            <p class="search-result-name">${result.name}</p>
+            <p class="search-result-type">${result.type}</p>`;
         elementsOfResults.push(searchResult);
     }
 
