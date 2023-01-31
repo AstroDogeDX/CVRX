@@ -33,16 +33,25 @@ class Core {
         this.userId = "";
         this.friends = {};
         this.categories = {};
+
+        this.#SetupHandlers();
     }
 
-    async initialize(username, accessKey) {
+    #SetupHandlers() {
 
-        // Setup handlers
+        // Setup handlers for IPC
         ipcMain.handle('get-user-by-id', (_event, userId) => this.GetUserById(userId));
-        ipcMain.handle('get-worlds-active', (_event) => this.GetWorldsActive());
+        ipcMain.handle('get-worlds-by-category', (_event, categoryId) => this.GetWorldsByCategory(categoryId));
         ipcMain.handle('get-world-by-id', (_event, worldId) => this.GetWorldById(worldId));
         ipcMain.handle('get-instance-by-id', (_event, instanceId) => this.GetInstanceById(instanceId));
         ipcMain.handle('search', (_event, term) => this.Search(term));
+
+        // Setup Handlers for the websocket
+        // Add listener for friends state updates
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, (friendsInfo) => this.friendsUpdate(friendsInfo, false));
+    }
+
+    async Initialize(username, accessKey) {
 
         // Fetch and update the friends and categories
         if (process.env.HTTP_REQUESTS === 'true') {
@@ -57,9 +66,6 @@ class Core {
             // Load the categories
             // await this.updateCategories(CVRHttp.GetCategories());
         }
-
-        // Add listener for friends state updates
-        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, (friendsInfo) => this.friendsUpdate(friendsInfo, false));
 
         // Initialize the websocket
         if (process.env.CONNECT_TO_SOCKET === 'true') await CVRWebsocket.ConnectWebsocket();
@@ -170,10 +176,10 @@ class Core {
 
     }
 
-    async GetWorldsActive() {
+    async GetWorldsByCategory(categoryId) {
 
         if (process.env.HTTP_REQUESTS === 'true') {
-            const worlds = await CVRHttp.GetWorldsActive();
+            const worlds = await CVRHttp.GetWorldsByCategory(categoryId);
             for (const world of worlds) {
                 if (world?.imageUrl) {
                     world.imageHash = LoadImage(world.imageUrl);
