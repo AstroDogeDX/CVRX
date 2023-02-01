@@ -298,7 +298,7 @@ tr:nth-child(odd) {
     user-select: none;
     grid-template-areas:
         "online-friend-image online-friend-name online-friend-name"
-        "online-friend-image online-friend-world online-friend-world-count";
+        "online-friend-image online-friend-world online-friend-world";
 }
 
 .online-friend-image {
@@ -324,6 +324,9 @@ tr:nth-child(odd) {
     align-items: center;
     font-style: italic;
     height: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .online-friend-world-count {
