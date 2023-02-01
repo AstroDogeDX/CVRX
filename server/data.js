@@ -34,10 +34,15 @@ class Core {
         this.friends = {};
         this.categories = {};
 
+        this.friendRequests = {};
+
         this.#SetupHandlers();
     }
 
     #SetupHandlers() {
+
+        // Setup on events for IPC
+        ipcMain.on('refresh-friend-requests', (_event) => this.RefreshFriendRequests());
 
         // Setup handlers for IPC
         ipcMain.handle('get-user-by-id', (_event, userId) => this.GetUserById(userId));
@@ -46,9 +51,81 @@ class Core {
         ipcMain.handle('get-instance-by-id', (_event, instanceId) => this.GetInstanceById(instanceId));
         ipcMain.handle('search', (_event, term) => this.Search(term));
 
+        // Friendship
+        ipcMain.handle('friend-request-send', (_event, userId) => CVRWebsocket.SendFriendRequest(userId));
+        ipcMain.handle('friend-request-accept', async (_event, userId) => {
+            await CVRWebsocket.AcceptFriendRequest(userId);
+            this.RefreshFriendRequests().then().catch(console.error);
+            this.FriendsUpdate(await CVRHttp.GetMyFriends(), true).then().catch(console.error);
+        });
+        ipcMain.handle('friend-request-decline', async (_event, userId) => {
+            await CVRWebsocket.DeclineFriendRequest(userId);
+            await this.RefreshFriendRequests();
+        });
+        ipcMain.handle('unfriend', async (_event, userId) => {
+            await CVRWebsocket.Unfriend(userId);
+            this.FriendsUpdate(await CVRHttp.GetMyFriends(), true).then().catch(console.error);
+        });
+
+        // Moderation
+        ipcMain.handle('block-user', (_event, userId) => CVRWebsocket.BlockUser(userId));
+        ipcMain.handle('unblock-user', (_event, userId) => CVRWebsocket.UnblockUser(userId));
+
         // Setup Handlers for the websocket
-        // Add listener for friends state updates
-        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, (friendsInfo) => this.friendsUpdate(friendsInfo, false));
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, (friendsInfo) => this.FriendsUpdate(friendsInfo, false));
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.INVITES, (invites) => {
+            // This always send all of them!
+            // Note: The invites will time out over time, and when they do, we get another full update
+            for (const invite of invites) {
+                if (invite?.user?.imageUrl) {
+                    invite.user.imageHash = LoadImage(invite.user.imageUrl);
+                }
+                if (invite?.world?.imageUrl) {
+                    invite.world.imageHash = LoadImage(invite.world.imageUrl);
+                }
+            }
+            // invites = [{
+            //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3:yghREqSG",
+            //     "user": {
+            //         "id": "b3005d19-e487-bafc-70ac-76d2190d5a29",
+            //         "name": "NotAKid",
+            //         "imageUrl": "https://files.abidata.io/user_images/b3005d19-e487-bafc-70ac-76d2190d5a29.png"
+            //     },
+            //     "world": {
+            //         "id": "95c9f8c9-ba9b-40f5-a957-3254ce2d2e91",
+            //         "name": "Sakura Hotsprings",
+            //         "imageUrl": "https://files.abidata.io/user_content/worlds/95c9f8c9-ba9b-40f5-a957-3254ce2d2e91/95c9f8c9-ba9b-40f5-a957-3254ce2d2e91.png"
+            //     },
+            //     "instanceId": "i+a08c7c940906f17d-829305-fd561f-171faa79",
+            //     "instanceName": "Sakura Hotsprings (#811786)",
+            //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
+            // }]
+            this.mainWindow.webContents.send('invites', invites);
+        });
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.REQUEST_INVITES, (requestInvites) => {
+            // This always send all of them!
+            // Note: The requestInvites will time out over time, and when they do, we get another full update
+            for (const requestInvite of requestInvites) {
+                if (requestInvite?.sender?.imageUrl) {
+                    requestInvite.sender.imageHash = LoadImage(requestInvite.sender.imageUrl);
+                }
+            }
+            // requestInvites = [{
+            //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3:E5nx5n7N",
+            //     "sender": {
+            //         "id": "b3005d19-e487-bafc-70ac-76d2190d5a29",
+            //         "name": "NotAKid",
+            //         "imageUrl": "https://files.abidata.io/user_images/b3005d19-e487-bafc-70ac-76d2190d5a29.png"
+            //     },
+            //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
+            // }]
+            this.mainWindow.webContents.send('invite-requests', requestInvites);
+        });
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.FRIEND_REQUESTS, (friendRequests) => this.UpdateFriendRequests(friendRequests, false));
+
+        // Notifications
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.MENU_POPUP, (_data, msg) => this.mainWindow.webContents.send('notification', msg));
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.HUD_MESSAGE, (_data, msg) => this.mainWindow.webContents.send('notification', msg));
     }
 
     async Initialize(username, accessKey) {
@@ -56,22 +133,27 @@ class Core {
         // Fetch and update the friends and categories
         if (process.env.HTTP_REQUESTS === 'true') {
             // Get the user id
-            await this.authenticate(username, accessKey);
+            await this.Authenticate(username, accessKey);
             // Get our own user details
             const ourUser = await this.GetUserById(this.userId);
             // Send our user to the frontend
             this.mainWindow.webContents.send('active-user-load', ourUser);
             // Load our friends list
-            await this.friendsUpdate(await CVRHttp.GetMyFriends(), true);
+            await this.FriendsUpdate(await CVRHttp.GetMyFriends(), true);
             // Load the categories
             // await this.updateCategories(CVRHttp.GetCategories());
         }
 
         // Initialize the websocket
-        if (process.env.CONNECT_TO_SOCKET === 'true') await CVRWebsocket.ConnectWebsocket();
+        if (process.env.CONNECT_TO_SOCKET === 'true') {
+            await CVRWebsocket.ConnectWebsocket();
+        }
+
+        // Call more events to update the initial state
+        await this.RefreshFriendRequests();
     }
 
-    async authenticate(username, accessKey) {
+    async Authenticate(username, accessKey) {
         const authentication = await CVRHttp.AuthenticateViaAccessKey(username, accessKey);
         this.userId = authentication.userId;
 
@@ -87,7 +169,7 @@ class Core {
         // }
     }
 
-    async friendsUpdate(friendsInfo, isRefresh) {
+    async FriendsUpdate(friendsInfo, isRefresh) {
 
         // [{
         // "id":"2ff016ef-1d3b-4aff-defb-c167ed99b416",
@@ -108,7 +190,7 @@ class Core {
 
             if (!isRefresh && !this.friends[friendInfo.id]) {
                 // We got a friend update from someone that's not on our cache. Let's refresh the friends list!
-                await this.friendsUpdate(await CVRHttp.GetMyFriends(), true);
+                await this.FriendsUpdate(await CVRHttp.GetMyFriends(), true);
                 return;
             }
 
@@ -135,7 +217,7 @@ class Core {
         this.mainWindow.webContents.send('friends-refresh', updatedFriends, isRefresh);
     }
 
-    async updateCategories(categories) {
+    async UpdateCategories(categories) {
         this.categories = categories;
     }
 
@@ -178,15 +260,14 @@ class Core {
 
     async GetWorldsByCategory(categoryId) {
 
-        if (process.env.HTTP_REQUESTS === 'true') {
-            const worlds = await CVRHttp.GetWorldsByCategory(categoryId);
-            for (const world of worlds) {
-                if (world?.imageUrl) {
-                    world.imageHash = LoadImage(world.imageUrl);
-                }
+        const worlds = await CVRHttp.GetWorldsByCategory(categoryId);
+        for (const world of worlds) {
+            if (world?.imageUrl) {
+                world.imageHash = LoadImage(world.imageUrl);
             }
-            return worlds;
         }
+        return worlds;
+
 
         // const worlds = [
         //     {
@@ -355,6 +436,33 @@ class Core {
             }
         }
         return searchResults;
+    }
+
+    async RefreshFriendRequests() {
+        const friendRequests = await CVRHttp.GetMyFriendRequests();
+        await this.UpdateFriendRequests(friendRequests, true);
+    }
+
+    async UpdateFriendRequests(friendRequests, isHttpRequest) {
+
+        // Clear the current friend requests, because http request are the ground truth!
+        if (isHttpRequest) this.friendRequests = {};
+
+        for (const friendRequest of friendRequests) {
+            if (friendRequest?.imageUrl) {
+                friendRequest.imageHash = LoadImage(friendRequest.imageUrl);
+            }
+            // Save/Replace the request on cache
+            this.friendRequests[friendRequest.id] = friendRequest;
+        }
+
+        // friendRequests = [{
+        //     "receiverId": "c4eee443-98a0-bab8-a583-f1d9fa10a7d7",
+        //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3",
+        //     "name": "Kafeijao",
+        //     "imageUrl": "https://files.abidata.io/user_images/4a1661f1-2eeb-426e-92ec-1b2f08e609b3.png"
+        // }]
+        this.mainWindow.webContents.send('friend-requests', Object.values(this.friendRequests));
     }
 
 }

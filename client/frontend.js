@@ -109,7 +109,7 @@ document.querySelectorAll(".navbar-button").forEach((e) => { // Navbar Control L
     });
     e.addEventListener("mousedown", () => { // Page changing!
         swapNavPages(e.dataset.page);
-        if (e.dataset.page == "search") {
+        if (e.dataset.page === "search") {
             initSearchPage();
         }
     })
@@ -372,3 +372,125 @@ async function getActiveWorlds() {
     // Re-enable the element because we're loading stuffs (better if there is a spinner or something idk)
     searchBar.disabled = false;
 }
+
+// Janky invite listener
+window.API.OnInvites((_event, invites) => {
+    console.log('Invites Received!');
+    console.log(invites);
+    // invites = [{
+    //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3:yghREqSG",
+    //     "user": {
+    //         "id": "b3005d19-e487-bafc-70ac-76d2190d5a29",
+    //         "name": "NotAKid",
+    //         "imageUrl": "https://files.abidata.io/user_images/b3005d19-e487-bafc-70ac-76d2190d5a29.png",
+    //         "imageHash": '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
+    //     },
+    //     "world": {
+    //         "id": "95c9f8c9-ba9b-40f5-a957-3254ce2d2e91",
+    //         "name": "Sakura Hotsprings",
+    //         "imageUrl": "https://files.abidata.io/user_content/worlds/95c9f8c9-ba9b-40f5-a957-3254ce2d2e91/95c9f8c9-ba9b-40f5-a957-3254ce2d2e91.png",
+    //         "imageHash": '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
+    //     },
+    //     "instanceId": "i+a08c7c940906f17d-829305-fd561f-171faa79",
+    //     "instanceName": "Sakura Hotsprings (#811786)",
+    //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
+    // }]
+
+    const homeRequests = document.querySelector('.home-requests');
+
+    // Remove previous invites
+    document.querySelectorAll(".home-requests--invite").forEach(el => el.remove());
+
+    // Create the search result elements
+    for (const invite of invites) {
+        let inviteNode = document.createElement("div");
+        inviteNode.setAttribute("class", "home-requests--invite");
+        inviteNode.innerHTML = `
+        <img class=home-requests--invite--user-img"" src="https://placekitten.com/50/50" data-hash="${invite.user.imageHash}"/>
+        <img class="home-requests--invite--world-img" src="https://placekitten.com/50/50" data-hash="${invite.world.imageHash}"/>
+        <p class="home-requests--invite--user-name">${invite.user.name}</p>
+        <p class="home-requests--invite--instance-name">${invite.instanceName}</p>`;
+        homeRequests.prepend(inviteNode);
+    }
+});
+// Janky invite request listener
+window.API.OnInviteRequests((_event, requestInvites) => {
+    console.log('Requests to Invite Received!');
+    console.log(requestInvites);
+
+    // requestInvites = [{
+    //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3:E5nx5n7N",
+    //     "sender": {
+    //         "id": "b3005d19-e487-bafc-70ac-76d2190d5a29",
+    //         "name": "NotAKid",
+    //         "imageUrl": "https://files.abidata.io/user_images/b3005d19-e487-bafc-70ac-76d2190d5a29.png",
+    //         "imageHash": '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
+    //     },
+    //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
+    // }]
+
+    const homeRequests = document.querySelector('.home-requests');
+
+    // Remove previous invites
+    document.querySelectorAll(".home-requests--invite-request").forEach(el => el.remove());
+
+    // Create the search result elements
+    for (const requestInvite of requestInvites) {
+        let requestInviteNode = document.createElement("div");
+        requestInviteNode.setAttribute("class", "home-requests--invite-request");
+        requestInviteNode.innerHTML = `
+        <img class="home-requests--invite-request--world-img" src="https://placekitten.com/50/50" data-hash="${requestInvite.sender.imageHash}"/>
+        <p class="home-requests--invite-request--user-name">${requestInvite.sender.name}</p>`;
+        homeRequests.prepend(requestInviteNode);
+    }
+});
+// Janky friend request listener
+window.API.OnFriendRequests((_event, friendRequests) => {
+    console.log('On Friend Requests received!');
+    console.log(friendRequests);
+
+    // friendRequests = [{
+    //     "receiverId": "c4eee443-98a0-bab8-a583-f1d9fa10a7d7",
+    //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3",
+    //     "name": "Kafeijao",
+    //     "imageUrl": "https://files.abidata.io/user_images/4a1661f1-2eeb-426e-92ec-1b2f08e609b3.png",
+    //     "imageHash": '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
+    // }]
+
+    const homeRequests = document.querySelector('.home-requests');
+
+    // Remove previous invites
+    document.querySelectorAll(".home-requests--friend-request").forEach(el => el.remove());
+
+    // Create the search result elements
+    for (const friendRequest of friendRequests) {
+
+        // Create friendRequest Node element
+        let friendRequestNode = document.createElement("div");
+        friendRequestNode.setAttribute("class", "home-requests--friend-request");
+        friendRequestNode.innerHTML = `
+        <img class="home-requests--friend-request--world-img" src="https://placekitten.com/50/50" data-hash="${friendRequest.imageHash}"/>
+        <p class="home-requests--friend-request--user-name">${friendRequest.name}</p>`;
+
+        // Create buttons (can't do it with template strings because won't let me inline the function call)
+        const acceptButton = document.createElement('button');
+        acceptButton.append('Accept');
+        acceptButton.setAttribute("class", "home-requests--friend-request--accept");
+        acceptButton.addEventListener('click', () => window.API.acceptFriendRequest(friendRequest.id));
+        const declineButton = document.createElement('button');
+        declineButton.append('Decline');
+        declineButton.setAttribute("class", "home-requests--friend-request--decline");
+        declineButton.addEventListener('click', () => window.API.declineFriendRequest(friendRequest.id));
+        friendRequestNode.append(acceptButton, declineButton)
+
+        // Append friendRequest Node element at the beginning
+        homeRequests.prepend(friendRequestNode);
+    }
+});
+
+// Janky Toast Messages (sometimes the serve sends messages, for example when declining a friend req (the popup msg))
+// Todo: put this poop on toasts
+window.API.onNotification((_event, msg) => {
+    console.log('Notification!!!');
+    console.log(msg);
+});
