@@ -12,6 +12,8 @@ let socket;
 
 
 const RESPONSE_TYPE = Object.freeze({
+    MENU_POPUP: 0,
+    HUD_MESSAGE: 1,
     ONLINE_FRIENDS: 10,
     INVITES: 15,
     REQUEST_INVITES: 20,
@@ -100,7 +102,7 @@ exports.ConnectWebsocket = async () => {
             try {
                 const { responseType, message, data } = JSON.parse(messageBuffer.toString());
                 if (Object.values(RESPONSE_TYPE).includes(responseType)) {
-                    EventEmitter.emit(responseType, data);
+                    EventEmitter.emit(responseType, data, message);
                 }
                 else {
                     console.warn(`Response type ${responseType} is not mapped! Msg: ${message}`);
@@ -112,3 +114,35 @@ exports.ConnectWebsocket = async () => {
         });
     });
 };
+
+const RequestType = Object.freeze({
+    FRIEND_REQUEST_SEND: 5,
+    FRIEND_REQUEST_ACCEPT: 6,
+    FRIEND_REQUEST_DECLINE: 7,
+    UNFRIEND: 8,
+    BLOCK_USER: 30,
+    UNBLOCK_USER: 31,
+});
+const GetRequestName = (value) => Object.keys(RequestType).find(key => RequestType[key] === value);
+
+async function SendRequest(requestType, data) {
+    if (!socket) {
+        console.error(`Attempted to send a ${GetRequestName(requestType)} request while the socket was disconnected!`);
+        return;
+    }
+    // Prepare the request json and send
+    await socket.send(JSON.stringify({
+        RequestType: requestType,
+        Data: data,
+    }));
+}
+
+// Friendship
+exports.SendFriendRequest = async (userId) => await SendRequest(RequestType.FRIEND_REQUEST_SEND, {id: userId});
+exports.AcceptFriendRequest = async (userId) => await SendRequest(RequestType.FRIEND_REQUEST_ACCEPT, {id: userId});
+exports.DeclineFriendRequest = async (userId) => await SendRequest(RequestType.FRIEND_REQUEST_DECLINE, {id: userId});
+exports.Unfriend = async (userId) => await SendRequest(RequestType.UNFRIEND, {id: userId});
+
+// Moderation
+exports.BlockUser = async (userId) => await SendRequest(RequestType.BLOCK_USER, {id: userId});
+exports.UnblockUser = async (userId) => await SendRequest(RequestType.UNBLOCK_USER, {id: userId});
