@@ -43,10 +43,10 @@ class Core {
 
         // Setup on events for IPC
         ipcMain.on('refresh-friend-requests', (_event) => this.RefreshFriendRequests());
+        ipcMain.on('refresh-worlds-category', (_event, worldCategoryId) => this.UpdateWorldsByCategory(worldCategoryId));
 
         // Setup handlers for IPC
         ipcMain.handle('get-user-by-id', (_event, userId) => this.GetUserById(userId));
-        ipcMain.handle('get-worlds-by-category', (_event, categoryId) => this.GetWorldsByCategory(categoryId));
         ipcMain.handle('get-world-by-id', (_event, worldId) => this.GetWorldById(worldId));
         ipcMain.handle('get-instance-by-id', (_event, instanceId) => this.GetInstanceById(instanceId));
         ipcMain.handle('search', (_event, term) => this.Search(term));
@@ -130,27 +130,24 @@ class Core {
 
     async Initialize(username, accessKey) {
 
-        // Fetch and update the friends and categories
-        if (process.env.HTTP_REQUESTS === 'true') {
-            // Get the user id
-            await this.Authenticate(username, accessKey);
-            // Get our own user details
-            const ourUser = await this.GetUserById(this.userId);
-            // Send our user to the frontend
-            this.mainWindow.webContents.send('active-user-load', ourUser);
-            // Load our friends list
-            await this.FriendsUpdate(await CVRHttp.GetMyFriends(), true);
-            // Load the categories
-            // await this.updateCategories(CVRHttp.GetCategories());
-        }
+        // Get the user id
+        await this.Authenticate(username, accessKey);
+        // Get our own user details
+        const ourUser = await this.GetUserById(this.userId);
+        // Send our user to the frontend
+        this.mainWindow.webContents.send('active-user-load', ourUser);
+        // Load our friends list
+        await this.FriendsUpdate(await CVRHttp.GetMyFriends(), true);
+        // Load the categories
+        // await this.updateCategories(CVRHttp.GetCategories());
+
 
         // Initialize the websocket
-        if (process.env.CONNECT_TO_SOCKET === 'true') {
-            await CVRWebsocket.ConnectWebsocket();
-        }
+        await CVRWebsocket.ConnectWithCredentials(username, accessKey);
 
         // Call more events to update the initial state
-        await this.RefreshFriendRequests();
+        this.RefreshFriendRequests().then().catch(console.error);
+        this.UpdateWorldsByCategory('wrldactive').then().catch(console.error);
     }
 
     async Authenticate(username, accessKey) {
@@ -223,11 +220,9 @@ class Core {
 
     async GetUserById(userId) {
 
-        if (process.env.HTTP_REQUESTS === 'true') {
-            const user = await CVRHttp.GetUserById(userId);
-            LoadUserImages(user);
-            return user;
-        }
+        const user = await CVRHttp.GetUserById(userId);
+        LoadUserImages(user);
+        return user;
 
         // const userDetailed = {
         //     "onlineState": false,
@@ -258,7 +253,7 @@ class Core {
 
     }
 
-    async GetWorldsByCategory(categoryId) {
+    async UpdateWorldsByCategory(categoryId) {
 
         const worlds = await CVRHttp.GetWorldsByCategory(categoryId);
         for (const world of worlds) {
@@ -266,8 +261,7 @@ class Core {
                 world.imageHash = LoadImage(world.imageUrl);
             }
         }
-        return worlds;
-
+        this.mainWindow.webContents.send('worlds-category-requests', categoryId, worlds);
 
         // const worlds = [
         //     {
@@ -281,16 +275,14 @@ class Core {
 
     async GetWorldById(worldId) {
 
-        if (process.env.HTTP_REQUESTS === 'true') {
-            const world = await CVRHttp.GetWorldById(worldId);
-            if (world?.imageUrl) {
-                world.imageHash = LoadImage(world.imageUrl);
-            }
-            if (world?.author?.imageUrl) {
-                world.author.imageHash = LoadImage(world.author.imageUrl);
-            }
-            return world;
+        const world = await CVRHttp.GetWorldById(worldId);
+        if (world?.imageUrl) {
+            world.imageHash = LoadImage(world.imageUrl);
         }
+        if (world?.author?.imageUrl) {
+            world.author.imageHash = LoadImage(world.author.imageUrl);
+        }
+        return world;
 
         // const world = {
         //     "instances": [
@@ -326,18 +318,16 @@ class Core {
 
     async GetInstanceById(instanceId) {
 
-        if (process.env.HTTP_REQUESTS === 'true') {
-            const instance = await CVRHttp.GetInstanceById(instanceId);
-            if (instance?.world?.imageUrl) {
-                instance.world.imageHash = LoadImage(instance.world.imageUrl);
-            }
-            LoadUserImages(instance?.author);
-            LoadUserImages(instance?.owner);
-            for (const instanceMember of instance?.members ?? []) {
-                LoadUserImages(instanceMember);
-            }
-            return instance;
+        const instance = await CVRHttp.GetInstanceById(instanceId);
+        if (instance?.world?.imageUrl) {
+            instance.world.imageHash = LoadImage(instance.world.imageUrl);
         }
+        LoadUserImages(instance?.author);
+        LoadUserImages(instance?.owner);
+        for (const instanceMember of instance?.members ?? []) {
+            LoadUserImages(instanceMember);
+        }
+        return instance;
 
         // const instance = {
         //     "instanceSettingPrivacy": "Public",

@@ -5,6 +5,7 @@ const urlLib = require('url');
 const crypto = require('crypto');
 const fs = require('fs');
 
+const { GetMaxCacheSize } = require('./config');
 
 const AppDataPath = app.getPath('userData');
 const CachePath = path.join(AppDataPath, 'CVRCache');
@@ -128,22 +129,21 @@ async function CleanCache() {
         if (IsCleaningCache) return;
         IsCleaningCache = true;
 
-        const MaxSizeInMegabytes = parseFloat(process.env.CACHE_MAX_SIZE_MEGABYTES);
-        const MaxSizeInBytes = MegabytesToBytes(MaxSizeInMegabytes);
+        const MaxSizeInBytes = MegabytesToBytes(GetMaxCacheSize());
 
         const fileNames = await fs.promises.readdir(CacheImagesPath);
 
         let folderSize = 0;
         const files = [];
         for (const fileName of fileNames) {
-            const filePath = path.join( CacheImagesPath, fileName )
+            const filePath = path.join(CacheImagesPath, fileName);
             const fileStats = await fs.promises.stat(filePath);
             folderSize += fileStats.size;
             files.push({ path: filePath, size: fileStats.size, accessDate: fileStats.atime });
         }
 
         // We're over the cache limit, let's delete until we have less than 90% than our cache used!
-        if (BytesToMegabytes(folderSize) > MaxSizeInMegabytes) {
+        if (BytesToMegabytes(folderSize) > GetMaxCacheSize()) {
             const targetBytes = MaxSizeInBytes * 0.9;
             files.sort((a,b) => a.accessDate.getTime() - b.accessDate.getTime());
             for (const file of files) {

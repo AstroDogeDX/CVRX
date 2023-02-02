@@ -2,26 +2,16 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const { app, BrowserWindow } = require('electron');
+
+// Prevent app launching multiple times
+if (require('electron-squirrel-startup')) return;
+
 const path = require('path');
 
+const Config = require('./config');
 const { Core } = require('./data');
 const CVRWebsocket = require('./api_cvr_ws');
 const Cache = require('./cache');
-
-
-// // Test server
-// const WebSocket = require('ws');
-// const util = require('util');
-// const wss = new WebSocket.WebSocketServer({ port: 80 });
-// wss.on('connection', function connection(ws, request) {
-//     ws.on('error', console.error);
-//     ws.on('message', function message(data) {
-//         console.log('received: %s', data);
-//     });
-//     ws.send(JSON.stringify( { responseType: -1, message: "You have connected!", data: null }));
-//     console.log(`\n\n\n[Server] Headers:`);
-//     console.log(`${util.inspect(request.headers, {showHidden: false, depth: null, colors: true})}`);
-// });
 
 
 const createWindow = async () => {
@@ -38,6 +28,34 @@ const createWindow = async () => {
         }
     });
 
+    // Load the config
+    await Config.Load();
+    await Config.ImportCVRCredentials();
+
+    let activeCredentials = Config.GetActiveCredentials();
+    // console.log(`\nActive Credentials:`);
+    // console.log(util.inspect(activeCredentials, {showHidden: false, depth: null, colors: true}));
+
+    // const availableCredentials = Config.GetAvailableCredentials();
+    // console.log(`\nAvailable Credentials:`);
+    // console.log(util.inspect(availableCredentials, {showHidden: false, depth: null, colors: true}));
+
+    if (!activeCredentials) {
+
+        const autoLoginCredentials = Config.GetAutoLoginCredentials();
+        // console.log(`\nAuto Login Credentials:`);
+        // console.log(util.inspect(autoLoginCredentials, {showHidden: false, depth: null, colors: true}));
+
+        // console.log(`\nActivating credential: ${autoLoginCredentials.Username}`);
+        await Config.SetActiveCredentials(autoLoginCredentials.Username);
+    }
+
+    activeCredentials = Config.GetActiveCredentials();
+    console.log(`Logging with: ` + activeCredentials.Username);
+
+    // console.log(`\nActive Credentials:`);
+    // console.log(util.inspect(activeCredentials, {showHidden: false, depth: null, colors: true}));
+
     // Initialize the core and Load the listeners
     const core = new Core(mainWindow);
 
@@ -48,7 +66,7 @@ const createWindow = async () => {
     Cache.Initialize(mainWindow);
 
     // And now we can do our stuff
-    await core.Initialize(process.env.CVR_USERNAME, process.env.CVR_ACCESS_KEY);
+    await core.Initialize(activeCredentials.Username, activeCredentials.AccessKey);
 };
 
 app.whenReady().then(async () => {
