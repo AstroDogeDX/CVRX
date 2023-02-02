@@ -143,7 +143,12 @@ document.querySelectorAll(".navbar-button").forEach((e) => { // Navbar Control L
 window.API.onGetActiveUser((_event, activeUser) => {
     console.log("Active User!");
     console.log(activeUser);
-    document.querySelector("#user-greeting").innerHTML = activeUser.name;
+    document.querySelector(".home-user--user-icon").setAttribute("data-hash", activeUser.imageHash);
+    document.querySelector(".home-user--user-name").innerHTML = activeUser.name;
+    document.querySelector(".user-extra--user-avatar").innerHTML = `<img data-hash="${activeUser.avatar['imageHash']}">${activeUser.avatar["name"]}`;
+    document.querySelector(".user-extra--user-badge").innerHTML = `<img data-hash="${activeUser.featuredBadge['imageHash']}">${activeUser.featuredBadge["name"]}`;
+    document.querySelector(".user-extra--user-rank").innerHTML = `<img src="./client/img/ui/rank.png">${activeUser.rank}`;
+    // document.querySelector("#user-greeting").innerHTML = activeUser.name;
     // activeUser = {
     //     onlineState: false,
     //     isConnected: false,
@@ -349,7 +354,7 @@ window.API.OnWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
 
     if (worldCategoryId !== 'wrldactive') return;
 
-    const homeActivity = document.querySelector('.home-activity');
+    const homeActivity = document.querySelector('.home-activity--activity-wrapper');
 
     // Disable the element because we're loading stuffs (better if there is a spinner or something idk)
     homeActivity.disabled = true;
@@ -378,7 +383,7 @@ window.API.OnWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
     }
 
     // Replace previous search results with the new ones
-    // homeActivity.replaceChildren(...elementsOfResults); - Temporarily Disabled
+    homeActivity.replaceChildren(...elementsOfResults);
 
     // Re-enable the element because we're loading stuffs (better if there is a spinner or something idk)
     searchBar.disabled = false;
@@ -531,3 +536,7 @@ function toastyNotification(message, type) {
     toast.classList.add("toast-up");
     toastDown();
 }
+
+setTimeout(() => {
+    document.querySelector(".loading-shade").remove(); // dis is were we remob da shade wen it are loaded but rn i am jus cheating wid a timeout lol :)
+}, 2000)

@@ -102,7 +102,9 @@
     padding: 5px;
 }
 
-#display-home {
+/* Display Area - HOME */
+
+/* #display-home {
     display: grid;
     gap: 5px;
     grid-template-rows: 30px 100px auto;
@@ -111,23 +113,124 @@
         "home-header home-header"
         "home-requests home-requests"
         "home-activity home-showcase";
+} */
+
+#display-home {
+    display: grid;
+    gap: 5px;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 150px 1fr;
+    grid-template-areas:
+        "home-user home-requests"
+        "home-activity home-history";
 }
 
-.home-header {
-    grid-area: home-header;
-    font-size: 20px;
+.home-user {
+    display: grid;
+    gap: 5px;
+    grid-area: home-user;
+    grid-template-columns: 150px 1fr;
+    grid-template-rows: 45px 1fr;
+    grid-template-areas:
+        "home-user--user-icon home-user--user-name"
+        "home-user--user-icon home-user--user-extra";
+}
+
+.home-user--user-icon {
+    grid-area: home-user--user-icon;
+    border-radius: 10px;
+    min-height: 150px;
+    max-height: 150px;
+    min-width: 150px;
+    max-width: 150px;
+}
+
+.home-user--user-name {
+    display: block;
+    overflow: hidden;
+    align-items: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    grid-area: home-user--user-name;
+    font-size: 24px;
+    line-height: 36px;
+    padding: 5px;
+    max-width: 100%;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+.home-user--user-extra {
+    display: grid;
+    grid-area: home-user--user-extra;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 5px;
+}
+
+.home-user--user-extra img {
+    width: 30px;
+    height: 30px;
+    float: left;
+    margin-right: 5px;
+    border-radius: 5px;
+}
+
+.user-extra--user-avatar {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+}
+
+.user-extra--user-badge {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+}
+
+.user-extra--user-rank {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
 }
 
 .home-requests {
     grid-area: home-requests;
+    background: green;
 }
 
 .home-activity {
+    display: grid;
     grid-area: home-activity;
+    grid-template-rows: auto 1fr;
 }
 
-.home-showcase {
-    grid-area: home-showcase;
+.home-activity h2 {
+    margin-bottom: 5px;
+}
+
+.home-activity--activity-wrapper {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+}
+
+.home-history {
+    display: grid;
+    grid-area: home-history;
+    grid-template-rows: auto 1fr;
+}
+
+.home-history h2 {
+    margin-bottom: 5px;
+}
+
+.home-history--history-wrapper {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
 }
 
 /* - World Activity stuff on Home :) */
@@ -135,11 +238,19 @@
     max-width: 50px;
     max-height: 50px;
     float: left;
+    margin-right: 5px;
+    border-radius: 5px;
 }
 
 .active-world-node {
-    height: 50px;
+    min-height: 60px;
     margin-bottom: 5px;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+.active-world-node:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 /* Search Stuff */
@@ -233,11 +344,10 @@
     max-width: 50px;
     margin-right: 10px;
     border-radius: 5px;
-    /*border: thin solid darkslategrey;*/
 }
 
 .icon-is-online {
-    border: thin solid lime !important;
+    border: thin solid lime;
     box-shadow: 0 0 5px lime;
 }
 
@@ -399,6 +509,22 @@ tr:nth-child(odd) {
 
 .toast-up {
     bottom: 10px;
+}
+
+/* Loading shade to hide our shame */
+
+.loading-shade {
+    position: absolute;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    color: white;
+    font-weight: bold;
+    background: black;
+    width: 100%;
+    height: 100%;
 }
 
 /* Testing Stuff - To be removed before final builds! */

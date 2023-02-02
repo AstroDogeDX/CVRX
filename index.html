@@ -55,10 +55,30 @@
     </div>
     <div class="cvrx-display">
       <div class="display-wrapper" id="display-home">
-        <div class="display-seg home-header">Greetings <span id="user-greeting">PROGRAM</span></div>
-        <div class="display-seg home-requests">You have &infin; Pending Requests</div>
-        <div class="display-seg home-activity">Look at all these nerds</div>
-        <div class="display-seg home-showcase">Buuuuuuh</div>
+        <div class="home-user">
+          <img src="https://placekitten.com/150/150" class="home-user--user-icon"></img>
+          <div class="home-user--user-name">...</div>
+          <div class="home-user--user-extra">
+            <div class="user-extra--user-avatar">
+              <img src="https://placekitten.com/25/25">
+              ...</div>
+            <div class="user-extra--user-badge">
+              <img src="https://placekitten.com/25/25">
+              ...</div>
+            <div class="user-extra--user-rank">
+              <img src="./client/img/ui/rank.png">
+              ...</div>
+          </div>
+        </div>
+        <div class="home-requests">requests</div>
+        <div class="home-activity">
+          <h2>Active Worlds</h2>
+          <div class="home-activity--activity-wrapper"></div>
+        </div>
+        <div class="home-history">
+          <h2>Friend History</h2>
+          <div class="home-history--history-wrapper"></div>
+        </div>
       </div>
       <div class="display-wrapper" id="display-search">
         <input id="search-bar" type="text" placeholder="Type to Search">
@@ -95,6 +115,7 @@
     </div>
   </div>
   <div class="overlay">
+    <div class="loading-shade">CVRX is loading...</div>
     <div class="toast-notification">
       OH HELLO DERE :)
     </div>
