@@ -338,3 +338,7 @@ tr:nth-child(odd) {
     font-style: italic;
     height: auto;
 }
+
+.overlay {
+    display: none;
+}

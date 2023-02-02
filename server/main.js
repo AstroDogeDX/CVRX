@@ -32,7 +32,7 @@ const createWindow = async () => {
         minHeight: 600,
         width: 1280,
         height: 720,
-        icon: './client/img/ico.ico',
+        icon: './client/img/cvrx-ico.ico',
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
         }

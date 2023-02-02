@@ -360,14 +360,14 @@ async function getActiveWorlds() {
         let activeWorldNode = document.createElement("div");
         activeWorldNode.setAttribute("class", "active-world-node");
         activeWorldNode.innerHTML = `
-        <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
-        <p class="search-result-name">${result.name}</p>
-        <p class="search-result-player-count">${result.playerCount}</p>`;
+            <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
+            <p class="search-result-name">${result.name}</p>
+            <p class="search-result-player-count">${result.playerCount}</p>`;
         elementsOfResults.push(activeWorldNode);
     }
 
     // Replace previous search results with the new ones
-    homeActivity.replaceChildren(...elementsOfResults);
+    // homeActivity.replaceChildren(...elementsOfResults); - Temporarily Disabled
 
     // Re-enable the element because we're loading stuffs (better if there is a spinner or something idk)
     searchBar.disabled = false;
