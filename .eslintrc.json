@@ -1,0 +1,21 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": "eslint:recommended",
+    "overrides": [
+    ],
+    "parserOptions": {
+        "ecmaVersion": "latest"
+    },
+    "rules": { 
+        "semi": "error",
+        "eol-last": "error",
+        "no-unexpected-multiline": "error",
+        "max-len": ["error", {"code": 120, "tabWidth": 4, "ignoreComments": true, "ignoreTemplateLiterals": true}],
+        "no-inline-comments": "error",
+        "no-trailing-spaces": "error",
+        "quotes": ["error", "single"]
+    }
+}

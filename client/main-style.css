@@ -292,8 +292,14 @@
 }
 
 .search-result-node {
-    min-height: 50px;
+    min-height: 60px;
     margin-bottom: 5px;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.search-result-node:nth-of-type(odd) {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 /* Friends Page */
@@ -328,7 +334,7 @@
     grid-area: friends-list;
 }
 
-.friends-wrapper .friend-list-node:nth-child(odd) {
+.friends-wrapper .friend-list-node:nth-of-type(odd) {
     background: rgba(255, 255, 255, 0.1);
 }
 
@@ -336,6 +342,10 @@
     padding: 5px;
     border-radius: 5px;
     min-height: 60px;
+}
+
+.filtered-friend {
+    display: none;
 }
 
 .friend-list-node :is(img) {

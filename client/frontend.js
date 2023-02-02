@@ -6,99 +6,107 @@ let toastTimer;
 
 const toastDown = () => {
     toastTimer = setTimeout(() => {
-        document.querySelector(".toast-notification").classList.remove("toast-up");
-    }, 3000)
-}
+        document.querySelector('.toast-notification').classList.remove('toast-up');
+    }, 3000);
+};
 
 // =========
 // FUNCTIONS
 // =========
 
-function swapNavPages(page) { // Page changes via the Nav Bar
-    document.querySelectorAll(".display-wrapper").forEach((e) => {
-        e.style.display = "none";
-        document.getElementById(`display-${page}`).style.display = "grid";
-        document.title = "CVRX - " + page.charAt(0).toUpperCase() + page.slice(1); // Sets the window title to 'CVRX - [Page Name]'
-    })
+// Page changes via the Nav Bar
+function swapNavPages(page) {
+    document.querySelectorAll('.display-wrapper').forEach((e) => {
+        e.style.display = 'none';
+        document.getElementById(`display-${page}`).style.display = 'grid';
+        // Sets the window title to 'CVRX - [Page Name]'
+        document.title = 'CVRX - ' + page.charAt(0).toUpperCase() + page.slice(1);
+    });
 }
 
-function initSearchPage() { // Resets the search bar to an empty value and focus the search bar when the page is init'd
-    document.querySelector("#search-bar").value = "";
-    document.querySelector("#search-bar").focus({ focusVisible: true }); // FIXME: Figure out why the f*ck this doesn't work...
+// Resets the search bar to an empty value and focus the search bar when the page is init'd
+function initSearchPage() {
+    document.querySelector('#search-bar').value = '';
+    // FIXME: Figure out why the f*ck this doesn't work...
+    document.querySelector('#search-bar').focus({ focusVisible: true });
 }
 
 // ONLINE FRIENDS LIST FUNCTIONS
 
 // - Adding to the Online Friends list
 function addOnlineFriend(name, status, hash, id) {
-    let onlineFriendNode = document.createElement("div"); // Setting up the HTMLElement used for the Online Friends panel.
-    onlineFriendNode.setAttribute("class", "online-friend-node");
-    onlineFriendNode.setAttribute("data-online-id", id);
-    if (status === "Private Instance") {
+    // Setting up the HTMLElement used for the Online Friends panel.
+    let onlineFriendNode = document.createElement('div');
+    onlineFriendNode.setAttribute('class', 'online-friend-node');
+    onlineFriendNode.setAttribute('data-online-id', id);
+    if (status === 'Private Instance') {
         onlineFriendNode.innerHTML =
             `<img class="online-friend-image" src="https://placekitten.com/50/50" data-hash="${hash}"></img>
             <p class="online-friend-name">${name}</p>
             <p class="online-friend-world friend-is-offline">${status}</p>`;
-        document.querySelector(".friends-bar-container").appendChild(onlineFriendNode);
+        document.querySelector('.friends-bar-container').appendChild(onlineFriendNode);
     } else {
         onlineFriendNode.innerHTML =
             `<img class="online-friend-image" src="https://placekitten.com/50/50" data-hash="${hash}"></img>
             <p class="online-friend-name">${name}</p>
             <p class="online-friend-world">${status}</p>`;
-        document.querySelector(".friends-bar-container").appendChild(onlineFriendNode);
+        document.querySelector('.friends-bar-container').appendChild(onlineFriendNode);
     }
 }
 
 // - Updating the Online Friends list
 function updateOnlineFriend(status, id) {
     document.querySelectorAll(`[data-online-id="${id}"]`).forEach((e) => {
-        if (status === "Private Instance") {
-            e.querySelector(".online-friend-world").innerHTML = `${status}`;
-            e.querySelector(".online-friend-world").classList.add("friend-is-offline");
+        if (status === 'Private Instance') {
+            e.querySelector('.online-friend-world').innerHTML = `${status}`;
+            e.querySelector('.online-friend-world').classList.add('friend-is-offline');
         } else {
-            e.querySelector(".online-friend-world").innerHTML = `${status}`;
-            e.querySelector(".online-friend-world").classList.remove("friend-is-offline");
+            e.querySelector('.online-friend-world').innerHTML = `${status}`;
+            e.querySelector('.online-friend-world').classList.remove('friend-is-offline');
         }
-    })
+    });
 }
 
 // - Removing from the Online Friends list
 function removeOnlineFriend(id) {
     document.querySelectorAll(`[data-online-id="${id}"]`).forEach((e) => {
-        e.remove(); // SEEK AND DESTROY any entry in the Online Friends list! (should only be one but a querySelectorAll will make sure!)
+        // SEEK AND DESTROY any entry in the Online Friends list!
+        // (should only be one but a querySelectorAll will make sure!)
+        e.remove();
     });
 }
 
 // FRIENDS LIST PAGE FUNCTIONS
 
 function addToFriendList(name, status, hash, id) {
-    let listFriendNode = document.createElement("div"); // Setting up the HTMLElement used for the Friends List page.
-    listFriendNode.setAttribute("class", "friend-list-node");
-    listFriendNode.setAttribute("data-friend-id", id);
-    if (status === "Offline") {
+    // Setting up the HTMLElement used for the Friends List page.
+    let listFriendNode = document.createElement('div');
+    listFriendNode.setAttribute('class', 'friend-list-node');
+    listFriendNode.setAttribute('data-friend-id', id);
+    if (status === 'Offline') {
         listFriendNode.innerHTML =
             `<img src="https://placekitten.com/50/50" data-hash="${hash}"></img>
             <p class="friend-name">${name}</p>
             <p class="friend-status friend-is-offline">${status}</p>`;
-        document.querySelector(".friends-wrapper").appendChild(listFriendNode);
+        document.querySelector('.friends-wrapper').appendChild(listFriendNode);
     } else {
         listFriendNode.innerHTML =
             `<img src="https://placekitten.com/50/50" class="icon-is-online" data-hash="${hash}"></img>
             <p class="friend-name">${name}</p>
             <p class="friend-status">${status}</p>`;
-        document.querySelector(".friends-wrapper").appendChild(listFriendNode);
+        document.querySelector('.friends-wrapper').appendChild(listFriendNode);
     }
 }
 
 function updateFriendListEntry(status, id) {
     document.querySelectorAll(`[data-friend-id="${id}"]`).forEach((e) => {
-        e.querySelector(".friend-status").innerHTML = `${status}`;
-        if (status === "Offline") {
-            e.querySelector("img").classList.remove("icon-is-online");
-            e.querySelector(".friend-status").classList.add("friend-is-offline");
+        e.querySelector('.friend-status').innerHTML = `${status}`;
+        if (status === 'Offline') {
+            e.querySelector('img').classList.remove('icon-is-online');
+            e.querySelector('.friend-status').classList.add('friend-is-offline');
         } else {
-            e.querySelector("img").classList.add("icon-is-online");
-            e.querySelector(".friend-status").classList.remove("friend-is-offline");
+            e.querySelector('img').classList.add('icon-is-online');
+            e.querySelector('.friend-status').classList.remove('friend-is-offline');
         }
     });
 }
@@ -107,23 +115,25 @@ function updateFriendListEntry(status, id) {
 // EVERYTHING ELSE
 // ===============
 
-swapNavPages("home"); // On start up, set page to Home
+// On start up, set page to Home
+swapNavPages('home');
 
-document.querySelectorAll(".navbar-button").forEach((e) => { // Navbar Control Logic
-    let tooltip = e.querySelector(".navbar-tooltip"); // Tooltips!
-    e.addEventListener("mouseenter", () => {
-        tooltip.style.display = "block";
+// Navbar Control Logic
+document.querySelectorAll('.navbar-button').forEach((e) => {
+    let tooltip = e.querySelector('.navbar-tooltip');
+    e.addEventListener('mouseenter', () => {
+        tooltip.style.display = 'block';
     });
-    e.addEventListener("mouseleave", () => {
-        tooltip.style.display = "none";
+    e.addEventListener('mouseleave', () => {
+        tooltip.style.display = 'none';
     });
-    e.addEventListener("mousedown", () => { // Page changing!
+    e.addEventListener('mousedown', () => {
         swapNavPages(e.dataset.page);
-        if (e.dataset.page === "search") {
+        if (e.dataset.page === 'search') {
             initSearchPage();
         }
-    })
-})
+    });
+});
 
 // Friends Page & Online Sidebar
 // -----------------------------
@@ -141,13 +151,16 @@ document.querySelectorAll(".navbar-button").forEach((e) => { // Navbar Control L
 // const instance = await window.API.getInstanceById(instanceId);
 
 window.API.onGetActiveUser((_event, activeUser) => {
-    console.log("Active User!");
+    console.log('Active User!');
     console.log(activeUser);
-    document.querySelector(".home-user--user-icon").setAttribute("data-hash", activeUser.imageHash);
-    document.querySelector(".home-user--user-name").innerHTML = activeUser.name;
-    document.querySelector(".user-extra--user-avatar").innerHTML = `<img data-hash="${activeUser.avatar['imageHash']}">${activeUser.avatar["name"]}`;
-    document.querySelector(".user-extra--user-badge").innerHTML = `<img data-hash="${activeUser.featuredBadge['imageHash']}">${activeUser.featuredBadge["name"]}`;
-    document.querySelector(".user-extra--user-rank").innerHTML = `<img src="./client/img/ui/rank.png">${activeUser.rank}`;
+    document.querySelector('.home-user--user-icon').setAttribute('data-hash', activeUser.imageHash);
+    document.querySelector('.home-user--user-name').innerHTML = activeUser.name;
+    document.querySelector('.user-extra--user-avatar').innerHTML =
+        `<img data-hash="${activeUser.avatar['imageHash']}">${activeUser.avatar['name']}`;
+    document.querySelector('.user-extra--user-badge').innerHTML =
+        `<img data-hash="${activeUser.featuredBadge['imageHash']}">${activeUser.featuredBadge['name']}`;
+    document.querySelector('.user-extra--user-rank').innerHTML =
+        `<img src="./client/img/ui/rank.png">${activeUser.rank}`;
     // document.querySelector("#user-greeting").innerHTML = activeUser.name;
     // activeUser = {
     //     onlineState: false,
@@ -182,7 +195,7 @@ window.API.onGetActiveUser((_event, activeUser) => {
 });
 
 window.API.onFriendsRefresh((_event, friends, isRefresh) => {
-    console.log("Friends Refresh! isRefresh: " + isRefresh);
+    console.log('Friends Refresh! isRefresh: ' + isRefresh);
     console.log(friends);
 
     for (const friend of friends) {
@@ -190,9 +203,11 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
         let friendStatus;
 
         switch (friend.isOnline) {
-            case true: // If user is online...
-                if (friend.instance == null) { // ...and NOT connected to an instance
-                    friendStatus = "Private Instance";
+            // If user is online...
+            case true:
+                // ...and NOT connected to an instance
+                if (friend.instance == null) {
+                    friendStatus = 'Private Instance';
                     // Checking if entry exists in Online List to update...
                     if (document.querySelectorAll(`[data-online-id="${friend.id}"]`).length) {
                         updateOnlineFriend(friendStatus, friend.id);
@@ -204,12 +219,14 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
                     if (document.querySelectorAll(`[data-friend-id="${friend.id}"]`).length) {
                         updateFriendListEntry(friendStatus, friend.id);
                         continue;
-                    } // ... 'else' we add a new entry since we assume there wasn't one before.
+                    }
+                    // ... 'else' we add a new entry since we assume there wasn't one before.
                     addToFriendList(friend.name, friendStatus, friend.imageHash, friend.id);
                     continue;
                 }
                 // ...and is connected to an instance
-                friendStatus = friend.instance["name"]; // Instead of 'Online', we say what instance they're in!
+                // Instead of 'Online', we say what instance they're in!
+                friendStatus = friend.instance['name'];
                 // Checking if entry exists in Online List to update...
                 if (document.querySelectorAll(`[data-online-id="${friend.id}"]`).length) {
                     updateOnlineFriend(friendStatus, friend.id);
@@ -221,17 +238,20 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
                 if (document.querySelectorAll(`[data-friend-id="${friend.id}"]`).length) {
                     updateFriendListEntry(friendStatus, friend.id);
                     continue;
-                } // ... 'else' we add a new entry since we assume there wasn't one before.
+                }
+                // ... 'else' we add a new entry since we assume there wasn't one before.
                 addToFriendList(friend.name, friendStatus, friend.imageHash, friend.id);
                 break;
-            default: // If 'isOnline' returns null, false (or similar) then we assume they're offline.
-                friendStatus = "Offline";
+            default:
+                // If 'isOnline' returns null, false (or similar) then we assume they're offline.
+                friendStatus = 'Offline';
                 removeOnlineFriend(friend.id);
                 // Checking if they're on our Friends List page (this might be the init call, so there's a chance there won't be one here)
                 if (document.querySelectorAll(`[data-friend-id="${friend.id}"]`).length) {
                     updateFriendListEntry(friendStatus, friend.id);
                     continue;
-                } // ... 'else' we add a new entry since we assume there wasn't one before. (likely if it's the init call!)
+                }
+                // ... 'else' we add a new entry since we assume there wasn't one before. (likely if it's the init call!)
                 addToFriendList(friend.name, friendStatus, friend.imageHash, friend.id);
         }
     }
@@ -289,7 +309,8 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     // ]
 });
 
-window.API.onImageLoaded((_event, image) => { // returns .imageBase64, .imageHash, .imageUrl
+// returns .imageBase64, .imageHash, .imageUrl
+window.API.onImageLoaded((_event, image) => {
     document.querySelectorAll(`[data-hash="${image.imageHash}"]`).forEach((e) => {
         e.src = image.imageBase64;
     });
@@ -303,12 +324,12 @@ searchBar.addEventListener('keypress', async function (event) {
     const searchTerm = searchBar.value;
 
     // Ignore if the search term is empty, or the key pressed was not ENTER - or if the search term is <3 characters
-    if (!searchTerm || searchTerm.length < 3 || event.key !== "Enter") return;
+    if (!searchTerm || searchTerm.length < 3 || event.key !== 'Enter') return;
     event.preventDefault();
 
     // Disable the search while we're fetching and populating the results
     searchBar.disabled = true;
-    toastyNotification("Searching...");
+    toastyNotification('Searching...');
 
     // Fetch the search results
     const results = await window.API.search(searchTerm);
@@ -325,13 +346,13 @@ searchBar.addEventListener('keypress', async function (event) {
     //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
     // }];
 
-    const searchOutput = document.querySelector(".search-output");
+    const searchOutput = document.querySelector('.search-output');
     const elementsOfResults = [];
 
     // Create the search result elements
     for (const result of results) {
-        let searchResult = document.createElement("div");
-        searchResult.setAttribute("class", "search-result-node");
+        let searchResult = document.createElement('div');
+        searchResult.setAttribute('class', 'search-result-node');
         searchResult.innerHTML = `
             <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
             <p class="search-result-name">${result.name}</p>
@@ -344,7 +365,7 @@ searchBar.addEventListener('keypress', async function (event) {
 
     // Re-enable the search
     searchBar.disabled = false;
-    toastyNotification("Search Complete!", "confirm");
+    toastyNotification('Search Complete!', 'confirm');
 });
 
 
@@ -373,8 +394,8 @@ window.API.OnWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
     // Create the search result elements
     const elementsOfResults = [];
     for (const result of worldsInfo) {
-        let activeWorldNode = document.createElement("div");
-        activeWorldNode.setAttribute("class", "active-world-node");
+        let activeWorldNode = document.createElement('div');
+        activeWorldNode.setAttribute('class', 'active-world-node');
         activeWorldNode.innerHTML = `
             <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
             <p class="search-result-name">${result.name}</p>
@@ -415,14 +436,14 @@ window.API.OnInvites((_event, invites) => {
     const homeRequests = document.querySelector('.home-requests');
 
     // Remove previous invites
-    document.querySelectorAll(".home-requests--invite").forEach(el => el.remove());
+    document.querySelectorAll('.home-requests--invite').forEach(el => el.remove());
 
     // Create the search result elements
     for (const invite of invites) {
-        let inviteNode = document.createElement("div");
-        inviteNode.setAttribute("class", "home-requests--invite");
+        let inviteNode = document.createElement('div');
+        inviteNode.setAttribute('class', 'home-requests--invite');
         inviteNode.innerHTML = `
-        <img class=home-requests--invite--user-img"" src="https://placekitten.com/50/50" data-hash="${invite.user.imageHash}"/>
+        <img class="home-requests--invite--user-img" src="https://placekitten.com/50/50" data-hash="${invite.user.imageHash}"/>
         <img class="home-requests--invite--world-img" src="https://placekitten.com/50/50" data-hash="${invite.world.imageHash}"/>
         <p class="home-requests--invite--user-name">${invite.user.name}</p>
         <p class="home-requests--invite--instance-name">${invite.instanceName}</p>`;
@@ -448,12 +469,12 @@ window.API.OnInviteRequests((_event, requestInvites) => {
     const homeRequests = document.querySelector('.home-requests');
 
     // Remove previous invites
-    document.querySelectorAll(".home-requests--invite-request").forEach(el => el.remove());
+    document.querySelectorAll('.home-requests--invite-request').forEach(el => el.remove());
 
     // Create the search result elements
     for (const requestInvite of requestInvites) {
-        let requestInviteNode = document.createElement("div");
-        requestInviteNode.setAttribute("class", "home-requests--invite-request");
+        let requestInviteNode = document.createElement('div');
+        requestInviteNode.setAttribute('class', 'home-requests--invite-request');
         requestInviteNode.innerHTML = `
         <img class="home-requests--invite-request--world-img" src="https://placekitten.com/50/50" data-hash="${requestInvite.sender.imageHash}"/>
         <p class="home-requests--invite-request--user-name">${requestInvite.sender.name}</p>`;
@@ -476,14 +497,14 @@ window.API.OnFriendRequests((_event, friendRequests) => {
     const homeRequests = document.querySelector('.home-requests');
 
     // Remove previous invites
-    document.querySelectorAll(".home-requests--friend-request").forEach(el => el.remove());
+    document.querySelectorAll('.home-requests--friend-request').forEach(el => el.remove());
 
     // Create the search result elements
     for (const friendRequest of friendRequests) {
 
         // Create friendRequest Node element
-        let friendRequestNode = document.createElement("div");
-        friendRequestNode.setAttribute("class", "home-requests--friend-request");
+        let friendRequestNode = document.createElement('div');
+        friendRequestNode.setAttribute('class', 'home-requests--friend-request');
         friendRequestNode.innerHTML = `
         <img class="home-requests--friend-request--world-img" src="https://placekitten.com/50/50" data-hash="${friendRequest.imageHash}"/>
         <p class="home-requests--friend-request--user-name">${friendRequest.name}</p>`;
@@ -491,13 +512,13 @@ window.API.OnFriendRequests((_event, friendRequests) => {
         // Create buttons (can't do it with template strings because won't let me inline the function call)
         const acceptButton = document.createElement('button');
         acceptButton.append('Accept');
-        acceptButton.setAttribute("class", "home-requests--friend-request--accept");
+        acceptButton.setAttribute('class', 'home-requests--friend-request--accept');
         acceptButton.addEventListener('click', () => window.API.acceptFriendRequest(friendRequest.id));
         const declineButton = document.createElement('button');
         declineButton.append('Decline');
-        declineButton.setAttribute("class", "home-requests--friend-request--decline");
+        declineButton.setAttribute('class', 'home-requests--friend-request--decline');
         declineButton.addEventListener('click', () => window.API.declineFriendRequest(friendRequest.id));
-        friendRequestNode.append(acceptButton, declineButton)
+        friendRequestNode.append(acceptButton, declineButton);
 
         // Append friendRequest Node element at the beginning
         homeRequests.prepend(friendRequestNode);
@@ -511,32 +532,43 @@ window.API.onNotification((_event, msg) => {
     console.log(msg);
 });
 
-document.querySelectorAll(".toast-test").forEach((e) => {
-    e.addEventListener("mousedown", () => {
-        let text = document.querySelector("#toast-text").value;
+document.querySelectorAll('.toast-test').forEach((e) => {
+    e.addEventListener('mousedown', () => {
+        let text = document.querySelector('#toast-text').value;
         let type = e.dataset.type;
         toastyNotification(text, type);
     });
-})
+});
+
+// Friends filtering :D
+
+document.querySelector('.friends-filter').addEventListener('keyup', () => {
+    const filterQuery = document.querySelector('.friends-filter').value.toLowerCase();
+    document.querySelectorAll('.friend-list-node').forEach((e) => {
+        const matched = e.querySelector('.friend-name').textContent.toLowerCase().includes(filterQuery);
+        e.classList.toggle('filtered-friend', !matched);
+    });
+});
 
 function toastyNotification(message, type) {
-    const toast = document.querySelector(".toast-notification");
+    const toast = document.querySelector('.toast-notification');
     clearTimeout(toastTimer);
     switch (type) {
-        case "confirm":
-            toast.setAttribute("class", "toast-notification toast-confirm");
+        case 'confirm':
+            toast.setAttribute('class', 'toast-notification toast-confirm');
             break;
-        case "error":
-            toast.setAttribute("class", "toast-notification toast-error");
+        case 'error':
+            toast.setAttribute('class', 'toast-notification toast-error');
             break;
         default:
-            toast.setAttribute("class", "toast-notification toast-info");
+            toast.setAttribute('class', 'toast-notification toast-info');
     }
     toast.innerHTML = message;
-    toast.classList.add("toast-up");
+    toast.classList.add('toast-up');
     toastDown();
 }
 
+// dis is were we remob da shade wen it are loaded but rn i am jus cheating wid a timeout lol :)
 setTimeout(() => {
-    document.querySelector(".loading-shade").remove(); // dis is were we remob da shade wen it are loaded but rn i am jus cheating wid a timeout lol :)
-}, 2000)
+    document.querySelector('.loading-shade').remove();
+}, 2000);
