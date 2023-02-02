@@ -2,14 +2,15 @@ const util = require('util');
 
 const WebSocket = require('ws');
 const WebSocketAddress = "wss://api.abinteractive.net/1/users/ws";
-//const WebSocketAddress = "ws://localhost";
 
 const events = require('events');
 const EventEmitter = new events.EventEmitter();
 exports.EventEmitter = EventEmitter;
 
-let socket;
 
+let currentUsername;
+let currentAccessKey;
+let socket;
 
 const RESPONSE_TYPE = Object.freeze({
     MENU_POPUP: 0,
@@ -20,6 +21,20 @@ const RESPONSE_TYPE = Object.freeze({
     FRIEND_REQUESTS: 25,
 });
 exports.ResponseType = RESPONSE_TYPE;
+
+
+exports.ConnectWithCredentials = async (username, accessKey) => {
+
+    // If we have a socket connected and the credentials changed, lets nuke it
+    if ((username !== currentUsername || accessKey !== currentAccessKey) && socket) {
+        await exports.DisconnectWebsocket();
+    }
+
+    currentUsername = username;
+    currentAccessKey = accessKey;
+
+    await ConnectWebsocket(username, accessKey);
+};
 
 
 function LogRequestResponse(res) {
@@ -37,9 +52,11 @@ exports.DisconnectWebsocket = async () => {
 };
 
 
+async function Reconnect() {
+    await ConnectWebsocket(currentUsername, currentAccessKey);
+}
 
-
-exports.ConnectWebsocket = async () => {
+async function ConnectWebsocket(username, accessKey) {
 
     return new Promise((resolve, _reject) => {
 
@@ -51,8 +68,8 @@ exports.ConnectWebsocket = async () => {
         socket = new WebSocket(WebSocketAddress, {
             perMessageDeflate: false,
             headers: {
-                'Username': process.env.CVR_USERNAME,
-                'AccessKey': process.env.CVR_ACCESS_KEY,
+                'Username': username,
+                'AccessKey': accessKey,
             },
         });
 
@@ -113,7 +130,7 @@ exports.ConnectWebsocket = async () => {
             }
         });
     });
-};
+}
 
 const RequestType = Object.freeze({
     FRIEND_REQUEST_SEND: 5,

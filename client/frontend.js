@@ -345,18 +345,17 @@ searchBar.addEventListener('keypress', async function (event) {
 
 // Janky Get Active Worlds
 // -----------------------------
-getActiveWorlds().then().catch(console.error);
-async function getActiveWorlds() {
+window.API.OnWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
+
+    if (worldCategoryId !== 'wrldactive') return;
 
     const homeActivity = document.querySelector('.home-activity');
 
     // Disable the element because we're loading stuffs (better if there is a spinner or something idk)
     homeActivity.disabled = true;
 
-    const activeWorlds = await window.API.getWorldsByCategory('wrldactive');
-
     console.log('Grabbed active worlds!');
-    console.log(activeWorlds);
+    console.log(worldsInfo);
 
     // activeWorlds = [{
     //     playerCount: 1,
@@ -368,7 +367,7 @@ async function getActiveWorlds() {
 
     // Create the search result elements
     const elementsOfResults = [];
-    for (const result of activeWorlds) {
+    for (const result of worldsInfo) {
         let activeWorldNode = document.createElement("div");
         activeWorldNode.setAttribute("class", "active-world-node");
         activeWorldNode.innerHTML = `
@@ -383,7 +382,7 @@ async function getActiveWorlds() {
 
     // Re-enable the element because we're loading stuffs (better if there is a spinner or something idk)
     searchBar.disabled = false;
-}
+});
 
 // Janky invite listener
 window.API.OnInvites((_event, invites) => {

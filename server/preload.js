@@ -10,7 +10,6 @@ contextBridge.exposeInMainWorld('API', {
     onImageLoaded: (callback) => ipcRenderer.on('image-load', callback),
 
     getUserById: (userId) => ipcRenderer.invoke('get-user-by-id', userId),
-    getWorldsByCategory: (worldCategory) => ipcRenderer.invoke('get-worlds-by-category', worldCategory),
     getWorldById: (worldId) => ipcRenderer.invoke('get-world-by-id', worldId),
     getInstanceById: (instanceId) => ipcRenderer.invoke('get-instance-by-id', instanceId),
 
@@ -21,7 +20,10 @@ contextBridge.exposeInMainWorld('API', {
 
     OnFriendRequests: (callback) => ipcRenderer.on('friend-requests', callback),
 
+    OnWorldsByCategoryRefresh: (callback) => ipcRenderer.on('worlds-category-requests', callback),
+
     refreshFriendRequests: () => ipcRenderer.send('refresh-friend-requests'),
+    refreshWorldsCategory: (worldCategoryId) => ipcRenderer.send('refresh-worlds-category', worldCategoryId),
 
     // Friendship
     sendFriendRequest: (userId) => ipcRenderer.invoke('friend-request-send', userId),
