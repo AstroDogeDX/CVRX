@@ -41,11 +41,11 @@
 ::-webkit-scrollbar-track {
     box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.25);
     border-radius: 10px;
-    padding: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
     background: white;
+    border-radius: 10px;
 }
 
 .navbar-seg {
@@ -340,14 +340,13 @@ tr:nth-child(odd) {
 .online-friend-world {
     grid-area: online-friend-world;
     font-size: 12px;
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
+    display: block;
     font-style: italic;
     height: auto;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 200%;
 }
 
 .online-friend-world-count {
@@ -372,26 +371,26 @@ tr:nth-child(odd) {
 
 .toast-notification {
     position: absolute;
-    bottom: -40px;
+    bottom: -50px;
     left: 0;
     right: 0;
     width: max-content;
     max-width: 80vw;
     background: purple;
-    border-radius: 5px;
-    padding: 5px;
-    font-size: 22px;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 20px;
     text-align: center;
     margin: auto;
     transition: bottom 0.2s ease;
 }
 
 .toast-confirm {
-    background: green;
+    background: rgba(0, 128, 0, 0.75);
 }
 
 .toast-error {
-    background: darkred;
+    background: rgba(139, 0, 0, 0.75);
 }
 
 .toast-info {

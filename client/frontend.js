@@ -303,6 +303,7 @@ searchBar.addEventListener('keypress', async function (event) {
 
     // Disable the search while we're fetching and populating the results
     searchBar.disabled = true;
+    toastyNotification("Searching...");
 
     // Fetch the search results
     const results = await window.API.search(searchTerm);
@@ -338,6 +339,7 @@ searchBar.addEventListener('keypress', async function (event) {
 
     // Re-enable the search
     searchBar.disabled = false;
+    toastyNotification("Search Complete!", "confirm");
 });
 
 
