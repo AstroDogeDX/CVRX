@@ -7,7 +7,6 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; img-src * data:;">
   <link rel="stylesheet" href="./client/fonts/material-symbols.css">
   <link rel="stylesheet" href="./client/main-style.css">
-  <script src="./client/async.js" async></script>
   <script src="./client/frontend.js" defer></script>
   <title>CVRX</title>
 </head>
@@ -66,6 +65,7 @@
         <div class="display-seg search-output"></div>
       </div>
       <div class="display-wrapper" id="display-friends">
+        <input class="friends-filter" type="text" placeholder="Type to Filter">
         <div class="friends-wrapper"></div>
       </div>
       <div class="display-wrapper" id="display-avatars">
@@ -78,7 +78,10 @@
         Props
       </div>
       <div class="display-wrapper" id="display-debug">
-        Testing Zone!
+        <input id="toast-text" type="text">
+        <button class="toast-test" data-type="">Toasty Test</button>
+        <button class="toast-test" data-type="error">Burnt Toast</button>
+        <button class="toast-test" data-type="confirm">Delicious Toast</button>
       </div>
       <div class="display-wrapper" id="display-settings">
         Settings
@@ -91,7 +94,11 @@
       </div>
     </div>
   </div>
-  <div class="overlay"></div>
+  <div class="overlay">
+    <div class="toast-notification">
+      OH HELLO DERE :)
+    </div>
+  </div>
 </body>
 
 </html>

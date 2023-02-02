@@ -35,11 +35,13 @@
 }
 
 ::-webkit-scrollbar {
-    width: 1px;
+    width: 5px;
 }
 
 ::-webkit-scrollbar-track {
     box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+    padding: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -185,26 +187,58 @@
 
 /* Friends Page */
 
-.friends-wrapper :is(div) {
-    padding: 5px;
-    min-height: 60px;
+#display-friends {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    gap: 5px;
+    grid-template-columns: 1fr;
+    grid-template-rows: 50px 1fr;
+    grid-template-areas:
+        "friends-filter"
+        "friends-list";
 }
 
-.friends-wrapper :is(div):nth-child(odd) {
+.friends-filter {
+    grid-area: friends-filter;
+    position: sticky;
+    top: 0px;
+    border-radius: 10px;
+    padding: 5px;
+    font-size: 32px;
+    color: black;
+}
+
+.friends-filter::placeholder {
+    font-style: italic;
+}
+
+.friends-wrapper {
+    grid-area: friends-list;
+}
+
+.friends-wrapper .friend-list-node:nth-child(odd) {
     background: rgba(255, 255, 255, 0.1);
 }
 
-.friends-wrapper :is(img) {
+.friend-list-node {
+    padding: 5px;
+    border-radius: 5px;
+    min-height: 60px;
+}
+
+.friend-list-node :is(img) {
     float: left;
     max-height: 50px;
     max-width: 50px;
     margin-right: 10px;
     border-radius: 5px;
+    /*border: thin solid darkslategrey;*/
 }
 
-.friend-list-node {
-    border-radius: 5px;
-    min-height: 60px;
+.icon-is-online {
+    border: thin solid lime !important;
+    box-shadow: 0 0 5px lime;
 }
 
 .friend-name {
@@ -219,19 +253,6 @@
 .friend-is-offline {
     color: rgba(255, 255, 255, 0.5);
     font-style: italic;
-}
-
-.friend-indicator-led {
-    max-width: 5px;
-    max-height: 5px;
-    border-radius: 100%;
-    background: red;
-    bottom: 5px;
-    right: 5px;
-}
-
-.indicator-on {
-    background: lime;
 }
 
 /* Generic Table Styling */
@@ -339,6 +360,58 @@ tr:nth-child(odd) {
     height: auto;
 }
 
+/* Overlay Related Stylings */
+
 .overlay {
-    display: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.toast-notification {
+    position: absolute;
+    bottom: -40px;
+    left: 0;
+    right: 0;
+    width: max-content;
+    max-width: 80vw;
+    background: purple;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 22px;
+    text-align: center;
+    margin: auto;
+    transition: bottom 0.2s ease;
+}
+
+.toast-confirm {
+    background: green;
+}
+
+.toast-error {
+    background: darkred;
+}
+
+.toast-info {
+    background: rgba(0, 0, 0, 0.25)
+}
+
+.toast-up {
+    bottom: 10px;
+}
+
+/* Testing Stuff - To be removed before final builds! */
+
+#display-debug :is(button) {
+    width: max-content;
+    height: max-content;
+    color: black;
+}
+
+#display-debug :is(input) {
+    width: 300px;
+    height: 20px;
+    color: black;
 }
