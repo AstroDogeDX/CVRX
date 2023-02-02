@@ -2,6 +2,14 @@
 // GLOBAL VARS
 // ===========
 
+let toastTimer;
+
+const toastDown = () => {
+    toastTimer = setTimeout(() => {
+        document.querySelector(".toast-notification").classList.remove("toast-up");
+    }, 3000)
+}
+
 // =========
 // FUNCTIONS
 // =========
@@ -75,7 +83,7 @@ function addToFriendList(name, status, hash, id) {
         document.querySelector(".friends-wrapper").appendChild(listFriendNode);
     } else {
         listFriendNode.innerHTML =
-            `<img src="https://placekitten.com/50/50" data-hash="${hash}"></img>
+            `<img src="https://placekitten.com/50/50" class="icon-is-online" data-hash="${hash}"></img>
             <p class="friend-name">${name}</p>
             <p class="friend-status">${status}</p>`;
         document.querySelector(".friends-wrapper").appendChild(listFriendNode);
@@ -86,8 +94,10 @@ function updateFriendListEntry(status, id) {
     document.querySelectorAll(`[data-friend-id="${id}"]`).forEach((e) => {
         e.querySelector(".friend-status").innerHTML = `${status}`;
         if (status === "Offline") {
+            e.querySelector("img").classList.remove("icon-is-online");
             e.querySelector(".friend-status").classList.add("friend-is-offline");
         } else {
+            e.querySelector("img").classList.add("icon-is-online");
             e.querySelector(".friend-status").classList.remove("friend-is-offline");
         }
     });
@@ -494,3 +504,29 @@ window.API.onNotification((_event, msg) => {
     console.log('Notification!!!');
     console.log(msg);
 });
+
+document.querySelectorAll(".toast-test").forEach((e) => {
+    e.addEventListener("mousedown", () => {
+        let text = document.querySelector("#toast-text").value;
+        let type = e.dataset.type;
+        toastyNotification(text, type);
+    });
+})
+
+function toastyNotification(message, type) {
+    const toast = document.querySelector(".toast-notification");
+    clearTimeout(toastTimer);
+    switch (type) {
+        case "confirm":
+            toast.setAttribute("class", "toast-notification toast-confirm");
+            break;
+        case "error":
+            toast.setAttribute("class", "toast-notification toast-error");
+            break;
+        default:
+            toast.setAttribute("class", "toast-notification toast-info");
+    }
+    toast.innerHTML = message;
+    toast.classList.add("toast-up");
+    toastDown();
+}
