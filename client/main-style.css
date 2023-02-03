@@ -36,16 +36,19 @@
 
 ::-webkit-scrollbar {
     width: 5px;
+    margin-left: 5px;
 }
 
 ::-webkit-scrollbar-track {
     box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.25);
     border-radius: 10px;
+    border-left: solid 3px transparent;
 }
 
 ::-webkit-scrollbar-thumb {
     background: white;
     border-radius: 10px;
+    border-left: solid 3px transparent;
 }
 
 .navbar-seg {
@@ -98,8 +101,7 @@
 
 .display-seg {
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
-    padding: 5px;
+    border-radius: 5px;
 }
 
 /* Display Area - HOME */
@@ -118,6 +120,8 @@
 #display-home {
     display: grid;
     gap: 5px;
+    height: 100%;
+    width: 100%;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 150px 1fr;
     grid-template-areas:
@@ -180,27 +184,32 @@
 .user-extra--user-avatar {
     display: flex;
     align-items: center;
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
 }
 
 .user-extra--user-badge {
     display: flex;
     align-items: center;
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
 }
 
 .user-extra--user-rank {
     display: flex;
     align-items: center;
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
 }
 
 .home-requests {
     grid-area: home-requests;
-    background: green;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
 }
 
 .home-activity {
@@ -214,7 +223,7 @@
 }
 
 .home-activity--activity-wrapper {
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
 }
 
@@ -229,7 +238,7 @@
 }
 
 .home-history--history-wrapper {
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
 }
 
@@ -258,6 +267,9 @@
 #display-search {
     display: grid;
     gap: 5px;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     grid-template-rows: 50px 1fr;
     grid-template-columns: 1fr;
     grid-template-areas:
@@ -289,6 +301,7 @@
 
 .search-output {
     grid-area: search-output;
+    overflow-y: auto;
 }
 
 .search-result-node {
@@ -332,6 +345,7 @@
 
 .friends-wrapper {
     grid-area: friends-list;
+    overflow-y: scroll;
 }
 
 .friends-wrapper .friend-list-node:nth-of-type(odd) {
