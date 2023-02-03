@@ -1,7 +1,8 @@
 {
     "env": {
         "browser": true,
-        "es2021": true
+        "es2021": true,
+        "node": true
     },
     "extends": "eslint:recommended",
     "overrides": [
@@ -13,9 +14,15 @@
         "semi": "error",
         "eol-last": "error",
         "no-unexpected-multiline": "error",
-        "max-len": ["error", {"code": 120, "tabWidth": 4, "ignoreComments": true, "ignoreTemplateLiterals": true}],
+        "max-len": ["error", {"code": 200, "tabWidth": 4, "ignoreComments": true, "ignoreTemplateLiterals": true}],
         "no-inline-comments": "error",
         "no-trailing-spaces": "error",
-        "quotes": ["error", "single"]
+        "quotes": ["error", "single"],
+        "prefer-arrow-callback": "error",
+        "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+        "comma-dangle": ["error", "always-multiline"],
+        "dot-notation": "error",
+        "eqeqeq": "error",
+        "no-alert": "error"
     }
 }

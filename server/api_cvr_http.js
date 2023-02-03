@@ -2,9 +2,9 @@ const util = require('util');
 const axios = require('axios');
 
 
-const APIAddress = "https://api.abinteractive.net";
-const APIVersion = "1";
-const APIUserAgent = "ChilloutVR API-Requests";
+const APIAddress = 'https://api.abinteractive.net';
+const APIVersion = '1';
+const APIUserAgent = 'ChilloutVR API-Requests';
 const APIBase = `${APIAddress}/${APIVersion}`;
 
 let CVRApi;
@@ -27,7 +27,7 @@ async function Get(url) {
 async function Post(url, data, authenticated = true) {
     try {
         const response = await (authenticated ? CVRApi : UnauthenticatedCVRApi).post(url, data);
-        console.log(`[Post] ${response.request.url}`)
+        console.log(`[Post] ${response.request.url}`);
         console.log(util.inspect(response.data, {showHidden: false, depth: null, colors: true}));
         return response.data.data;
     }
@@ -51,33 +51,33 @@ const CATEGORY_TYPES = Object.freeze({
 
 // Authenticate
 exports.AuthenticateViaAccessKey = async (username, accessKey) => {
-    const authentication = await Post(`/users/auth`, { AuthType: 1, Username: username, Password: accessKey }, false);
+    const authentication = await Post('/users/auth', { AuthType: 1, Username: username, Password: accessKey }, false);
     CVRApi = axios.create({
         baseURL: APIBase,
         headers: {
             'Username': authentication.username,
             'AccessKey': authentication.accessKey,
             'User-Agent': APIUserAgent,
-        }
+        },
     });
     return authentication;
-}
+};
 
 // Friends
-exports.GetMyFriends = async () => Get(`/friends`);
-exports.GetMyFriendRequests = async () => Get(`/friends/requests`);
+exports.GetMyFriends = async () => Get('/friends');
+exports.GetMyFriendRequests = async () => Get('/friends/requests');
 
 // Users
 exports.GetUserById = async (userId) => Get(`/users/${userId}`);
 
 // Avatars
-exports.GetMyAvatars = async () => Get(`/avatars`);
+exports.GetMyAvatars = async () => Get('/avatars');
 exports.GetAvatarById = async (avatarId) => Get(`/avatars/${avatarId}`);
 
 // Categories
-exports.GetCategories = async () => Get(`/categories`);
+exports.GetCategories = async () => Get('/categories');
 async function SetAvatarCategories(type, id, categoryIds) {
-    return Post(`/categories/assign`, {Uuid: id, CategoryType: type, Categories: categoryIds});
+    return Post('/categories/assign', {Uuid: id, CategoryType: type, Categories: categoryIds});
 }
 exports.SetAvatarCategories = async (avatarId, categoryIds) => SetAvatarCategories(CATEGORY_TYPES.AVATARS, avatarId, categoryIds);
 exports.SetFriendCategories = async (userId, categoryIds) => SetAvatarCategories(CATEGORY_TYPES.FRIENDS, userId, categoryIds);
@@ -92,7 +92,7 @@ exports.GetWorldPortalById = async (worldId) => Get(`/portals/world/${worldId}`)
 exports.SetWorldAsHome = async (worldId) => Get(`/worlds/${worldId}/sethome`);
 
 // Spawnables
-exports.GetProps = async () => Get(`/spawnables`);
+exports.GetProps = async () => Get('/spawnables');
 exports.GetPropById = async (propId) => Get(`/spawnables/${propId}`);
 
 // Instances

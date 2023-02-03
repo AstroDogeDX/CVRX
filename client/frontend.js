@@ -156,9 +156,9 @@ window.API.onGetActiveUser((_event, activeUser) => {
     document.querySelector('.home-user--user-icon').setAttribute('data-hash', activeUser.imageHash);
     document.querySelector('.home-user--user-name').innerHTML = activeUser.name;
     document.querySelector('.user-extra--user-avatar').innerHTML =
-        `<img data-hash="${activeUser.avatar['imageHash']}">${activeUser.avatar['name']}`;
+        `<img data-hash="${activeUser.avatar.imageHash}">${activeUser.avatar.name}`;
     document.querySelector('.user-extra--user-badge').innerHTML =
-        `<img data-hash="${activeUser.featuredBadge['imageHash']}">${activeUser.featuredBadge['name']}`;
+        `<img data-hash="${activeUser.featuredBadge.imageHash}">${activeUser.featuredBadge.name}`;
     document.querySelector('.user-extra--user-rank').innerHTML =
         `<img src="./client/img/ui/rank.png">${activeUser.rank}`;
     // document.querySelector("#user-greeting").innerHTML = activeUser.name;
@@ -206,7 +206,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
             // If user is online...
             case true:
                 // ...and NOT connected to an instance
-                if (friend.instance == null) {
+                if (friend.instance === null) {
                     friendStatus = 'Private Instance';
                     // Checking if entry exists in Online List to update...
                     if (document.querySelectorAll(`[data-online-id="${friend.id}"]`).length) {
@@ -226,7 +226,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
                 }
                 // ...and is connected to an instance
                 // Instead of 'Online', we say what instance they're in!
-                friendStatus = friend.instance['name'];
+                friendStatus = friend.instance.name;
                 // Checking if entry exists in Online List to update...
                 if (document.querySelectorAll(`[data-online-id="${friend.id}"]`).length) {
                     updateOnlineFriend(friendStatus, friend.id);
@@ -320,11 +320,11 @@ window.API.onImageLoaded((_event, image) => {
 // Janky Search
 // -----------------------------
 const searchBar = document.getElementById('search-bar');
-searchBar.addEventListener('keypress', async function (event) {
+searchBar.addEventListener('keypress', async (event) => {
     const searchTerm = searchBar.value;
 
     // Ignore if the search term is empty, or the key pressed was not ENTER - or if the search term is <3 characters
-    if (!searchTerm || searchTerm.length < 3 || event.key !== 'Enter') return;
+    if (!searchTerm || searchTerm.length < 3 || event.key !== 'Enter') {return;}
     event.preventDefault();
 
     // Disable the search while we're fetching and populating the results
@@ -373,7 +373,7 @@ searchBar.addEventListener('keypress', async function (event) {
 // -----------------------------
 window.API.OnWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
 
-    if (worldCategoryId !== 'wrldactive') return;
+    if (worldCategoryId !== 'wrldactive') {return;}
 
     const homeActivity = document.querySelector('.home-activity--activity-wrapper');
 

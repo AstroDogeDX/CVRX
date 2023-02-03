@@ -1,4 +1,4 @@
-const { ipcMain } = require('electron')
+const { ipcMain } = require('electron');
 const cache = require('./cache.js');
 const CVRHttp = require('./api_cvr_http');
 const CVRWebsocket = require('./api_cvr_ws');
@@ -30,7 +30,7 @@ class Core {
 
     constructor(mainWindow) {
         this.mainWindow = mainWindow;
-        this.userId = "";
+        this.userId = '';
         this.friends = {};
         this.categories = {};
 

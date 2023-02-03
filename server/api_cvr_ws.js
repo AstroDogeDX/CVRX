@@ -1,7 +1,7 @@
 const util = require('util');
 
 const WebSocket = require('ws');
-const WebSocketAddress = "wss://api.abinteractive.net/1/users/ws";
+const WebSocketAddress = 'wss://api.abinteractive.net/1/users/ws';
 
 const events = require('events');
 const EventEmitter = new events.EventEmitter();
@@ -78,40 +78,40 @@ async function ConnectWebsocket(username, accessKey) {
             throw new Error(error);
         });
 
-        socket.on('open', function open() {
-            console.log(`\n[Socket] Opened!`);
+        socket.on('open', () => {
+            console.log('\n[Socket] Opened!');
             resolve();
         });
 
         if (process.env.DEBUG_ALL_WS === 'true') {
-            socket.on('ping', function ping(data) {
+            socket.on('ping', (data) => {
                 console.log(`\n\n[Socket] Received Ping: ${data.toString()}`);
             });
-            socket.on('pong', function pong(data) {
+            socket.on('pong', (data) => {
                 console.log(`\n\n[Socket] Received Pong: ${data.toString()}`);
             });
-            socket.on('redirect', function redirect(url, request) {
+            socket.on('redirect', (url, request) => {
                 console.log(`\n\n[Socket] Received Redirect Request: ${url}`);
                 LogRequestResponse(request);
             });
-            socket.on('unexpected-response', function unexpectedResponse(request, response) {
-                console.log(`\n\n[Socket] Unexpected Response!`);
-                console.log(`\t[Request]`);
+            socket.on('unexpected-response', (request, response) => {
+                console.log('\n\n[Socket] Unexpected Response!');
+                console.log('\t[Request]');
                 LogRequestResponse(request);
-                console.log(`\n\t[Response]`);
+                console.log('\n\t[Response]');
                 LogRequestResponse(response);
             });
-            socket.on('upgrade', function upgrade(response) {
+            socket.on('upgrade', (response) => {
                 console.log(`\n\n[Socket] Upgrade: \n${response}`);
                 LogRequestResponse(response);
             });
         }
 
-        socket.on('close', function close(code, reason) {
+        socket.on('close', (code, reason) => {
             console.log(`\n[Socket] Closed! Code: ${code}, Reason: ${reason.toString()}`);
         });
 
-        socket.on('message', function message(messageBuffer, isBinary) {
+        socket.on('message', (messageBuffer, isBinary) => {
             console.log(`\n[Socket] Received Message! isBinary: ${isBinary}, Data:`);
             if (process.env.LOG_WS_MESSAGES === 'true') console.log(util.inspect(messageBuffer.toString(), {showHidden: false, depth: null, colors: true}));
 

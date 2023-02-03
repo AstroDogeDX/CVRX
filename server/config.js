@@ -39,7 +39,7 @@ exports.Load = async () => {
 
     // Load the credentials file
     credentials = await GetOrCreateJsonFile(ConfigsPath, ConfigCredentialsFileName, {});
-}
+};
 
 async function UpdateJsonFile(fileType) {
 
@@ -51,12 +51,12 @@ async function UpdateJsonFile(fileType) {
             await WriteToJsonFile(ConfigsPath, ConfigCredentialsFileName, credentials);
             break;
         default:
-            console.error(`Attempted to Update a file of type ${fileType}, but that type is not supported!`)
+            console.error(`Attempted to Update a file of type ${fileType}, but that type is not supported!`);
     }
 }
 
 async function WriteToJsonFile(folderPath, fileName, data = {}) {
-    const objectToWrite = { FileVersion: FileVersion, data: data }
+    const objectToWrite = { FileVersion: FileVersion, data: data };
     await fs.promises.mkdir(folderPath, { recursive: true });
     await fs.promises.writeFile(path.join(folderPath, fileName), JSON.stringify(objectToWrite, null, 4), 'utf8');
 }
@@ -98,9 +98,9 @@ exports.ImportCVRCredentials = async () => {
             const err = `Canceled the dialog where it's asking for the path to ${CVRExecutableName}`;
             console.error(err);
             await dialog.showErrorBox(
-                `Credentials Error`,
-                `Currently CVRX can only authenticate using the autologin.profile files from CVR.\nSo we ` +
-                `need a valid path to it.\nThe application will close since you didn't point us to the ` +
+                'Credentials Error',
+                'Currently CVRX can only authenticate using the autologin.profile files from CVR.\nSo we ' +
+                'need a valid path to it.\nThe application will close since you didn\'t point us to the ' +
                 `${CVRExecutableName} file...`,
             );
             app.quit();
@@ -115,7 +115,7 @@ exports.ImportCVRCredentials = async () => {
                 const err = `Provided ${providedPath} as a path for ${CVRExecutableName}`;
                 console.error(err);
                 await dialog.showErrorBox(
-                    `Credentials Error`,
+                    'Credentials Error',
                     `You pointed to a ${path.basename(providedPath)} file, we need ${CVRExecutableName}...`,
                 );
                 app.quit();
@@ -167,7 +167,7 @@ exports.ImportCVRCredentials = async () => {
 
 
     return credentials;
-}
+};
 
 exports.GetAvailableCredentials = () => Object.keys(credentials);
 exports.GetActiveCredentials = () => credentials?.[config?.ActiveUsername];
@@ -181,9 +181,9 @@ exports.SaveCredential = async (username, accessKey) => {
         await UpdateJsonFile(FileType.CREDENTIALS);
     }
     else {
-        console.error(`Attempted to save credentials, but either the username or access key were null/empty.`)
+        console.error('Attempted to save credentials, but either the username or access key were null/empty.');
     }
-}
+};
 
 exports.SetActiveCredentials = async (username) => {
     if (!credentials?.[username]) {

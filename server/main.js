@@ -1,4 +1,4 @@
-const dotenv = require("dotenv");
+const dotenv = require('dotenv');
 dotenv.config();
 
 const { app, BrowserWindow } = require('electron');
@@ -25,7 +25,7 @@ const createWindow = async () => {
         icon: './client/img/cvrx-ico.ico',
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
-        }
+        },
     });
 
     // Load the config
@@ -51,7 +51,7 @@ const createWindow = async () => {
     }
 
     activeCredentials = Config.GetActiveCredentials();
-    console.log(`Logging with: ` + activeCredentials.Username);
+    console.log('Logging with: ' + activeCredentials.Username);
 
     // console.log(`\nActive Credentials:`);
     // console.log(util.inspect(activeCredentials, {showHidden: false, depth: null, colors: true}));

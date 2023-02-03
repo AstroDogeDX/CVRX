@@ -15,21 +15,21 @@ let IsCleaningCache = false;
 
 exports.GetHash = (string) => {
     return crypto.createHash('sha1').update(string).digest('hex');
-}
+};
 
 const queue = [];
 let window;
 
 exports.Initialize = (win) => {
     window = win;
-}
+};
 
 exports.QueueFetchImage = (urlObj) => {
     if (urlObj) {
         queue.push(urlObj);
         ProcessQueue().then().catch(console.error);
     }
-}
+};
 
 async function ProcessQueue() {
     // Process Queue if there is stuff in the queue
@@ -59,7 +59,7 @@ async function ProcessQueue() {
 async function DownloadImage(url) {
     try {
         const response = await axios.get(url, {
-            responseType: 'arraybuffer'
+            responseType: 'arraybuffer',
         });
 
         if (response.status !== 200) {
@@ -145,7 +145,7 @@ async function CleanCache() {
         // We're over the cache limit, let's delete until we have less than 90% than our cache used!
         if (BytesToMegabytes(folderSize) > GetMaxCacheSize()) {
             const targetBytes = MaxSizeInBytes * 0.9;
-            files.sort((a,b) => a.accessDate.getTime() - b.accessDate.getTime());
+            files.sort((a, b) => a.accessDate.getTime() - b.accessDate.getTime());
             for (const file of files) {
                 await fs.promises.unlink(file.path);
                 folderSize -= file.size;
