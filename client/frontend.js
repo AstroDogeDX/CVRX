@@ -324,7 +324,7 @@ searchBar.addEventListener('keypress', async (event) => {
     const searchTerm = searchBar.value;
 
     // Ignore if the search term is empty, or the key pressed was not ENTER - or if the search term is <3 characters
-    if (!searchTerm || searchTerm.length < 3 || event.key !== 'Enter') {return;}
+    if (!searchTerm || searchTerm.length < 3 || event.key !== 'Enter') { return; }
     event.preventDefault();
 
     // Disable the search while we're fetching and populating the results
@@ -346,22 +346,47 @@ searchBar.addEventListener('keypress', async (event) => {
     //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
     // }];
 
-    const searchOutput = document.querySelector('.search-output');
-    const elementsOfResults = [];
+    const searchOutputUsers = document.querySelector('.search-output--users');
+    const searchOutputWorlds = document.querySelector('.search-output--worlds');
+    const searchOutputAvatars = document.querySelector('.search-output--avatars');
+    const searchOutputProps = document.querySelector('.search-output--props');
+
+    const userResults = [];
+    const worldsResults = [];
+    const avatarResults = [];
+    const propsResults = [];
 
     // Create the search result elements
     for (const result of results) {
         let searchResult = document.createElement('div');
-        searchResult.setAttribute('class', 'search-result-node');
+        searchResult.setAttribute('class', 'search-output--node');
         searchResult.innerHTML = `
             <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
             <p class="search-result-name">${result.name}</p>
             <p class="search-result-type">${result.type}</p>`;
-        elementsOfResults.push(searchResult);
+        switch (result.type) {
+            case 'user':
+                userResults.push(searchResult);
+                break;
+            case 'world':
+                worldsResults.push(searchResult);
+                break;
+            case 'avatar':
+                avatarResults.push(searchResult);
+                break;
+            case 'prop':
+                propsResults.push(searchResult);
+                break;
+            default:
+                toastyNotification('Found a result with invalid type!', 'error');
+        }
     }
 
     // Replace previous search results with the new ones
-    searchOutput.replaceChildren(...elementsOfResults);
+    searchOutputUsers.replaceChildren(...userResults);
+    searchOutputWorlds.replaceChildren(...worldsResults);
+    searchOutputAvatars.replaceChildren(...avatarResults);
+    searchOutputProps.replaceChildren(...propsResults);
 
     // Re-enable the search
     searchBar.disabled = false;
@@ -373,7 +398,7 @@ searchBar.addEventListener('keypress', async (event) => {
 // -----------------------------
 window.API.OnWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
 
-    if (worldCategoryId !== 'wrldactive') {return;}
+    if (worldCategoryId !== 'wrldactive') { return; }
 
     const homeActivity = document.querySelector('.home-activity--activity-wrapper');
 
@@ -395,7 +420,7 @@ window.API.OnWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
     const elementsOfResults = [];
     for (const result of worldsInfo) {
         let activeWorldNode = document.createElement('div');
-        activeWorldNode.setAttribute('class', 'active-world-node');
+        activeWorldNode.setAttribute('class', 'home-activity--activity-node');
         activeWorldNode.innerHTML = `
             <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
             <p class="search-result-name">${result.name}</p>
@@ -526,7 +551,7 @@ window.API.OnFriendRequests((_event, friendRequests) => {
 });
 
 // Janky Toast Messages (sometimes the serve sends messages, for example when declining a friend req (the popup msg))
-// Todo: put this poop on toasts
+// TODO: put this poop on toasts
 window.API.onNotification((_event, msg) => {
     console.log('Notification!!!');
     console.log(msg);

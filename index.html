@@ -72,7 +72,8 @@
         </div>
         <div class="home-requests">Pending Requests Go Here :)</div>
         <div class="home-activity">
-          <h2>Active Worlds</h2>
+          <!-- TODO: Get total user count from public API @ Kafe -->
+          <h2>Active Worlds<span class="home-activity--user-count">User Count</span></h2>
           <div class="home-activity--activity-wrapper"></div>
         </div>
         <div class="home-history">
@@ -82,7 +83,16 @@
       </div>
       <div class="display-wrapper" id="display-search">
         <input id="search-bar" type="text" placeholder="Type to Search">
-        <div class="display-seg search-output"></div>
+        <div class="search-output">
+          <h3>Users</h3>
+          <div class="search-output--users"></div>
+          <h3>Worlds</h3>
+          <div class="search-output--worlds"></div>
+          <h3>Avatars</h3>
+          <div class="search-output--avatars"></div>
+          <h3>Props</h3>
+          <div class="search-output--props"></div>
+        </div>
       </div>
       <div class="display-wrapper" id="display-friends">
         <input class="friends-filter" type="text" placeholder="Type to Filter">
