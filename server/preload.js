@@ -37,4 +37,7 @@ contextBridge.exposeInMainWorld('API', {
 
     // Notifications
     onNotification: (callback) => ipcRenderer.on('notification', callback),
+
+    // Test
+    // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),
 });

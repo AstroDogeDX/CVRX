@@ -14,6 +14,39 @@ const CVRWebsocket = require('./api_cvr_ws');
 const Cache = require('./cache');
 
 
+// // Test server
+// const WebSocket = require('ws');
+// const util = require('util');
+// function ConnectTest() {
+//     let connected = false;
+//     let nuked = false;
+//     const wss = new WebSocket.WebSocketServer({ port: 80 });
+//     wss.on('connection', (ws, request) => {
+//         connected = true;
+//         ws.on('error', console.error);
+//         ws.on('message', (data) => {
+//             console.log('received: %s', data);
+//         });
+//         ws.send(JSON.stringify( { responseType: -1, message: 'You have connected!', data: null }));
+//         console.log('\n\n\n[Server] Headers:');
+//         console.log(`${util.inspect(request.headers, {showHidden: false, depth: null, colors: true})}`);
+//         ipcMain.on('close-socket-server', (_event, closeId, closeServer = null) => {
+//             if (nuked) return;
+//             ws.close(closeId, 'test close');
+//             if (closeServer === true && connected) {
+//                 wss.close();
+//                 connected = false;
+//             }
+//             else if(closeServer === false && !connected) {
+//                 nuked = true;
+//                 ConnectTest();
+//             }
+//         });
+//     });
+// }
+// ConnectTest();
+
+
 const createWindow = async () => {
 
     // Create the browser window.
