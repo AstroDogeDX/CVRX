@@ -2,15 +2,20 @@ const util = require('util');
 
 const WebSocket = require('ws');
 const WebSocketAddress = 'wss://api.abinteractive.net/1/users/ws';
+// const WebSocketAddress = 'ws://localhost';
 
 const events = require('events');
+const { app, dialog } = require('electron');
 const EventEmitter = new events.EventEmitter();
 exports.EventEmitter = EventEmitter;
 
+const MaxReconnectionAttempts = 5;
 
 let currentUsername;
 let currentAccessKey;
 let socket;
+
+let reconnectAttempts = 0;
 
 const RESPONSE_TYPE = Object.freeze({
     MENU_POPUP: 0,
@@ -22,6 +27,12 @@ const RESPONSE_TYPE = Object.freeze({
 });
 exports.ResponseType = RESPONSE_TYPE;
 
+
+function Wait5Seconds() {
+    return new Promise((resolve) => {
+        setTimeout(resolve, 5000);
+    });
+}
 
 exports.ConnectWithCredentials = async (username, accessKey) => {
 
@@ -52,10 +63,6 @@ exports.DisconnectWebsocket = async () => {
 };
 
 
-async function Reconnect() {
-    await ConnectWebsocket(currentUsername, currentAccessKey);
-}
-
 async function ConnectWebsocket(username, accessKey) {
 
     return new Promise((resolve, _reject) => {
@@ -73,13 +80,23 @@ async function ConnectWebsocket(username, accessKey) {
             },
         });
 
-        socket.on('error', (error) => {
+        socket.on('error', async (error) => {
             console.error(error);
-            throw new Error(error);
+            // try {
+            //     await dialog.showErrorBox(
+            //         'Failed to CVR Socket Server',
+            //         error.toString(),
+            //     );
+            // }
+            // catch (e) {
+            //     console.error(e);
+            // }
+            //throw new Error(`[Socket] Error while trying to connect to the socket! ${error}`);
         });
 
         socket.on('open', () => {
             console.log('\n[Socket] Opened!');
+            reconnectAttempts = 0;
             resolve();
         });
 
@@ -107,8 +124,33 @@ async function ConnectWebsocket(username, accessKey) {
             });
         }
 
-        socket.on('close', (code, reason) => {
+        socket.on('close', async (code, reason) => {
             console.log(`\n[Socket] Closed! Code: ${code}, Reason: ${reason.toString()}`);
+            socket = null;
+            if (code === 1001 || code === 1005 || code === 1006) {
+                if (reconnectAttempts >= MaxReconnectionAttempts) {
+                    try {
+                        await dialog.showErrorBox(
+                            'Failed to reconnect to CVR Servers...',
+                            'Our 5 attempts to connect/reconnect to CVR Socket failed. The app will close!',
+                        );
+                    }
+                    catch (e) {
+                        console.error(e);
+                    }
+                    app.quit();
+                    throw new Error('[Socket] Failed to connect to CVR Websocket, attempted 5 times!');
+                }
+                console.log(`\n[Socket] Reconnecting in 5 seconds... Attempt: ${reconnectAttempts + 1}`);
+                await Wait5Seconds();
+                reconnectAttempts++;
+                try {
+                    await ConnectWebsocket(currentUsername, currentAccessKey);
+                }
+                catch (e) {
+                    console.error(e);
+                }
+            }
         });
 
         socket.on('message', (messageBuffer, isBinary) => {

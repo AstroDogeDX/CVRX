@@ -165,7 +165,6 @@ exports.ImportCVRCredentials = async () => {
     // Update the credential file if we actually added something
     if (updated) await UpdateJsonFile(FileType.CREDENTIALS);
 
-
     return credentials;
 };
 

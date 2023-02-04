@@ -11,9 +11,9 @@ let CVRApi;
 
 const UnauthenticatedCVRApi = axios.create({ baseURL: APIBase });
 
-async function Get(url) {
+async function Get(url, authenticated = true) {
     try {
-        const response = await CVRApi.get(url);
+        const response = await (authenticated ? CVRApi : UnauthenticatedCVRApi).get(url);
         console.log(`[GET] ${url}`);
         console.log(util.inspect(response.data, {showHidden: false, depth: null, colors: true}));
         return response.data.data;
@@ -62,6 +62,9 @@ exports.AuthenticateViaAccessKey = async (username, accessKey) => {
     });
     return authentication;
 };
+
+// Get Stats
+exports.GetUserStats = async () =>  Get('/public/userstats', false);
 
 // Friends
 exports.GetMyFriends = async () => Get('/friends');
