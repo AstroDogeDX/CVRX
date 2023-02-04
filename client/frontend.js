@@ -27,7 +27,6 @@ function swapNavPages(page) {
 // Resets the search bar to an empty value and focus the search bar when the page is init'd
 function initSearchPage() {
     document.querySelector('#search-bar').value = '';
-    // FIXME: Figure out why the f*ck this doesn't work...
     document.querySelector('#search-bar').focus({ focusVisible: true });
 }
 
@@ -127,7 +126,7 @@ document.querySelectorAll('.navbar-button').forEach((e) => {
     e.addEventListener('mouseleave', () => {
         tooltip.style.display = 'none';
     });
-    e.addEventListener('mousedown', () => {
+    e.addEventListener('mouseup', () => {
         swapNavPages(e.dataset.page);
         if (e.dataset.page === 'search') {
             initSearchPage();
