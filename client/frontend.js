@@ -30,86 +30,6 @@ function initSearchPage() {
     document.querySelector('#search-bar').focus({ focusVisible: true });
 }
 
-// ONLINE FRIENDS LIST FUNCTIONS
-
-// - Adding to the Online Friends list
-function addOnlineFriend(name, status, hash, id) {
-    // Setting up the HTMLElement used for the Online Friends panel.
-    let onlineFriendNode = document.createElement('div');
-    onlineFriendNode.setAttribute('class', 'online-friend-node');
-    onlineFriendNode.setAttribute('data-online-id', id);
-    if (status === 'Private Instance') {
-        onlineFriendNode.innerHTML =
-            `<img class="online-friend-image" src="https://placekitten.com/50/50" data-hash="${hash}"></img>
-            <p class="online-friend-name">${name}</p>
-            <p class="online-friend-world friend-is-offline">${status}</p>`;
-        document.querySelector('.friends-bar-container').appendChild(onlineFriendNode);
-    } else {
-        onlineFriendNode.innerHTML =
-            `<img class="online-friend-image" src="https://placekitten.com/50/50" data-hash="${hash}"></img>
-            <p class="online-friend-name">${name}</p>
-            <p class="online-friend-world">${status}</p>`;
-        document.querySelector('.friends-bar-container').appendChild(onlineFriendNode);
-    }
-}
-
-// - Updating the Online Friends list
-function updateOnlineFriend(status, id) {
-    document.querySelectorAll(`[data-online-id="${id}"]`).forEach((e) => {
-        if (status === 'Private Instance') {
-            e.querySelector('.online-friend-world').innerHTML = `${status}`;
-            e.querySelector('.online-friend-world').classList.add('friend-is-offline');
-        } else {
-            e.querySelector('.online-friend-world').innerHTML = `${status}`;
-            e.querySelector('.online-friend-world').classList.remove('friend-is-offline');
-        }
-    });
-}
-
-// - Removing from the Online Friends list
-function removeOnlineFriend(id) {
-    document.querySelectorAll(`[data-online-id="${id}"]`).forEach((e) => {
-        // SEEK AND DESTROY any entry in the Online Friends list!
-        // (should only be one but a querySelectorAll will make sure!)
-        e.remove();
-    });
-}
-
-// FRIENDS LIST PAGE FUNCTIONS
-
-function addToFriendList(name, status, hash, id) {
-    // Setting up the HTMLElement used for the Friends List page.
-    let listFriendNode = document.createElement('div');
-    listFriendNode.setAttribute('class', 'friend-list-node');
-    listFriendNode.setAttribute('data-friend-id', id);
-    if (status === 'Offline') {
-        listFriendNode.innerHTML =
-            `<img src="https://placekitten.com/50/50" data-hash="${hash}"></img>
-            <p class="friend-name">${name}</p>
-            <p class="friend-status friend-is-offline">${status}</p>`;
-        document.querySelector('.friends-wrapper').appendChild(listFriendNode);
-    } else {
-        listFriendNode.innerHTML =
-            `<img src="https://placekitten.com/50/50" class="icon-is-online" data-hash="${hash}"></img>
-            <p class="friend-name">${name}</p>
-            <p class="friend-status">${status}</p>`;
-        document.querySelector('.friends-wrapper').appendChild(listFriendNode);
-    }
-}
-
-function updateFriendListEntry(status, id) {
-    document.querySelectorAll(`[data-friend-id="${id}"]`).forEach((e) => {
-        e.querySelector('.friend-status').innerHTML = `${status}`;
-        if (status === 'Offline') {
-            e.querySelector('img').classList.remove('icon-is-online');
-            e.querySelector('.friend-status').classList.add('friend-is-offline');
-        } else {
-            e.querySelector('img').classList.add('icon-is-online');
-            e.querySelector('.friend-status').classList.remove('friend-is-offline');
-        }
-    });
-}
-
 // ===============
 // EVERYTHING ELSE
 // ===============
@@ -193,66 +113,57 @@ window.API.onGetActiveUser((_event, activeUser) => {
     // }
 });
 
+function getFriendStatus(friend) {
+    if (!friend.isOnline) return 'Offline';
+    if (!friend.instance) return 'Private';
+    if (friend.instance.name) return friend.instance.name;
+    // switch (friend.instance.privacy) {
+    //     case 0: return 'Public';
+    //     case 1: return 'Friends of Friends';
+    //     case 2: return 'Friend';
+    // }
+    return 'Unknown';
+}
+
 window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     console.log('Friends Refresh! isRefresh: ' + isRefresh);
     console.log(friends);
 
+    const friendsBarNode = document.querySelector('.friends-bar-container');
+    const friendsListNode = document.querySelector('.friends-wrapper');
+
+    // Clear all children (this event sends all friends, we so can empty our previous state)
+    friendsBarNode.replaceChildren();
+    friendsListNode.replaceChildren();
+
     for (const friend of friends) {
 
-        let friendStatus;
+        const friendStatus = getFriendStatus(friend);
+        const onlineFriendInPrivateClass = friend.instance ? '' : 'friend-is-offline';
+        // Depending on whether it's a refresh or not the image might be already loaded
+        const friendImgSrc = friend.imageBase64 ?? 'https://placekitten.com/50/50';
 
-        switch (friend.isOnline) {
-            // If user is online...
-            case true:
-                // ...and NOT connected to an instance
-                if (friend.instance === null) {
-                    friendStatus = 'Private Instance';
-                    // Checking if entry exists in Online List to update...
-                    if (document.querySelectorAll(`[data-online-id="${friend.id}"]`).length) {
-                        updateOnlineFriend(friendStatus, friend.id);
-                    } else {
-                        // ...if it doesn't exist, we add it.
-                        addOnlineFriend(friend.name, friendStatus, friend.imageHash, friend.id);
-                    }
-                    // Checking if the user exists in the Friends List page, if so; we update their entry...
-                    if (document.querySelectorAll(`[data-friend-id="${friend.id}"]`).length) {
-                        updateFriendListEntry(friendStatus, friend.id);
-                        continue;
-                    }
-                    // ... 'else' we add a new entry since we assume there wasn't one before.
-                    addToFriendList(friend.name, friendStatus, friend.imageHash, friend.id);
-                    continue;
-                }
-                // ...and is connected to an instance
-                // Instead of 'Online', we say what instance they're in!
-                friendStatus = friend.instance.name;
-                // Checking if entry exists in Online List to update...
-                if (document.querySelectorAll(`[data-online-id="${friend.id}"]`).length) {
-                    updateOnlineFriend(friendStatus, friend.id);
-                } else {
-                    // ...if it doesn't exist, we add it.
-                    addOnlineFriend(friend.name, friendStatus, friend.imageHash, friend.id);
-                }
-                // Checking if they're on our Friends List page...
-                if (document.querySelectorAll(`[data-friend-id="${friend.id}"]`).length) {
-                    updateFriendListEntry(friendStatus, friend.id);
-                    continue;
-                }
-                // ... 'else' we add a new entry since we assume there wasn't one before.
-                addToFriendList(friend.name, friendStatus, friend.imageHash, friend.id);
-                break;
-            default:
-                // If 'isOnline' returns null, false (or similar) then we assume they're offline.
-                friendStatus = 'Offline';
-                removeOnlineFriend(friend.id);
-                // Checking if they're on our Friends List page (this might be the init call, so there's a chance there won't be one here)
-                if (document.querySelectorAll(`[data-friend-id="${friend.id}"]`).length) {
-                    updateFriendListEntry(friendStatus, friend.id);
-                    continue;
-                }
-                // ... 'else' we add a new entry since we assume there wasn't one before. (likely if it's the init call!)
-                addToFriendList(friend.name, friendStatus, friend.imageHash, friend.id);
+        // Setting up the HTMLElement used for the Online Friends panel.
+        if (friend.isOnline) {
+            let onlineFriendNode = document.createElement('div');
+            onlineFriendNode.setAttribute('class', 'online-friend-node');
+            onlineFriendNode.innerHTML = `
+                <img class="online-friend-image" src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
+                <p class="online-friend-name">${friend.name}</p>
+                <p class="online-friend-world ${onlineFriendInPrivateClass}">${friendStatus}</p>`;
+            friendsBarNode.appendChild(onlineFriendNode);
         }
+
+        // Setting up the HTMLElement used for the Friends List page.
+        let listFriendNode = document.createElement('div');
+        const offlineFriendClass = friend.isOnline ? '' : 'friend-is-offline';
+        const imgOnlineClass = friend.isOnline ? 'class="icon-is-online"' : '';
+        listFriendNode.setAttribute('class', 'friend-list-node');
+        listFriendNode.innerHTML = `
+            <img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
+            <p class="friend-name">${friend.name}</p>
+            <p class="friend-status ${offlineFriendClass}">${friendStatus}</p>`;
+        friendsListNode.appendChild(listFriendNode);
     }
 
     // Usually it will be an array with just those 4 elements.

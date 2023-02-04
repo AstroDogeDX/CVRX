@@ -38,11 +38,14 @@ async function ProcessQueue() {
         const nativeImg = await FetchImage(urlObj);
 
         if (nativeImg) {
+            const imDataUrl = nativeImg.toDataURL();
+            // Save the image to the object
+            urlObj.obj.imageBase64 = imDataUrl;
             // Send the loaded image to the main window
             window.webContents.send('image-load', {
                 imageUrl: urlObj.url,
                 imageHash: urlObj.hash,
-                imageBase64: nativeImg.toDataURL(),
+                imageBase64: imDataUrl,
             });
         }
 
