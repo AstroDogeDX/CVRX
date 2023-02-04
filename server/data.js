@@ -4,6 +4,9 @@ const CVRHttp = require('./api_cvr_http');
 const CVRWebsocket = require('./api_cvr_ws');
 
 
+let recurringIntervalId;
+
+
 const ToastTypes = Object.freeze({
     GOOD: 'confirm',
     BAD: 'error',
@@ -159,6 +162,20 @@ class Core {
         await CVRWebsocket.ConnectWithCredentials(username, accessKey);
 
         this.mainWindow.webContents.send('initial-load-finish');
+
+        // Schedule recurring API Requests every 5 minutes
+        if (recurringIntervalId) clearInterval(recurringIntervalId);
+        recurringIntervalId = setInterval(async () => {
+            try {
+                await Promise.allSettled([
+                    this.UpdateUserStats(),
+                    this.UpdateWorldsByCategory('wrldactive'),
+                ]);
+            }
+            catch (e) {
+                console.error(e);
+            }
+        }, 5 * 60 * 1000);
     }
 
     async Authenticate(username, accessKey) {
