@@ -93,7 +93,7 @@ const createWindow = async () => {
     const core = new Core(mainWindow);
 
     // and load the index.html of the app.
-    await mainWindow.loadFile('index.html');
+    await mainWindow.loadFile('client/index.html');
 
     // Initialize Cache
     Cache.Initialize(mainWindow);

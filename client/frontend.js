@@ -160,7 +160,7 @@ window.API.onGetActiveUser((_event, activeUser) => {
     document.querySelector('.user-extra--user-badge').innerHTML =
         `<img data-hash="${activeUser.featuredBadge.imageHash}">${activeUser.featuredBadge.name}`;
     document.querySelector('.user-extra--user-rank').innerHTML =
-        `<img src="./client/img/ui/rank.png">${activeUser.rank}`;
+        `<img src="./img/ui/rank.png">${activeUser.rank}`;
     // document.querySelector("#user-greeting").innerHTML = activeUser.name;
     // activeUser = {
     //     onlineState: false,
