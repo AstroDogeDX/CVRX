@@ -22,12 +22,21 @@ function swapNavPages(page) {
         // Sets the window title to 'CVRX - [Page Name]'
         document.title = 'CVRX - ' + page.charAt(0).toUpperCase() + page.slice(1);
     });
-}
-
-// Resets the search bar to an empty value and focus the search bar when the page is init'd
-function initSearchPage() {
-    document.querySelector('#search-bar').value = '';
-    document.querySelector('#search-bar').focus({ focusVisible: true });
+    switch (page) {
+        case 'search':
+            document.querySelector('#search-bar').value = '';
+            document.querySelector('#search-bar').focus({ focusVisible: true });
+            break;
+        case 'friends':
+            document.querySelector('.friends-filter').value = '';
+            document.querySelector('.friends-filter').focus({ focusVisible: true });
+            document.querySelectorAll('.friend-list-node').forEach((e) => {
+                e.classList.remove('filtered-friend');
+            });
+            break;
+        default:
+            return;
+    }
 }
 
 // ===============
@@ -48,9 +57,6 @@ document.querySelectorAll('.navbar-button').forEach((e) => {
     });
     e.addEventListener('mouseup', () => {
         swapNavPages(e.dataset.page);
-        if (e.dataset.page === 'search') {
-            initSearchPage();
-        }
     });
 });
 
@@ -115,7 +121,7 @@ window.API.onGetActiveUser((_event, activeUser) => {
 
 function getFriendStatus(friend) {
     if (!friend.isOnline) return 'Offline';
-    if (!friend.instance) return 'Private';
+    if (!friend.instance) return 'Private Instance';
     if (friend.instance.name) return friend.instance.name;
     // switch (friend.instance.privacy) {
     //     case 0: return 'Public';
@@ -513,5 +519,5 @@ window.API.onUserStats((_event, userStats) => {
     const userCountNode = document.querySelector('.home-activity--user-count');
     // usersOnline: { overall: 47, public: 14, notConnected: 9, other: 24 }
     const usersOnline = userStats.usersOnline;
-    userCountNode.textContent = `Public: ${usersOnline.public} | Private: ${usersOnline.other} | Offline Instace: ${usersOnline.notConnected}`;
+    userCountNode.textContent = `Public: ${usersOnline.public} | Private: ${usersOnline.other} | Offline Instance: ${usersOnline.notConnected}`;
 });
