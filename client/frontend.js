@@ -2,6 +2,11 @@
 // GLOBAL VARS
 // ===========
 
+const DetailsType = Object.freeze({
+    User: Symbol('user'),
+    World: Symbol('world'),
+});
+
 let toastTimer;
 
 const toastDown = () => {
@@ -131,6 +136,69 @@ function getFriendStatus(friend) {
     return 'Unknown';
 }
 
+async function ShowDetails(entityType, entityId) {
+
+    const detailsWindow = document.querySelector('#details-window');
+    detailsWindow.replaceChildren();
+
+    // activeUser = {
+    //     onlineState: false,
+    //     isConnected: false,
+    //     isFriend: false,
+    //     isBlocked: false,
+    //     instance: null, // If we're online this might have our instance info
+    //     categories: [],
+    //     rank: 'User',
+    //     featuredBadge: {
+    //         name: 'No badge featured',
+    //         image: 'https://files.abidata.io/static_web/NoHolderImage.png',
+    //         imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4',
+    //         badgeLevel: 0
+    //     },
+    //     featuredGroup: {
+    //         name: 'No group featured',
+    //         image: 'https://files.abidata.io/static_web/NoHolderImage.png',
+    //         imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
+    //     },
+    //     avatar: {
+    //         id: '5cde1f96-d62a-4231-bf53-a32693830fc2',
+    //         name: 'Demo Bot',
+    //         imageUrl: 'https://files.abidata.io/user_content/avatars/5cde1f96-d62a-4231-bf53-a32693830fc2/5cde1f96-d62a-4231-bf53-a32693830fc2.png',
+    //         imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
+    //     },
+    //     id: 'c4eee443-98a0-bab8-a583-f1d9fa10a7d7',
+    //     name: 'CVRX',
+    //     imageUrl: 'https://files.abidata.io/user_images/c4eee443-98a0-bab8-a583-f1d9fa10a7d7-63cfb4a4061d4.png',
+    //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
+    // }
+
+    let entityInfo;
+
+    switch (entityType) {
+        case DetailsType.User:
+            entityInfo = await window.API.getUserById(entityId);
+            detailsWindow.innerHTML = `
+                <img  class="home-user--user-icon" src="https://placekitten.com/150/150" data-hash="${entityInfo.imageHash}"/>
+                <div class="home-user--user-name">${entityInfo.name}</div>
+                <div class="home-user--user-extra">
+                    <div class="user-extra--user-avatar">
+                    <img src="https://placekitten.com/25/25" data-hash="${entityInfo.avatar.imageHash}"/>
+                    ${entityInfo.avatar.name}
+                </div>
+                <div class="user-extra--user-badge">
+                    <img src="https://placekitten.com/25/25" data-hash="${entityInfo.featuredBadge.imageHash}"/>
+                    ${entityInfo.featuredBadge.name}
+                </div>
+                <div class="user-extra--user-rank">
+                    <img src="img/ui/rank.png"/>
+                    ${entityInfo.rank}
+                </div>`;
+            document.body.style.backgroundColor = 'black';
+            document.onclick = () => detailsWindow.replaceChildren();
+            break;
+    }
+}
+
 window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     console.log('Friends Refresh! isRefresh: ' + isRefresh);
     console.log(friends);
@@ -152,6 +220,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
         // Setting up the HTMLElement used for the Online Friends panel.
         if (friend.isOnline) {
             let onlineFriendNode = document.createElement('div');
+            onlineFriendNode.onclick = () => ShowDetails(DetailsType.User, friend.id);
             onlineFriendNode.setAttribute('class', 'online-friend-node');
             onlineFriendNode.innerHTML = `
                 <img class="online-friend-image" src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
@@ -164,6 +233,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
         let listFriendNode = document.createElement('div');
         const offlineFriendClass = friend.isOnline ? '' : 'friend-is-offline';
         const imgOnlineClass = friend.isOnline ? 'class="icon-is-online"' : '';
+        listFriendNode.onclick = () => ShowDetails(DetailsType.User, friend.id);
         listFriendNode.setAttribute('class', 'friend-list-node');
         listFriendNode.innerHTML = `
             <img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
