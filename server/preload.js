@@ -3,6 +3,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('API', {
+
     onGetActiveUser: (callback) => ipcRenderer.on('active-user-load', callback),
 
     onFriendsRefresh: (callback) => ipcRenderer.on('friends-refresh', callback),
@@ -15,12 +16,15 @@ contextBridge.exposeInMainWorld('API', {
 
     search: (term) => ipcRenderer.invoke('search', term),
 
-    OnInvites: (callback) => ipcRenderer.on('invites', callback),
-    OnInviteRequests: (callback) => ipcRenderer.on('invite-requests', callback),
+    onInvites: (callback) => ipcRenderer.on('invites', callback),
+    onInviteRequests: (callback) => ipcRenderer.on('invite-requests', callback),
 
-    OnFriendRequests: (callback) => ipcRenderer.on('friend-requests', callback),
+    onFriendRequests: (callback) => ipcRenderer.on('friend-requests', callback),
 
-    OnWorldsByCategoryRefresh: (callback) => ipcRenderer.on('worlds-category-requests', callback),
+    onWorldsByCategoryRefresh: (callback) => ipcRenderer.on('worlds-category-requests', callback),
+
+    refreshUserStats: () => ipcRenderer.send('refresh-user-stats'),
+    onUserStats: (callback) => ipcRenderer.on('user-stats', callback),
 
     refreshFriendRequests: () => ipcRenderer.send('refresh-friend-requests'),
     refreshWorldsCategory: (worldCategoryId) => ipcRenderer.send('refresh-worlds-category', worldCategoryId),
@@ -37,6 +41,10 @@ contextBridge.exposeInMainWorld('API', {
 
     // Notifications
     onNotification: (callback) => ipcRenderer.on('notification', callback),
+
+    // Flow Events
+    onInitialLoadStart: (callback) => ipcRenderer.on('initial-load-start', callback),
+    onInitialLoadFinish: (callback) => ipcRenderer.on('initial-load-finish', callback),
 
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),

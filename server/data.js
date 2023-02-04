@@ -4,6 +4,13 @@ const CVRHttp = require('./api_cvr_http');
 const CVRWebsocket = require('./api_cvr_ws');
 
 
+const ToastTypes = Object.freeze({
+    GOOD: 'confirm',
+    BAD: 'error',
+    INFO: 'info',
+});
+
+
 function LoadImage(url) {
     const hashedFileName = cache.GetHash(url);
     cache.QueueFetchImage({ url: url, hash: hashedFileName });
@@ -29,7 +36,11 @@ function LoadUserImages(userObject) {
 class Core {
 
     constructor(mainWindow) {
+
         this.mainWindow = mainWindow;
+
+        this.mainWindow.webContents.send('initial-load-start');
+
         this.userId = '';
         this.friends = {};
         this.categories = {};
@@ -42,6 +53,7 @@ class Core {
     #SetupHandlers() {
 
         // Setup on events for IPC
+        ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-friend-requests', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-worlds-category', (_event, worldCategoryId) => this.UpdateWorldsByCategory(worldCategoryId));
 
@@ -124,8 +136,8 @@ class Core {
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.FRIEND_REQUESTS, (friendRequests) => this.UpdateFriendRequests(friendRequests, false));
 
         // Notifications
-        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.MENU_POPUP, (_data, msg) => this.mainWindow.webContents.send('notification', msg));
-        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.HUD_MESSAGE, (_data, msg) => this.mainWindow.webContents.send('notification', msg));
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.MENU_POPUP, (_data, msg) => this.mainWindow.webContents.send('notification', msg, ToastTypes.INFO));
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.HUD_MESSAGE, (_data, msg) => this.mainWindow.webContents.send('notification', msg, ToastTypes.INFO));
     }
 
     async Initialize(username, accessKey) {
@@ -146,8 +158,13 @@ class Core {
         await CVRWebsocket.ConnectWithCredentials(username, accessKey);
 
         // Call more events to update the initial state
-        this.RefreshFriendRequests().then().catch(console.error);
-        this.UpdateWorldsByCategory('wrldactive').then().catch(console.error);
+        await Promise.allSettled([
+            this.UpdateUserStats(),
+            this.RefreshFriendRequests(),
+            this.UpdateWorldsByCategory('wrldactive'),
+        ]);
+
+        this.mainWindow.webContents.send('initial-load-finish');
     }
 
     async Authenticate(username, accessKey) {
@@ -251,6 +268,12 @@ class Core {
         //     "imageUrl": "https://files.abidata.io/user_images/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.png",
         // };
 
+    }
+
+    async UpdateUserStats() {
+        const userStats = await CVRHttp.GetUserStats();
+        // usersOnline: { overall: 47, public: 14, notConnected: 9, other: 24 }
+        this.mainWindow.webContents.send('user-stats', userStats);
     }
 
     async UpdateWorldsByCategory(categoryId) {

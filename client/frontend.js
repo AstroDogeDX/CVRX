@@ -396,7 +396,7 @@ searchBar.addEventListener('keypress', async (event) => {
 
 // Janky Get Active Worlds
 // -----------------------------
-window.API.OnWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
+window.API.onWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
 
     if (worldCategoryId !== 'wrldactive') { return; }
 
@@ -436,7 +436,7 @@ window.API.OnWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
 });
 
 // Janky invite listener
-window.API.OnInvites((_event, invites) => {
+window.API.onInvites((_event, invites) => {
     console.log('Invites Received!');
     console.log(invites);
     // invites = [{
@@ -476,7 +476,7 @@ window.API.OnInvites((_event, invites) => {
     }
 });
 // Janky invite request listener
-window.API.OnInviteRequests((_event, requestInvites) => {
+window.API.onInviteRequests((_event, requestInvites) => {
     console.log('Requests to Invite Received!');
     console.log(requestInvites);
 
@@ -507,7 +507,7 @@ window.API.OnInviteRequests((_event, requestInvites) => {
     }
 });
 // Janky friend request listener
-window.API.OnFriendRequests((_event, friendRequests) => {
+window.API.onFriendRequests((_event, friendRequests) => {
     console.log('On Friend Requests received!');
     console.log(friendRequests);
 
@@ -551,10 +551,10 @@ window.API.OnFriendRequests((_event, friendRequests) => {
 });
 
 // Janky Toast Messages (sometimes the serve sends messages, for example when declining a friend req (the popup msg))
-// TODO: put this poop on toasts
-window.API.onNotification((_event, msg) => {
+window.API.onNotification((_event, msg, type) => {
     console.log('Notification!!!');
     console.log(msg);
+    toastyNotification(msg, type);
 });
 
 document.querySelectorAll('.toast-test').forEach((e) => {
@@ -593,7 +593,15 @@ function toastyNotification(message, type) {
     toastDown();
 }
 
-// dis is were we remob da shade wen it are loaded but rn i am jus cheating wid a timeout lol :)
-setTimeout(() => {
+window.API.onInitialLoadFinish((_event) => {
+    console.log('Initial Load finished!!!');
     document.querySelector('.loading-shade').remove();
-}, 2000);
+});
+
+
+window.API.onUserStats((_event, userStats) => {
+    const userCountNode = document.querySelector('.home-activity--user-count');
+    // usersOnline: { overall: 47, public: 14, notConnected: 9, other: 24 }
+    const usersOnline = userStats.usersOnline;
+    userCountNode.textContent = `Public: ${usersOnline.public} | Private: ${usersOnline.other} | Offline Instace: ${usersOnline.notConnected}`;
+});
