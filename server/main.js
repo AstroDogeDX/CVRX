@@ -3,8 +3,17 @@ dotenv.config();
 
 const { app, BrowserWindow } = require('electron');
 
-// Prevent app launching multiple times
-if (require('electron-squirrel-startup')) return;
+// Prevent app launching multiple times during the installation
+if (require('electron-squirrel-startup')) {
+    app.quit();
+    return;
+}
+
+// Prevent a second instance!
+if (!app.requestSingleInstanceLock()) {
+    app.quit();
+    return;
+}
 
 const path = require('path');
 
@@ -100,10 +109,19 @@ const createWindow = async () => {
 
     // And now we can do our stuff
     await core.Initialize(activeCredentials.Username, activeCredentials.AccessKey);
+
+    return mainWindow;
 };
 
 app.whenReady().then(async () => {
-    await createWindow();
+    const mainWindow = await createWindow();
+    app.on('second-instance', () => {
+        // Someone tried to run a second instance, we should focus our window.
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
+        }
+    });
     app.on('activate', () => {
         // On macOS, it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
