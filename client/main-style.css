@@ -41,13 +41,13 @@
 
 ::-webkit-scrollbar-track {
     box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.25);
-    border-radius: 10px;
+    border-radius: 5px;
     border-left: solid 3px transparent;
 }
 
 ::-webkit-scrollbar-thumb {
     background: white;
-    border-radius: 10px;
+    border-radius: 5px;
     border-left: solid 3px transparent;
 }
 
@@ -142,11 +142,9 @@
 
 .home-user--user-icon {
     grid-area: home-user--user-icon;
-    border-radius: 10px;
-    min-height: 150px;
-    max-height: 150px;
-    min-width: 150px;
-    max-width: 150px;
+    border-radius: 5px;
+    height: 150px;
+    width: 150px;
 }
 
 .home-user--user-name {
@@ -161,7 +159,7 @@
     padding: 5px;
     max-width: 100%;
     background: rgba(0, 0, 0, 0.25);
-    border-radius: 10px;
+    border-radius: 5px;
     font-weight: bold;
 }
 
@@ -185,21 +183,21 @@
     display: flex;
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
+    border-radius: 5px;
 }
 
 .user-extra--user-badge {
     display: flex;
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
+    border-radius: 5px;
 }
 
 .user-extra--user-rank {
     display: flex;
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
+    border-radius: 5px;
 }
 
 .home-requests {
@@ -209,28 +207,52 @@
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
+    border-radius: 5px;
 }
+
+/* CVR World/Instance Activity on Home */
 
 .home-activity {
     display: grid;
     grid-area: home-activity;
     grid-template-rows: auto 1fr;
+    overflow: hidden;
 }
 
 .home-activity h2 {
+    display: flex;
     margin-bottom: 5px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.home-activity--user-count {
+    float: right;
+    font-size: small;
 }
 
 .home-activity--activity-wrapper {
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
+    border-radius: 5px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.home-activity--activity-node {
+    height: 60px;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.home-activity--activity-node:nth-of-type(odd) {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .home-history {
     display: grid;
     grid-area: home-history;
     grid-template-rows: auto 1fr;
+    overflow: hidden;
 }
 
 .home-history h2 {
@@ -239,27 +261,15 @@
 
 .home-history--history-wrapper {
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
+    border-radius: 5px;
 }
 
-/* - World Activity stuff on Home :) */
 .home-activity :is(img) {
     max-width: 50px;
     max-height: 50px;
     float: left;
     margin-right: 5px;
     border-radius: 5px;
-}
-
-.active-world-node {
-    min-height: 60px;
-    margin-bottom: 5px;
-    border-radius: 10px;
-    padding: 5px;
-}
-
-.active-world-node:nth-child(odd) {
-    background: rgba(255, 255, 255, 0.1);
 }
 
 /* Search Stuff */
@@ -281,7 +291,7 @@
     grid-area: search-bar;
     position: sticky;
     top: 0px;
-    border-radius: 10px;
+    border-radius: 5px;
     padding: 5px;
     font-size: 32px;
     color: black;
@@ -302,17 +312,22 @@
 .search-output {
     grid-area: search-output;
     overflow-y: auto;
+    border-radius: 5px;
 }
 
-.search-result-node {
-    min-height: 60px;
+.search-output h3 {
+    border-bottom: thin solid rgba(255, 255, 255, 0.1);
     margin-bottom: 5px;
+}
+
+.search-output--node {
+    min-height: 60px;
     border-radius: 5px;
     padding: 5px;
 }
 
-.search-result-node:nth-of-type(odd) {
-    background: rgba(255, 255, 255, 0.2);
+.search-output--node:nth-of-type(odd) {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 /* Friends Page */
@@ -333,7 +348,7 @@
     grid-area: friends-filter;
     position: sticky;
     top: 0px;
-    border-radius: 10px;
+    border-radius: 5px;
     padding: 5px;
     font-size: 32px;
     color: black;
@@ -449,7 +464,6 @@ tr:nth-child(odd) {
     grid-template-rows: 18px 1fr;
     gap: 5px;
     padding: 2.5px;
-    margin-bottom: 5px;
     user-select: none;
     grid-template-areas:
         "online-friend-image online-friend-name online-friend-name"
@@ -511,7 +525,7 @@ tr:nth-child(odd) {
     width: max-content;
     max-width: 80vw;
     background: purple;
-    border-radius: 10px;
+    border-radius: 5px;
     padding: 10px;
     font-size: 20px;
     text-align: center;
