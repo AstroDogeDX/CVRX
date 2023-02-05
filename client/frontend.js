@@ -147,6 +147,7 @@ window.API.onGetActiveUser((_event, activeUser) => {
 
 function getFriendStatus(friend) {
     if (!friend.isOnline) return { name: 'Offline', type: null };
+    if (!friend.isConnected) return { name: 'Offline Instance', type: null };
     if (!friend.instance) return { name: 'Private Instance', type: null };
     if (friend.instance.name) return {
         name: friend.instance.privacy >= PrivacyLevel.Friends ? 'Private Instance' : friend.instance.name,
