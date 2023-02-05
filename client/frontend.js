@@ -7,6 +7,27 @@ const DetailsType = Object.freeze({
     World: Symbol('world'),
 });
 
+const PrivacyLevel = Object.freeze({
+    Public: 0,
+    FriendsOfFriends: 1,
+    Friends: 2,
+    Group: 3,
+    EveryoneCanInvite: 4,
+    OwnerMustInvite: 5,
+});
+
+const GetPrivacyLevelName = (privacyLevel) => {
+    switch (privacyLevel) {
+        case PrivacyLevel.Public: return 'Public';
+        case PrivacyLevel.FriendsOfFriends: return 'Friends of Friends';
+        case PrivacyLevel.Friends: return 'Friends';
+        case PrivacyLevel.Group: return 'Group';
+        case PrivacyLevel.EveryoneCanInvite: return 'Everyone can Invite';
+        case PrivacyLevel.OwnerMustInvite: return 'Owner must Invite';
+        default: return 'Unknown';
+    }
+};
+
 let toastTimer;
 
 const toastDown = () => {
@@ -125,15 +146,13 @@ window.API.onGetActiveUser((_event, activeUser) => {
 });
 
 function getFriendStatus(friend) {
-    if (!friend.isOnline) return 'Offline';
-    if (!friend.instance) return 'Private Instance';
-    if (friend.instance.name) return friend.instance.name;
-    // switch (friend.instance.privacy) {
-    //     case 0: return 'Public';
-    //     case 1: return 'Friends of Friends';
-    //     case 2: return 'Friend';
-    // }
-    return 'Unknown';
+    if (!friend.isOnline) return { name: 'Offline', type: null };
+    if (!friend.instance) return { name: 'Private Instance', type: null };
+    if (friend.instance.name) return {
+        name: friend.instance.privacy >= PrivacyLevel.Friends ? 'Private Instance' : friend.instance.name,
+        type: GetPrivacyLevelName(friend.instance.privacy),
+    };
+    return { name: 'Unknown', type: null };
 }
 
 async function ShowDetails(entityType, entityId) {
@@ -212,7 +231,8 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
 
     for (const friend of friends) {
 
-        const friendStatus = getFriendStatus(friend);
+        const { name, type } = getFriendStatus(friend);
+        const instanceTypeStr = type ? ` [${type}]` : '';
         const onlineFriendInPrivateClass = friend.instance ? '' : 'friend-is-offline';
         // Depending on whether it's a refresh or not the image might be already loaded
         const friendImgSrc = friend.imageBase64 ?? 'https://placekitten.com/50/50';
@@ -225,7 +245,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
             onlineFriendNode.innerHTML = `
                 <img class="online-friend-image" src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
                 <p class="online-friend-name">${friend.name}</p>
-                <p class="online-friend-world ${onlineFriendInPrivateClass}">${friendStatus}</p>`;
+                <p class="online-friend-world ${onlineFriendInPrivateClass}">${name}${instanceTypeStr}</p>`;
             friendsBarNode.appendChild(onlineFriendNode);
         }
 
@@ -238,7 +258,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
         listFriendNode.innerHTML = `
             <img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
             <p class="friend-name">${friend.name}</p>
-            <p class="friend-status ${offlineFriendClass}">${friendStatus}</p>`;
+            <p class="friend-status ${offlineFriendClass}">${name}${instanceTypeStr}</p>`;
         friendsListNode.appendChild(listFriendNode);
     }
 

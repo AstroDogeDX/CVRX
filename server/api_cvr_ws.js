@@ -86,10 +86,10 @@ async function ConnectWebsocket(username, accessKey) {
         });
 
         socket.on('ping', (data) => {
-            log.debug('[ConnectWebsocket] [onPing] Received Ping', data);
+            log.debug('[ConnectWebsocket] [onPing] Received Ping', data.toString());
         });
         socket.on('pong', (data) => {
-            log.debug('[ConnectWebsocket] [onPong] Received Pong', data);
+            log.debug('[ConnectWebsocket] [onPong] Received Pong', data.toString());
         });
         socket.on('redirect', (url, _request) => {
             log.debug(`[ConnectWebsocket] [onRedirect] Received Redirect Request: ${url}`);
