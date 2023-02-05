@@ -616,10 +616,8 @@ window.API.onUserStats((_event, userStats) => {
     userCountNode.textContent = `Online Users: ${usersOnline.overall}`;
     userCountNode.addEventListener('mouseenter', () => {
         userCountNode.textContent = `Public: ${usersOnline.public} | Private: ${usersOnline.other} | Offline Instance: ${usersOnline.notConnected}`;
-        toastyNotification('I see you!');
     });
     userCountNode.addEventListener('mouseleave', () => {
         userCountNode.textContent = `Online Users: ${usersOnline.overall}`;
-        toastyNotification('Where\'d you go?');
     });
 });
