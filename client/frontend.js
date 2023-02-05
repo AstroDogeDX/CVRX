@@ -28,6 +28,28 @@ const GetPrivacyLevelName = (privacyLevel) => {
     }
 };
 
+const WorldCategories = Object.freeze({
+    ActiveInstances: 'wrldactive',
+    New: 'wrldnew',
+    Trending: 'wrldtrending',
+    Official: 'wrldofficial',
+    Avatar: 'wrldavatars',
+    Public: 'wrldpublic',
+    RecentlyUpdated: 'wrldrecentlyupdated',
+    Mine: 'wrldmine',
+});
+
+const AvatarCategories = Object.freeze({
+    Public: 'avtrpublic',
+    Shared: 'avtrshared',
+    Mine: 'avtrmine',
+});
+
+const PropCategories = Object.freeze({
+    Mine: 'propmine',
+    Shared: 'propshared',
+});
+
 let toastTimer;
 
 const toastDown = () => {
@@ -60,6 +82,31 @@ function swapNavPages(page) {
                 e.classList.remove('filtered-friend');
             });
             break;
+        case 'avatars': {
+            const avatarsElement = document.querySelector('#display-avatars');
+            if (!avatarsElement.hasAttribute('loaded-avatars')) {
+                avatarsElement.setAttribute('loaded-avatars', '');
+                window.API.refreshGetActiveUserAvatars();
+            }
+            break;
+        }
+        case 'worlds': {
+            const worldsElement = document.querySelector('#display-worlds');
+            if (!worldsElement.hasAttribute('loaded-worlds')) {
+                worldsElement.setAttribute('loaded-worlds', '');
+                window.API.refreshGetActiveUserWorlds();
+            }
+            break;
+        }
+        case 'props': {
+            const propsElement = document.querySelector('#display-props');
+            if (!propsElement.hasAttribute('loaded-props')) {
+                propsElement.setAttribute('loaded-props', '');
+                window.API.refreshGetActiveUserProps();
+            }
+            break;
+        }
+
         default:
             return;
     }
@@ -405,41 +452,46 @@ searchBar.addEventListener('keypress', async (event) => {
 // -----------------------------
 window.API.onWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
 
-    if (worldCategoryId !== 'wrldactive') { return; }
+    switch (worldCategoryId) {
 
-    const homeActivity = document.querySelector('.home-activity--activity-wrapper');
+        case WorldCategories.ActiveInstances: {
 
-    // Disable the element because we're loading stuffs (better if there is a spinner or something idk)
-    homeActivity.disabled = true;
+            const homeActivity = document.querySelector('.home-activity--activity-wrapper');
 
-    console.log('Grabbed active worlds!');
-    console.log(worldsInfo);
+            // Disable the element because we're loading stuffs (better if there is a spinner or something idk)
+            homeActivity.disabled = true;
 
-    // activeWorlds = [{
-    //     playerCount: 1,
-    //     id: 'e17e2d00-61fc-4d27-8031-4b9bdda50756',
-    //     name: 'Avatarie & Glitch',
-    //     imageUrl: 'https://files.abidata.io/user_content/worlds/e17e2d00-61fc-4d27-8031-4b9bdda50756/e17e2d00-61fc-4d27-8031-4b9bdda50756.png',
-    //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    // }];
+            console.log('Grabbed active worlds!');
+            console.log(worldsInfo);
 
-    // Create the search result elements
-    const elementsOfResults = [];
-    for (const result of worldsInfo) {
-        let activeWorldNode = document.createElement('div');
-        activeWorldNode.setAttribute('class', 'home-activity--activity-node');
-        activeWorldNode.innerHTML = `
-            <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
-            <p class="search-result-name">${result.name}</p>
-            <p class="search-result-player-count">${result.playerCount}</p>`;
-        elementsOfResults.push(activeWorldNode);
+            // activeWorlds = [{
+            //     playerCount: 1,
+            //     id: 'e17e2d00-61fc-4d27-8031-4b9bdda50756',
+            //     name: 'Avatarie & Glitch',
+            //     imageUrl: 'https://files.abidata.io/user_content/worlds/e17e2d00-61fc-4d27-8031-4b9bdda50756/e17e2d00-61fc-4d27-8031-4b9bdda50756.png',
+            //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
+            // }];
+
+            // Create the search result elements
+            const elementsOfResults = [];
+            for (const result of worldsInfo) {
+                let activeWorldNode = document.createElement('div');
+                activeWorldNode.setAttribute('class', 'home-activity--activity-node');
+                activeWorldNode.innerHTML = `
+                    <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
+                    <p class="search-result-name">${result.name}</p>
+                    <p class="search-result-player-count">${result.playerCount}</p>`;
+                elementsOfResults.push(activeWorldNode);
+            }
+
+            // Replace previous search results with the new ones
+            homeActivity.replaceChildren(...elementsOfResults);
+
+            // Re-enable the element because we're loading stuffs (better if there is a spinner or something idk)
+            searchBar.disabled = false;
+            break;
+        }
     }
-
-    // Replace previous search results with the new ones
-    homeActivity.replaceChildren(...elementsOfResults);
-
-    // Re-enable the element because we're loading stuffs (better if there is a spinner or something idk)
-    searchBar.disabled = false;
 });
 
 // Janky invite listener
@@ -621,3 +673,87 @@ window.API.onUserStats((_event, userStats) => {
         userCountNode.textContent = `Online Users: ${usersOnline.overall}`;
     });
 });
+
+
+
+window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
+    console.log('[On] GetActiveUserAvatars');
+    console.log(ourAvatars);
+
+    const avatarDisplayNode = document.querySelector('#display-avatars');
+    const newNodes = [];
+
+    // Create reload our avatars button
+    const reloadAvatarsButton = document.createElement('button');
+    reloadAvatarsButton.append('Reload my Avatars');
+    reloadAvatarsButton.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
+    newNodes.push(reloadAvatarsButton);
+
+    for (const ourAvatar of ourAvatars) {
+        // Ignore avatars that are not our own
+        if (!ourAvatar.categories.includes(AvatarCategories.Mine)) continue;
+
+        const ourAvatarNode = document.createElement('div');
+        ourAvatarNode.innerHTML = `
+            <img src="https://placekitten.com/50/50" data-hash="${ourAvatar.imageHash}"/>
+            <p class="our-avatar--name">${ourAvatar.name}</p>
+            <p class="our-avatar--description">${ourAvatar.description}</p>`;
+        newNodes.push(ourAvatarNode);
+    }
+
+    avatarDisplayNode.replaceChildren(...newNodes);
+});
+
+window.API.onGetActiveUserProps((_event, ourProps) => {
+    console.log('[On] GetActiveUserProps');
+    console.log(ourProps);
+
+    const propDisplayNode = document.querySelector('#display-props');
+    const newNodes = [];
+
+    // Create reload our props button
+    const reloadPropsButton = document.createElement('button');
+    reloadPropsButton.append('Reload my Props');
+    reloadPropsButton.addEventListener('click', () => window.API.refreshGetActiveUserProps());
+    newNodes.push(reloadPropsButton);
+
+    for (const ourProp of ourProps) {
+        // Ignore avatars that are not our own
+        if (!ourProp.categories.includes(PropCategories.Mine)) continue;
+
+        const ourPropNode = document.createElement('div');
+        ourPropNode.innerHTML = `
+            <img src="https://placekitten.com/50/50" data-hash="${ourProp.imageHash}"/>
+            <p class="our-prop--name">${ourProp.name}</p>
+            <p class="our-prop--description">${ourProp.description}</p>`;
+        newNodes.push(ourPropNode);
+    }
+
+    propDisplayNode.replaceChildren(...newNodes);
+});
+
+window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
+    console.log('[On] GetActiveUserWorlds');
+    console.log(ourWorlds);
+
+    const propDisplayNode = document.querySelector('#display-worlds');
+    const newNodes = [];
+
+    // Create reload our worlds button
+    const reloadWorldsButton = document.createElement('button');
+    reloadWorldsButton.append('Reload my Worlds');
+    reloadWorldsButton.addEventListener('click', () => window.API.refreshGetActiveUserWorlds());
+    newNodes.push(reloadWorldsButton);
+
+    for (const ourWorld of ourWorlds) {
+        const ourPropNode = document.createElement('div');
+        ourPropNode.innerHTML = `
+            <img src="https://placekitten.com/50/50" data-hash="${ourWorld.imageHash}"/>
+            <p class="our-prop--name">${ourWorld.name}</p>
+            <p class="our-prop--player-count">${ourWorld.playerCount}</p>`;
+        newNodes.push(ourPropNode);
+    }
+
+    propDisplayNode.replaceChildren(...newNodes);
+});
+

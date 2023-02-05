@@ -4,7 +4,19 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('API', {
 
+    // Active user
     onGetActiveUser: (callback) => ipcRenderer.on('active-user-load', callback),
+    refreshGetActiveUser: () => ipcRenderer.send('active-user-refresh'),
+
+    onGetActiveUserAvatars: (callback) => ipcRenderer.on('active-user-avatars-load', callback),
+    refreshGetActiveUserAvatars: () => ipcRenderer.send('active-user-avatars-refresh'),
+
+    onGetActiveUserProps: (callback) => ipcRenderer.on('active-user-props-load', callback),
+    refreshGetActiveUserProps: () => ipcRenderer.send('active-user-props-refresh'),
+
+    onGetActiveUserWorlds: (callback) => ipcRenderer.on('active-user-worlds-load', callback),
+    refreshGetActiveUserWorlds: () => ipcRenderer.send('active-user-worlds-refresh'),
+
 
     onFriendsRefresh: (callback) => ipcRenderer.on('friends-refresh', callback),
 
