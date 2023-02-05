@@ -200,13 +200,70 @@
     border-radius: 5px;
 }
 
+/* Pending Requests on Home */
+
 .home-requests {
     grid-area: home-requests;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    overflow-y: auto;
+}
+
+.home-requests--friend-request-node {
+    height: 60px;
+    width: 100%;
     display: flex;
     flex-flow: row nowrap;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    padding: 5px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+.home-requests--friend-request-node:nth-of-type(odd) {
     background: rgba(0, 0, 0, 0.2);
+}
+
+.home-requests--friend-request--user-name {
+    font-size: large;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.request-node--button-wrapper {
+    float: right;
+    min-width: 90px;
+}
+
+.request-node--button-accept {
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+    background: green;
+    color: white;
+    border: thin solid black;
+    border-radius: 5px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.request-node--button-reject {
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+    background: darkred;
+    color: white;
+    border: thin solid black;
+    border-radius: 5px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.home-requests--friend-request--world-img {
+    width: 50px;
+    height: 50px;
     border-radius: 5px;
 }
 
@@ -229,6 +286,7 @@
 .home-activity--user-count {
     float: right;
     font-size: small;
+    cursor: help;
 }
 
 .home-activity--activity-wrapper {
@@ -247,6 +305,8 @@
 .home-activity--activity-node:nth-of-type(odd) {
     background: rgba(255, 255, 255, 0.1);
 }
+
+/* Friend History on Home */
 
 .home-history {
     display: grid;
@@ -487,11 +547,11 @@ tr:nth-child(odd) {
 
 .online-friend-world {
     grid-area: online-friend-world;
-    font-size: 12px;
+    font-size: 11px;
     display: block;
     font-style: italic;
     height: auto;
-    white-space: nowrap;
+    /* white-space: nowrap; */
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 200%;
@@ -563,6 +623,54 @@ tr:nth-child(odd) {
     background: black;
     width: 100%;
     height: 100%;
+}
+
+.loading-shade :is(span) {
+    animation: loadingSwirly 1s linear infinite;
+    border-radius: 100%;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+@keyframes loadingSwirly {
+    0% {
+        border-top: 5px solid white;
+        border-right: 1px solid white;
+        border-bottom: 0px solid white;
+        border-left: 1px solid white;
+    }
+
+    25% {
+        border-top: 1px solid white;
+        border-right: 5px solid white;
+        border-bottom: 1px solid white;
+        border-left: 0px solid white;
+    }
+
+    50% {
+        border-top: 0px solid white;
+        border-right: 1px solid white;
+        border-bottom: 5px solid white;
+        border-left: 1px solid white;
+    }
+
+    75% {
+        border-top: 1px solid white;
+        border-right: 0px solid white;
+        border-bottom: 1px solid white;
+        border-left: 5px solid white;
+    }
+
+    100% {
+        border-top: 5px solid white;
+        border-right: 1px solid white;
+        border-bottom: 0px solid white;
+        border-left: 1px solid white;
+    }
 }
 
 /* Testing Stuff - To be removed before final builds! */

@@ -588,21 +588,24 @@ window.API.onFriendRequests((_event, friendRequests) => {
 
         // Create friendRequest Node element
         let friendRequestNode = document.createElement('div');
-        friendRequestNode.setAttribute('class', 'home-requests--friend-request');
+        friendRequestNode.setAttribute('class', 'home-requests--friend-request-node');
         friendRequestNode.innerHTML = `
         <img class="home-requests--friend-request--world-img" src="https://placekitten.com/50/50" data-hash="${friendRequest.imageHash}"/>
-        <p class="home-requests--friend-request--user-name">${friendRequest.name}</p>`;
+        <p class="home-requests--friend-request--user-name"><strong>${friendRequest.name}</strong> <small>Friend Request</small></p>`;
 
         // Create buttons (can't do it with template strings because won't let me inline the function call)
         const acceptButton = document.createElement('button');
-        acceptButton.append('Accept');
-        acceptButton.setAttribute('class', 'home-requests--friend-request--accept');
+        acceptButton.append('✔');
+        acceptButton.setAttribute('class', 'request-node--button-accept');
         acceptButton.addEventListener('click', () => window.API.acceptFriendRequest(friendRequest.id));
         const declineButton = document.createElement('button');
-        declineButton.append('Decline');
-        declineButton.setAttribute('class', 'home-requests--friend-request--decline');
+        declineButton.append('✖');
+        declineButton.setAttribute('class', 'request-node--button-reject');
         declineButton.addEventListener('click', () => window.API.declineFriendRequest(friendRequest.id));
-        friendRequestNode.append(acceptButton, declineButton);
+        const buttonWrapper = document.createElement('div');
+        buttonWrapper.setAttribute('class', 'request-node--button-wrapper');
+        buttonWrapper.append(acceptButton, declineButton);
+        friendRequestNode.append(buttonWrapper);
 
         // Append friendRequest Node element at the beginning
         homeRequests.prepend(friendRequestNode);
@@ -662,7 +665,13 @@ window.API.onUserStats((_event, userStats) => {
     const userCountNode = document.querySelector('.home-activity--user-count');
     // usersOnline: { overall: 47, public: 14, notConnected: 9, other: 24 }
     const usersOnline = userStats.usersOnline;
-    userCountNode.textContent = `Public: ${usersOnline.public} | Private: ${usersOnline.other} | Offline Instance: ${usersOnline.notConnected}`;
+    userCountNode.textContent = `Online Users: ${usersOnline.overall}`;
+    userCountNode.addEventListener('mouseenter', () => {
+        userCountNode.textContent = `Public: ${usersOnline.public} | Private: ${usersOnline.other} | Offline Instance: ${usersOnline.notConnected}`;
+    });
+    userCountNode.addEventListener('mouseleave', () => {
+        userCountNode.textContent = `Online Users: ${usersOnline.overall}`;
+    });
 });
 
 
