@@ -20,36 +20,48 @@ exports.GetHash = (string) => {
 
 const queue = [];
 let window;
+let initializing = false;
 
 exports.Initialize = (win) => {
     window = win;
+    initializing = true;
+};
+
+exports.Initialized = () => {
+    initializing = false;
+    ProcessQueue().then().catch((err) => log.error('[Initialized] ProcessQueue...', err));
 };
 
 exports.QueueFetchImage = (urlObj) => {
     if (urlObj) {
         queue.push(urlObj);
-        ProcessQueue().then().catch((err) => log.error('[QueueFetchImage]', err));
+        if (!initializing) {
+            ProcessQueue().then().catch((err) => log.error('[QueueFetchImage] ProcessQueue...', err));
+        }
     }
 };
+
+function SendNativeImage(nativeImg, urlObj) {
+    if (!nativeImg) return;
+
+    const imDataUrl = nativeImg.toDataURL();
+
+    // Save the image to the object
+    urlObj.obj.imageBase64 = imDataUrl;
+
+    // Send the loaded image to the main window
+    window.webContents.send('image-load', {
+        imageUrl: urlObj.url,
+        imageHash: urlObj.hash,
+        imageBase64: imDataUrl,
+    });
+}
 
 async function ProcessQueue() {
     // Process Queue if there is stuff in the queue
     if (queue.length > 0) {
         const urlObj = queue.shift();
-        const nativeImg = await FetchImage(urlObj);
-
-        if (nativeImg) {
-            const imDataUrl = nativeImg.toDataURL();
-            // Save the image to the object
-            urlObj.obj.imageBase64 = imDataUrl;
-            // Send the loaded image to the main window
-            window.webContents.send('image-load', {
-                imageUrl: urlObj.url,
-                imageHash: urlObj.hash,
-                imageBase64: imDataUrl,
-            });
-        }
-
+        await FetchImage(urlObj);
         await ProcessQueue();
     }
 
@@ -95,21 +107,27 @@ async function FetchImage(urlObj) {
 
     // Check if the image, and grab it if it does!
     if (fs.existsSync(imagePath)) {
-        const image = await fs.promises.readFile(imagePath);
-        return nativeImage.createFromBuffer(image);
+        // Since it's not an api access we can do it sync
+        fs.promises.readFile(imagePath).then(image => {
+            // log.debug(`Fetching ${url} from cache!`);
+            SendNativeImage(nativeImage.createFromBuffer(image), urlObj);
+        }).catch(err => log.error(`[FetchImage] Reading ${imagePath} from cache...`, err));
     }
 
     // The image is not cached, let's download it
     else {
         const image = await DownloadImage(url);
+
         if (image !== null) {
-            await fs.promises.mkdir(CacheImagesPath, { recursive: true }).catch((err) => log.error('[FetchImage] Creating CacheImagesPath...', err));
-            await CacheImage(imagePath, image);
-            return nativeImage.createFromBuffer(image);
+            // Cache the image async
+            fs.promises.mkdir(CacheImagesPath, { recursive: true }).then(() => {
+                CacheImage(imagePath, image).then().catch(err => log.error(`[FetchImage] Caching image ${CacheImagesPath}...`, err));
+            }).catch(err => log.error(`[FetchImage] Creating Path for ${imagePath}...`, err));
+
+            // log.debug(`Fetching ${url} from http!`);
+            SendNativeImage(nativeImage.createFromBuffer(image), urlObj);
         }
     }
-
-    return null;
 }
 
 async function CacheImage(imagePath, image) {

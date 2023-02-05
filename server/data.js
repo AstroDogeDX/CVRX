@@ -15,25 +15,47 @@ const ToastTypes = Object.freeze({
     INFO: 'info',
 });
 
+const AvatarCategories = Object.freeze({
+    Public: 'avtrpublic',
+    Shared: 'avtrshared',
+    Mine: 'avtrmine',
+});
+
+const PropCategories = Object.freeze({
+    Mine: 'propmine',
+    Shared: 'propshared',
+});
+
+const WorldCategories = Object.freeze({
+    ActiveInstances: 'wrldactive',
+    New: 'wrldnew',
+    Trending: 'wrldtrending',
+    Official: 'wrldofficial',
+    Avatar: 'wrldavatars',
+    Public: 'wrldpublic',
+    RecentlyUpdated: 'wrldrecentlyupdated',
+    Mine: 'wrldmine',
+});
+
 
 function LoadImage(url, obj) {
     const hashedFileName = cache.GetHash(url);
     cache.QueueFetchImage({ url: url, hash: hashedFileName, obj: obj });
-    return hashedFileName;
+    obj.imageHash = hashedFileName;
 }
 
 function LoadUserImages(userObject) {
     if (userObject?.imageUrl) {
-        userObject.imageHash = LoadImage(userObject.imageUrl, userObject);
+        LoadImage(userObject.imageUrl, userObject);
     }
     if (userObject?.avatar?.imageUrl) {
-        userObject.avatar.imageHash = LoadImage(userObject.avatar.imageUrl, userObject);
+        LoadImage(userObject.avatar.imageUrl, userObject.avatar);
     }
     if (userObject?.featuredBadge?.image) {
-        userObject.featuredBadge.imageHash = LoadImage(userObject.featuredBadge.image, userObject);
+        LoadImage(userObject.featuredBadge.image, userObject.featuredBadge);
     }
     if (userObject?.featuredGroup?.image) {
-        userObject.featuredGroup.imageHash = LoadImage(userObject.featuredGroup.image, userObject);
+        LoadImage(userObject.featuredGroup.image, userObject.featuredGroup);
     }
 }
 
@@ -61,6 +83,12 @@ class Core {
         ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-friend-requests', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-worlds-category', (_event, worldCategoryId) => this.UpdateWorldsByCategory(worldCategoryId));
+
+        // Active user
+        ipcMain.on('active-user-refresh', (_event) => this.GetOurUserInfo());
+        ipcMain.on('active-user-avatars-refresh', (_event) => this.GetOurUserAvatars());
+        ipcMain.on('active-user-props-refresh', (_event) => this.GetOurUserProps());
+        ipcMain.on('active-user-worlds-refresh', (_event) => this.GetOurUserWorlds());
 
         // Logging
         ipcMain.on('log-debug', (_event, msg, data) => logRenderer.debug(msg, data));
@@ -113,15 +141,21 @@ class Core {
         // Call more events to update the initial state
         await Promise.allSettled([
             this.GetOurUserInfo(),
+            // this.GetOurUserAvatars(),
+            // this.GetOurUserProps(),
+            // this.GetOurUserWorlds(),
             this.FriendsUpdate(true),
             this.UpdateUserStats(),
             this.RefreshFriendRequests(),
-            this.UpdateWorldsByCategory('wrldactive'),
-            //this.UpdateCategories(CVRHttp.GetCategories()),
+            this.UpdateWorldsByCategory(WorldCategories.ActiveInstances),
+            //this.UpdateCategories(),
         ]);
 
         // Initialize the websocket
         await CVRWebsocket.ConnectWithCredentials(username, accessKey);
+
+        // Tell cache we're initialized to start loading images...
+        cache.Initialized();
 
         this.mainWindow.webContents.send('initial-load-finish');
 
@@ -132,7 +166,7 @@ class Core {
             try {
                 await Promise.allSettled([
                     this.UpdateUserStats(),
-                    this.UpdateWorldsByCategory('wrldactive'),
+                    this.UpdateWorldsByCategory(WorldCategories.ActiveInstances),
                 ]);
                 failedTimes = 0;
             }
@@ -165,15 +199,58 @@ class Core {
     }
 
     async GetOurUserInfo() {
-        // Get our own user details
         const ourUser = await this.GetUserById(this.userId);
-
-        // Send our user to the frontend
         this.mainWindow.webContents.send('active-user-load', ourUser);
     }
 
-    async FriendsUpdate(isRefresh, friendsInfo) {
+    async GetOurUserAvatars() {
+        const ourAvatars = (await CVRHttp.GetMyAvatars()).filter(av => av.categories.includes(AvatarCategories.Mine));
+        // ourAvatars = [{
+        //     description: '',
+        //     authorGuid: '3a1661f1-3eeb-426e-92ec-1b2f08e609b5',
+        //     categories: [ 'avtrmine' ],
+        //     id: 'b81d5892-5119-4f44-b473-7bf4ffda0458',
+        //     name: 'Captain fas',
+        //     imageUrl: 'https://files.abidata.io/user_content/avatars/3a1661f1-3eeb-426e-92ec-1b2f08e609b5.png'
+        // }]
+        for (const ourAvatar of ourAvatars) {
+            if (ourAvatar?.imageUrl) {
+                LoadImage(ourAvatar.imageUrl, ourAvatar);
+            }
+        }
+        this.mainWindow.webContents.send('active-user-avatars-load', ourAvatars);
+    }
 
+    async GetOurUserProps() {
+        const ourProps = (await CVRHttp.GetProps()).filter(av => av.categories.includes(PropCategories.Mine));
+        // ourProps = [{
+        //     description: '',
+        //     authorGuid: '4a1661f1-2eeb-426e-92ec-1b2f08e609b3',
+        //     categories: [ 'propmine' ],
+        //     id: 'dcd50623-9cc8-4c97-9286-25186db03dd9',
+        //     name: 'Cube Seat',
+        //     imageUrl: 'https://files.abidata.io/user_content/spawnables/dcd50623-9cc8-4c97-9286-25186db03dd9/dcd50623-9cc8-4c97-9286-25186db03dd9.png'
+        // }]
+        for (const ourProp of ourProps) {
+            if (ourProp?.imageUrl) {
+                LoadImage(ourProp.imageUrl, ourProp);
+            }
+        }
+        this.mainWindow.webContents.send('active-user-props-load', ourProps);
+    }
+
+    async GetOurUserWorlds() {
+        const ourWorlds = await this.UpdateWorldsByCategory(WorldCategories.Mine);
+        // const ourWorlds = [{
+        //     playerCount: 9,
+        //     id: '406acf24-99b1-4119-8883-4fcda4250743',
+        //     name: 'The Purple Fox',
+        //     imageUrl: 'https://files.abidata.io/user_content/worlds/406acf24-99b1-4119-8883-4fcda4250743/406acf24-99b1-4119-8883-4fcda4250743.png',
+        // }];
+        this.mainWindow.webContents.send('active-user-worlds-load', ourWorlds);
+    }
+
+    async FriendsUpdate(isRefresh, friendsInfo) {
         // [{
         // "id":"2ff016ef-1d3b-4aff-defb-c167ed99b416",
         // "isOnline":true,
@@ -226,10 +303,10 @@ class Core {
         // Note: The invites will time out over time, and when they do, we get another full update
         for (const invite of invites) {
             if (invite?.user?.imageUrl) {
-                invite.user.imageHash = LoadImage(invite.user.imageUrl, invite.user);
+                LoadImage(invite.user.imageUrl, invite.user);
             }
             if (invite?.world?.imageUrl) {
-                invite.world.imageHash = LoadImage(invite.world.imageUrl, invite.world);
+                LoadImage(invite.world.imageUrl, invite.world);
             }
         }
         // invites = [{
@@ -256,7 +333,7 @@ class Core {
         // Note: The requestInvites will time out over time, and when they do, we get another full update
         for (const requestInvite of requestInvites) {
             if (requestInvite?.sender?.imageUrl) {
-                requestInvite.sender.imageHash = LoadImage(requestInvite.sender.imageUrl, requestInvite.sender);
+                LoadImage(requestInvite.sender.imageUrl, requestInvite.sender);
             }
         }
         // requestInvites = [{
@@ -271,8 +348,8 @@ class Core {
         this.mainWindow.webContents.send('invite-requests', requestInvites);
     }
 
-    async UpdateCategories(categories) {
-        this.categories = categories;
+    async UpdateCategories() {
+        this.categories = await CVRHttp.GetCategories();
     }
 
     async GetUserById(userId) {
@@ -321,10 +398,12 @@ class Core {
         const worlds = await CVRHttp.GetWorldsByCategory(categoryId);
         for (const world of worlds) {
             if (world?.imageUrl) {
-                world.imageHash = LoadImage(world.imageUrl, world);
+                LoadImage(world.imageUrl, world);
             }
         }
         this.mainWindow.webContents.send('worlds-category-requests', categoryId, worlds);
+
+        return worlds;
 
         // const worlds = [
         //     {
@@ -340,10 +419,10 @@ class Core {
 
         const world = await CVRHttp.GetWorldById(worldId);
         if (world?.imageUrl) {
-            world.imageHash = LoadImage(world.imageUrl, world);
+            LoadImage(world.imageUrl, world);
         }
         if (world?.author?.imageUrl) {
-            world.author.imageHash = LoadImage(world.author.imageUrl, world.author);
+            LoadImage(world.author.imageUrl, world.author);
         }
         return world;
 
@@ -383,7 +462,7 @@ class Core {
 
         const instance = await CVRHttp.GetInstanceById(instanceId);
         if (instance?.world?.imageUrl) {
-            instance.world.imageHash = LoadImage(instance.world.imageUrl, instance.world);
+            LoadImage(instance.world.imageUrl, instance.world);
         }
         LoadUserImages(instance?.author);
         LoadUserImages(instance?.owner);
@@ -485,7 +564,7 @@ class Core {
         const searchResults = await CVRHttp.Search(term);
         for (const searchResult of searchResults) {
             if (searchResult?.imageUrl) {
-                searchResult.imageHash = LoadImage(searchResult.imageUrl, searchResult);
+                LoadImage(searchResult.imageUrl, searchResult);
             }
         }
         return searchResults;
@@ -503,7 +582,7 @@ class Core {
 
         for (const friendRequest of friendRequests) {
             if (friendRequest?.imageUrl) {
-                friendRequest.imageHash = LoadImage(friendRequest.imageUrl, friendRequest);
+                LoadImage(friendRequest.imageUrl, friendRequest);
             }
             // Save/Replace the request on cache
             this.friendRequests[friendRequest.id] = friendRequest;
