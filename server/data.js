@@ -3,6 +3,8 @@ const cache = require('./cache.js');
 const CVRHttp = require('./api_cvr_http');
 const CVRWebsocket = require('./api_cvr_ws');
 
+const log = require('./logger').GetLogger('Data');
+const logRenderer = require('../server/logger').GetLogger('Renderer');
 
 let recurringIntervalId;
 
@@ -60,6 +62,12 @@ class Core {
         ipcMain.on('refresh-friend-requests', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-worlds-category', (_event, worldCategoryId) => this.UpdateWorldsByCategory(worldCategoryId));
 
+        // Logging
+        ipcMain.on('log-debug', (_event, msg, data) => logRenderer.debug(msg, data));
+        ipcMain.on('log-info', (_event, msg, data) => logRenderer.info(msg, data));
+        ipcMain.on('log-warn', (_event, msg, data) => logRenderer.warn(msg, data));
+        ipcMain.on('log-error', (_event, msg, data) => logRenderer.error(msg, data));
+
         // Setup handlers for IPC
         ipcMain.handle('get-user-by-id', (_event, userId) => this.GetUserById(userId));
         ipcMain.handle('get-world-by-id', (_event, worldId) => this.GetWorldById(worldId));
@@ -69,17 +77,17 @@ class Core {
         // Friendship
         ipcMain.handle('friend-request-send', (_event, userId) => CVRWebsocket.SendFriendRequest(userId));
         ipcMain.handle('friend-request-accept', async (_event, userId) => {
-            await CVRWebsocket.AcceptFriendRequest(userId);
-            this.RefreshFriendRequests().then().catch(console.error);
-            this.FriendsUpdate(true).then().catch(console.error);
+            try { await CVRWebsocket.AcceptFriendRequest(userId); } catch (err) { log.error('[#SetupHandlers] [friend-request-accept] [AcceptFriendRequest]', err); }
+            this.RefreshFriendRequests().then().catch((err) => log.error('[#SetupHandlers] [friend-request-accept] [RefreshFriendRequests]', err));
+            this.FriendsUpdate(true).then().catch((err) => log.error('[#SetupHandlers] [friend-request-accept] [FriendsUpdate]', err));
         });
         ipcMain.handle('friend-request-decline', async (_event, userId) => {
             await CVRWebsocket.DeclineFriendRequest(userId);
             await this.RefreshFriendRequests();
         });
         ipcMain.handle('unfriend', async (_event, userId) => {
-            await CVRWebsocket.Unfriend(userId);
-            this.FriendsUpdate(true).then().catch(console.error);
+            try { await CVRWebsocket.Unfriend(userId); } catch (err) { log.error('[#SetupHandlers] [unfriend] [CVRWebsocket.Unfriend]', err); }
+            this.FriendsUpdate(true).then().catch((err) => log.error('[#SetupHandlers] [unfriend] [FriendsUpdate]', err));
         });
 
         // Moderation
@@ -88,54 +96,8 @@ class Core {
 
         // Setup Handlers for the websocket
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, (friendsInfo) => this.FriendsUpdate(false, friendsInfo));
-        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.INVITES, (invites) => {
-            // This always send all of them!
-            // Note: The invites will time out over time, and when they do, we get another full update
-            for (const invite of invites) {
-                if (invite?.user?.imageUrl) {
-                    invite.user.imageHash = LoadImage(invite.user.imageUrl, invite.user);
-                }
-                if (invite?.world?.imageUrl) {
-                    invite.world.imageHash = LoadImage(invite.world.imageUrl, invite.world);
-                }
-            }
-            // invites = [{
-            //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3:yghREqSG",
-            //     "user": {
-            //         "id": "b3005d19-e487-bafc-70ac-76d2190d5a29",
-            //         "name": "NotAKid",
-            //         "imageUrl": "https://files.abidata.io/user_images/b3005d19-e487-bafc-70ac-76d2190d5a29.png"
-            //     },
-            //     "world": {
-            //         "id": "95c9f8c9-ba9b-40f5-a957-3254ce2d2e91",
-            //         "name": "Sakura Hotsprings",
-            //         "imageUrl": "https://files.abidata.io/user_content/worlds/95c9f8c9-ba9b-40f5-a957-3254ce2d2e91/95c9f8c9-ba9b-40f5-a957-3254ce2d2e91.png"
-            //     },
-            //     "instanceId": "i+a08c7c940906f17d-829305-fd561f-171faa79",
-            //     "instanceName": "Sakura Hotsprings (#811786)",
-            //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
-            // }]
-            this.mainWindow.webContents.send('invites', invites);
-        });
-        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.REQUEST_INVITES, (requestInvites) => {
-            // This always send all of them!
-            // Note: The requestInvites will time out over time, and when they do, we get another full update
-            for (const requestInvite of requestInvites) {
-                if (requestInvite?.sender?.imageUrl) {
-                    requestInvite.sender.imageHash = LoadImage(requestInvite.sender.imageUrl, requestInvite.sender);
-                }
-            }
-            // requestInvites = [{
-            //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3:E5nx5n7N",
-            //     "sender": {
-            //         "id": "b3005d19-e487-bafc-70ac-76d2190d5a29",
-            //         "name": "NotAKid",
-            //         "imageUrl": "https://files.abidata.io/user_images/b3005d19-e487-bafc-70ac-76d2190d5a29.png"
-            //     },
-            //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
-            // }]
-            this.mainWindow.webContents.send('invite-requests', requestInvites);
-        });
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.INVITES, (invites) => this.InvitesUpdate(invites));
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.REQUEST_INVITES, (requestInvites) => this.RequestInvitesUpdate(requestInvites));
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.FRIEND_REQUESTS, (friendRequests) => this.UpdateFriendRequests(friendRequests, false));
 
         // Notifications
@@ -165,15 +127,23 @@ class Core {
 
         // Schedule recurring API Requests every 5 minutes
         if (recurringIntervalId) clearInterval(recurringIntervalId);
+        let failedTimes = 0;
         recurringIntervalId = setInterval(async () => {
             try {
                 await Promise.allSettled([
                     this.UpdateUserStats(),
                     this.UpdateWorldsByCategory('wrldactive'),
                 ]);
+                failedTimes = 0;
             }
             catch (e) {
-                console.error(e);
+                if (failedTimes > 3) {
+                    log.error('[Initialize] We failed to update active worlds 3 times, stopping...', e);
+                    if (recurringIntervalId) clearInterval(recurringIntervalId);
+                    return;
+                }
+                log.error('[Initialize] Updating the currently active worlds (recurring every 5 mins)...', e);
+                failedTimes++;
             }
         }, 5 * 60 * 1000);
     }
@@ -249,6 +219,56 @@ class Core {
 
         // Send the friend results to the main window
         this.mainWindow.webContents.send('friends-refresh', Object.values(this.friends), isRefresh);
+    }
+
+    InvitesUpdate(invites) {
+        // This always send all of them!
+        // Note: The invites will time out over time, and when they do, we get another full update
+        for (const invite of invites) {
+            if (invite?.user?.imageUrl) {
+                invite.user.imageHash = LoadImage(invite.user.imageUrl, invite.user);
+            }
+            if (invite?.world?.imageUrl) {
+                invite.world.imageHash = LoadImage(invite.world.imageUrl, invite.world);
+            }
+        }
+        // invites = [{
+        //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3:yghREqSG",
+        //     "user": {
+        //         "id": "b3005d19-e487-bafc-70ac-76d2190d5a29",
+        //         "name": "NotAKid",
+        //         "imageUrl": "https://files.abidata.io/user_images/b3005d19-e487-bafc-70ac-76d2190d5a29.png"
+        //     },
+        //     "world": {
+        //         "id": "95c9f8c9-ba9b-40f5-a957-3254ce2d2e91",
+        //         "name": "Sakura Hotsprings",
+        //         "imageUrl": "https://files.abidata.io/user_content/worlds/95c9f8c9-ba9b-40f5-a957-3254ce2d2e91/95c9f8c9-ba9b-40f5-a957-3254ce2d2e91.png"
+        //     },
+        //     "instanceId": "i+a08c7c940906f17d-829305-fd561f-171faa79",
+        //     "instanceName": "Sakura Hotsprings (#811786)",
+        //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
+        // }]
+        this.mainWindow.webContents.send('invites', invites);
+    }
+
+    RequestInvitesUpdate(requestInvites) {
+        // This always send all of them!
+        // Note: The requestInvites will time out over time, and when they do, we get another full update
+        for (const requestInvite of requestInvites) {
+            if (requestInvite?.sender?.imageUrl) {
+                requestInvite.sender.imageHash = LoadImage(requestInvite.sender.imageUrl, requestInvite.sender);
+            }
+        }
+        // requestInvites = [{
+        //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3:E5nx5n7N",
+        //     "sender": {
+        //         "id": "b3005d19-e487-bafc-70ac-76d2190d5a29",
+        //         "name": "NotAKid",
+        //         "imageUrl": "https://files.abidata.io/user_images/b3005d19-e487-bafc-70ac-76d2190d5a29.png"
+        //     },
+        //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
+        // }]
+        this.mainWindow.webContents.send('invite-requests', requestInvites);
     }
 
     async UpdateCategories(categories) {

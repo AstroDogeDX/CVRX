@@ -1,8 +1,8 @@
-const util = require('util');
-
 const WebSocket = require('ws');
 const WebSocketAddress = 'wss://api.abinteractive.net/1/users/ws';
 // const WebSocketAddress = 'ws://localhost';
+
+const log = require('./logger').GetLogger('API_WS');
 
 const events = require('events');
 const { app, dialog } = require('electron');
@@ -26,6 +26,7 @@ const RESPONSE_TYPE = Object.freeze({
     FRIEND_REQUESTS: 25,
 });
 exports.ResponseType = RESPONSE_TYPE;
+const GetResponseTypeName = (value) => Object.keys(RESPONSE_TYPE).find(key => RESPONSE_TYPE[key] === value);
 
 
 function Wait5Seconds() {
@@ -48,17 +49,11 @@ exports.ConnectWithCredentials = async (username, accessKey) => {
 };
 
 
-function LogRequestResponse(res) {
-    console.log(`\tCode: ${res.statusCode}`);
-    console.log(`\tHeaders: ${util.inspect(res.headers, {showHidden: false, depth: null, colors: true})}`);
-}
-
-
 exports.DisconnectWebsocket = async () => {
     if (socket) {
         await socket.close();
         socket = null;
-        console.info('The socket has been closed.');
+        log.info('[DisconnectWebsocket] The socket has been closed.');
     }
 };
 
@@ -68,7 +63,7 @@ async function ConnectWebsocket(username, accessKey) {
     return new Promise((resolve, _reject) => {
 
         if (socket) {
-            console.error('The socket was already connected!');
+            log.error('[ConnectWebsocket] The socket was already connected!');
             resolve();
         }
 
@@ -81,51 +76,33 @@ async function ConnectWebsocket(username, accessKey) {
         });
 
         socket.on('error', async (error) => {
-            console.error(error);
-            // try {
-            //     await dialog.showErrorBox(
-            //         'Failed to CVR Socket Server',
-            //         error.toString(),
-            //     );
-            // }
-            // catch (e) {
-            //     console.error(e);
-            // }
-            //throw new Error(`[Socket] Error while trying to connect to the socket! ${error}`);
+            log.error('[ConnectWebsocket] [onError]', error);
         });
 
         socket.on('open', () => {
-            console.log('\n[Socket] Opened!');
+            log.info('[ConnectWebsocket] [onOpen] Opened!');
             reconnectAttempts = 0;
             resolve();
         });
 
-        if (process.env.DEBUG_ALL_WS === 'true') {
-            socket.on('ping', (data) => {
-                console.log(`\n\n[Socket] Received Ping: ${data.toString()}`);
-            });
-            socket.on('pong', (data) => {
-                console.log(`\n\n[Socket] Received Pong: ${data.toString()}`);
-            });
-            socket.on('redirect', (url, request) => {
-                console.log(`\n\n[Socket] Received Redirect Request: ${url}`);
-                LogRequestResponse(request);
-            });
-            socket.on('unexpected-response', (request, response) => {
-                console.log('\n\n[Socket] Unexpected Response!');
-                console.log('\t[Request]');
-                LogRequestResponse(request);
-                console.log('\n\t[Response]');
-                LogRequestResponse(response);
-            });
-            socket.on('upgrade', (response) => {
-                console.log(`\n\n[Socket] Upgrade: \n${response}`);
-                LogRequestResponse(response);
-            });
-        }
+        socket.on('ping', (data) => {
+            log.debug('[ConnectWebsocket] [onPing] Received Ping', data);
+        });
+        socket.on('pong', (data) => {
+            log.debug('[ConnectWebsocket] [onPong] Received Pong', data);
+        });
+        socket.on('redirect', (url, _request) => {
+            log.debug(`[ConnectWebsocket] [onRedirect] Received Redirect Request: ${url}`);
+        });
+        socket.on('unexpected-response', (request, response) => {
+            log.debug(`[ConnectWebsocket] [onUnexpectedResponse] Unexpected Response! Request Code: ${request.code}, Response Code: ${response.code}`);
+        });
+        socket.on('upgrade', (response) => {
+            log.debug(`[ConnectWebsocket] [onUpgrade] Upgrade: Response Code: ${response.code}`);
+        });
 
         socket.on('close', async (code, reason) => {
-            console.log(`\n[Socket] Closed! Code: ${code}, Reason: ${reason.toString()}`);
+            log.warn(`[ConnectWebsocket] [onClose] Closed! Code: ${code}, Reason: ${reason.toString()}`);
             socket = null;
             if (code === 1001 || code === 1005 || code === 1006) {
                 if (reconnectAttempts >= MaxReconnectionAttempts) {
@@ -136,39 +113,44 @@ async function ConnectWebsocket(username, accessKey) {
                         );
                     }
                     catch (e) {
-                        console.error(e);
+                        log.error(e);
                     }
                     app.quit();
-                    throw new Error('[Socket] Failed to connect to CVR Websocket, attempted 5 times!');
+                    throw new Error('[ConnectWebsocket] [onClose] Failed to connect to CVR Websocket, attempted 5 times!');
                 }
-                console.log(`\n[Socket] Reconnecting in 5 seconds... Attempt: ${reconnectAttempts + 1}`);
+                log.info(`[ConnectWebsocket] [onClose] Reconnecting in 5 seconds... Attempt: ${reconnectAttempts + 1}`);
                 await Wait5Seconds();
                 reconnectAttempts++;
                 try {
                     await ConnectWebsocket(currentUsername, currentAccessKey);
                 }
                 catch (e) {
-                    console.error(e);
+                    log.error(e);
                 }
             }
         });
 
         socket.on('message', (messageBuffer, isBinary) => {
-            console.log(`\n[Socket] Received Message! isBinary: ${isBinary}, Data:`);
-            if (process.env.LOG_WS_MESSAGES === 'true') console.log(util.inspect(messageBuffer.toString(), {showHidden: false, depth: null, colors: true}));
+
+            // Ignore binary messages, but log them
+            if (isBinary) {
+                log.warn('[ConnectWebsocket] [onMessage] Received Message in binary...', messageBuffer?.toString());
+                return;
+            }
 
             // Attempt to parse json
             try {
                 const { responseType, message, data } = JSON.parse(messageBuffer.toString());
                 if (Object.values(RESPONSE_TYPE).includes(responseType)) {
                     EventEmitter.emit(responseType, data, message);
+                    log.debug(`[ConnectWebsocket] [onMessage] Type: ${GetResponseTypeName(responseType)} (${responseType}), Msg: ${message}`, data);
                 }
                 else {
-                    console.warn(`Response type ${responseType} is not mapped! Msg: ${message}`);
+                    log.warn(`[ConnectWebsocket] [onMessage] Response type ${responseType} is not mapped! Msg: ${message}`, data);
                 }
             } catch (e) {
-                console.error(e);
-                console.error('Failed to parse the base message. This could mean the API changed...');
+                log.error(e);
+                log.error('[ConnectWebsocket] [onMessage] Failed to parse the base message. This could mean the API changed...', messageBuffer?.toString());
             }
         });
     });
@@ -186,7 +168,7 @@ const GetRequestName = (value) => Object.keys(RequestType).find(key => RequestTy
 
 async function SendRequest(requestType, data) {
     if (!socket) {
-        console.error(`Attempted to send a ${GetRequestName(requestType)} request while the socket was disconnected!`);
+        log.error(`[SendRequest] Attempted to send a ${GetRequestName(requestType)} request while the socket was disconnected!`);
         return;
     }
     // Prepare the request json and send

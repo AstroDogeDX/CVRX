@@ -15,6 +15,9 @@ if (!app.requestSingleInstanceLock()) {
     return;
 }
 
+const log = require('./logger').GetLogger('Main');
+
+
 const path = require('path');
 
 const Config = require('./config');
@@ -32,13 +35,12 @@ const Cache = require('./cache');
 //     const wss = new WebSocket.WebSocketServer({ port: 80 });
 //     wss.on('connection', (ws, request) => {
 //         connected = true;
-//         ws.on('error', console.error);
+//         ws.on('error', (err) => log.error('[TestServer] [onError]', err));
 //         ws.on('message', (data) => {
-//             console.log('received: %s', data);
+//             log.info('[TestServer] Received:', data);
 //         });
 //         ws.send(JSON.stringify( { responseType: -1, message: 'You have connected!', data: null }));
-//         console.log('\n\n\n[Server] Headers:');
-//         console.log(`${util.inspect(request.headers, {showHidden: false, depth: null, colors: true})}`);
+//         log.info('[TestServer] Headers:', request.headers);
 //         ipcMain.on('close-socket-server', (_event, closeId, closeServer = null) => {
 //             if (nuked) return;
 //             ws.close(closeId, 'test close');
@@ -56,7 +58,9 @@ const Cache = require('./cache');
 // ConnectTest();
 
 
-const createWindow = async () => {
+const CreateWindow = async () => {
+
+    log.info(`Starting CVRX... Version: ${app.getVersion()}`);
 
     // Create the browser window.
     const mainWindow = new BrowserWindow({
@@ -67,36 +71,32 @@ const createWindow = async () => {
         icon: './client/img/cvrx-ico.ico',
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
+            devTools: !app.isPackaged,
         },
     });
+
+    // Remove the menu in the packaged version
+    if (app.isPackaged) mainWindow.removeMenu();
 
     // Load the config
     await Config.Load();
     await Config.ImportCVRCredentials();
 
     let activeCredentials = Config.GetActiveCredentials();
-    // console.log(`\nActive Credentials:`);
-    // console.log(util.inspect(activeCredentials, {showHidden: false, depth: null, colors: true}));
-
-    // const availableCredentials = Config.GetAvailableCredentials();
-    // console.log(`\nAvailable Credentials:`);
-    // console.log(util.inspect(availableCredentials, {showHidden: false, depth: null, colors: true}));
+    log.info(`[CreateWindow] Fetching active user, found: ${activeCredentials?.Username}`);
 
     if (!activeCredentials) {
+        log.info('[CreateWindow] No active user found, attempting to fetch credentials...');
 
         const autoLoginCredentials = Config.GetAutoLoginCredentials();
-        // console.log(`\nAuto Login Credentials:`);
-        // console.log(util.inspect(autoLoginCredentials, {showHidden: false, depth: null, colors: true}));
+        log.info(`[CreateWindow] Looking for auto login credentials, found: ${autoLoginCredentials.Username}`);
 
-        // console.log(`\nActivating credential: ${autoLoginCredentials.Username}`);
+        log.info(`[CreateWindow] [SetActiveCredentials] Activating credentials for: ${autoLoginCredentials.Username}`);
         await Config.SetActiveCredentials(autoLoginCredentials.Username);
     }
 
     activeCredentials = Config.GetActiveCredentials();
-    console.log('Logging with: ' + activeCredentials.Username);
-
-    // console.log(`\nActive Credentials:`);
-    // console.log(util.inspect(activeCredentials, {showHidden: false, depth: null, colors: true}));
+    log.info(`Authenticating with the username: ${activeCredentials.Username}`);
 
     // Initialize the core and Load the listeners
     const core = new Core(mainWindow);
@@ -114,7 +114,7 @@ const createWindow = async () => {
 };
 
 app.whenReady().then(async () => {
-    const mainWindow = await createWindow();
+    const mainWindow = await CreateWindow();
     app.on('second-instance', () => {
         // Someone tried to run a second instance, we should focus our window.
         if (mainWindow) {
@@ -126,7 +126,7 @@ app.whenReady().then(async () => {
         // On macOS, it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
         if (BrowserWindow.getAllWindows().length === 0) {
-            createWindow();
+            CreateWindow();
         }
     });
 });

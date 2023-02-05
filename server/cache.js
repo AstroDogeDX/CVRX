@@ -10,6 +10,7 @@ const { GetMaxCacheSize } = require('./config');
 const AppDataPath = app.getPath('userData');
 const CachePath = path.join(AppDataPath, 'CVRCache');
 const CacheImagesPath = path.join(CachePath, 'Images');
+const log = require('./logger').GetLogger('Cache');
 
 let IsCleaningCache = false;
 
@@ -27,7 +28,7 @@ exports.Initialize = (win) => {
 exports.QueueFetchImage = (urlObj) => {
     if (urlObj) {
         queue.push(urlObj);
-        ProcessQueue().then().catch(console.error);
+        ProcessQueue().then().catch((err) => log.error('[QueueFetchImage]', err));
     }
 };
 
@@ -66,7 +67,7 @@ async function DownloadImage(url) {
         });
 
         if (response.status !== 200) {
-            console.error(`Error downloading image from ${url}. Error Status Code: ${response.status}`);
+            log.error(`[DownloadImage] Error downloading image from ${url}. Error Status Code: ${response.status}`);
 
             return null;
         }
@@ -74,13 +75,13 @@ async function DownloadImage(url) {
         // Check the image format
         const imageType = response.headers['content-type'];
         if (!imageType.startsWith('image/')) {
-            console.error(`Invalid image format: ${imageType}`);
+            log.error(`[DownloadImage] Invalid image format: ${imageType}`);
         }
 
         return response.data;
     }
     catch (error) {
-        console.error(`Error downloading image from ${url}. Error: ${error.message}`);
+        log.error(`[DownloadImage] Error downloading image from ${url}. Error: ${error.message}`);
         return null;
     }
 }
@@ -95,7 +96,6 @@ async function FetchImage(urlObj) {
     // Check if the image, and grab it if it does!
     if (fs.existsSync(imagePath)) {
         const image = await fs.promises.readFile(imagePath);
-        //console.log(`Fetching ${url} from cache!`);
         return nativeImage.createFromBuffer(image);
     }
 
@@ -103,9 +103,8 @@ async function FetchImage(urlObj) {
     else {
         const image = await DownloadImage(url);
         if (image !== null) {
-            await fs.promises.mkdir(CacheImagesPath, { recursive: true }).catch(console.error);
+            await fs.promises.mkdir(CacheImagesPath, { recursive: true }).catch((err) => log.error('[FetchImage] Creating CacheImagesPath...', err));
             await CacheImage(imagePath, image);
-            //console.log(`Fetching ${url} from http!`);
             return nativeImage.createFromBuffer(image);
         }
     }
@@ -157,7 +156,7 @@ async function CleanCache() {
         }
     }
     catch (e) {
-        console.error(e);
+        log.error('[CleanCache] Cleaning cache...', e);
     }
     finally {
         IsCleaningCache = false;
