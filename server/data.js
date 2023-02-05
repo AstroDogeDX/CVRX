@@ -204,7 +204,8 @@ class Core {
     }
 
     async GetOurUserAvatars() {
-        const ourAvatars = (await CVRHttp.GetMyAvatars()).filter(av => av.categories.includes(AvatarCategories.Mine));
+        const ourAvatars = await CVRHttp.GetMyAvatars();
+        // const ourAvatars = (await CVRHttp.GetMyAvatars()).filter(av => av.categories.includes(AvatarCategories.Mine));
         // ourAvatars = [{
         //     description: '',
         //     authorGuid: '3a1661f1-3eeb-426e-92ec-1b2f08e609b5',
@@ -222,7 +223,8 @@ class Core {
     }
 
     async GetOurUserProps() {
-        const ourProps = (await CVRHttp.GetProps()).filter(av => av.categories.includes(PropCategories.Mine));
+        const ourProps = await CVRHttp.GetProps();
+        //const ourProps = (await CVRHttp.GetProps()).filter(av => av.categories.includes(PropCategories.Mine));
         // ourProps = [{
         //     description: '',
         //     authorGuid: '4a1661f1-2eeb-426e-92ec-1b2f08e609b3',
