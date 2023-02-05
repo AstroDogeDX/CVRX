@@ -46,6 +46,12 @@ contextBridge.exposeInMainWorld('API', {
     onInitialLoadStart: (callback) => ipcRenderer.on('initial-load-start', callback),
     onInitialLoadFinish: (callback) => ipcRenderer.on('initial-load-finish', callback),
 
+    // Logging
+    logDebug: (msg, optionalData) => ipcRenderer.send('log-debug', msg, optionalData),
+    logInfo: (msg, optionalData) => ipcRenderer.send('log-info', msg, optionalData),
+    logWarning: (msg, optionalData) => ipcRenderer.send('log-warn', msg, optionalData),
+    logError: (msg, optionalData) => ipcRenderer.send('log-error', msg, optionalData),
+
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),
 });

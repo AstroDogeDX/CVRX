@@ -3,6 +3,8 @@ const path = require('path');
 const XML = require('xml2js');
 const { app, dialog } = require('electron');
 
+const log = require('./logger').GetLogger('Config');
+
 const AppDataPath = app.getPath('userData');
 const ConfigsPath = path.join(AppDataPath, 'CVRConfigs');
 const ConfigFileName = 'config.json';
@@ -51,7 +53,7 @@ async function UpdateJsonFile(fileType) {
             await WriteToJsonFile(ConfigsPath, ConfigCredentialsFileName, credentials);
             break;
         default:
-            console.error(`Attempted to Update a file of type ${fileType}, but that type is not supported!`);
+            log.error(`[UpdateJsonFile] Attempted to Update a file of type ${fileType}, but that type is not supported!`);
     }
 }
 
@@ -83,7 +85,7 @@ exports.ImportCVRCredentials = async () => {
     // If the ChilloutVR.exe doesn't exist means we got our path wrong!
     if (!fs.existsSync(cvrDataFolder)) {
 
-        console.log('[ImportCVRCredentials] CVR folder not found... Prompt for the CVR Executable!');
+        log.info('[ImportCVRCredentials] CVR folder not found... Prompting for the CVR Executable!');
 
         const { canceled, filePaths } = await dialog.showOpenDialog({
             title: `Find the ${CVRExecutableName}, so we know where the CVR folder is!`,
@@ -96,7 +98,7 @@ exports.ImportCVRCredentials = async () => {
         // User canceled the dialog ;_;
         if (canceled) {
             const err = `Canceled the dialog where it's asking for the path to ${CVRExecutableName}`;
-            console.error(err);
+            log.error(`[ImportCVRCredentials] ${err}`);
             await dialog.showErrorBox(
                 'Credentials Error',
                 'Currently CVRX can only authenticate using the autologin.profile files from CVR.\nSo we ' +
@@ -113,7 +115,7 @@ exports.ImportCVRCredentials = async () => {
             // Check if the user provided the path to ChilloutVR.exe and not something else
             if (path.basename(providedPath) !== CVRExecutableName) {
                 const err = `Provided ${providedPath} as a path for ${CVRExecutableName}`;
-                console.error(err);
+                log.error(`[ImportCVRCredentials] ${err}`);
                 await dialog.showErrorBox(
                     'Credentials Error',
                     `You pointed to a ${path.basename(providedPath)} file, we need ${CVRExecutableName}...`,
@@ -143,7 +145,7 @@ exports.ImportCVRCredentials = async () => {
         const accessKey = autoProfile?.LoginProfile?.AccessKey?.[0];
         if (username && accessKey) {
 
-            console.log(`[ImportCVRCredentials] Found credentials for ${username}!`);
+            log.debug(`[ImportCVRCredentials] Found credentials for ${username}!`);
             let isDefaultAutoLogin = fileName === CVRDefaultAutologinProfileName;
 
             // Since we found the default auto login, we're going to set all is auto login to false
@@ -180,13 +182,13 @@ exports.SaveCredential = async (username, accessKey) => {
         await UpdateJsonFile(FileType.CREDENTIALS);
     }
     else {
-        console.error('Attempted to save credentials, but either the username or access key were null/empty.');
+        log.error('[SaveCredential] Attempted to save credentials, but either the username or access key were null/empty.');
     }
 };
 
 exports.SetActiveCredentials = async (username) => {
     if (!credentials?.[username]) {
-        console.error(`There are no credentials for the user ${username}!`);
+        log.error(`[SetActiveCredentials] There are no credentials for the user ${username}!`);
     }
     config.ActiveUsername = username;
     await UpdateJsonFile(FileType.CONFIG);

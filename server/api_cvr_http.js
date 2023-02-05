@@ -1,6 +1,6 @@
-const util = require('util');
 const axios = require('axios');
 
+const log = require('./logger').GetLogger('API_HTTP');
 
 const APIAddress = 'https://api.abinteractive.net';
 const APIVersion = '1';
@@ -14,12 +14,11 @@ const UnauthenticatedCVRApi = axios.create({ baseURL: APIBase });
 async function Get(url, authenticated = true) {
     try {
         const response = await (authenticated ? CVRApi : UnauthenticatedCVRApi).get(url);
-        console.log(`[GET] ${url}`);
-        console.log(util.inspect(response.data, {showHidden: false, depth: null, colors: true}));
+        log.debug(`[GET] [${authenticated ? '' : 'Non-'}Auth] ${url}`, response.data);
         return response.data.data;
     }
     catch (error) {
-        console.error(error);
+        log.error('[GET]', error);
     }
 }
 
@@ -27,12 +26,11 @@ async function Get(url, authenticated = true) {
 async function Post(url, data, authenticated = true) {
     try {
         const response = await (authenticated ? CVRApi : UnauthenticatedCVRApi).post(url, data);
-        console.log(`[Post] ${response.request.url}`);
-        console.log(util.inspect(response.data, {showHidden: false, depth: null, colors: true}));
+        log.debug(`[Post] [${authenticated ? '' : 'Non-'}Auth] ${response.request.url}`, response.data);
         return response.data.data;
     }
     catch (error) {
-        console.error(error);
+        log.error('[Post]', error);
     }
 }
 
