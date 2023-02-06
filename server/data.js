@@ -15,16 +15,16 @@ const ToastTypes = Object.freeze({
     INFO: 'info',
 });
 
-const AvatarCategories = Object.freeze({
-    Public: 'avtrpublic',
-    Shared: 'avtrshared',
-    Mine: 'avtrmine',
-});
+// const AvatarCategories = Object.freeze({
+//     Public: 'avtrpublic',
+//     Shared: 'avtrshared',
+//     Mine: 'avtrmine',
+// });
 
-const PropCategories = Object.freeze({
-    Mine: 'propmine',
-    Shared: 'propshared',
-});
+// const PropCategories = Object.freeze({
+//     Mine: 'propmine',
+//     Shared: 'propshared',
+// });
 
 const WorldCategories = Object.freeze({
     ActiveInstances: 'wrldactive',
@@ -35,6 +35,10 @@ const WorldCategories = Object.freeze({
     Public: 'wrldpublic',
     RecentlyUpdated: 'wrldrecentlyupdated',
     Mine: 'wrldmine',
+});
+
+const ActivityUpdatesType = Object.freeze({
+    Friends: 'friends',
 });
 
 
@@ -73,6 +77,12 @@ class Core {
         this.categories = {};
 
         this.friendRequests = {};
+
+        this.recentActivity = [];
+        this.recentActivityCache = {
+            [ActivityUpdatesType.Friends]: {},
+        };
+        this.recentActivityInitialFriends = false;
 
         this.#SetupHandlers();
     }
@@ -121,6 +131,11 @@ class Core {
         // Moderation
         ipcMain.handle('block-user', (_event, userId) => CVRWebsocket.BlockUser(userId));
         ipcMain.handle('unblock-user', (_event, userId) => CVRWebsocket.UnblockUser(userId));
+
+        // Socket Events
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.CONNECTED, () => {
+            this.recentActivityInitialFriends = true;
+        });
 
         // Setup Handlers for the websocket
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, (friendsInfo) => this.FriendsUpdate(false, friendsInfo));
@@ -252,6 +267,38 @@ class Core {
         this.mainWindow.webContents.send('active-user-worlds-load', ourWorlds);
     }
 
+    async UpdateRecentActivity(updateType, updateInfo) {
+
+        switch (updateType) {
+            case ActivityUpdatesType.Friends: {
+
+                // Consume the initial friends after connection, because it's sync data and not real time
+                if (this.recentActivityInitialFriends) {
+                    this.recentActivityInitialFriends = false;
+                    this.recentActivityCache[ActivityUpdatesType.Friends] = {};
+                    return;
+                }
+
+                for (const friendUpdate of updateInfo) {
+                    this.recentActivity.unshift({
+                        timestamp: Date.now(),
+                        type: ActivityUpdatesType.Friends,
+                        current: JSON.parse(JSON.stringify(this.friends[friendUpdate.id])),
+                        previous: this.recentActivityCache[friendUpdate.id] ?? null,
+                    });
+                }
+
+                break;
+            }
+        }
+
+        // Keep the recent activity capped at 10 elements
+        this.recentActivity = this.recentActivity.slice(0,10);
+
+        // Send recent activities update to the view
+        this.mainWindow.webContents.send('recent-activity-update', this.recentActivity);
+    }
+
     async FriendsUpdate(isRefresh, friendsInfo) {
         // [{
         // "id":"2ff016ef-1d3b-4aff-defb-c167ed99b416",
@@ -298,6 +345,11 @@ class Core {
 
         // Send the friend results to the main window
         this.mainWindow.webContents.send('friends-refresh', Object.values(this.friends), isRefresh);
+
+        // Handle the activity update asynchronously
+        if (!isRefresh) {
+            this.UpdateRecentActivity(ActivityUpdatesType.Friends, friendsInfo).then().catch(err => log.error('[FriendsUpdate]', err));
+        }
     }
 
     InvitesUpdate(invites) {

@@ -50,6 +50,10 @@ const PropCategories = Object.freeze({
     Shared: 'propshared',
 });
 
+const ActivityUpdatesType = Object.freeze({
+    Friends: 'friends',
+});
+
 let toastTimer;
 
 const toastDown = () => {
@@ -193,7 +197,7 @@ window.API.onGetActiveUser((_event, activeUser) => {
 });
 
 function getFriendStatus(friend) {
-    if (!friend.isOnline) return { name: 'Offline', type: null };
+    if (!friend?.isOnline) return { name: 'Offline', type: null };
     if (!friend.isConnected) return { name: 'Offline Instance', type: null };
     if (!friend.instance) return { name: 'Private Instance', type: null };
     if (friend.instance.name) return {
@@ -675,8 +679,7 @@ window.API.onUserStats((_event, userStats) => {
     });
 });
 
-
-
+// Janky active user avatars
 window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
     console.log('[On] GetActiveUserAvatars');
     console.log(ourAvatars);
@@ -705,6 +708,7 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
     avatarDisplayNode.replaceChildren(...newNodes);
 });
 
+// Janky active user props
 window.API.onGetActiveUserProps((_event, ourProps) => {
     console.log('[On] GetActiveUserProps');
     console.log(ourProps);
@@ -733,6 +737,7 @@ window.API.onGetActiveUserProps((_event, ourProps) => {
     propDisplayNode.replaceChildren(...newNodes);
 });
 
+// Janky active user worlds
 window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
     console.log('[On] GetActiveUserWorlds');
     console.log(ourWorlds);
@@ -758,3 +763,53 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
     propDisplayNode.replaceChildren(...newNodes);
 });
 
+// Janky recent activity
+window.API.onRecentActivityUpdate((_event, recentActivities) => {
+    console.log('[On] Recent Activity Update');
+    console.log(recentActivities);
+
+    const historyWrapperNode = document.querySelector('.home-history--history-wrapper');
+    const newNodes = [];
+
+    for (const recentActivity of recentActivities) {
+        // recentActivity = {
+        //     timestamp: Date.now(),
+        //     type: ActivityUpdatesType.Friends,
+        //     current: newEntity,
+        //     previous: oldEntity ?? null,
+        // };
+
+        const dateStr = new Date(recentActivity.timestamp).toLocaleTimeString();
+
+        switch (recentActivity.type) {
+
+            case ActivityUpdatesType.Friends: {
+
+                // Get instance info from old and new
+                let { name, type } = getFriendStatus(recentActivity.previous);
+                const previousInstanceInfo = `${name}${type ? ` [${type}]` : ''}`;
+                ({ name, type } = getFriendStatus(recentActivity.current));
+                const currentInstanceInfo = `${name}${type ? ` [${type}]` : ''}`;
+
+                // Depending on whether it's a refresh or not the image might be already loaded
+                const friendImgSrc = recentActivity.current.imageBase64 ?? 'img/ui/placeholder.png';
+
+                const imgOnlineClass = recentActivity.current.isOnline ? 'class="icon-is-online"' : '';
+
+                let activityUpdateNode = document.createElement('div');
+
+                activityUpdateNode.setAttribute('class', 'friend-list-node');
+                activityUpdateNode.innerHTML = `
+                    <p>${dateStr}</p>
+                    <img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${recentActivity.current.imageHash}"/>
+                    <p class="friend-name">${recentActivity.current.name}</p>
+                    <p class="friend-status">${previousInstanceInfo} ➡ ${currentInstanceInfo}</p>`;
+
+                newNodes.push(activityUpdateNode);
+                break;
+            }
+        }
+    }
+
+    historyWrapperNode.replaceChildren(...newNodes);
+});
