@@ -222,7 +222,7 @@
 }
 
 .home-requests--friend-request-node:nth-of-type(odd) {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .home-requests--friend-request--user-name {
@@ -230,6 +230,12 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    font-weight: bold;
+}
+
+.home-requests--friend-request--request-type {
+    font-size: small;
+    font-style: italic;
 }
 
 .request-node--button-wrapper {
@@ -237,28 +243,29 @@
     min-width: 90px;
 }
 
-.request-node--button-accept {
+.request-node--button-wrapper button {
     width: 35px;
     height: 35px;
     font-size: 20px;
-    background: green;
     color: white;
-    border: thin solid black;
     border-radius: 5px;
     margin: 5px;
     cursor: pointer;
+    border: none;
+    line-height: 20px;
+}
+
+.request-node--button-accept {
+    background: green;
 }
 
 .request-node--button-reject {
-    width: 35px;
-    height: 35px;
-    font-size: 20px;
     background: darkred;
-    color: white;
-    border: thin solid black;
-    border-radius: 5px;
-    margin: 5px;
-    cursor: pointer;
+}
+
+.request-node--button-accept:hover,
+.request-node--button-reject:hover {
+    filter: brightness(1.5);
 }
 
 .home-requests--friend-request--world-img {

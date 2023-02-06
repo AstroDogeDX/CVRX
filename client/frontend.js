@@ -591,7 +591,8 @@ window.API.onFriendRequests((_event, friendRequests) => {
         friendRequestNode.setAttribute('class', 'home-requests--friend-request-node');
         friendRequestNode.innerHTML = `
         <img class="home-requests--friend-request--world-img" src="https://placekitten.com/50/50" data-hash="${friendRequest.imageHash}"/>
-        <p class="home-requests--friend-request--user-name"><strong>${friendRequest.name}</strong> <small>Friend Request</small></p>`;
+        <p class="home-requests--friend-request--user-name">${friendRequest.name}</p>
+        <p class="home-requests--friend-request--request-type">Friend Request</p>`;
 
         // Create buttons (can't do it with template strings because won't let me inline the function call)
         const acceptButton = document.createElement('button');
