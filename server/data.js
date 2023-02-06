@@ -280,12 +280,14 @@ class Core {
                 }
 
                 for (const friendUpdate of updateInfo) {
+                    const current = JSON.parse(JSON.stringify(this.friends[friendUpdate.id]));
                     this.recentActivity.unshift({
                         timestamp: Date.now(),
                         type: ActivityUpdatesType.Friends,
-                        current: JSON.parse(JSON.stringify(this.friends[friendUpdate.id])),
+                        current: current,
                         previous: this.recentActivityCache[friendUpdate.id] ?? null,
                     });
+                    this.recentActivityCache[friendUpdate.id] = current;
                 }
 
                 break;
