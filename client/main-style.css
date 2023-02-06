@@ -288,6 +288,8 @@
     margin-bottom: 5px;
     align-items: center;
     justify-content: space-between;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 .home-activity--user-count {
@@ -324,6 +326,8 @@
 
 .home-history h2 {
     margin-bottom: 5px;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 .home-history--history-wrapper {

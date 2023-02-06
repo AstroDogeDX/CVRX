@@ -158,7 +158,7 @@ window.API.onGetActiveUser((_event, activeUser) => {
     document.querySelector('.user-extra--user-badge').innerHTML =
         `<img data-hash="${activeUser.featuredBadge.imageHash}">${activeUser.featuredBadge.name}`;
     document.querySelector('.user-extra--user-rank').innerHTML =
-        `<img src="./img/ui/rank.png">${activeUser.rank}`;
+        `<img src="img/ui/rank.png">${activeUser.rank}`;
     // document.querySelector("#user-greeting").innerHTML = activeUser.name;
     // activeUser = {
     //     onlineState: false,
@@ -245,15 +245,15 @@ async function ShowDetails(entityType, entityId) {
         case DetailsType.User:
             entityInfo = await window.API.getUserById(entityId);
             detailsWindow.innerHTML = `
-                <img  class="home-user--user-icon" src="https://placekitten.com/150/150" data-hash="${entityInfo.imageHash}"/>
+                <img  class="home-user--user-icon" src="img/ui/placeholder.png" data-hash="${entityInfo.imageHash}"/>
                 <div class="home-user--user-name">${entityInfo.name}</div>
                 <div class="home-user--user-extra">
                     <div class="user-extra--user-avatar">
-                    <img src="https://placekitten.com/25/25" data-hash="${entityInfo.avatar.imageHash}"/>
+                    <img src="img/ui/placeholder.png" data-hash="${entityInfo.avatar.imageHash}"/>
                     ${entityInfo.avatar.name}
                 </div>
                 <div class="user-extra--user-badge">
-                    <img src="https://placekitten.com/25/25" data-hash="${entityInfo.featuredBadge.imageHash}"/>
+                    <img src="img/ui/placeholder.png" data-hash="${entityInfo.featuredBadge.imageHash}"/>
                     ${entityInfo.featuredBadge.name}
                 </div>
                 <div class="user-extra--user-rank">
@@ -283,7 +283,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
         const instanceTypeStr = type ? ` [${type}]` : '';
         const onlineFriendInPrivateClass = friend.instance ? '' : 'friend-is-offline';
         // Depending on whether it's a refresh or not the image might be already loaded
-        const friendImgSrc = friend.imageBase64 ?? 'https://placekitten.com/50/50';
+        const friendImgSrc = friend.imageBase64 ?? 'img/ui/placeholder.png';
 
         // Setting up the HTMLElement used for the Online Friends panel.
         if (friend.isOnline) {
@@ -415,7 +415,7 @@ searchBar.addEventListener('keypress', async (event) => {
         let searchResult = document.createElement('div');
         searchResult.setAttribute('class', 'search-output--node');
         searchResult.innerHTML = `
-            <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
+            <img src="img/ui/placeholder.png" data-hash="${result.imageHash}"/>
             <p class="search-result-name">${result.name}</p>
             <p class="search-result-type">${result.type}</p>`;
         switch (result.type) {
@@ -478,7 +478,7 @@ window.API.onWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
                 let activeWorldNode = document.createElement('div');
                 activeWorldNode.setAttribute('class', 'home-activity--activity-node');
                 activeWorldNode.innerHTML = `
-                    <img src="https://placekitten.com/50/50" data-hash="${result.imageHash}"/>
+                    <img src="img/ui/placeholder.png" data-hash="${result.imageHash}"/>
                     <p class="search-result-name">${result.name}</p>
                     <p class="search-result-player-count">${result.playerCount}</p>`;
                 elementsOfResults.push(activeWorldNode);
@@ -527,8 +527,8 @@ window.API.onInvites((_event, invites) => {
         let inviteNode = document.createElement('div');
         inviteNode.setAttribute('class', 'home-requests--invite');
         inviteNode.innerHTML = `
-        <img class="home-requests--invite--user-img" src="https://placekitten.com/50/50" data-hash="${invite.user.imageHash}"/>
-        <img class="home-requests--invite--world-img" src="https://placekitten.com/50/50" data-hash="${invite.world.imageHash}"/>
+        <img class="home-requests--invite--user-img" src="img/ui/placeholder.png" data-hash="${invite.user.imageHash}"/>
+        <img class="home-requests--invite--world-img" src="img/ui/placeholder.png" data-hash="${invite.world.imageHash}"/>
         <p class="home-requests--invite--user-name">${invite.user.name}</p>
         <p class="home-requests--invite--instance-name">${invite.instanceName}</p>`;
         homeRequests.prepend(inviteNode);
@@ -560,7 +560,7 @@ window.API.onInviteRequests((_event, requestInvites) => {
         let requestInviteNode = document.createElement('div');
         requestInviteNode.setAttribute('class', 'home-requests--invite-request');
         requestInviteNode.innerHTML = `
-        <img class="home-requests--invite-request--world-img" src="https://placekitten.com/50/50" data-hash="${requestInvite.sender.imageHash}"/>
+        <img class="home-requests--invite-request--world-img" src="img/ui/placeholder.png" data-hash="${requestInvite.sender.imageHash}"/>
         <p class="home-requests--invite-request--user-name">${requestInvite.sender.name}</p>`;
         homeRequests.prepend(requestInviteNode);
     }
@@ -590,7 +590,7 @@ window.API.onFriendRequests((_event, friendRequests) => {
         let friendRequestNode = document.createElement('div');
         friendRequestNode.setAttribute('class', 'home-requests--friend-request-node');
         friendRequestNode.innerHTML = `
-        <img class="home-requests--friend-request--world-img" src="https://placekitten.com/50/50" data-hash="${friendRequest.imageHash}"/>
+        <img class="home-requests--friend-request--world-img" src="img/ui/placeholder.png" data-hash="${friendRequest.imageHash}"/>
         <p class="home-requests--friend-request--user-name">${friendRequest.name}</p>
         <p class="home-requests--friend-request--request-type">Friend Request</p>`;
 
@@ -696,7 +696,7 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
 
         const ourAvatarNode = document.createElement('div');
         ourAvatarNode.innerHTML = `
-            <img src="https://placekitten.com/50/50" data-hash="${ourAvatar.imageHash}"/>
+            <img src="img/ui/placeholder.png" data-hash="${ourAvatar.imageHash}"/>
             <p class="our-avatar--name">${ourAvatar.name}</p>
             <p class="our-avatar--description">${ourAvatar.description}</p>`;
         newNodes.push(ourAvatarNode);
@@ -724,7 +724,7 @@ window.API.onGetActiveUserProps((_event, ourProps) => {
 
         const ourPropNode = document.createElement('div');
         ourPropNode.innerHTML = `
-            <img src="https://placekitten.com/50/50" data-hash="${ourProp.imageHash}"/>
+            <img src="img/ui/placeholder.png" data-hash="${ourProp.imageHash}"/>
             <p class="our-prop--name">${ourProp.name}</p>
             <p class="our-prop--description">${ourProp.description}</p>`;
         newNodes.push(ourPropNode);
@@ -749,7 +749,7 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
     for (const ourWorld of ourWorlds) {
         const ourPropNode = document.createElement('div');
         ourPropNode.innerHTML = `
-            <img src="https://placekitten.com/50/50" data-hash="${ourWorld.imageHash}"/>
+            <img src="img/ui/placeholder.png" data-hash="${ourWorld.imageHash}"/>
             <p class="our-prop--name">${ourWorld.name}</p>
             <p class="our-prop--player-count">${ourWorld.playerCount}</p>`;
         newNodes.push(ourPropNode);

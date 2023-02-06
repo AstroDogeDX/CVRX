@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; img-src * data:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; img-src 'self' data:;">
   <link rel="stylesheet" href="fonts/material-symbols.css">
   <link rel="stylesheet" href="main-style.css">
   <script src="frontend.js" defer></script>
@@ -56,14 +56,14 @@
     <div class="cvrx-display">
       <div class="display-wrapper" id="display-home">
         <div class="home-user">
-          <img src="https://placekitten.com/150/150" class="home-user--user-icon"></img>
+          <img src="img/ui/placeholder.png" class="home-user--user-icon"></img>
           <div class="home-user--user-name">...</div>
           <div class="home-user--user-extra">
             <div class="user-extra--user-avatar">
-              <img src="https://placekitten.com/25/25">
+              <img src="img/ui/placeholder.png">
               ...</div>
             <div class="user-extra--user-badge">
-              <img src="https://placekitten.com/25/25">
+              <img src="img/ui/placeholder.png">
               ...</div>
             <div class="user-extra--user-rank">
               <img src="img/ui/rank.png">
@@ -72,7 +72,6 @@
         </div>
         <div class="home-requests"></div>
         <div class="home-activity">
-          <!-- TODO: Get total user count from public API @ Kafe -->
           <h2>Active Worlds<span class="home-activity--user-count">User Count</span></h2>
           <div class="home-activity--activity-wrapper"></div>
         </div>
