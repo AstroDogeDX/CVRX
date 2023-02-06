@@ -41,6 +41,9 @@ contextBridge.exposeInMainWorld('API', {
     refreshFriendRequests: () => ipcRenderer.send('refresh-friend-requests'),
     refreshWorldsCategory: (worldCategoryId) => ipcRenderer.send('refresh-worlds-category', worldCategoryId),
 
+    // Recent Activity Updates
+    onRecentActivityUpdate: (callback) => ipcRenderer.on('recent-activity-update', callback),
+
     // Friendship
     sendFriendRequest: (userId) => ipcRenderer.invoke('friend-request-send', userId),
     acceptFriendRequest: (userId) => ipcRenderer.invoke('friend-request-accept', userId),

@@ -129,6 +129,32 @@ app.whenReady().then(async () => {
             CreateWindow();
         }
     });
+    mainWindow.webContents.on('will-prevent-unload', (event) => {
+        log.warn('will-prevent-unload', event);
+        // Todo: Does this prevent unloading?
+        // const choice = dialog.showMessageBoxSync(mainWindow, {
+        //     type: 'question',
+        //     buttons: ['Leave', 'Stay'],
+        //     title: 'Do you want to leave this site?',
+        //     message: 'Changes you made may not be saved.',
+        //     defaultId: 0,
+        //     cancelId: 1,
+        // });
+        // const leave = (choice === 0);
+        // if (leave) {
+        //     event.preventDefault();
+        // }
+    });
+    mainWindow.webContents.on('render-process-gone', (event, detailed) => {
+        log.warn('render-process-gone ' + detailed.reason + ', exitCode = ' + detailed.exitCode);
+        log.warn('render-process-gone', { event, detailed });
+        //  logger.info("!crashed, reason: " + detailed.reason + ", exitCode = " + detailed.exitCode)
+        // if (detailed.reason == "crashed"){
+        //     // relaunch app
+        //     app.relaunch({ args: process.argv.slice(1).concat(['--relaunch']) })
+        //     app.exit(0)
+        // }
+    });
 });
 
 app.on('window-all-closed', () => {

@@ -17,6 +17,11 @@ let socket;
 
 let reconnectAttempts = 0;
 
+const SOCKET_EVENTS = Object.freeze({
+    CONNECTED: Symbol(),
+});
+exports.SocketEvents = SOCKET_EVENTS;
+
 const RESPONSE_TYPE = Object.freeze({
     MENU_POPUP: 0,
     HUD_MESSAGE: 1,
@@ -82,6 +87,7 @@ async function ConnectWebsocket(username, accessKey) {
         socket.on('open', () => {
             log.info('[ConnectWebsocket] [onOpen] Opened!');
             reconnectAttempts = 0;
+            EventEmitter.emit(SOCKET_EVENTS.CONNECTED);
             resolve();
         });
 
