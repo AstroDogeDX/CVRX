@@ -333,6 +333,8 @@
 .home-history--history-wrapper {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 5px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .home-activity :is(img) {
