@@ -42,6 +42,11 @@ const ActivityUpdatesType = Object.freeze({
 });
 
 
+function IsObjectEqualExcept(obj1, obj2, keysToIgnore) {
+    return JSON.stringify(obj1, (key, value) => keysToIgnore.includes(key) ? undefined : value) ===
+    JSON.stringify(obj2, (key, value) => keysToIgnore.includes(key) ? undefined : value);
+}
+
 function LoadImage(url, obj) {
     const hashedFileName = cache.GetHash(url);
     cache.QueueFetchImage({ url: url, hash: hashedFileName, obj: obj });
@@ -272,15 +277,29 @@ class Core {
         switch (updateType) {
             case ActivityUpdatesType.Friends: {
 
+                let isInitial = false;
+
                 // Consume the initial friends after connection, because it's sync data and not real time
                 if (this.recentActivityInitialFriends) {
                     this.recentActivityInitialFriends = false;
                     this.recentActivityCache[ActivityUpdatesType.Friends] = {};
-                    return;
+                    isInitial = true;
                 }
 
                 for (const friendUpdate of updateInfo) {
+
+                    // If it is the initial sync, let's just update the current state but not sending as an update
+                    if (isInitial) {
+                        this.recentActivityCache[friendUpdate.id] = JSON.parse(JSON.stringify(this.friends[friendUpdate.id]));
+                        continue;
+                    }
+
                     const current = JSON.parse(JSON.stringify(this.friends[friendUpdate.id]));
+                    const previous = this.recentActivityCache[friendUpdate.id] ?? null;
+
+                    // Ignore updates if they are the same as the previous state
+                    if (IsObjectEqualExcept(current, previous, ['imageBase64'])) continue;
+
                     this.recentActivity.unshift({
                         timestamp: Date.now(),
                         type: ActivityUpdatesType.Friends,

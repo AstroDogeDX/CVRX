@@ -77,7 +77,7 @@ const logger = winston.createLogger({
 
 
 if (!app.isPackaged) {
-    logger.add(new winston.transports.Console({ format: consoleFormat }));
+    logger.add(new winston.transports.Console({ format: consoleFormat, level: 'debug' }));
 }
 
 exports.GetLogger = (module) => logger.child({ module: module });

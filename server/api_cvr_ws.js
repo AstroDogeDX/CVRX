@@ -92,19 +92,19 @@ async function ConnectWebsocket(username, accessKey) {
         });
 
         socket.on('ping', (data) => {
-            log.debug('[ConnectWebsocket] [onPing] Received Ping', data.toString());
+            log.verbose('[ConnectWebsocket] [onPing] Received Ping', data.toString());
         });
         socket.on('pong', (data) => {
-            log.debug('[ConnectWebsocket] [onPong] Received Pong', data.toString());
+            log.verbose('[ConnectWebsocket] [onPong] Received Pong', data.toString());
         });
         socket.on('redirect', (url, _request) => {
-            log.debug(`[ConnectWebsocket] [onRedirect] Received Redirect Request: ${url}`);
+            log.verbose(`[ConnectWebsocket] [onRedirect] Received Redirect Request: ${url}`);
         });
         socket.on('unexpected-response', (request, response) => {
             log.debug(`[ConnectWebsocket] [onUnexpectedResponse] Unexpected Response! Request Code: ${request.code}, Response Code: ${response.code}`);
         });
         socket.on('upgrade', (response) => {
-            log.debug(`[ConnectWebsocket] [onUpgrade] Upgrade: Response Code: ${response.code}`);
+            log.verbose(`[ConnectWebsocket] [onUpgrade] Upgrade: Response Code: ${response.code}`);
         });
 
         socket.on('close', async (code, reason) => {
