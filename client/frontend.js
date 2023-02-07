@@ -800,9 +800,8 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
 
                 activityUpdateNode.setAttribute('class', 'friend-list-node');
                 activityUpdateNode.innerHTML = `
-                    <p>${dateStr}</p>
                     <img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${recentActivity.current.imageHash}"/>
-                    <p class="friend-name">${recentActivity.current.name}</p>
+                    <p class="friend-name">${recentActivity.current.name} <small>(${dateStr})</small></p>
                     <p class="friend-status">${previousInstanceInfo} ➡ ${currentInstanceInfo}</p>`;
 
                 newNodes.push(activityUpdateNode);

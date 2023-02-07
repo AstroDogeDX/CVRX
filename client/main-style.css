@@ -468,6 +468,10 @@
     font-size: 18px;
 }
 
+.friend-name small {
+    font-size: x-small;
+}
+
 .friend-status {
     font-size: 14px;
 }
