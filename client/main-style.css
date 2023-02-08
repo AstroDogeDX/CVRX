@@ -440,6 +440,10 @@
     background: rgba(255, 255, 255, 0.1);
 }
 
+.friend-list-node:nth-of-type(odd) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
 .friend-list-node {
     padding: 5px;
     border-radius: 5px;
