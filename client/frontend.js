@@ -533,7 +533,7 @@ window.API.onInvites((_event, invites) => {
         inviteNode.innerHTML = `
         <img class="home-requests--invite--user-img" src="img/ui/placeholder.png" data-hash="${invite.user.imageHash}"/>
         <p class="home-requests--invite--user-name"><strong>${invite.user.name}</strong><br>
-        <small>has invited you to...</p>
+        <small>has invited you to...</p></small>
         <img class="home-requests--invite--world-img" src="img/ui/placeholder.png" data-hash="${invite.world.imageHash}"/>
         <p class="home-requests--invite--instance-name"><strong>${invite.instanceName}</strong></p>
         <p><small class="friend-is-offline">Accept In Game</small></p>`;
