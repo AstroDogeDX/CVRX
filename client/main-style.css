@@ -5,7 +5,37 @@
     margin: 0;
     padding: 0;
     font-family: sans-serif;
-    color: white;
+    color: var(--master-font-color);
+}
+
+/* CSS Variables for EZ Themes */
+
+:root {
+    --master-font-color: white;
+    --node-nth-color: rgba(255, 255, 255, 0.1);
+    --button-confirm-color: green;
+    --button-reject-color: darkred;
+    --border-radii: 5px;
+    --thumbnail-size-standard: 50px;
+}
+
+/* Scrollbar Styling */
+
+::-webkit-scrollbar {
+    width: 5px;
+    margin-left: 5px;
+}
+
+::-webkit-scrollbar-track {
+    box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.25);
+    border-radius: var(--border-radii);
+    border-left: solid 3px transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: white;
+    border-radius: var(--border-radii);
+    border-left: solid 3px transparent;
 }
 
 /* Parent Container */
@@ -34,23 +64,6 @@
     user-select: none;
 }
 
-::-webkit-scrollbar {
-    width: 5px;
-    margin-left: 5px;
-}
-
-::-webkit-scrollbar-track {
-    box-shadow: inset 0px 0px 5px rgba(0, 0, 0, 0.25);
-    border-radius: 5px;
-    border-left: solid 3px transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background: white;
-    border-radius: 5px;
-    border-left: solid 3px transparent;
-}
-
 .navbar-seg {
     width: 50px;
     margin: 5px;
@@ -71,7 +84,7 @@
 .navbar-button :is(.navbar-tooltip) {
     position: relative;
     background: rgba(0, 0, 0, 0.75);
-    border-radius: 5px;
+    border-radius: var(--border-radii);
     padding: 5px;
     font-size: 35%;
     float: left;
@@ -101,21 +114,10 @@
 
 .display-seg {
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
+    border-radius: var(--border-radii);
 }
 
 /* Display Area - HOME */
-
-/* #display-home {
-    display: grid;
-    gap: 5px;
-    grid-template-rows: 30px 100px auto;
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-        "home-header home-header"
-        "home-requests home-requests"
-        "home-activity home-showcase";
-} */
 
 #display-home {
     display: grid;
@@ -142,7 +144,7 @@
 
 .home-user--user-icon {
     grid-area: home-user--user-icon;
-    border-radius: 5px;
+    border-radius: var(--border-radii);
     height: 150px;
     width: 150px;
 }
@@ -159,7 +161,7 @@
     padding: 5px;
     max-width: 100%;
     background: rgba(0, 0, 0, 0.25);
-    border-radius: 5px;
+    border-radius: var(--border-radii);
     font-weight: bold;
 }
 
@@ -176,28 +178,28 @@
     height: 30px;
     float: left;
     margin-right: 5px;
-    border-radius: 5px;
+    border-radius: var(--border-radii);
 }
 
 .user-extra--user-avatar {
     display: flex;
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
+    border-radius: var(--border-radii);
 }
 
 .user-extra--user-badge {
     display: flex;
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
+    border-radius: var(--border-radii);
 }
 
 .user-extra--user-rank {
     display: flex;
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
+    border-radius: var(--border-radii);
 }
 
 /* Pending Requests on Home */
@@ -205,11 +207,21 @@
 .home-requests {
     grid-area: home-requests;
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
+    border-radius: var(--border-radii);
     overflow-y: auto;
 }
 
-.home-requests--friend-request-node {
+.home-requests :where(img) {
+    height: var(--thumbnail-size-standard);
+    width: var(--thumbnail-size-standard);
+    border-radius: var(--border-radii);
+}
+
+.home-requests :is(div):not(.request-node--button-wrapper):nth-of-type(odd) {
+    background: var(--node-nth-color);
+}
+
+.home-requests--friend-request-node, .home-requests--invite-node, .home-requests--invite-request-node, .home-requests--debug-node {
     height: 60px;
     width: 100%;
     display: flex;
@@ -217,12 +229,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 5px;
-    border-radius: 5px;
-    margin-bottom: 5px;
-}
-
-.home-requests--friend-request-node:nth-of-type(odd) {
-    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radii);
 }
 
 .home-requests--friend-request--user-name {
@@ -248,7 +255,7 @@
     height: 35px;
     font-size: 20px;
     color: white;
-    border-radius: 5px;
+    border-radius: var(--border-radii);
     margin: 5px;
     cursor: pointer;
     border: none;
@@ -266,12 +273,6 @@
 .request-node--button-accept:hover,
 .request-node--button-reject:hover {
     filter: brightness(1.5);
-}
-
-.home-requests--friend-request--world-img {
-    width: 50px;
-    height: 50px;
-    border-radius: 5px;
 }
 
 /* CVR World/Instance Activity on Home */
@@ -300,7 +301,7 @@
 
 .home-activity--activity-wrapper {
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
+    border-radius: var(--border-radii);
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -308,11 +309,11 @@
 .home-activity--activity-node {
     height: 60px;
     padding: 5px;
-    border-radius: 5px;
+    border-radius: var(--border-radii);
 }
 
 .home-activity--activity-node:nth-of-type(odd) {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--node-nth-color);
 }
 
 /* Friend History on Home */
@@ -332,17 +333,17 @@
 
 .home-history--history-wrapper {
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
+    border-radius: var(--border-radii);
     overflow-y: auto;
     overflow-x: hidden;
 }
 
 .home-activity :is(img) {
-    max-width: 50px;
-    max-height: 50px;
+    width: var(--thumbnail-size-standard);
+    height: var(--thumbnail-size-standard);
     float: left;
     margin-right: 5px;
-    border-radius: 5px;
+    border-radius: var(--border-radii);
 }
 
 /* Search Stuff */
@@ -375,11 +376,11 @@
 }
 
 #display-search :is(img) {
-    max-width: 50px;
-    max-height: 50px;
+    width: var(--thumbnail-size-standard);
+    height: var(--thumbnail-size-standard);
+    border-radius: var(--border-radii);
     float: left;
     margin-right: 5px;
-    border-radius: 5px;
 }
 
 .search-output {
@@ -395,12 +396,12 @@
 
 .search-output--node {
     min-height: 60px;
-    border-radius: 5px;
+    border-radius: var(--border-radii);
     padding: 5px;
 }
 
 .search-output--node:nth-of-type(odd) {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--node-nth-color);
 }
 
 /* Friends Page */
@@ -421,7 +422,7 @@
     grid-area: friends-filter;
     position: sticky;
     top: 0px;
-    border-radius: 5px;
+    border-radius: var(--border-radii);
     padding: 5px;
     font-size: 32px;
     color: black;
@@ -437,16 +438,16 @@
 }
 
 .friends-wrapper .friend-list-node:nth-of-type(odd) {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--node-nth-color);
 }
 
 .friend-list-node:nth-of-type(odd) {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--node-nth-color);
 }
 
 .friend-list-node {
     padding: 5px;
-    border-radius: 5px;
+    border-radius: var(--border-radii);
     min-height: 60px;
 }
 
@@ -456,10 +457,10 @@
 
 .friend-list-node :is(img) {
     float: left;
-    max-height: 50px;
-    max-width: 50px;
+    height: var(--thumbnail-size-standard);
+    width: var(--thumbnail-size-standard);
     margin-right: 10px;
-    border-radius: 5px;
+    border-radius: var(--border-radii);
 }
 
 .icon-is-online {
@@ -540,7 +541,7 @@ tr:nth-child(odd) {
 .online-friend-node {
     display: grid;
     height: 56px;
-    border-radius: 5px;
+    border-radius: var(--border-radii);
     grid-template-columns: 50px 1fr 2.5em;
     grid-template-rows: 18px 1fr;
     gap: 5px;
@@ -553,7 +554,7 @@ tr:nth-child(odd) {
 
 .online-friend-image {
     grid-area: online-friend-image;
-    border-radius: 5px;
+    border-radius: var(--border-radii);
     max-width: 50px;
     max-height: 50px;
     min-width: 50px;
@@ -572,7 +573,6 @@ tr:nth-child(odd) {
     display: block;
     font-style: italic;
     height: auto;
-    /* white-space: nowrap; */
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 200%;
@@ -606,7 +606,7 @@ tr:nth-child(odd) {
     width: max-content;
     max-width: 80vw;
     background: purple;
-    border-radius: 5px;
+    border-radius: var(--border-radii);
     padding: 10px;
     font-size: 20px;
     text-align: center;

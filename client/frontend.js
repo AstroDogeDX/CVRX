@@ -524,17 +524,19 @@ window.API.onInvites((_event, invites) => {
     const homeRequests = document.querySelector('.home-requests');
 
     // Remove previous invites
-    document.querySelectorAll('.home-requests--invite').forEach(el => el.remove());
+    document.querySelectorAll('.home-requests--invite-node').forEach(el => el.remove());
 
     // Create the search result elements
     for (const invite of invites) {
         let inviteNode = document.createElement('div');
-        inviteNode.setAttribute('class', 'home-requests--invite');
+        inviteNode.setAttribute('class', 'home-requests--invite-node');
         inviteNode.innerHTML = `
         <img class="home-requests--invite--user-img" src="img/ui/placeholder.png" data-hash="${invite.user.imageHash}"/>
+        <p class="home-requests--invite--user-name"><strong>${invite.user.name}</strong><br>
+        <small>has invited you to...</p>
         <img class="home-requests--invite--world-img" src="img/ui/placeholder.png" data-hash="${invite.world.imageHash}"/>
-        <p class="home-requests--invite--user-name">${invite.user.name}</p>
-        <p class="home-requests--invite--instance-name">${invite.instanceName}</p>`;
+        <p class="home-requests--invite--instance-name"><strong>${invite.instanceName}</strong></p>
+        <p><small class="friend-is-offline">Accept In Game</small></p>`;
         homeRequests.prepend(inviteNode);
     }
 });
@@ -557,15 +559,16 @@ window.API.onInviteRequests((_event, requestInvites) => {
     const homeRequests = document.querySelector('.home-requests');
 
     // Remove previous invites
-    document.querySelectorAll('.home-requests--invite-request').forEach(el => el.remove());
+    document.querySelectorAll('.home-requests--invite-request-node').forEach(el => el.remove());
 
     // Create the search result elements
     for (const requestInvite of requestInvites) {
         let requestInviteNode = document.createElement('div');
-        requestInviteNode.setAttribute('class', 'home-requests--invite-request');
+        requestInviteNode.setAttribute('class', 'home-requests--invite-request-node');
         requestInviteNode.innerHTML = `
         <img class="home-requests--invite-request--world-img" src="img/ui/placeholder.png" data-hash="${requestInvite.sender.imageHash}"/>
-        <p class="home-requests--invite-request--user-name">${requestInvite.sender.name}</p>`;
+        <p class="home-requests--invite-request--user-name"><strong>${requestInvite.sender.name}</strong><br><small>wants to join you.</small></p>
+        <p><small class="friend-is-offline">Accept In Game</small></p>`;
         homeRequests.prepend(requestInviteNode);
     }
 });
@@ -585,7 +588,7 @@ window.API.onFriendRequests((_event, friendRequests) => {
     const homeRequests = document.querySelector('.home-requests');
 
     // Remove previous invites
-    document.querySelectorAll('.home-requests--friend-request').forEach(el => el.remove());
+    document.querySelectorAll('.home-requests--friend-request-node').forEach(el => el.remove());
 
     // Create the search result elements
     for (const friendRequest of friendRequests) {
