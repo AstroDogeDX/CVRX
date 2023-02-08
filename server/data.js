@@ -313,8 +313,8 @@ class Core {
             }
         }
 
-        // Keep the recent activity capped at 10 elements
-        this.recentActivity = this.recentActivity.slice(0,10);
+        // Keep the recent activity capped at 25 elements
+        this.recentActivity = this.recentActivity.slice(0,25);
 
         // Send recent activities update to the view
         this.mainWindow.webContents.send('recent-activity-update', this.recentActivity);
