@@ -6,6 +6,7 @@ const log = require('./logger').GetLogger('API_WS');
 
 const events = require('events');
 const { app, dialog } = require('electron');
+//const utils = require('./utils');
 const EventEmitter = new events.EventEmitter();
 exports.EventEmitter = EventEmitter;
 
@@ -77,6 +78,7 @@ async function ConnectWebsocket(username, accessKey) {
             headers: {
                 'Username': username,
                 'AccessKey': accessKey,
+                //'User-Agent': utils.GetUserAgent(),
             },
         });
 

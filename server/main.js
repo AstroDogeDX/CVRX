@@ -28,7 +28,6 @@ const Cache = require('./cache');
 
 // // Test server
 // const WebSocket = require('ws');
-// const util = require('util');
 // function ConnectTest() {
 //     let connected = false;
 //     let nuked = false;
@@ -41,18 +40,18 @@ const Cache = require('./cache');
 //         });
 //         ws.send(JSON.stringify( { responseType: -1, message: 'You have connected!', data: null }));
 //         log.info('[TestServer] Headers:', request.headers);
-//         ipcMain.on('close-socket-server', (_event, closeId, closeServer = null) => {
-//             if (nuked) return;
-//             ws.close(closeId, 'test close');
-//             if (closeServer === true && connected) {
-//                 wss.close();
-//                 connected = false;
-//             }
-//             else if(closeServer === false && !connected) {
-//                 nuked = true;
-//                 ConnectTest();
-//             }
-//         });
+//         // ipcMain.on('close-socket-server', (_event, closeId, closeServer = null) => {
+//         //     if (nuked) return;
+//         //     ws.close(closeId, 'test close');
+//         //     if (closeServer === true && connected) {
+//         //         wss.close();
+//         //         connected = false;
+//         //     }
+//         //     else if(closeServer === false && !connected) {
+//         //         nuked = true;
+//         //         ConnectTest();
+//         //     }
+//         // });
 //     });
 // }
 // ConnectTest();
