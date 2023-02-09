@@ -594,18 +594,57 @@
     font-style: italic;
 }
 
-/* Generic Table Styling */
+/* Avatars Display */
 
-table {
-    border: thin solid white;
+#display-avatars {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    gap: 5px;
+    grid-template-columns: 1fr 50px;
+    grid-template-rows: 50px 1fr;
+    grid-template-areas:
+        "avatars-filter avatars-refresh"
+        "avatars-list avatars-list";
 }
 
-thead {
-    border-collapse: collapse;
+#avatars-filter {
+    grid-area: avatars-filter;
+    position: sticky;
+    top: 0px;
+    border-radius: var(--border-radii);
+    padding: 5px;
+    font-size: 32px;
+    color: black;
 }
 
-tr:nth-child(odd) {
-    background: pink;
+#avatars-filter::placeholder {
+    font-style: italic;
+}
+
+#avatars-refresh {
+    grid-area: avatars-refresh;
+}
+
+.avatars-wrapper {
+    grid-area: avatars-list;
+}
+
+.avatars-wrapper :where(img) {
+    height: 50px;
+    width: 50px;
+    border-radius: var(--border-radii);
+    float: left;
+}
+
+.avatars-wrapper :where(div):nth-of-type(odd) {
+    background: var(--node-nth-color);
+}
+
+.avatars-wrapper--avatars-node {
+    padding: 5px;
+    border-radius: var(--border-radii);
+    min-height: 60px;
 }
 
 /* Friends Sidebar Area */

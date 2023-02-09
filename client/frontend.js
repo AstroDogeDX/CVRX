@@ -687,12 +687,11 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
     console.log('[On] GetActiveUserAvatars');
     console.log(ourAvatars);
 
-    const avatarDisplayNode = document.querySelector('#display-avatars');
+    const avatarDisplayNode = document.querySelector('.avatars-wrapper');
     const newNodes = [];
 
     // Create reload our avatars button
-    const reloadAvatarsButton = document.createElement('button');
-    reloadAvatarsButton.append('Reload my Avatars');
+    const reloadAvatarsButton = document.querySelector('#avatars-refresh');
     reloadAvatarsButton.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
     newNodes.push(reloadAvatarsButton);
 
@@ -701,6 +700,7 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
         if (!ourAvatar.categories.includes(AvatarCategories.Mine)) continue;
 
         const ourAvatarNode = document.createElement('div');
+        ourAvatarNode.setAttribute('class', 'avatars-wrapper--avatars-node');
         ourAvatarNode.innerHTML = `
             <img src="img/ui/placeholder.png" data-hash="${ourAvatar.imageHash}"/>
             <p class="our-avatar--name">${ourAvatar.name}</p>
