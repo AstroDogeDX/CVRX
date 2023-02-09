@@ -815,3 +815,17 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
 
     historyWrapperNode.replaceChildren(...newNodes);
 });
+
+function getMemory() {
+    function toMb(bytes) {
+        return (bytes / (1000.0 * 1000)).toFixed(2);
+    }
+    const resourcesUsage = window.API.getResourceUsage();
+    for (const resourceValues of Object.values(resourcesUsage)) {
+        resourceValues.size = `${toMb(resourceValues.size)} MB`;
+        resourceValues.liveSize = `${toMb(resourceValues.liveSize)} MB`;
+    }
+    console.log(resourcesUsage);
+}
+
+setInterval(getMemory, 5*60*1000);

@@ -1,8 +1,12 @@
 'use strict';
 
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webFrame } = require('electron');
 
 contextBridge.exposeInMainWorld('API', {
+
+    // Webframe
+    getResourceUsage: () => webFrame.getResourceUsage(),
+    clearCache: () => webFrame.clearCache(),
 
     // Active user
     onGetActiveUser: (callback) => ipcRenderer.on('active-user-load', callback),

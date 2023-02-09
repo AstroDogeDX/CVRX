@@ -1,4 +1,5 @@
 const axios = require('axios');
+//const utils = require('./utils');
 
 const log = require('./logger').GetLogger('API_HTTP');
 
@@ -56,6 +57,7 @@ exports.AuthenticateViaAccessKey = async (username, accessKey) => {
             'Username': authentication.username,
             'AccessKey': authentication.accessKey,
             'User-Agent': APIUserAgent,
+            //'User-Agent': utils.GetUserAgent(),
         },
     });
     return authentication;
