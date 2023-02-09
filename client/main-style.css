@@ -209,6 +209,7 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: var(--border-radii);
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .home-requests :where(img) {
@@ -221,18 +222,30 @@
     background: var(--node-nth-color);
 }
 
-.home-requests--friend-request-node, .home-requests--invite-node, .home-requests--invite-request-node, .home-requests--debug-node {
-    height: 60px;
+/* -- Friend Request */
+
+.home-requests--friend-request-node {
+    display: grid;
+    min-height: 60px;
     width: 100%;
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
-    justify-content: space-between;
+    gap: 5px;
     padding: 5px;
-    border-radius: var(--border-radii);
+    grid-template-columns: 50px 1fr 1fr 90px;
+    grid-template-rows: 1fr;
+    grid-template-areas:
+        "friend-request-img friend-request-name friend-request-label friend-request-buttons";
+}
+
+.home-requests--friend-request--user-img {
+    grid-area: friend-request-img;
 }
 
 .home-requests--friend-request--user-name {
+    grid-area: friend-request-name;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-start;
     font-size: large;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -241,13 +254,20 @@
 }
 
 .home-requests--friend-request--request-type {
+    grid-area: friend-request-label;
     font-size: small;
     font-style: italic;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 .request-node--button-wrapper {
+    grid-area: friend-request-buttons;
     float: right;
     min-width: 90px;
+    margin-top: 2.5px;
 }
 
 .request-node--button-wrapper button {
@@ -273,6 +293,94 @@
 .request-node--button-accept:hover,
 .request-node--button-reject:hover {
     filter: brightness(1.5);
+}
+
+/* -- Invite (You To Join) */
+
+.home-requests--invite-node {
+    display: grid;
+    min-height: 60px;
+    width: 100%;
+    gap: 5px;
+    padding: 5px;
+    grid-template-columns: 50px 1fr 50px 1fr 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas:
+        "invite-user-img invite-user-name invite-world-img invite-world-name invite-world-notice";
+}
+
+.home-requests--invite--user-img {
+    grid-area: invite-user-img;
+}
+
+.home-requests--invite--user-name {
+    grid-area: invite-user-name;
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: center;
+}
+
+.home-requests--invite--world-img {
+    grid-area: invite-world-img;
+}
+
+.home-requests--invite--instance-name {
+    grid-area: invite-world-name;
+    width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.home-requests--invite--label {
+    grid-area: invite-world-notice;
+    width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: center;
+}
+
+/* -- Invite Request (Join To You) */
+
+.home-requests--invite-request-node {
+    display: grid;
+    min-height: 60px;
+    width: 100%;
+    gap: 5px;
+    padding: 5px;
+    grid-template-columns: 50px 1fr 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas:
+        "invite-request-user-img invite-request-user-name invite-request-notice";
+}
+
+.home-requests--invite-request--user-img {
+    grid-area: invite-request-user-img;
+}
+
+.home-requests--invite-request--user-name {
+    grid-area: invite-request-user-name;
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: center;
+}
+
+.home-requests--invite-request--label {
+    grid-area: invite-request-notice;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: center;
 }
 
 /* CVR World/Instance Activity on Home */
