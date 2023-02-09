@@ -524,7 +524,7 @@ window.API.onInvites((_event, invites) => {
     const homeRequests = document.querySelector('.home-requests');
 
     // Remove previous invites
-    // document.querySelectorAll('.home-requests--invite-node').forEach(el => el.remove());
+    document.querySelectorAll('.home-requests--invite-node').forEach(el => el.remove());
 
     // Create the search result elements
     for (const invite of invites) {
@@ -559,7 +559,7 @@ window.API.onInviteRequests((_event, requestInvites) => {
     const homeRequests = document.querySelector('.home-requests');
 
     // Remove previous invites
-    // document.querySelectorAll('.home-requests--invite-request-node').forEach(el => el.remove());
+    document.querySelectorAll('.home-requests--invite-request-node').forEach(el => el.remove());
 
     // Create the search result elements
     for (const requestInvite of requestInvites) {
