@@ -92,6 +92,11 @@ function swapNavPages(page) {
                 avatarsElement.setAttribute('loaded-avatars', '');
                 window.API.refreshGetActiveUserAvatars();
             }
+            document.querySelector('#avatars-filter').value = '';
+            document.querySelector('#avatars-filter').focus({ focusVisible: true });
+            document.querySelectorAll('.avatars-wrapper--avatars-node').forEach((e) => {
+                e.classList.remove('filtered-avatar');
+            });
             break;
         }
         case 'worlds': {
