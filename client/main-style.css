@@ -567,7 +567,7 @@
     float: left;
     height: var(--thumbnail-size-standard);
     width: var(--thumbnail-size-standard);
-    margin-right: 10px;
+    margin-right: 5px;
     border-radius: var(--border-radii);
 }
 
@@ -624,10 +624,20 @@
 
 #avatars-refresh {
     grid-area: avatars-refresh;
+    width: 50px;
+    height: 50px;
+    position: sticky;
+    top: 0px;
+    border-radius: var(--border-radii);
+    color: black;
+    border: none;
+    cursor: pointer;
 }
 
 .avatars-wrapper {
     grid-area: avatars-list;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .avatars-wrapper :where(img) {
@@ -635,6 +645,7 @@
     width: 50px;
     border-radius: var(--border-radii);
     float: left;
+    margin-right: 5px;
 }
 
 .avatars-wrapper :where(div):nth-of-type(odd) {
@@ -645,6 +656,14 @@
     padding: 5px;
     border-radius: var(--border-radii);
     min-height: 60px;
+}
+
+.avatars-node--name {
+    font-size: large;
+}
+
+.avatars-node--description {
+    font-size: small;
 }
 
 /* Friends Sidebar Area */

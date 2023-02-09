@@ -693,7 +693,6 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
     // Create reload our avatars button
     const reloadAvatarsButton = document.querySelector('#avatars-refresh');
     reloadAvatarsButton.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
-    newNodes.push(reloadAvatarsButton);
 
     for (const ourAvatar of ourAvatars) {
         // Ignore avatars that are not our own
@@ -703,8 +702,8 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
         ourAvatarNode.setAttribute('class', 'avatars-wrapper--avatars-node');
         ourAvatarNode.innerHTML = `
             <img src="img/ui/placeholder.png" data-hash="${ourAvatar.imageHash}"/>
-            <p class="our-avatar--name">${ourAvatar.name}</p>
-            <p class="our-avatar--description">${ourAvatar.description}</p>`;
+            <p class="avatars-node--name">${ourAvatar.name}</p>
+            <p class="avatars-node--description">${ourAvatar.description}</p>`;
         newNodes.push(ourAvatarNode);
     }
 
