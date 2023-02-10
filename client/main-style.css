@@ -48,7 +48,7 @@
     grid-template-rows: 100%;
     grid-template-columns: 60px auto minmax(250px, 20vw);
     grid-template-areas:
-        "cvrx-navbar cvrx-display cvrx-friends-bar";
+        "cvrx-navbar cvrx-display friends-sidebar";
 }
 
 /* Navbar */
@@ -668,8 +668,8 @@
 
 /* Friends Sidebar Area */
 
-.cvrx-friends-bar {
-    grid-area: cvrx-friends-bar;
+.friends-sidebar {
+    grid-area: friends-sidebar;
     background: #171010;
     display: flex;
     flex-flow: column nowrap;
@@ -678,12 +678,12 @@
     color: white;
 }
 
-.cvrx-friends-bar :is(h1) {
+.friends-sidebar :is(h1) {
     font-size: 24px;
     padding: 5px;
 }
 
-.cvrx-friends-bar :is(h2) {
+.friends-sidebar :is(h2) {
     font-size: 16px;
     padding: 5px;
     text-align: center;
@@ -692,7 +692,7 @@
     color: rgba(255, 255, 255, 0.1);
 }
 
-.friends-bar-container {
+.friends-sidebar-container {
     width: calc(100% - 10px);
     height: 100%;
     padding: 5px;
@@ -700,11 +700,11 @@
     overflow-x: hidden;
 }
 
-.friends-bar-container :is(.online-friend-node):nth-child(odd) {
+.friends-sidebar-container :is(.friends-sidebar--online-friend-node):nth-child(odd) {
     background: rgba(255, 255, 255, 0.1);
 }
 
-.online-friend-node {
+.friends-sidebar--online-friend-node {
     display: grid;
     height: 56px;
     border-radius: var(--border-radii);
@@ -714,12 +714,12 @@
     padding: 2.5px;
     user-select: none;
     grid-template-areas:
-        "online-friend-image online-friend-name online-friend-name"
-        "online-friend-image online-friend-world online-friend-world";
+        "online-friend-node--image online-friend-node--name online-friend-node--name"
+        "online-friend-node--image online-friend-node--world online-friend-node--world";
 }
 
-.online-friend-image {
-    grid-area: online-friend-image;
+.online-friend-node--image {
+    grid-area: online-friend-node--image;
     border-radius: var(--border-radii);
     max-width: 50px;
     max-height: 50px;
@@ -727,14 +727,14 @@
     min-height: 50px;
 }
 
-.online-friend-name {
-    grid-area: online-friend-name;
+.online-friend-node--name {
+    grid-area: online-friend-node--name;
     font-size: 18px;
     height: auto;
 }
 
-.online-friend-world {
-    grid-area: online-friend-world;
+.online-friend-node--world {
+    grid-area: online-friend-node--world;
     font-size: 11px;
     display: block;
     font-style: italic;
@@ -744,8 +744,8 @@
     line-height: 200%;
 }
 
-.online-friend-world-count {
-    grid-area: online-friend-world-count;
+.online-friend-node--world-count {
+    grid-area: online-friend-node--world-count;
     font-size: 12px;
     display: flex;
     flex-flow: row nowrap;

@@ -279,7 +279,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     console.log('Friends Refresh! isRefresh: ' + isRefresh);
     console.log(friends);
 
-    const friendsBarNode = document.querySelector('.friends-bar-container');
+    const friendsBarNode = document.querySelector('.friends-sidebar-container');
     const friendsListNode = document.querySelector('.friends-wrapper');
 
     // Clear all children (this event sends all friends, we so can empty our previous state)
@@ -298,11 +298,11 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
         if (friend.isOnline) {
             let onlineFriendNode = document.createElement('div');
             onlineFriendNode.onclick = () => ShowDetails(DetailsType.User, friend.id);
-            onlineFriendNode.setAttribute('class', 'online-friend-node');
+            onlineFriendNode.setAttribute('class', 'friends-sidebar--online-friend-node');
             onlineFriendNode.innerHTML = `
-                <img class="online-friend-image" src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
-                <p class="online-friend-name">${friend.name}</p>
-                <p class="online-friend-world ${onlineFriendInPrivateClass}">${name}${instanceTypeStr}</p>`;
+                <img class="online-friend-node--image" src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
+                <p class="online-friend-node--name">${friend.name}</p>
+                <p class="online-friend-node--world ${onlineFriendInPrivateClass}">${name}${instanceTypeStr}</p>`;
             friendsBarNode.appendChild(onlineFriendNode);
         }
 
