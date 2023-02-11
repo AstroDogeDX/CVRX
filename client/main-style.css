@@ -212,13 +212,27 @@
     overflow-x: hidden;
 }
 
+.home-requests:empty {
+    display: flex;
+    flex-flow: row nowrap;
+    color: rgba(255,255,255,0.2);
+    justify-content: center;
+    align-items: center;
+    font-size: small;
+    font-style: italic;
+}
+
+.home-requests:empty:before {
+    content: 'No Pending Notifications';
+}
+
 .home-requests :where(img) {
     height: var(--thumbnail-size-standard);
     width: var(--thumbnail-size-standard);
     border-radius: var(--border-radii);
 }
 
-.home-requests :is(div):not(.request-node--button-wrapper):nth-of-type(odd) {
+.home-requests :is(div):not(.request-node--button-wrapper, .requests-placeholder):nth-of-type(odd) {
     background: var(--node-nth-color);
 }
 
@@ -444,6 +458,20 @@
     border-radius: var(--border-radii);
     overflow-y: auto;
     overflow-x: hidden;
+}
+
+.home-history--history-wrapper:empty {
+    display: flex;
+    flex-flow: row nowrap;
+    color: rgba(255,255,255,0.2);
+    justify-content: center;
+    align-items: center;
+    font-size: small;
+    font-style: italic;
+}
+
+.home-history--history-wrapper:empty:before {
+    content: 'No Friend History';
 }
 
 .home-activity :is(img) {
