@@ -650,6 +650,37 @@ document.querySelector('.friends-filter').addEventListener('keyup', () => {
     });
 });
 
+// Avatars filtering :O
+
+document.querySelector('#avatars-filter').addEventListener('keyup', () => {
+    const filterQuery = document.querySelector('#avatars-filter').value.toLowerCase();
+    document.querySelectorAll('.avatars-wrapper--avatars-node').forEach((e) => {
+        console.log(e);
+        const matched = e.querySelector('.avatars-node--name').textContent.toLowerCase().includes(filterQuery);
+        e.classList.toggle('filtered-friend', !matched);
+    });
+});
+
+// Worlds filtering :)
+
+document.querySelector('.friends-filter').addEventListener('keyup', () => {
+    const filterQuery = document.querySelector('.friends-filter').value.toLowerCase();
+    document.querySelectorAll('.avatars-wrapper--avatars-node').forEach((e) => {
+        const matched = e.querySelector('.friend-name').textContent.toLowerCase().includes(filterQuery);
+        e.classList.toggle('filtered-friend', !matched);
+    });
+});
+
+// Props filtering :P
+
+document.querySelector('.friends-filter').addEventListener('keyup', () => {
+    const filterQuery = document.querySelector('.friends-filter').value.toLowerCase();
+    document.querySelectorAll('.friend-list-node').forEach((e) => {
+        const matched = e.querySelector('.friend-name').textContent.toLowerCase().includes(filterQuery);
+        e.classList.toggle('filtered-friend', !matched);
+    });
+});
+
 function toastyNotification(message, type) {
     const toast = document.querySelector('.toast-notification');
     clearTimeout(toastTimer);
