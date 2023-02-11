@@ -666,6 +666,150 @@
     font-size: small;
 }
 
+/* Worlds Display */
+
+#display-worlds {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    gap: 5px;
+    grid-template-columns: 1fr 50px;
+    grid-template-rows: 50px 1fr;
+    grid-template-areas:
+        "worlds-filter worlds-refresh"
+        "worlds-list worlds-list";
+}
+
+#worlds-filter {
+    grid-area: worlds-filter;
+    position: sticky;
+    top: 0px;
+    border-radius: var(--border-radii);
+    padding: 5px;
+    font-size: 32px;
+    color: black;
+}
+
+#worlds-filter::placeholder {
+    font-style: italic;
+}
+
+#worlds-refresh {
+    grid-area: worlds-refresh;
+    width: 50px;
+    height: 50px;
+    position: sticky;
+    top: 0px;
+    border-radius: var(--border-radii);
+    color: black;
+    border: none;
+    cursor: pointer;
+}
+
+.worlds-wrapper {
+    grid-area: worlds-list;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.worlds-wrapper :where(img) {
+    height: 50px;
+    width: 50px;
+    border-radius: var(--border-radii);
+    float: left;
+    margin-right: 5px;
+}
+
+.worlds-wrapper :where(div):nth-of-type(odd) {
+    background: var(--node-nth-color);
+}
+
+.worlds-wrapper--worlds-node {
+    padding: 5px;
+    border-radius: var(--border-radii);
+    min-height: 60px;
+}
+
+.worlds-node--name {
+    font-size: large;
+}
+
+.worlds-node--description {
+    font-size: small;
+}
+
+/* Props Display */
+
+#display-props {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    gap: 5px;
+    grid-template-columns: 1fr 50px;
+    grid-template-rows: 50px 1fr;
+    grid-template-areas:
+        "props-filter props-refresh"
+        "props-list props-list";
+}
+
+#props-filter {
+    grid-area: props-filter;
+    position: sticky;
+    top: 0px;
+    border-radius: var(--border-radii);
+    padding: 5px;
+    font-size: 32px;
+    color: black;
+}
+
+#props-filter::placeholder {
+    font-style: italic;
+}
+
+#props-refresh {
+    grid-area: props-refresh;
+    width: 50px;
+    height: 50px;
+    position: sticky;
+    top: 0px;
+    border-radius: var(--border-radii);
+    color: black;
+    border: none;
+    cursor: pointer;
+}
+
+.props-wrapper {
+    grid-area: props-list;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.props-wrapper :where(img) {
+    height: 50px;
+    width: 50px;
+    border-radius: var(--border-radii);
+    float: left;
+    margin-right: 5px;
+}
+
+.props-wrapper :where(div):nth-of-type(odd) {
+    background: var(--node-nth-color);
+}
+
+.props-wrapper--props-node {
+    padding: 5px;
+    border-radius: var(--border-radii);
+    min-height: 60px;
+}
+
+.props-node--name {
+    font-size: large;
+}
+
+.props-node--description {
+    font-size: small;
+}
+
 /* Friends Sidebar Area */
 
 .friends-sidebar {
