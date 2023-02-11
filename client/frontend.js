@@ -672,10 +672,10 @@ document.querySelector('#worlds-filter').addEventListener('keyup', () => {
 
 // Props filtering :P
 
-document.querySelector('#avatars-filter').addEventListener('keyup', () => {
-    const filterQuery = document.querySelector('#avatars-filter').value.toLowerCase();
-    document.querySelectorAll('.avatars-wrapper--avatars-node').forEach((e) => {
-        const matched = e.querySelector('.avatars-node--name').textContent.toLowerCase().includes(filterQuery);
+document.querySelector('#props-filter').addEventListener('keyup', () => {
+    const filterQuery = document.querySelector('#props-filter').value.toLowerCase();
+    document.querySelectorAll('.props-wrapper--props-node').forEach((e) => {
+        const matched = e.querySelector('.props-node--name').textContent.toLowerCase().includes(filterQuery);
         e.classList.toggle('filtered-friend', !matched);
     });
 });
