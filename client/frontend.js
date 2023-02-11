@@ -872,4 +872,4 @@ function getMemory() {
     console.log(resourcesUsage);
 }
 
-setInterval(getMemory, 5*60*1000);
+setInterval(getMemory, 5 * 60 * 1000);
