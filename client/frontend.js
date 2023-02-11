@@ -720,24 +720,23 @@ window.API.onGetActiveUserProps((_event, ourProps) => {
     console.log('[On] GetActiveUserProps');
     console.log(ourProps);
 
-    const propDisplayNode = document.querySelector('#display-props');
+    const propDisplayNode = document.querySelector('.props-wrapper');
     const newNodes = [];
 
     // Create reload our props button
-    const reloadPropsButton = document.createElement('button');
-    reloadPropsButton.append('Reload my Props');
-    reloadPropsButton.addEventListener('click', () => window.API.refreshGetActiveUserProps());
-    newNodes.push(reloadPropsButton);
+    const reloadAvatarsButton = document.querySelector('#props-refresh');
+    reloadAvatarsButton.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
 
     for (const ourProp of ourProps) {
         // Ignore avatars that are not our own
         if (!ourProp.categories.includes(PropCategories.Mine)) continue;
 
         const ourPropNode = document.createElement('div');
+        ourPropNode.setAttribute('class', 'props-wrapper--props-node');
         ourPropNode.innerHTML = `
             <img src="img/ui/placeholder.png" data-hash="${ourProp.imageHash}"/>
-            <p class="our-prop--name">${ourProp.name}</p>
-            <p class="our-prop--description">${ourProp.description}</p>`;
+            <p class="props-node--name">${ourProp.name}</p>
+            <p class="props-node--description">${ourProp.description}</p>`;
         newNodes.push(ourPropNode);
     }
 
