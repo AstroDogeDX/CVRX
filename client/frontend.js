@@ -655,7 +655,6 @@ document.querySelector('.friends-filter').addEventListener('keyup', () => {
 document.querySelector('#avatars-filter').addEventListener('keyup', () => {
     const filterQuery = document.querySelector('#avatars-filter').value.toLowerCase();
     document.querySelectorAll('.avatars-wrapper--avatars-node').forEach((e) => {
-        console.log(e);
         const matched = e.querySelector('.avatars-node--name').textContent.toLowerCase().includes(filterQuery);
         e.classList.toggle('filtered-friend', !matched);
     });
@@ -663,23 +662,25 @@ document.querySelector('#avatars-filter').addEventListener('keyup', () => {
 
 // Worlds filtering :)
 
-document.querySelector('.friends-filter').addEventListener('keyup', () => {
-    const filterQuery = document.querySelector('.friends-filter').value.toLowerCase();
-    document.querySelectorAll('.avatars-wrapper--avatars-node').forEach((e) => {
-        const matched = e.querySelector('.friend-name').textContent.toLowerCase().includes(filterQuery);
+document.querySelector('#worlds-filter').addEventListener('keyup', () => {
+    const filterQuery = document.querySelector('#worlds-filter').value.toLowerCase();
+    document.querySelectorAll('.worlds-wrapper--worlds-node').forEach((e) => {
+        const matched = e.querySelector('.worlds-node--name').textContent.toLowerCase().includes(filterQuery);
         e.classList.toggle('filtered-friend', !matched);
     });
 });
 
 // Props filtering :P
 
-document.querySelector('.friends-filter').addEventListener('keyup', () => {
-    const filterQuery = document.querySelector('.friends-filter').value.toLowerCase();
-    document.querySelectorAll('.friend-list-node').forEach((e) => {
-        const matched = e.querySelector('.friend-name').textContent.toLowerCase().includes(filterQuery);
+document.querySelector('#avatars-filter').addEventListener('keyup', () => {
+    const filterQuery = document.querySelector('#avatars-filter').value.toLowerCase();
+    document.querySelectorAll('.avatars-wrapper--avatars-node').forEach((e) => {
+        const matched = e.querySelector('.avatars-node--name').textContent.toLowerCase().includes(filterQuery);
         e.classList.toggle('filtered-friend', !matched);
     });
 });
+
+// Toasty Notifications!
 
 function toastyNotification(message, type) {
     const toast = document.querySelector('.toast-notification');
