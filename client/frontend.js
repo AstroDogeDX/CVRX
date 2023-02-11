@@ -105,6 +105,11 @@ function swapNavPages(page) {
                 worldsElement.setAttribute('loaded-worlds', '');
                 window.API.refreshGetActiveUserWorlds();
             }
+            document.querySelector('#worlds-filter').value = '';
+            document.querySelector('#worlds-filter').focus({ focusVisible: true });
+            document.querySelectorAll('.worlds-wrapper--worlds-node').forEach((e) => {
+                e.classList.remove('filtered-item');
+            });
             break;
         }
         case 'props': {
@@ -113,6 +118,11 @@ function swapNavPages(page) {
                 propsElement.setAttribute('loaded-props', '');
                 window.API.refreshGetActiveUserProps();
             }
+            document.querySelector('#avatars-filter').value = '';
+            document.querySelector('#avatars-filter').focus({ focusVisible: true });
+            document.querySelectorAll('.avatars-wrapper--avatars-node').forEach((e) => {
+                e.classList.remove('filtered-item');
+            });
             break;
         }
 
