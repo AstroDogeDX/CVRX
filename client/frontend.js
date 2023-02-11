@@ -83,7 +83,7 @@ function swapNavPages(page) {
             document.querySelector('.friends-filter').value = '';
             document.querySelector('.friends-filter').focus({ focusVisible: true });
             document.querySelectorAll('.friend-list-node').forEach((e) => {
-                e.classList.remove('filtered-friend');
+                e.classList.remove('filtered-item');
             });
             break;
         case 'avatars': {
@@ -646,7 +646,7 @@ document.querySelector('.friends-filter').addEventListener('keyup', () => {
     const filterQuery = document.querySelector('.friends-filter').value.toLowerCase();
     document.querySelectorAll('.friend-list-node').forEach((e) => {
         const matched = e.querySelector('.friend-name').textContent.toLowerCase().includes(filterQuery);
-        e.classList.toggle('filtered-friend', !matched);
+        e.classList.toggle('filtered-item', !matched);
     });
 });
 
@@ -656,7 +656,7 @@ document.querySelector('#avatars-filter').addEventListener('keyup', () => {
     const filterQuery = document.querySelector('#avatars-filter').value.toLowerCase();
     document.querySelectorAll('.avatars-wrapper--avatars-node').forEach((e) => {
         const matched = e.querySelector('.avatars-node--name').textContent.toLowerCase().includes(filterQuery);
-        e.classList.toggle('filtered-friend', !matched);
+        e.classList.toggle('filtered-item', !matched);
     });
 });
 
@@ -666,7 +666,7 @@ document.querySelector('#worlds-filter').addEventListener('keyup', () => {
     const filterQuery = document.querySelector('#worlds-filter').value.toLowerCase();
     document.querySelectorAll('.worlds-wrapper--worlds-node').forEach((e) => {
         const matched = e.querySelector('.worlds-node--name').textContent.toLowerCase().includes(filterQuery);
-        e.classList.toggle('filtered-friend', !matched);
+        e.classList.toggle('filtered-item', !matched);
     });
 });
 
@@ -676,7 +676,7 @@ document.querySelector('#props-filter').addEventListener('keyup', () => {
     const filterQuery = document.querySelector('#props-filter').value.toLowerCase();
     document.querySelectorAll('.props-wrapper--props-node').forEach((e) => {
         const matched = e.querySelector('.props-node--name').textContent.toLowerCase().includes(filterQuery);
-        e.classList.toggle('filtered-friend', !matched);
+        e.classList.toggle('filtered-item', !matched);
     });
 });
 
