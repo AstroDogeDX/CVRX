@@ -748,25 +748,24 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
     console.log('[On] GetActiveUserWorlds');
     console.log(ourWorlds);
 
-    const propDisplayNode = document.querySelector('#display-worlds');
+    const worldDisplayNode = document.querySelector('.worlds-wrapper');
     const newNodes = [];
 
     // Create reload our worlds button
-    const reloadWorldsButton = document.createElement('button');
-    reloadWorldsButton.append('Reload my Worlds');
-    reloadWorldsButton.addEventListener('click', () => window.API.refreshGetActiveUserWorlds());
-    newNodes.push(reloadWorldsButton);
+    const reloadAvatarsButton = document.querySelector('#worlds-refresh');
+    reloadAvatarsButton.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
 
     for (const ourWorld of ourWorlds) {
-        const ourPropNode = document.createElement('div');
-        ourPropNode.innerHTML = `
+        const ourWorldNode = document.createElement('div');
+        ourWorldNode.setAttribute('class', 'worlds-wrapper--worlds-node');
+        ourWorldNode.innerHTML = `
             <img src="img/ui/placeholder.png" data-hash="${ourWorld.imageHash}"/>
-            <p class="our-prop--name">${ourWorld.name}</p>
-            <p class="our-prop--player-count">${ourWorld.playerCount}</p>`;
-        newNodes.push(ourPropNode);
+            <p class="worlds-node--name">${ourWorld.name}</p>
+            <p class="worlds-node--player-count">${ourWorld.playerCount}</p>`;
+        newNodes.push(ourWorldNode);
     }
 
-    propDisplayNode.replaceChildren(...newNodes);
+    worldDisplayNode.replaceChildren(...newNodes);
 });
 
 // Janky recent activity
