@@ -118,9 +118,9 @@ function swapNavPages(page) {
                 propsElement.setAttribute('loaded-props', '');
                 window.API.refreshGetActiveUserProps();
             }
-            document.querySelector('#avatars-filter').value = '';
-            document.querySelector('#avatars-filter').focus({ focusVisible: true });
-            document.querySelectorAll('.avatars-wrapper--avatars-node').forEach((e) => {
+            document.querySelector('#props-filter').value = '';
+            document.querySelector('#props-filter').focus({ focusVisible: true });
+            document.querySelectorAll('.props-wrapper--props-node').forEach((e) => {
                 e.classList.remove('filtered-item');
             });
             break;
