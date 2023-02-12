@@ -573,11 +573,7 @@
     overflow-y: scroll;
 }
 
-.friends-wrapper .friend-list-node:nth-of-type(odd) {
-    background: var(--node-nth-color);
-}
-
-.friend-list-node:nth-of-type(odd) {
+.friends-wrapper :is(div):not(.filtered-item):nth-of-type(odd) {
     background: var(--node-nth-color);
 }
 
