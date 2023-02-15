@@ -1,11 +1,10 @@
 const axios = require('axios');
-//const utils = require('./utils');
+const utils = require('./utils');
 
 const log = require('./logger').GetLogger('API_HTTP');
 
 const APIAddress = 'https://api.abinteractive.net';
 const APIVersion = '1';
-const APIUserAgent = 'ChilloutVR API-Requests';
 const APIBase = `${APIAddress}/${APIVersion}`;
 
 let CVRApi;
@@ -15,11 +14,12 @@ const UnauthenticatedCVRApi = axios.create({ baseURL: APIBase });
 async function Get(url, authenticated = true) {
     try {
         const response = await (authenticated ? CVRApi : UnauthenticatedCVRApi).get(url);
-        log.debug(`[GET] [${authenticated ? '' : 'Non-'}Auth] ${url}`, response.data);
+        log.debug(`[GET] [${response.status}] [${authenticated ? '' : 'Non-'}Auth] ${url}`, response.data);
         return response.data.data;
     }
     catch (error) {
-        log.error('[GET]', error);
+        log.error(`[GET] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack);
+        throw new Error(`Error:\n${error.stack}\n${error.toString()}`);
     }
 }
 
@@ -27,11 +27,12 @@ async function Get(url, authenticated = true) {
 async function Post(url, data, authenticated = true) {
     try {
         const response = await (authenticated ? CVRApi : UnauthenticatedCVRApi).post(url, data);
-        log.debug(`[Post] [${authenticated ? '' : 'Non-'}Auth] ${response.request.url}`, response.data);
+        log.debug(`[Post] [${response.status}] [${authenticated ? '' : 'Non-'}Auth] ${url}`, response.data);
         return response.data.data;
     }
     catch (error) {
-        log.error('[Post]', error);
+        log.error(`[Post] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack);
+        throw new Error(`Error:\n${error.stack}\n${error.toString()}`);
     }
 }
 
@@ -45,23 +46,33 @@ const CATEGORY_TYPES = Object.freeze({
     WORLDS: 'Worlds',
 });
 
+const AuthMethod = Object.freeze({
+    ACCESS_KEY: 1,
+    PASSWORD: 2,
+});
+
 
 // API Endpoints
 
 // Authenticate
 exports.AuthenticateViaAccessKey = async (username, accessKey) => {
-    const authentication = await Post('/users/auth', { AuthType: 1, Username: username, Password: accessKey }, false);
+    return Authenticate(AuthMethod.ACCESS_KEY, username, accessKey);
+};
+exports.AuthenticateViaPassword = async (email, password) => {
+    return Authenticate(AuthMethod.PASSWORD, email, password);
+};
+async function Authenticate(authType, credentialUser, credentialSecret) {
+    const authentication = await Post('/users/auth', { AuthType: authType, Username: credentialUser, Password: credentialSecret }, false);
     CVRApi = axios.create({
         baseURL: APIBase,
         headers: {
             'Username': authentication.username,
             'AccessKey': authentication.accessKey,
-            'User-Agent': APIUserAgent,
-            //'User-Agent': utils.GetUserAgent(),
+            'User-Agent': utils.GetUserAgent(),
         },
     });
     return authentication;
-};
+}
 
 // Get Stats
 exports.GetUserStats = async () =>  Get('/public/userstats', false);

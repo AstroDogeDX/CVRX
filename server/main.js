@@ -79,23 +79,6 @@ const CreateWindow = async () => {
 
     // Load the config
     await Config.Load();
-    await Config.ImportCVRCredentials();
-
-    let activeCredentials = Config.GetActiveCredentials();
-    log.info(`[CreateWindow] Fetching active user, found: ${activeCredentials?.Username}`);
-
-    if (!activeCredentials) {
-        log.info('[CreateWindow] No active user found, attempting to fetch credentials...');
-
-        const autoLoginCredentials = Config.GetAutoLoginCredentials();
-        log.info(`[CreateWindow] Looking for auto login credentials, found: ${autoLoginCredentials.Username}`);
-
-        log.info(`[CreateWindow] [SetActiveCredentials] Activating credentials for: ${autoLoginCredentials.Username}`);
-        await Config.SetActiveCredentials(autoLoginCredentials.Username);
-    }
-
-    activeCredentials = Config.GetActiveCredentials();
-    log.info(`Authenticating with the username: ${activeCredentials.Username}`);
 
     // Initialize the core and Load the listeners
     const core = new Core(mainWindow);
@@ -106,8 +89,14 @@ const CreateWindow = async () => {
     // Initialize Cache
     Cache.Initialize(mainWindow);
 
-    // And now we can do our stuff
-    await core.Initialize(activeCredentials.Username, activeCredentials.AccessKey);
+    const activeCredentials = Config.GetActiveCredentials();
+
+    if (activeCredentials) {
+        await core.Authenticate(activeCredentials.Username, activeCredentials.AccessKey, true, true);
+    }
+    else {
+        await core.SendToLoginPage();
+    }
 
     return mainWindow;
 };
@@ -156,12 +145,7 @@ app.whenReady().then(async () => {
     });
 });
 
-app.on('window-all-closed', () => {
-    // Quit when all windows are closed, except on macOS. There, it's common
-    // for applications and their menu bar to stay active until the user quits
-    // explicitly with Cmd + Q.
-    if (process.platform !== 'darwin') app.quit();
-});
+app.on('window-all-closed', () => app.quit());
 
 app.on('will-quit', async () => {
     // This won't be called if the application is quit by a Windows shutdown/logout/restart

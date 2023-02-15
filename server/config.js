@@ -35,6 +35,7 @@ exports.Load = async () => {
     // Load the config file
     config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, {
         ActiveUsername: null,
+        ActiveUserID: null,
         CacheMaxSizeInMegabytes: 1000,
         CVRExecutable: path.join(CVRExecutableDefaultFolderPath, CVRExecutableName),
     });
@@ -105,7 +106,6 @@ exports.ImportCVRCredentials = async () => {
                 'need a valid path to it.\nThe application will close since you didn\'t point us to the ' +
                 `${CVRExecutableName} file...`,
             );
-            app.quit();
             throw new Error(err);
         }
 
@@ -120,7 +120,6 @@ exports.ImportCVRCredentials = async () => {
                     'Credentials Error',
                     `You pointed to a ${path.basename(providedPath)} file, we need ${CVRExecutableName}...`,
                 );
-                app.quit();
                 throw new Error(err);
             }
 
@@ -156,11 +155,7 @@ exports.ImportCVRCredentials = async () => {
             }
 
             updated = true;
-            credentials[username] = {
-                Username: username,
-                AccessKey: accessKey,
-                IsAutoLogin: isDefaultAutoLogin,
-            };
+            await exports.SaveCredential(username, accessKey);
         }
     }
 
@@ -170,15 +165,13 @@ exports.ImportCVRCredentials = async () => {
     return credentials;
 };
 
-exports.GetAvailableCredentials = () => Object.keys(credentials);
-exports.GetActiveCredentials = () => credentials?.[config?.ActiveUsername];
-exports.GetAutoLoginCredentials = () => Object.values(credentials).find(cred => cred.IsAutoLogin);
+exports.GetAvailableCredentials = () => JSON.parse(JSON.stringify(Object.values(credentials)));
 
+exports.GetActiveCredentials = () => credentials?.[config?.ActiveUsername];
 
 exports.SaveCredential = async (username, accessKey) => {
     if (username && accessKey) {
-        const wasAutoLogin = credentials[username]?.IsAutoLogin ?? false;
-        credentials[username] = { Username: username, AccessKey: accessKey, IsAutoLogin: wasAutoLogin };
+        credentials[username] = { Username: username, AccessKey: accessKey };
         await UpdateJsonFile(FileType.CREDENTIALS);
     }
     else {
@@ -186,12 +179,35 @@ exports.SaveCredential = async (username, accessKey) => {
     }
 };
 
-exports.SetActiveCredentials = async (username) => {
+exports.SetActiveUserImage = async (imageUrl) => {
+    if (!imageUrl || !(config.ActiveUsername in credentials)) return;
+    credentials[config.ActiveUsername].ImageUrl = imageUrl;
+    await UpdateJsonFile(FileType.CREDENTIALS);
+};
+
+exports.SetActiveCredentials = async (username, userID) => {
     if (!credentials?.[username]) {
-        log.error(`[SetActiveCredentials] There are no credentials for the user ${username}!`);
+        const err = `[SetActiveCredentials] There are no credentials for the user ${username}!`;
+        log.error(err);
+        throw new Error(err);
     }
     config.ActiveUsername = username;
+    config.ActiveUserID = userID;
     await UpdateJsonFile(FileType.CONFIG);
+};
+
+exports.ClearActiveCredentials = async () => {
+    config.ActiveUsername = null;
+    config.ActiveUserID = null;
+    await UpdateJsonFile(FileType.CONFIG);
+};
+
+exports.ClearCredentials = async (username) => {
+    if (config.ActiveUsername === username) {
+        await exports.ClearActiveCredentials();
+    }
+    delete credentials[username];
+    await UpdateJsonFile(FileType.CREDENTIALS);
 };
 
 exports.GetMaxCacheSize = () => config.CacheMaxSizeInMegabytes;
