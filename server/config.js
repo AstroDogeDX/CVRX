@@ -15,7 +15,6 @@ const FileVersion = 1;
 const CVRExecutableDefaultFolderPath = 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\ChilloutVR';
 const CVRExecutableName = 'ChilloutVR.exe';
 const CVRDataFolderName = 'ChilloutVR_Data';
-const CVRDefaultAutologinProfileName = 'autologin.profile';
 
 const FileType = Object.freeze({
    CONFIG: 'CONFIG',
@@ -83,6 +82,8 @@ exports.ImportCVRCredentials = async () => {
 
     const cvrDataFolder = GetCVRAppdataPath();
 
+    log.debug(`Looking in the ${cvrDataFolder} for the auto profiles.`);
+
     // If the ChilloutVR.exe doesn't exist means we got our path wrong!
     if (!fs.existsSync(cvrDataFolder)) {
 
@@ -143,17 +144,7 @@ exports.ImportCVRCredentials = async () => {
         const username = autoProfile?.LoginProfile?.Username?.[0];
         const accessKey = autoProfile?.LoginProfile?.AccessKey?.[0];
         if (username && accessKey) {
-
             log.debug(`[ImportCVRCredentials] Found credentials for ${username}!`);
-            let isDefaultAutoLogin = fileName === CVRDefaultAutologinProfileName;
-
-            // Since we found the default auto login, we're going to set all is auto login to false
-            if (isDefaultAutoLogin) {
-                for (const credential of Object.values(credentials)) {
-                    credential.IsAutoLogin = false;
-                }
-            }
-
             updated = true;
             await exports.SaveCredential(username, accessKey);
         }
@@ -171,7 +162,9 @@ exports.GetActiveCredentials = () => credentials?.[config?.ActiveUsername];
 
 exports.SaveCredential = async (username, accessKey) => {
     if (username && accessKey) {
-        credentials[username] = { Username: username, AccessKey: accessKey };
+        credentials[username] ??= {};
+        credentials[username].Username = username;
+        credentials[username].AccessKey = accessKey;
         await UpdateJsonFile(FileType.CREDENTIALS);
     }
     else {

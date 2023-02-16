@@ -49,6 +49,7 @@ function IsObjectEqualExcept(obj1, obj2, keysToIgnore) {
 }
 
 function LoadImage(url, obj) {
+    if (!url) return;
     const hashedFileName = cache.GetHash(url);
     cache.QueueFetchImage({ url: url, hash: hashedFileName, obj: obj });
     obj.imageHash = hashedFileName;
