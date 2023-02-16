@@ -868,6 +868,20 @@
     overflow-x: hidden;
 }
 
+.friends-sidebar-container:empty {
+    display: flex;
+    flex-flow: row nowrap;
+    color: rgba(255,255,255,0.2);
+    justify-content: center;
+    align-items: center;
+    font-size: small;
+    font-style: italic;
+}
+
+.friends-sidebar-container:empty:before {
+    content: 'No Friends Online :(';
+}
+
 .friends-sidebar-container :is(.friends-sidebar--online-friend-node):nth-child(odd) {
     background: rgba(255, 255, 255, 0.1);
 }
