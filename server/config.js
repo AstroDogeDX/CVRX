@@ -80,7 +80,7 @@ async function GetOrCreateJsonFile(folderPath, fileName, defaultObject = {}) {
 
 exports.ImportCVRCredentials = async () => {
 
-    const cvrDataFolder = GetCVRAppdataPath();
+    let cvrDataFolder = GetCVRAppdataPath();
 
     log.debug(`Looking in the ${cvrDataFolder} for the auto profiles.`);
 
@@ -127,6 +127,8 @@ exports.ImportCVRCredentials = async () => {
             // The user actually provided the ChilloutVR.exe path!!!
             config.CVRExecutable = providedPath;
             await UpdateJsonFile(FileType.CONFIG);
+            // Update the executable path
+            cvrDataFolder = GetCVRAppdataPath();
         }
     }
 

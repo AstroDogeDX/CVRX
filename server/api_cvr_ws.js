@@ -15,6 +15,7 @@ const MaxReconnectionAttempts = 5;
 let currentUsername;
 let currentAccessKey;
 let socket;
+let disconnected = true;
 
 let reconnectAttempts = 0;
 
@@ -56,6 +57,7 @@ exports.ConnectWithCredentials = async (username, accessKey) => {
 
 
 exports.DisconnectWebsocket = async () => {
+    disconnected = true;
     if (socket) {
         await socket.close();
         socket = null;
@@ -88,6 +90,7 @@ async function ConnectWebsocket(username, accessKey) {
 
         socket.on('open', () => {
             log.info('[ConnectWebsocket] [onOpen] Opened!');
+            disconnected = false;
             reconnectAttempts = 0;
             EventEmitter.emit(SOCKET_EVENTS.CONNECTED);
             resolve();
@@ -112,7 +115,8 @@ async function ConnectWebsocket(username, accessKey) {
         socket.on('close', async (code, reason) => {
             log.warn(`[ConnectWebsocket] [onClose] Closed! Code: ${code}, Reason: ${reason.toString()}`);
             socket = null;
-            if (code === 1001 || code === 1005 || code === 1006) {
+            // Only reconnect if we didn't disconnect ourselves and the close code is one of the following:
+            if (!disconnected && (code === 1001 || code === 1005 || code === 1006)) {
                 if (reconnectAttempts >= MaxReconnectionAttempts) {
                     try {
                         await dialog.showErrorBox(
