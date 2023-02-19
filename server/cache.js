@@ -18,24 +18,27 @@ exports.GetHash = (string) => {
     return crypto.createHash('sha1').update(string).digest('hex');
 };
 
-const queue = [];
+let queue = [];
 let window;
-let initializing = false;
+let processing = true;
 
 exports.Initialize = (win) => {
     window = win;
-    initializing = true;
 };
 
-exports.Initialized = () => {
-    initializing = false;
+exports.ResetProcessQueue = () => {
+    queue = [];
+    processing = false;
+};
+exports.StartProcessQueue = () => {
+    processing = true;
     ProcessQueue().then().catch((err) => log.error('[Initialized] ProcessQueue...', err));
 };
 
 exports.QueueFetchImage = (urlObj) => {
     if (urlObj) {
         queue.push(urlObj);
-        if (!initializing) {
+        if (processing) {
             ProcessQueue().then().catch((err) => log.error('[QueueFetchImage] ProcessQueue...', err));
         }
     }

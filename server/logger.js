@@ -20,8 +20,18 @@ const consoleFormat = winston.format.combine(
     winston.format.printf(
         info => {
             let splat = '';
-            const splatContent = info[Symbol.for('splat')];
+            let splatContent = info[Symbol.for('splat')];
             if (splatContent) {
+                splatContent = JSON.parse(JSON.stringify(splatContent));
+                for (const splatContentElement of splatContent) {
+                    // Prevent logging access keys!
+                    if (splatContentElement?.accessKey) {
+                        splatContentElement.accessKey = `[Redacted ${splatContentElement.accessKey.length} Characters]`;
+                    }
+                    if (splatContentElement?.data?.accessKey) {
+                        splatContentElement.data.accessKey = `[Redacted ${splatContentElement.data.accessKey.length} Characters]`;
+                    }
+                }
                 splat = '\n' + util.inspect(splatContent, {
                     showHidden: false,
                     depth: null,

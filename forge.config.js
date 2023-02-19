@@ -1,6 +1,6 @@
 module.exports = {
   packagerConfig: {
-    icon: 'icon/cvrx-logo'
+    icon: 'icon/cvrx-logo',
   },
   rebuildConfig: {},
   makers: [
@@ -16,7 +16,7 @@ module.exports = {
     },
     {
       name: '@electron-forge/maker-zip',
-      platforms: ['darwin', "linux"],
+      platforms: ['darwin', 'linux'],
     },
     {
       name: '@electron-forge/maker-deb',
@@ -25,7 +25,7 @@ module.exports = {
           maintainer: 'AstroDoge & Kafeijao',
           homepage: 'https://github.com/AstroDogeDX/CVRX',
           icon: 'icon/cvrx-logo.png',
-        }
+        },
       },
     },
     {
@@ -34,7 +34,14 @@ module.exports = {
         options: {
           icon: 'icon/cvrx-logo.png',
           homepage: 'https://github.com/AstroDogeDX/CVRX',
-        }
+        },
+      },
+    },
+    {
+      name: '@electron-forge/maker-dmg',
+      config: {
+        overwrite: true,
+        icon: 'icon/cvrx-logo.icns',
       },
     },
   ],

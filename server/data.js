@@ -2,6 +2,7 @@ const { ipcMain } = require('electron');
 const cache = require('./cache.js');
 const CVRHttp = require('./api_cvr_http');
 const CVRWebsocket = require('./api_cvr_ws');
+const Config = require('./config');
 
 const log = require('./logger').GetLogger('Data');
 const logRenderer = require('../server/logger').GetLogger('Renderer');
@@ -48,6 +49,7 @@ function IsObjectEqualExcept(obj1, obj2, keysToIgnore) {
 }
 
 function LoadImage(url, obj) {
+    if (!url) return;
     const hashedFileName = cache.GetHash(url);
     cache.QueueFetchImage({ url: url, hash: hashedFileName, obj: obj });
     obj.imageHash = hashedFileName;
@@ -75,9 +77,13 @@ class Core {
 
         this.mainWindow = mainWindow;
 
-        this.mainWindow.webContents.send('initial-load-start');
+        this.#ResetCachingObjects();
 
-        this.userId = '';
+        this.#SetupHandlers();
+    }
+
+    #ResetCachingObjects() {
+
         this.friends = {};
         this.categories = {};
 
@@ -88,8 +94,6 @@ class Core {
             [ActivityUpdatesType.Friends]: {},
         };
         this.recentActivityInitialFriends = false;
-
-        this.#SetupHandlers();
     }
 
     #SetupHandlers() {
@@ -133,6 +137,17 @@ class Core {
             this.FriendsUpdate(true).then().catch((err) => log.error('[#SetupHandlers] [unfriend] [FriendsUpdate]', err));
         });
 
+        // Credentials Management
+        ipcMain.handle('login-authenticate', async (_event, credentialUser, credentialSecret, isAccessKey, saveCredentials) => {
+            return await this.Authenticate(credentialUser, credentialSecret, isAccessKey, saveCredentials);
+        });
+        ipcMain.on('logout', async (_event) => await this.Disconnect());
+        ipcMain.handle('delete-credentials', async (_event, username) => Config.ClearCredentials(username));
+        ipcMain.handle('import-game-credentials', async (_event) => {
+            await Config.ImportCVRCredentials();
+            await this.SendToLoginPage();
+        });
+
         // Moderation
         ipcMain.handle('block-user', (_event, userId) => CVRWebsocket.BlockUser(userId));
         ipcMain.handle('unblock-user', (_event, userId) => CVRWebsocket.UnblockUser(userId));
@@ -153,14 +168,38 @@ class Core {
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.HUD_MESSAGE, (_data, msg) => this.mainWindow.webContents.send('notification', msg, ToastTypes.INFO));
     }
 
-    async Initialize(username, accessKey) {
+    async Disconnect() {
 
-        // Get the user id and our user info
-        await this.Authenticate(username, accessKey);
+        // Disable the websocket reconnection
+        if (recurringIntervalId) clearInterval(recurringIntervalId);
+        await CVRWebsocket.DisconnectWebsocket();
+        await Config.ClearActiveCredentials();
+        cache.Initialize(this.mainWindow);
+
+        // Reset cached stuff
+        this.#ResetCachingObjects();
+
+        await this.SendToLoginPage();
+    }
+
+    async Authenticate(credentialUser, credentialSecret, isAccessKey, saveCredentials) {
+
+        let authentication;
+        if (isAccessKey) authentication = await CVRHttp.AuthenticateViaAccessKey(credentialUser, credentialSecret);
+        else authentication = await CVRHttp.AuthenticateViaPassword(credentialUser, credentialSecret);
+
+        // Save credentials and set them as active
+        if (saveCredentials) {
+            await Config.SaveCredential(authentication.username, authentication.accessKey);
+            await Config.SetActiveCredentials(authentication.username, authentication.userId);
+        }
+
+        // Reset and stop image processing queue
+        cache.ResetProcessQueue();
 
         // Call more events to update the initial state
         await Promise.allSettled([
-            this.GetOurUserInfo(),
+            this.GetOurUserInfo(authentication.userId),
             // this.GetOurUserAvatars(),
             // this.GetOurUserProps(),
             // this.GetOurUserWorlds(),
@@ -172,12 +211,13 @@ class Core {
         ]);
 
         // Initialize the websocket
-        await CVRWebsocket.ConnectWithCredentials(username, accessKey);
+        await CVRWebsocket.ConnectWithCredentials(authentication.username, authentication.accessKey);
 
         // Tell cache we're initialized to start loading images...
-        cache.Initialized();
+        cache.StartProcessQueue();
 
-        this.mainWindow.webContents.send('initial-load-finish');
+        // Tell the renderer to go to the home page
+        this.mainWindow.webContents.send('page-home');
 
         // Schedule recurring API Requests every 5 minutes
         if (recurringIntervalId) clearInterval(recurringIntervalId);
@@ -200,11 +240,6 @@ class Core {
                 failedTimes++;
             }
         }, 5 * 60 * 1000);
-    }
-
-    async Authenticate(username, accessKey) {
-        const authentication = await CVRHttp.AuthenticateViaAccessKey(username, accessKey);
-        this.userId = authentication.userId;
 
         // const authentication = {
         //     username: 'XXXXXXXXX',
@@ -218,8 +253,20 @@ class Core {
         // }
     }
 
-    async GetOurUserInfo() {
-        const ourUser = await this.GetUserById(this.userId);
+    async SendToLoginPage() {
+
+        const availableCredentials = Config.GetAvailableCredentials();
+
+        for (const activeCredential of availableCredentials) {
+            LoadImage(activeCredential.ImageUrl, activeCredential);
+        }
+
+        this.mainWindow.webContents.send('page-login', availableCredentials);
+    }
+
+    async GetOurUserInfo(ourUserID) {
+        const ourUser = await this.GetUserById(ourUserID);
+        await Config.SetActiveUserImage(ourUser?.imageUrl);
         this.mainWindow.webContents.send('active-user-load', ourUser);
     }
 

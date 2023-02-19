@@ -8,6 +8,17 @@ contextBridge.exposeInMainWorld('API', {
     getResourceUsage: () => webFrame.getResourceUsage(),
     clearCache: () => webFrame.clearCache(),
 
+    // Pages
+    onLoginPage: (callback) => ipcRenderer.on('page-login', callback),
+    onLoadingPage: (callback) => ipcRenderer.on('page-loading', callback),
+    onHomePage: (callback) => ipcRenderer.on('page-home', callback),
+
+    // Account management
+    authenticate: (username, credential, isAccessKey, saveCredentials) => ipcRenderer.invoke('login-authenticate', username, credential, isAccessKey, saveCredentials),
+    logout: () => ipcRenderer.send('logout'),
+    deleteCredentials: (username) => ipcRenderer.invoke('delete-credentials', username),
+    importGameCredentials: () => ipcRenderer.invoke('import-game-credentials'),
+
     // Active user
     onGetActiveUser: (callback) => ipcRenderer.on('active-user-load', callback),
     refreshGetActiveUser: () => ipcRenderer.send('active-user-refresh'),
@@ -60,10 +71,6 @@ contextBridge.exposeInMainWorld('API', {
 
     // Notifications
     onNotification: (callback) => ipcRenderer.on('notification', callback),
-
-    // Flow Events
-    onInitialLoadStart: (callback) => ipcRenderer.on('initial-load-start', callback),
-    onInitialLoadFinish: (callback) => ipcRenderer.on('initial-load-finish', callback),
 
     // Logging
     logDebug: (msg, optionalData) => ipcRenderer.send('log-debug', msg, optionalData),

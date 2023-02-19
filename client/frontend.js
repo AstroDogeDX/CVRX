@@ -125,18 +125,56 @@ function swapNavPages(page) {
             });
             break;
         }
-
-        default:
-            return;
     }
+
+    // Hide the loading screen
+    document.querySelector('.loading-shade').style.display = 'none';
 }
 
 // ===============
 // EVERYTHING ELSE
 // ===============
 
-// On start up, set page to Home
-swapNavPages('home');
+// Pages handling
+window.API.onLoadingPage((_event) => {
+    // Reveal the loading screen
+    document.querySelector('.loading-shade').style.display = 'flex';
+});
+window.API.onLoginPage((_event, availableCredentials) => {
+    console.log('login page!');
+
+    const availableCredentialsNode = document.querySelector('#login-available-credentials-wrapper');
+    const newNodes = [];
+
+    for (const availableCredential of availableCredentials) {
+        const credentialNode = document.createElement('div');
+        credentialNode.setAttribute('class', 'avatars-wrapper--avatars-node');
+        credentialNode.innerHTML = `
+            <img src="img/ui/placeholder.png" data-hash="${availableCredential.imageHash}"/>
+            <p class="avatars-node--name">${availableCredential.Username}</p>`;
+        credentialNode.addEventListener('click', async () => {
+            // Reveal the loading screen
+            document.querySelector('.loading-shade').style.display = 'flex';
+            await window.API.authenticate(availableCredential.Username, availableCredential.AccessKey, true, true);
+        });
+        const deleteCredentialButton = document.createElement('button');
+        deleteCredentialButton.append('✖');
+        deleteCredentialButton.setAttribute('class', 'request-node--button-reject');
+        deleteCredentialButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            deleteCredentialButton.disabled = true;
+            window.API.deleteCredentials(availableCredential.Username).then();
+            credentialNode.remove();
+        });
+        credentialNode.append(deleteCredentialButton);
+        newNodes.push(credentialNode);
+    }
+    availableCredentialsNode.replaceChildren(...newNodes);
+
+    swapNavPages('login');
+});
+window.API.onHomePage((_event) => swapNavPages('home'));
+
 
 // Navbar Control Logic
 document.querySelectorAll('.navbar-button').forEach((e) => {
@@ -710,11 +748,6 @@ function toastyNotification(message, type) {
     toastDown();
 }
 
-window.API.onInitialLoadFinish((_event) => {
-    console.log('Initial Load finished!!!');
-    document.querySelector('.loading-shade').remove();
-});
-
 
 window.API.onUserStats((_event, userStats) => {
     const userCountNode = document.querySelector('.home-activity--user-count');
@@ -871,5 +904,46 @@ function getMemory() {
     }
     console.log(resourcesUsage);
 }
+
+// Todo: Email and Empty fields validation?
+// Todo: Enter press on username -> Move to password input?
+// Todo: Enter press on password -> Submit?
+document.querySelector('#login-use-access-key').addEventListener('click', _event => {
+    const isAccessKey = document.querySelector('#login-use-access-key').checked;
+    document.querySelector('#login-username').placeholder = isAccessKey ? 'CVR Username' : 'CVR Email';
+    document.querySelector('#login-username-label').textContent = isAccessKey ? 'Username' : 'Email';
+    document.querySelector('#login-password').placeholder = isAccessKey ? 'CVR Access Key' : 'CVR Password';
+    document.querySelector('#login-password-label').textContent = isAccessKey ? 'Access Key' : 'Password';
+});
+
+document.querySelector('#login-import-game-credentials').addEventListener('click', async _event => {
+    try {
+        await window.API.importGameCredentials();
+        toastyNotification('Credential import successful!');
+    }
+    catch (e) {
+        toastyNotification(e.message, 'error');
+    }
+});
+
+document.querySelector('#login-authenticate').addEventListener('click', async _event => {
+    const isAccessKey = document.querySelector('#login-use-access-key').checked;
+    const saveCredentials = document.querySelector('#login-save-credentials').checked;
+    const username = document.querySelector('#login-username').value;
+    const credential = document.querySelector('#login-password').value;
+    document.querySelector('.loading-shade').style.display = 'flex';
+    try {
+        await window.API.authenticate(username, credential, isAccessKey, saveCredentials);
+        toastyNotification(`Authenticated with the user ${username}`);
+    }
+    catch (e) {
+        toastyNotification(e.message, 'error');
+    }
+    document.querySelector('.loading-shade').style.display = 'none';
+});
+
+document.querySelector('#logout-button').addEventListener('click', async _event => {
+    window.API.logout();
+});
 
 setInterval(getMemory, 5 * 60 * 1000);
