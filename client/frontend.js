@@ -919,6 +919,7 @@ document.querySelector('#login-use-access-key').addEventListener('click', _event
 document.querySelector('#login-import-game-credentials').addEventListener('click', async _event => {
     try {
         await window.API.importGameCredentials();
+        toastyNotification('Credential import successful!');
     }
     catch (e) {
         toastyNotification(e.message, 'error');
