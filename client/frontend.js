@@ -680,14 +680,6 @@ window.API.onNotification((_event, msg, type) => {
     toastyNotification(msg, type);
 });
 
-document.querySelectorAll('.toast-test').forEach((e) => {
-    e.addEventListener('mousedown', () => {
-        let text = document.querySelector('#toast-text').value;
-        let type = e.dataset.type;
-        toastyNotification(text, type);
-    });
-});
-
 // Friends filtering :D
 
 document.querySelector('.friends-filter').addEventListener('keyup', () => {
@@ -768,7 +760,7 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
     console.log(ourAvatars);
 
     const avatarDisplayNode = document.querySelector('.avatars-wrapper');
-    const newNodes = [];
+    let docFragment = document.createDocumentFragment();
 
     // Create reload our avatars button
     const reloadAvatarsButton = document.querySelector('#avatars-refresh');
@@ -784,10 +776,10 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
             <img src="img/ui/placeholder.png" data-hash="${ourAvatar.imageHash}"/>
             <p class="avatars-node--name">${ourAvatar.name}</p>
             <p class="avatars-node--description">${ourAvatar.description}</p>`;
-        newNodes.push(ourAvatarNode);
+        docFragment.appendChild(ourAvatarNode);
     }
 
-    avatarDisplayNode.replaceChildren(...newNodes);
+    avatarDisplayNode.replaceChildren(docFragment);
 });
 
 // Janky active user props
@@ -796,7 +788,7 @@ window.API.onGetActiveUserProps((_event, ourProps) => {
     console.log(ourProps);
 
     const propDisplayNode = document.querySelector('.props-wrapper');
-    const newNodes = [];
+    let docFragment = document.createDocumentFragment();
 
     // Create reload our props button
     const reloadAvatarsButton = document.querySelector('#props-refresh');
@@ -812,10 +804,10 @@ window.API.onGetActiveUserProps((_event, ourProps) => {
             <img src="img/ui/placeholder.png" data-hash="${ourProp.imageHash}"/>
             <p class="props-node--name">${ourProp.name}</p>
             <p class="props-node--description">${ourProp.description}</p>`;
-        newNodes.push(ourPropNode);
+        docFragment.appendChild(ourPropNode);
     }
 
-    propDisplayNode.replaceChildren(...newNodes);
+    propDisplayNode.replaceChildren(docFragment);
 });
 
 // Janky active user worlds
@@ -824,7 +816,7 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
     console.log(ourWorlds);
 
     const worldDisplayNode = document.querySelector('.worlds-wrapper');
-    const newNodes = [];
+    let docFragment = document.createDocumentFragment();
 
     // Create reload our worlds button
     const reloadAvatarsButton = document.querySelector('#worlds-refresh');
@@ -837,10 +829,10 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
             <img src="img/ui/placeholder.png" data-hash="${ourWorld.imageHash}"/>
             <p class="worlds-node--name">${ourWorld.name}</p>
             <p class="worlds-node--player-count">${ourWorld.playerCount}</p>`;
-        newNodes.push(ourWorldNode);
+        docFragment.appendChild(ourWorldNode);
     }
 
-    worldDisplayNode.replaceChildren(...newNodes);
+    worldDisplayNode.replaceChildren(docFragment);
 });
 
 // Janky recent activity
