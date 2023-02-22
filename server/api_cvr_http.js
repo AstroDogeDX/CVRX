@@ -56,10 +56,10 @@ const AuthMethod = Object.freeze({
 
 // Authenticate
 exports.AuthenticateViaAccessKey = async (username, accessKey) => {
-    return Authenticate(AuthMethod.ACCESS_KEY, username, accessKey);
+    return await Authenticate(AuthMethod.ACCESS_KEY, username, accessKey);
 };
 exports.AuthenticateViaPassword = async (email, password) => {
-    return Authenticate(AuthMethod.PASSWORD, email, password);
+    return await Authenticate(AuthMethod.PASSWORD, email, password);
 };
 async function Authenticate(authType, credentialUser, credentialSecret) {
     const authentication = await Post('/users/auth', { AuthType: authType, Username: credentialUser, Password: credentialSecret }, false);
@@ -75,45 +75,45 @@ async function Authenticate(authType, credentialUser, credentialSecret) {
 }
 
 // Get Stats
-exports.GetUserStats = async () =>  Get('/public/userstats', false);
+exports.GetUserStats = async () => await Get('/public/userstats', false);
 
 // Friends
-exports.GetMyFriends = async () => Get('/friends');
-exports.GetMyFriendRequests = async () => Get('/friends/requests');
+exports.GetMyFriends = async () => await Get('/friends');
+exports.GetMyFriendRequests = async () => await Get('/friends/requests');
 
 // Users
-exports.GetUserById = async (userId) => Get(`/users/${userId}`);
+exports.GetUserById = async (userId) => await Get(`/users/${userId}`);
 
 // Avatars
-exports.GetMyAvatars = async () => Get('/avatars');
-exports.GetAvatarById = async (avatarId) => Get(`/avatars/${avatarId}`);
+exports.GetMyAvatars = async () => await Get('/avatars');
+exports.GetAvatarById = async (avatarId) => await Get(`/avatars/${avatarId}`);
 
 // Categories
-exports.GetCategories = async () => Get('/categories');
+exports.GetCategories = async () => await Get('/categories');
 async function SetAvatarCategories(type, id, categoryIds) {
     return Post('/categories/assign', {Uuid: id, CategoryType: type, Categories: categoryIds});
 }
-exports.SetAvatarCategories = async (avatarId, categoryIds) => SetAvatarCategories(CATEGORY_TYPES.AVATARS, avatarId, categoryIds);
-exports.SetFriendCategories = async (userId, categoryIds) => SetAvatarCategories(CATEGORY_TYPES.FRIENDS, userId, categoryIds);
-exports.SetPropCategories = async (propId, categoryIds) => SetAvatarCategories(CATEGORY_TYPES.PROPS, propId, categoryIds);
-exports.SetWorldCategories = async (worldId, categoryIds) => SetAvatarCategories(CATEGORY_TYPES.WORLDS, worldId, categoryIds);
+exports.SetAvatarCategories = async (avatarId, categoryIds) => await SetAvatarCategories(CATEGORY_TYPES.AVATARS, avatarId, categoryIds);
+exports.SetFriendCategories = async (userId, categoryIds) => await SetAvatarCategories(CATEGORY_TYPES.FRIENDS, userId, categoryIds);
+exports.SetPropCategories = async (propId, categoryIds) => await SetAvatarCategories(CATEGORY_TYPES.PROPS, propId, categoryIds);
+exports.SetWorldCategories = async (worldId, categoryIds) => await SetAvatarCategories(CATEGORY_TYPES.WORLDS, worldId, categoryIds);
 
 // Worlds
-exports.GetWorldById = async (worldId) => Get(`/worlds/${worldId}`);
-exports.GetWorldMetaById = async (worldId) => Get(`/worlds/${worldId}/meta`);
-exports.GetWorldsByCategory = async (worldCategoryId) => Get(`/worlds/list/${worldCategoryId}`);
-exports.GetWorldPortalById = async (worldId) => Get(`/portals/world/${worldId}`);
-exports.SetWorldAsHome = async (worldId) => Get(`/worlds/${worldId}/sethome`);
+exports.GetWorldById = async (worldId) => await Get(`/worlds/${worldId}`);
+exports.GetWorldMetaById = async (worldId) => await Get(`/worlds/${worldId}/meta`);
+exports.GetWorldsByCategory = async (worldCategoryId) => await Get(`/worlds/list/${worldCategoryId}`);
+exports.GetWorldPortalById = async (worldId) => await Get(`/portals/world/${worldId}`);
+exports.SetWorldAsHome = async (worldId) => await Get(`/worlds/${worldId}/sethome`);
 
 // Spawnables
-exports.GetProps = async () => Get('/spawnables');
-exports.GetPropById = async (propId) => Get(`/spawnables/${propId}`);
+exports.GetProps = async () => await Get('/spawnables');
+exports.GetPropById = async (propId) => await Get(`/spawnables/${propId}`);
 
 // Instances
-exports.GetInstanceById = async (instanceId) => Get(`/instances/${instanceId}`);
-exports.JoinInstance = async (instanceId) => Get(`/instances/${instanceId}/join`);
-exports.GetInstancePortalById = async (instanceId) => Get(`/portals/instance/${instanceId}`);
+exports.GetInstanceById = async (instanceId) => await Get(`/instances/${instanceId}`);
+exports.JoinInstance = async (instanceId) => await Get(`/instances/${instanceId}/join`);
+exports.GetInstancePortalById = async (instanceId) => await Get(`/portals/instance/${instanceId}`);
 
 // Search
-exports.Search = async (term) => Get(`/search/${term}`);
-exports.SearchVideoPlayer = async (term) => Get(`/videoplayer/search/${term}?result=20&order=Title`);
+exports.Search = async (term) => await Get(`/search/${term}`);
+exports.SearchVideoPlayer = async (term) => await Get(`/videoplayer/search/${term}?result=20&order=Title`);

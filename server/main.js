@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, Menu } = require('electron');
 
 // Prevent app launching multiple times during the installation
 if (require('electron-squirrel-startup')) {
@@ -56,6 +56,8 @@ const Cache = require('./cache');
 // }
 // ConnectTest();
 
+// Remove the menu when the app is packaged
+if (app.isPackaged) Menu.setApplicationMenu(null);
 
 const CreateWindow = async () => {
 
@@ -73,9 +75,6 @@ const CreateWindow = async () => {
             devTools: !app.isPackaged,
         },
     });
-
-    // Remove the menu in the packaged version
-    if (app.isPackaged) mainWindow.removeMenu();
 
     // Load the config
     await Config.Load();

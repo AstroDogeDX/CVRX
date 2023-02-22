@@ -66,7 +66,7 @@ exports.DisconnectWebsocket = async () => {
 };
 
 
-async function ConnectWebsocket(username, accessKey) {
+function ConnectWebsocket(username, accessKey) {
 
     return new Promise((resolve, _reject) => {
 

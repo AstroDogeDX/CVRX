@@ -12,10 +12,11 @@ const CachePath = path.join(AppDataPath, 'CVRCache');
 const CacheImagesPath = path.join(CachePath, 'Images');
 const log = require('./logger').GetLogger('Cache');
 
-let IsCleaningCache = false;
 
 exports.GetHash = (string) => {
-    return crypto.createHash('sha1').update(string).digest('hex');
+    return new Promise((resolve) => {
+        resolve(crypto.createHash('sha1').update(string).digest('hex'));
+    });
 };
 
 let queue = [];
@@ -44,33 +45,49 @@ exports.QueueFetchImage = (urlObj) => {
     }
 };
 
+let timeoutId;
+function QueueCacheClean() {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(CleanCache, 2000);
+}
+
 function SendNativeImage(nativeImg, urlObj) {
     if (!nativeImg) return;
 
-    const imDataUrl = nativeImg.toDataURL();
+    return new Promise((resolve) => {
+        const imDataUrl = nativeImg.toDataURL();
 
-    // Save the image to the object
-    urlObj.obj.imageBase64 = imDataUrl;
+        // Save the image to the object
+        urlObj.obj.imageBase64 = imDataUrl;
 
-    // Send the loaded image to the main window
-    window.webContents.send('image-load', {
-        imageUrl: urlObj.url,
-        imageHash: urlObj.hash,
-        imageBase64: imDataUrl,
+        // Send the loaded image to the main window
+        window.webContents.send('image-load', {
+            imageUrl: urlObj.url,
+            imageHash: urlObj.hash,
+            imageBase64: imDataUrl,
+        });
+
+        resolve();
     });
 }
 
-async function ProcessQueue() {
-    // Process Queue if there is stuff in the queue
-    if (queue.length > 0) {
-        const urlObj = queue.shift();
-        await FetchImage(urlObj);
-        await ProcessQueue();
+let isProcessing = false;
+async function ProcessQueue(recurring = false) {
+
+    if (isProcessing && !recurring) {
+        return;
     }
 
-    // If we finished our queue, lets check the cache limits and clear if necessary
-    else {
-        await CleanCache();
+    // Process Queue if there is stuff in the queue
+    if (queue.length > 0) {
+        isProcessing = true;
+        const urlObj = queue.shift();
+        await FetchImage(urlObj);
+        await ProcessQueue(true);
+        if (queue.length === 0) {
+            QueueCacheClean();
+            isProcessing = false;
+        }
     }
 }
 
@@ -109,26 +126,41 @@ async function FetchImage(urlObj) {
     const imagePath = path.join(CacheImagesPath, hash + fileExtension);
 
     // Check if the image, and grab it if it does!
-    if (fs.existsSync(imagePath)) {
-        // Since it's not an api access we can do it sync
-        fs.promises.readFile(imagePath).then(image => {
-            // log.debug(`Fetching ${url} from cache!`);
-            SendNativeImage(nativeImage.createFromBuffer(image), urlObj);
-        }).catch(err => log.error(`[FetchImage] Reading ${imagePath} from cache...`, err));
+    try {
+        await fs.promises.access(imagePath, fs.constants.R_OK);
+        try {
+            // Since it's not an api access we can do it sync
+            const image = await fs.promises.readFile(imagePath);
+            // log.verbose(`Fetching ${url} from cache!`);
+            await SendNativeImage(nativeImage.createFromBuffer(image), urlObj);
+        }
+        catch (err) {
+            log.error(`[FetchImage] Reading ${imagePath} from cache...`, err);
+        }
     }
+    catch (err) {
 
-    // The image is not cached, let's download it
-    else {
+        // The image is not cached, let's download it
         const image = await DownloadImage(url);
 
         if (image !== null) {
-            // Cache the image async
-            fs.promises.mkdir(CacheImagesPath, { recursive: true }).then(() => {
-                CacheImage(imagePath, image).then().catch(err => log.error(`[FetchImage] Caching image ${CacheImagesPath}...`, err));
-            }).catch(err => log.error(`[FetchImage] Creating Path for ${imagePath}...`, err));
+            try {
+                // Cache the image async
+                await fs.promises.mkdir(CacheImagesPath, { recursive: true });
+            }
+            catch (err) {
+                log.error(`[FetchImage] Creating Path for ${imagePath}...`, err);
+            }
 
-            // log.debug(`Fetching ${url} from http!`);
-            SendNativeImage(nativeImage.createFromBuffer(image), urlObj);
+            try {
+                await CacheImage(imagePath, image);
+            }
+            catch (err) {
+                log.error(`[FetchImage] Caching image ${CacheImagesPath}...`, err);
+            }
+
+            // log.verbose(`Fetching ${url} from http!`);
+            await SendNativeImage(nativeImage.createFromBuffer(image), urlObj);
         }
     }
 }
@@ -147,11 +179,9 @@ function MegabytesToBytes(megabytesSize) {
 
 async function CleanCache() {
 
-    try {
-        // No point in cleaning if it is still cleaning!
-        if (IsCleaningCache) return;
-        IsCleaningCache = true;
+    log.verbose('[CleanCache] Cleaning the cache...');
 
+    try {
         const MaxSizeInBytes = MegabytesToBytes(GetMaxCacheSize());
 
         const fileNames = await fs.promises.readdir(CacheImagesPath);
@@ -178,8 +208,5 @@ async function CleanCache() {
     }
     catch (e) {
         log.error('[CleanCache] Cleaning cache...', e);
-    }
-    finally {
-        IsCleaningCache = false;
     }
 }
