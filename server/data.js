@@ -48,25 +48,25 @@ function IsObjectEqualExcept(obj1, obj2, keysToIgnore) {
     JSON.stringify(obj2, (key, value) => keysToIgnore.includes(key) ? undefined : value);
 }
 
-function LoadImage(url, obj) {
+async function LoadImage(url, obj) {
     if (!url) return;
-    const hashedFileName = cache.GetHash(url);
-    cache.QueueFetchImage({ url: url, hash: hashedFileName, obj: obj });
+    const hashedFileName = await cache.GetHash(url);
+    cache.QueueFetchImage({url: url, hash: hashedFileName, obj: obj});
     obj.imageHash = hashedFileName;
 }
 
-function LoadUserImages(userObject) {
+async function LoadUserImages(userObject) {
     if (userObject?.imageUrl) {
-        LoadImage(userObject.imageUrl, userObject);
+        await LoadImage(userObject.imageUrl, userObject);
     }
     if (userObject?.avatar?.imageUrl) {
-        LoadImage(userObject.avatar.imageUrl, userObject.avatar);
+        await LoadImage(userObject.avatar.imageUrl, userObject.avatar);
     }
     if (userObject?.featuredBadge?.image) {
-        LoadImage(userObject.featuredBadge.image, userObject.featuredBadge);
+        await LoadImage(userObject.featuredBadge.image, userObject.featuredBadge);
     }
     if (userObject?.featuredGroup?.image) {
-        LoadImage(userObject.featuredGroup.image, userObject.featuredGroup);
+        await LoadImage(userObject.featuredGroup.image, userObject.featuredGroup);
     }
 }
 
@@ -106,7 +106,7 @@ class Core {
         // Active user
         ipcMain.on('active-user-refresh', (_event) => this.GetOurUserInfo());
         ipcMain.on('active-user-avatars-refresh', (_event) => this.GetOurUserAvatars());
-        ipcMain.on('active-user-props-refresh', (_event) => this.GetOurUserProps());
+        ipcMain.on('active-user-props-refresh', async (_event) => await this.GetOurUserProps());
         ipcMain.on('active-user-worlds-refresh', (_event) => this.GetOurUserWorlds());
 
         // Logging
@@ -258,7 +258,7 @@ class Core {
         const availableCredentials = Config.GetAvailableCredentials();
 
         for (const activeCredential of availableCredentials) {
-            LoadImage(activeCredential.ImageUrl, activeCredential);
+            await LoadImage(activeCredential.ImageUrl, activeCredential);
         }
 
         this.mainWindow.webContents.send('page-login', availableCredentials);
@@ -283,7 +283,7 @@ class Core {
         // }]
         for (const ourAvatar of ourAvatars) {
             if (ourAvatar?.imageUrl) {
-                LoadImage(ourAvatar.imageUrl, ourAvatar);
+                await LoadImage(ourAvatar.imageUrl, ourAvatar);
             }
         }
         this.mainWindow.webContents.send('active-user-avatars-load', ourAvatars);
@@ -302,7 +302,7 @@ class Core {
         // }]
         for (const ourProp of ourProps) {
             if (ourProp?.imageUrl) {
-                LoadImage(ourProp.imageUrl, ourProp);
+                await LoadImage(ourProp.imageUrl, ourProp);
             }
         }
         this.mainWindow.webContents.send('active-user-props-load', ourProps);
@@ -402,7 +402,7 @@ class Core {
             Object.assign(friendInstance, friendInfo);
 
             // Queue the images grabbing (if available)
-            LoadUserImages(friendInstance);
+            await LoadUserImages(friendInstance);
 
             // Add the friend info to our cache
             newFriendsObject[friendInstance.id] = friendInstance;
@@ -414,21 +414,26 @@ class Core {
         // Send the friend results to the main window
         this.mainWindow.webContents.send('friends-refresh', Object.values(this.friends), isRefresh);
 
-        // Handle the activity update asynchronously
+        // Handle the activity update
         if (!isRefresh) {
-            this.UpdateRecentActivity(ActivityUpdatesType.Friends, friendsInfo).then().catch(err => log.error('[FriendsUpdate]', err));
+            try {
+                await this.UpdateRecentActivity(ActivityUpdatesType.Friends, friendsInfo);
+            }
+            catch (err) {
+                log.error('[FriendsUpdate]', err);
+            }
         }
     }
 
-    InvitesUpdate(invites) {
+    async InvitesUpdate(invites) {
         // This always send all of them!
         // Note: The invites will time out over time, and when they do, we get another full update
         for (const invite of invites) {
             if (invite?.user?.imageUrl) {
-                LoadImage(invite.user.imageUrl, invite.user);
+                await LoadImage(invite.user.imageUrl, invite.user);
             }
             if (invite?.world?.imageUrl) {
-                LoadImage(invite.world.imageUrl, invite.world);
+                await LoadImage(invite.world.imageUrl, invite.world);
             }
         }
         // invites = [{
@@ -450,12 +455,12 @@ class Core {
         this.mainWindow.webContents.send('invites', invites);
     }
 
-    RequestInvitesUpdate(requestInvites) {
+    async RequestInvitesUpdate(requestInvites) {
         // This always send all of them!
         // Note: The requestInvites will time out over time, and when they do, we get another full update
         for (const requestInvite of requestInvites) {
             if (requestInvite?.sender?.imageUrl) {
-                LoadImage(requestInvite.sender.imageUrl, requestInvite.sender);
+                await LoadImage(requestInvite.sender.imageUrl, requestInvite.sender);
             }
         }
         // requestInvites = [{
@@ -477,7 +482,7 @@ class Core {
     async GetUserById(userId) {
 
         const user = await CVRHttp.GetUserById(userId);
-        LoadUserImages(user);
+        await LoadUserImages(user);
         return user;
 
         // const userDetailed = {
@@ -520,7 +525,7 @@ class Core {
         const worlds = await CVRHttp.GetWorldsByCategory(categoryId);
         for (const world of worlds) {
             if (world?.imageUrl) {
-                LoadImage(world.imageUrl, world);
+                await LoadImage(world.imageUrl, world);
             }
         }
         this.mainWindow.webContents.send('worlds-category-requests', categoryId, worlds);
@@ -541,10 +546,10 @@ class Core {
 
         const world = await CVRHttp.GetWorldById(worldId);
         if (world?.imageUrl) {
-            LoadImage(world.imageUrl, world);
+            await LoadImage(world.imageUrl, world);
         }
         if (world?.author?.imageUrl) {
-            LoadImage(world.author.imageUrl, world.author);
+            await LoadImage(world.author.imageUrl, world.author);
         }
         return world;
 
@@ -584,12 +589,12 @@ class Core {
 
         const instance = await CVRHttp.GetInstanceById(instanceId);
         if (instance?.world?.imageUrl) {
-            LoadImage(instance.world.imageUrl, instance.world);
+            await LoadImage(instance.world.imageUrl, instance.world);
         }
-        LoadUserImages(instance?.author);
-        LoadUserImages(instance?.owner);
+        await LoadUserImages(instance?.author);
+        await LoadUserImages(instance?.owner);
         for (const instanceMember of instance?.members ?? []) {
-            LoadUserImages(instanceMember);
+            await LoadUserImages(instanceMember);
         }
         return instance;
 
@@ -686,7 +691,7 @@ class Core {
         const searchResults = await CVRHttp.Search(term);
         for (const searchResult of searchResults) {
             if (searchResult?.imageUrl) {
-                LoadImage(searchResult.imageUrl, searchResult);
+                await LoadImage(searchResult.imageUrl, searchResult);
             }
         }
         return searchResults;
@@ -704,7 +709,7 @@ class Core {
 
         for (const friendRequest of friendRequests) {
             if (friendRequest?.imageUrl) {
-                LoadImage(friendRequest.imageUrl, friendRequest);
+                await LoadImage(friendRequest.imageUrl, friendRequest);
             }
             // Save/Replace the request on cache
             this.friendRequests[friendRequest.id] = friendRequest;
