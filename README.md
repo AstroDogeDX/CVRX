@@ -9,6 +9,10 @@ A standalone companion app for ChilloutVR that expands the user experience!
 * Built on Electron for multiplatform support
 
 ## Screenshots
+![CVRX Getting Credentials](https://i.imgur.com/tSnPiKH.gif)
+---
+![CVRX Logging In](https://i.imgur.com/iVYEbWF.gif)
+---
 ![CVRX Home Page](https://i.imgur.com/1Wba6S3.png)
 ---
 ![CVRX Search Feature](https://i.imgur.com/KHOeXuf.gif)
