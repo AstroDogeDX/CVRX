@@ -151,7 +151,7 @@ window.API.onLoginPage((_event, availableCredentials) => {
         credentialNode.setAttribute('class', 'login-credential-node');
         credentialNode.innerHTML = `
             <img src="img/ui/placeholder.png" data-hash="${availableCredential.imageHash}"/>
-            <p class="avatars-node--name">${availableCredential.Username}</p>`;
+            <p class="login-credential-node--name">${availableCredential.Username}</p>`;
         credentialNode.addEventListener('click', async () => {
             // Reveal the loading screen and hide the login page
             document.querySelector('.login-shade').style.display = 'none';
@@ -891,19 +891,28 @@ function getMemory() {
     console.log(resourcesUsage);
 }
 
-// Todo: Email and Empty fields validation?
-// Todo: Enter press on username -> Move to password input?
-// Todo: Enter press on password -> Submit?
 document.querySelector('#login-use-access-key').addEventListener('click', _event => {
     const isAccessKey = document.querySelector('#login-use-access-key').checked;
     document.querySelector('#login-username').placeholder = isAccessKey ? 'CVR Username' : 'CVR Email';
     document.querySelector('#login-password').placeholder = isAccessKey ? 'CVR Access Key' : 'CVR Password';
 });
 
+document.querySelector('#login-username').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        document.querySelector('#login-password').focus({ focusVisible: true });
+    }
+});
+
+document.querySelector('#login-password').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        document.querySelector('#login-authenticate').click();
+    }
+});
+
 document.querySelector('#login-import-game-credentials').addEventListener('click', async _event => {
     try {
         await window.API.importGameCredentials();
-        toastyNotification('Credential import successful!');
+        toastyNotification('Credential import successful!', 'confirm');
     }
     catch (e) {
         toastyNotification(e.message, 'error');
@@ -911,14 +920,19 @@ document.querySelector('#login-import-game-credentials').addEventListener('click
 });
 
 document.querySelector('#login-authenticate').addEventListener('click', async _event => {
+    if(document.querySelector('#login-username').value === '' || document.querySelector('#login-password').value === '') {
+        toastyNotification('Missing credential information!', 'error');
+        return;
+    }
     const isAccessKey = document.querySelector('#login-use-access-key').checked;
     const saveCredentials = document.querySelector('#login-save-credentials').checked;
     const username = document.querySelector('#login-username').value;
     const credential = document.querySelector('#login-password').value;
+    document.querySelector('.login-shade').style.display = 'none';
     document.querySelector('.loading-shade').style.display = 'flex';
     try {
         await window.API.authenticate(username, credential, isAccessKey, saveCredentials);
-        toastyNotification(`Authenticated with the user ${username}`);
+        toastyNotification(`Authenticated with the user ${username}`, 'confirm');
     }
     catch (e) {
         toastyNotification(e.message, 'error');
@@ -927,6 +941,8 @@ document.querySelector('#login-authenticate').addEventListener('click', async _e
 });
 
 document.querySelector('#logout-button').addEventListener('click', async _event => {
+    document.querySelector('#login-username').value = '';
+    document.querySelector('#login-password').value = '';
     window.API.logout();
 });
 
