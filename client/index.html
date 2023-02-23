@@ -118,7 +118,7 @@
         Settings
         <input id="logout-button" type="button" value="Logout" />
       </div>
-      <div class="display-wrapper" id="display-login">
+      <!-- <div class="display-wrapper" id="display-login">
         <div id="login-available-credentials-wrapper"></div>
         <input id="login-import-game-credentials" type="button" value="Import Game Credentials" />
         <label for="login-username" id="login-username-label">Email</label>
@@ -130,7 +130,7 @@
         <label for="login-use-access-key" id="login-use-access-key-label">Use Access Key</label>
         <input id="login-use-access-key" type="checkbox" />
         <input id="login-authenticate" type="button" value="Login" />
-      </div>
+      </div> -->
     </div>
     <div class="friends-sidebar">
       <h1>Online Friends</h1>
@@ -151,6 +151,19 @@
         <div class="details-window--avatar"><img src="./img/ui/placeholder.png">AVATAR</div>
         <div class="details-window--badge"><img src="./img/ui/placeholder.png">BADGE</div>
         <div class="details-window--rank"><img src="./img/ui/rank.png">RANK</div>
+      </div>
+    </div>
+    <div class="login-shade">
+      <div class="login-window">
+        <input id="login-import-game-credentials" type="button" value="Import Game Credentials" />
+        <div id="login-available-credentials-wrapper"></div>
+        <label for="login-use-access-key" id="login-use-access-key-label">Use Username/Access Key <span>(?)</span></label>
+        <input id="login-use-access-key" type="checkbox" />
+        <input id="login-username" type="text" placeholder="CVR Email" />
+        <input id="login-password" type="password" placeholder="CVR Password" />
+        <input id="login-authenticate" type="button" value="Login" />
+        <label for="login-save-credentials" id="login-save-credentials-label">Save Credentials</label>
+        <input id="login-save-credentials" type="checkbox" checked />
       </div>
     </div>
   </div>

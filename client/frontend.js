@@ -171,9 +171,13 @@ window.API.onLoginPage((_event, availableCredentials) => {
     }
     availableCredentialsNode.replaceChildren(...newNodes);
 
-    swapNavPages('login');
+    document.querySelector('.login-shade').style.display = 'flex';
 });
-window.API.onHomePage((_event) => swapNavPages('home'));
+
+window.API.onHomePage((_event) => {
+    swapNavPages('home');
+    document.querySelector('.login-shade').style.display = 'none';
+});
 
 
 // Navbar Control Logic
@@ -895,9 +899,7 @@ function getMemory() {
 document.querySelector('#login-use-access-key').addEventListener('click', _event => {
     const isAccessKey = document.querySelector('#login-use-access-key').checked;
     document.querySelector('#login-username').placeholder = isAccessKey ? 'CVR Username' : 'CVR Email';
-    document.querySelector('#login-username-label').textContent = isAccessKey ? 'Username' : 'Email';
     document.querySelector('#login-password').placeholder = isAccessKey ? 'CVR Access Key' : 'CVR Password';
-    document.querySelector('#login-password-label').textContent = isAccessKey ? 'Access Key' : 'Password';
 });
 
 document.querySelector('#login-import-game-credentials').addEventListener('click', async _event => {

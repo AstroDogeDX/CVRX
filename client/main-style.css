@@ -1121,6 +1121,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
+    overflow: hidden;
 }
 
 @keyframes loadingSwirly {
@@ -1160,16 +1161,85 @@
     }
 }
 
-/* Testing Stuff - To be removed before final builds! */
+/* Login Window */
 
-#display-debug :is(button) {
-    width: max-content;
-    height: max-content;
-    color: black;
+.login-shade {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    /* display: flex; */
+    display: none;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+    background: black;
+    pointer-events: initial;
 }
 
-#display-debug :is(input) {
-    width: 300px;
-    height: 20px;
-    color: black;
+.login-window {
+    width: 450px;
+    height: auto;
+    display: grid;
+    grid-template-columns: 1fr 20px;
+    grid-template-rows: 25px minmax(10px, 200px) 20px 50px 50px 35px 20px;
+    grid-template-areas: 
+        "login-import-credentials login-import-credentials"
+        "login-available-credentials login-available-credentials"
+        "login-use-access-key-label login-use-access-key"
+        "login-username login-username"
+        "login-password login-password"
+        "login-authenticate login-authenticate"
+        "login-save-credentials-label login-save-credentials";
+    gap: 5px;
+}
+
+#login-available-credentials-wrapper {
+    grid-area: login-available-credentials;
+    border: 1px solid grey;
+    border-radius: var(--border-radii);
+    background: var(--node-nth-color);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#login-import-game-credentials {
+    grid-area: login-import-credentials;
+    border-radius: var(--border-radii);
+    background: teal;
+}
+
+#login-username {
+    grid-area: login-username;
+}
+
+#login-password {
+    grid-area: login-password;
+}
+
+#login-save-credentials {
+    grid-area: login-save-credentials;
+}
+
+#login-save-credentials-label {
+    grid-area: login-save-credentials-label;
+    text-align: right;
+}
+
+#login-use-access-key {
+    grid-area: login-use-access-key;
+}
+
+#login-use-access-key-label {
+    grid-area: login-use-access-key-label;
+    text-align: right;
+}
+
+#login-access-key-helper {
+    grid-area: login-access-key-helper;
+}
+
+#login-authenticate {
+    grid-area: login-authenticate;
+    background: green;
+    border-radius: var(--border-radii);
 }
