@@ -148,18 +148,19 @@ window.API.onLoginPage((_event, availableCredentials) => {
 
     for (const availableCredential of availableCredentials) {
         const credentialNode = document.createElement('div');
-        credentialNode.setAttribute('class', 'avatars-wrapper--avatars-node');
+        credentialNode.setAttribute('class', 'login-credential-node');
         credentialNode.innerHTML = `
             <img src="img/ui/placeholder.png" data-hash="${availableCredential.imageHash}"/>
             <p class="avatars-node--name">${availableCredential.Username}</p>`;
         credentialNode.addEventListener('click', async () => {
-            // Reveal the loading screen
+            // Reveal the loading screen and hide the login page
+            document.querySelector('.login-shade').style.display = 'none';
             document.querySelector('.loading-shade').style.display = 'flex';
             await window.API.authenticate(availableCredential.Username, availableCredential.AccessKey, true, true);
         });
         const deleteCredentialButton = document.createElement('button');
         deleteCredentialButton.append('✖');
-        deleteCredentialButton.setAttribute('class', 'request-node--button-reject');
+        deleteCredentialButton.setAttribute('class', 'login-credential-node--delete');
         deleteCredentialButton.addEventListener('click', (event) => {
             event.stopPropagation();
             deleteCredentialButton.disabled = true;
@@ -174,10 +175,7 @@ window.API.onLoginPage((_event, availableCredentials) => {
     document.querySelector('.login-shade').style.display = 'flex';
 });
 
-window.API.onHomePage((_event) => {
-    swapNavPages('home');
-    document.querySelector('.login-shade').style.display = 'none';
-});
+window.API.onHomePage((_event) => swapNavPages('home'));
 
 
 // Navbar Control Logic
