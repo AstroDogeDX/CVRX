@@ -1304,3 +1304,18 @@
     border-radius: var(--border-radii);
     cursor: pointer;
 }
+
+#display-settings {
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+#logout-button {
+    font-size: 22px;
+    height: 30px;
+    width: 25%;
+    color: white;
+    background: red;
+    cursor: pointer;
+    border-radius: var(--border-radii);
+}
