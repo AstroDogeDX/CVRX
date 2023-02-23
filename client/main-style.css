@@ -1082,6 +1082,7 @@
     text-align: center;
     margin: auto;
     transition: bottom 0.2s ease;
+    z-index: 100;
 }
 
 .toast-confirm {
@@ -1204,20 +1205,75 @@
     background: var(--node-nth-color);
     overflow-y: auto;
     overflow-x: hidden;
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 5px;
+}
+
+.login-credential-node {
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px;
+}
+
+#login-available-credentials-wrapper :is(.login-credential-node):nth-of-type(odd) {
+    background: var(--node-nth-color);
+}
+
+.login-credential-node :is(img) {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--border-radii);
+}
+
+.login-credential-node--name {
+    font-size: 24px;
+}
+
+.login-credential-node:hover .login-credential-node--name {
+    text-decoration: underline;
+}
+
+.login-credential-node--delete {
+    width: 20px;
+    height: 20px;
+    background: red;
+    color: white;
+    margin-right: 5px;
+    cursor: pointer;
+    font-size: 10px;
+    border-radius: 100%;
+    border: none;
 }
 
 #login-import-game-credentials {
     grid-area: login-import-credentials;
     border-radius: var(--border-radii);
     background: teal;
+    cursor: pointer;
 }
 
 #login-username {
     grid-area: login-username;
+    color: black;
+    padding: 5px;
+    font-size: 14px;
 }
 
 #login-password {
     grid-area: login-password;
+    color: black;
+    padding: 5px;
+    font-size: 14px;
+}
+
+.login-window :is(input)::placeholder {
+    font-style: italic;
 }
 
 #login-save-credentials {
@@ -1246,4 +1302,5 @@
     grid-area: login-authenticate;
     background: green;
     border-radius: var(--border-radii);
+    cursor: pointer;
 }
