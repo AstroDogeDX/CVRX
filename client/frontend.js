@@ -262,8 +262,11 @@ function getFriendStatus(friend) {
 
 async function ShowDetails(entityType, entityId) {
 
-    const detailsWindow = document.querySelector('#details-window');
-    detailsWindow.replaceChildren();
+    let detailsName = document.querySelector('.details-window--name');
+    let detailsImg = document.querySelector('.details-window--img');
+    let detailsAvatar = document.querySelector('.details-window--avatar');
+    let detailsBadge = document.querySelector('.details-window--badge');
+    let detailsRank = document.querySelector('.details-window--rank');
 
     // activeUser = {
     //     onlineState: false,
@@ -301,24 +304,13 @@ async function ShowDetails(entityType, entityId) {
     switch (entityType) {
         case DetailsType.User:
             entityInfo = await window.API.getUserById(entityId);
-            detailsWindow.innerHTML = `
-                <img  class="home-user--user-icon" src="img/ui/placeholder.png" data-hash="${entityInfo.imageHash}"/>
-                <div class="home-user--user-name">${entityInfo.name}</div>
-                <div class="home-user--user-extra">
-                    <div class="user-extra--user-avatar">
-                    <img src="img/ui/placeholder.png" data-hash="${entityInfo.avatar.imageHash}"/>
-                    ${entityInfo.avatar.name}
-                </div>
-                <div class="user-extra--user-badge">
-                    <img src="img/ui/placeholder.png" data-hash="${entityInfo.featuredBadge.imageHash}"/>
-                    ${entityInfo.featuredBadge.name}
-                </div>
-                <div class="user-extra--user-rank">
-                    <img src="img/ui/rank.png"/>
-                    ${entityInfo.rank}
-                </div>`;
-            document.body.style.backgroundColor = 'black';
-            document.onclick = () => detailsWindow.replaceChildren();
+            detailsName.innerHTML = `${entityInfo.name}`;
+            detailsImg.dataset.hash = entityInfo.imageHash;
+            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.avatar.imageHash}">${entityInfo.avatar.name}`;
+            detailsBadge.innerHTML = `<img data-hash="${entityInfo.featuredBadge.imageHash}">${entityInfo.featuredBadge.name}`;
+            detailsRank.innerHTML = `<img src="img/ui/rank.png">${entityInfo.rank}`;
+            document.querySelector('.details-shade').style.display = 'flex';
+            document.querySelector('.details-shade').onclick = () => document.querySelector('.details-shade').style.display = 'none';
             break;
     }
 }
