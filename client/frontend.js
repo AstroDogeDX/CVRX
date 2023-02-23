@@ -862,7 +862,7 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
 
                 let activityUpdateNode = document.createElement('div');
 
-                activityUpdateNode.setAttribute('class', 'friend-list-node');
+                activityUpdateNode.setAttribute('class', 'friend-history-node');
                 activityUpdateNode.innerHTML = `
                     <img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${recentActivity.current.imageHash}"/>
                     <p class="friend-name">${recentActivity.current.name} <small>(${dateStr})</small></p>

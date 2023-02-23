@@ -578,7 +578,7 @@
     background: var(--node-nth-color);
 }
 
-.friend-list-node {
+.friend-list-node, .friend-history-node {
     padding: 5px;
     border-radius: var(--border-radii);
     min-height: 60px;
@@ -589,7 +589,7 @@
     display: none;
 }
 
-.friend-list-node :is(img) {
+.friend-list-node :is(img), .friend-history-node :is(img) {
     float: left;
     height: var(--thumbnail-size-standard);
     width: var(--thumbnail-size-standard);
