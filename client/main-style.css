@@ -607,6 +607,10 @@
     font-size: 18px;
 }
 
+.friend-list-node:hover .friend-name {
+    text-decoration: underline;
+}
+
 .friend-name small {
     font-size: x-small;
 }
@@ -901,6 +905,10 @@
         "online-friend-node--image online-friend-node--name online-friend-node--name"
         "online-friend-node--image online-friend-node--world online-friend-node--world";
     cursor: pointer;
+}
+
+.friends-sidebar--online-friend-node:hover .online-friend-node--name {
+    text-decoration: underline;
 }
 
 .online-friend-node--image {
