@@ -96,6 +96,7 @@
     user-select: none;
     display: none;
     z-index: 100;
+    filter: drop-shadow(2.5px 2.5px 0px rgba(0, 0, 0, 0.5));
 }
 
 /* Main Display Area */
@@ -578,7 +579,8 @@
     background: var(--node-nth-color);
 }
 
-.friend-list-node, .friend-history-node {
+.friend-list-node,
+.friend-history-node {
     padding: 5px;
     border-radius: var(--border-radii);
     min-height: 60px;
@@ -593,7 +595,8 @@
     display: none;
 }
 
-.friend-list-node :is(img), .friend-history-node :is(img) {
+.friend-list-node :is(img),
+.friend-history-node :is(img) {
     float: left;
     height: var(--thumbnail-size-standard);
     width: var(--thumbnail-size-standard);
@@ -988,6 +991,7 @@
         "details-window--badge"
         "details-window--rank";
     gap: 5px;
+    filter: drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.5));
 }
 
 .details-window :where(img):not(.details-window--img) {
@@ -1182,7 +1186,7 @@
     display: grid;
     grid-template-columns: 1fr 20px;
     grid-template-rows: 25px minmax(10px, 200px) 20px 50px 50px 35px 20px;
-    grid-template-areas: 
+    grid-template-areas:
         "login-import-credentials login-import-credentials"
         "login-available-credentials login-available-credentials"
         "login-use-access-key-label login-use-access-key"
