@@ -6,7 +6,7 @@ A standalone companion app for ChilloutVR that expands the user experience!
 * Navigate your friends list
 * Real time friend status information
 * See and respond to real time notifications
-* Build on Electron for multiplatform support
+* Built on Electron for multiplatform support
 
 ## Screenshots
 ![CVRX Home Page](https://i.imgur.com/1Wba6S3.png)
