@@ -585,6 +585,10 @@
     cursor: pointer;
 }
 
+.friend-history-node {
+    cursor: initial;
+}
+
 .filtered-item {
     display: none;
 }
