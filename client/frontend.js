@@ -185,7 +185,7 @@ document.querySelectorAll('.navbar-button').forEach((e) => {
     e.addEventListener('mouseleave', () => {
         tooltip.style.display = 'none';
     });
-    e.addEventListener('mouseup', () => {
+    e.addEventListener('click', () => {
         swapNavPages(e.dataset.page);
     });
 });
