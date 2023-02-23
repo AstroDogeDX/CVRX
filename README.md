@@ -21,4 +21,9 @@ A standalone companion app for ChilloutVR that expands the user experience!
   * ...and more!
 
 ## Disclaimer
-> This software is in no way associated with or supported by ChilloutVR or AB Interactive.
+> ---
+> ⚠️ **Notice!**  
+>
+> > This software is in no way associated with or supported by ChilloutVR or AB Interactive.
+>
+> ---
