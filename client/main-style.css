@@ -8,6 +8,10 @@
     color: var(--master-font-color);
 }
 
+button {
+    cursor: pointer;
+}
+
 /* CSS Variables for EZ Themes */
 
 :root {
@@ -1109,7 +1113,7 @@
 /* Loading shade to hide our shame */
 
 .loading-shade {
-    position: absolute;
+    position: fixed;
     display: flex;
     flex-flow: row nowrap;
     align-items: center;
@@ -1132,6 +1136,7 @@
     justify-content: center;
     text-align: center;
     overflow: hidden;
+    box-sizing: initial;
 }
 
 @keyframes loadingSwirly {
