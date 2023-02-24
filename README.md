@@ -25,6 +25,7 @@ A standalone companion app for ChilloutVR that expands the user experience!
   * ...and more!
 
 ## Build Instructions
+### Windows
 1. Download and Install Node from https://nodejs.org/en/download/ (LTS is usually a good choice)
 2. `git clone https://github.com/AstroDogeDX/CVRX.git`
 3. `cd CVRX`
@@ -32,6 +33,8 @@ A standalone companion app for ChilloutVR that expands the user experience!
 5. `npm run make`
 
 This should create the `CVRX-x.x.x Setup.exe` in the folder: `out/make/squirrel.windows/x64/CVRX-x.x.x Setup.exe`
+
+(Note: Mac OS & Linux - build instructions should be the same, but the output file will correspond to your target platform)
 
 ## Disclaimer
 > ---
