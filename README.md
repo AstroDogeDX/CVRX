@@ -24,6 +24,13 @@ A standalone companion app for ChilloutVR that expands the user experience!
   * Last seen online
   * ...and more!
 
+## Build Instructions
+1. Download and Install Node from https://nodejs.org/en/download/ (LTS is usually a good choice)
+2. `git clone https://github.com/AstroDogeDX/CVRX.git`
+3. `cd CVRX`
+4. `npm install`
+5. `npm run make`
+
 ## Disclaimer
 > ---
 > ⚠️ **Notice!**  
