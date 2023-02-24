@@ -50,6 +50,7 @@
       </div>
     </div>
     <div class="cvrx-display">
+      <!-- HOME -->
       <div class="display-wrapper" id="display-home">
         <div class="home-user">
           <img src="img/ui/placeholder.png" class="home-user--user-icon"></img>
@@ -79,6 +80,7 @@
           <div class="home-history--history-wrapper"></div>
         </div>
       </div>
+      <!-- SEARCH -->
       <div class="display-wrapper" id="display-search">
         <input id="search-bar" type="text" placeholder="Type to Search">
         <div class="search-output">
@@ -92,44 +94,37 @@
           <div class="search-output--props"></div>
         </div>
       </div>
+      <!-- FRIENDS -->
       <div class="display-wrapper" id="display-friends">
         <input class="friends-filter" type="text" placeholder="Type to Filter">
         <div class="friends-wrapper"></div>
       </div>
+      <!-- AVATARS -->
       <div class="display-wrapper" id="display-avatars">
         <input id="avatars-filter" type="text" placeholder="Type to Filter">
         <button id="avatars-refresh" class="material-symbols-outlined">refresh</button>
         <div class="avatars-wrapper"></div>
       </div>
+      <!-- WORLDS -->
       <div class="display-wrapper" id="display-worlds">
         <input id="worlds-filter" type="text" placeholder="Type to Filter">
         <button id="worlds-refresh" class="material-symbols-outlined">refresh</button>
         <div class="worlds-wrapper"></div>
       </div>
+      <!-- PROPS -->
       <div class="display-wrapper" id="display-props">
         <input id="props-filter" type="text" placeholder="Type to Filter">
         <button id="props-refresh" class="material-symbols-outlined">refresh</button>
         <div class="props-wrapper"></div>
       </div>
+      <!-- DEBUG -->
       <div class="display-wrapper" id="display-debug">
         <p>That's all, folks!</p>
       </div>
+      <!-- SETTINGS -->
       <div class="display-wrapper" id="display-settings">
         <input id="logout-button" type="button" value="Logout" />
       </div>
-      <!-- <div class="display-wrapper" id="display-login">
-        <div id="login-available-credentials-wrapper"></div>
-        <input id="login-import-game-credentials" type="button" value="Import Game Credentials" />
-        <label for="login-username" id="login-username-label">Email</label>
-        <input id="login-username" type="text" placeholder="CVR Email" />
-        <label for="login-password" id="login-password-label">Password</label>
-        <input id="login-password" type="password" placeholder="CVR Password" />
-        <label for="login-save-credentials" id="login-save-credentials-label">Save Credentials</label>
-        <input id="login-save-credentials" type="checkbox" checked />
-        <label for="login-use-access-key" id="login-use-access-key-label">Use Access Key</label>
-        <input id="login-use-access-key" type="checkbox" />
-        <input id="login-authenticate" type="button" value="Login" />
-      </div> -->
     </div>
     <div class="friends-sidebar">
       <h1>Online Friends</h1>
@@ -138,11 +133,15 @@
       </div>
     </div>
   </div>
+  <!-- OVERLAYS -->
   <div class="overlay">
+    <!-- LOADING SPLASH -->
     <div class="loading-shade"><span>CVRX is Loading</span></div>
+    <!-- TOAST NOTIFICATIONS -->
     <div class="toast-notification">
       OH HELLO DERE :)
     </div>
+    <!-- OBJECT DETAILS CARDS -->
     <div class="details-shade">
       <div class="details-window">
         <div class="details-window--name">USER NAME</div>
@@ -152,11 +151,13 @@
         <div class="details-window--rank"><img src="./img/ui/rank.png">RANK</div>
       </div>
     </div>
+    <!-- LOGIN SCREEN -->
     <div class="login-shade">
       <div class="login-window">
         <input id="login-import-game-credentials" type="button" value="Import Game Credentials" />
         <div id="login-available-credentials-wrapper"></div>
-        <label for="login-use-access-key" id="login-use-access-key-label">Use Username/Access Key <span>(?)</span></label>
+        <label for="login-use-access-key" id="login-use-access-key-label">Use Username/Access Key
+          <span>(?)</span></label>
         <input id="login-use-access-key" type="checkbox" />
         <input id="login-username" type="text" placeholder="CVR Email" />
         <input id="login-password" type="password" placeholder="CVR Password" />
