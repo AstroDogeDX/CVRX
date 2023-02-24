@@ -128,6 +128,7 @@ function swapNavPages(page) {
     }
 
     // Hide the loading screen
+    document.querySelector('.cvrx-main').style.display = 'grid';
     document.querySelector('.loading-shade').style.display = 'none';
 }
 

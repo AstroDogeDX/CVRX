@@ -46,7 +46,8 @@ button {
 /* Parent Container */
 
 .cvrx-main {
-    display: grid;
+    /* display: grid; */
+    display: none;
     position: absolute;
     width: 100%;
     height: 100%;
