@@ -591,6 +591,11 @@
     cursor: initial;
 }
 
+.old-history {
+    font-style: italic;
+    filter: brightness(0.5);
+}
+
 .filtered-item {
     display: none;
 }

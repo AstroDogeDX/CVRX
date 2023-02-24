@@ -868,7 +868,7 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
                 activityUpdateNode.innerHTML = `
                     <img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${recentActivity.current.imageHash}"/>
                     <p class="friend-name">${recentActivity.current.name} <small>(${dateStr})</small></p>
-                    <p class="friend-status">${previousInstanceInfo} ➡ ${currentInstanceInfo}</p>`;
+                    <p class="friend-status"><span class="old-history">${previousInstanceInfo}</span> ➡ ${currentInstanceInfo}</p>`;
 
                 newNodes.push(activityUpdateNode);
                 break;
