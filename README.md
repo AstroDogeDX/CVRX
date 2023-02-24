@@ -31,6 +31,8 @@ A standalone companion app for ChilloutVR that expands the user experience!
 4. `npm install`
 5. `npm run make`
 
+This should create the `CVRX-x.x.x Setup.exe` in the folder: `out/make/squirrel.windows/x64/CVRX-x.x.x Setup.exe`
+
 ## Disclaimer
 > ---
 > ⚠️ **Notice!**  
