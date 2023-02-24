@@ -188,20 +188,8 @@ button {
     border-radius: var(--border-radii);
 }
 
-.user-extra--user-avatar {
-    display: flex;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: var(--border-radii);
-}
-
-.user-extra--user-badge {
-    display: flex;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: var(--border-radii);
-}
-
+.user-extra--user-avatar,
+.user-extra--user-badge,
 .user-extra--user-rank {
     display: flex;
     align-items: center;
@@ -1040,8 +1028,9 @@ button {
     background: var(--display-node-bg);
 }
 
-.details-window--avatar {
-    grid-area: details-window--avatar;
+.details-window--avatar,
+.details-window--badge,
+.details-window--rank {
     display: flex;
     flex-flow: row nowrap;
     align-items: center;
@@ -1050,30 +1039,18 @@ button {
     border-radius: var(--border-radii);
     overflow: hidden;
     background: var(--display-node-bg);
+}
+
+.details-window--avatar {
+    grid-area: details-window--avatar;
 }
 
 .details-window--badge {
     grid-area: details-window--badge;
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
-    font-size: 14px;
-    gap: 5px;
-    border-radius: var(--border-radii);
-    overflow: hidden;
-    background: var(--display-node-bg);
 }
 
 .details-window--rank {
     grid-area: details-window--rank;
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
-    font-size: 14px;
-    gap: 5px;
-    border-radius: var(--border-radii);
-    overflow: hidden;
-    background: var(--display-node-bg);
 }
 
 /* Toast Notifications */
