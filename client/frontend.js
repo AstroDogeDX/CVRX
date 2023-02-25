@@ -892,6 +892,7 @@ function getMemory() {
         resourceValues.liveSize = `${toMb(resourceValues.liveSize)} MB`;
     }
     console.log(resourcesUsage);
+    return(resourcesUsage);
 }
 
 document.querySelector('#login-use-access-key').addEventListener('click', _event => {
@@ -949,4 +950,10 @@ document.querySelector('#logout-button').addEventListener('click', async _event 
     window.API.logout();
 });
 
-setInterval(getMemory, 5 * 60 * 1000);
+setInterval(() => {
+    window.API.logInfo('Fetching memory info...', getMemory());
+}, 5 * 60 * 1000);
+setInterval(() => {
+    window.API.logInfo('Clearing cache...');
+    window.API.clearCache();
+}, 30 * 60 * 1000);
