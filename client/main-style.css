@@ -607,9 +607,12 @@ button {
     box-shadow: 0 0 5px lime;
 }
 
-.friend-name {
-    margin-bottom: 5px;
+.friend-name, .friend-name-history {
     font-size: 18px;
+}
+
+.friend-name-history small {
+    font-size: 10px;
 }
 
 .friend-list-node:hover .friend-name {
@@ -621,12 +624,27 @@ button {
 }
 
 .friend-status {
-    font-size: 14px;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.friend-status-history {
+    font-size: 12px;
+}
+
+.history-type {
+    font-weight: bold;
+}
+
+.friend-status-type {
+    font-size: 12px;
+    font-weight: bold;
 }
 
 .friend-is-offline {
     color: rgba(255, 255, 255, 0.5);
-    font-style: italic;
+    font-style: italic !important;
+    font-weight: initial !important;
 }
 
 /* Avatars Display */
@@ -901,14 +919,15 @@ button {
     display: grid;
     height: 56px;
     border-radius: var(--border-radii);
-    grid-template-columns: 50px 1fr 2.5em;
-    grid-template-rows: 18px 1fr;
+    grid-template-columns: 50px 1fr;
+    grid-template-rows: 18px 1fr 1fr;
     gap: 5px;
     padding: 2.5px;
     user-select: none;
     grid-template-areas:
-        "online-friend-node--image online-friend-node--name online-friend-node--name"
-        "online-friend-node--image online-friend-node--world online-friend-node--world";
+        "online-friend-node--image online-friend-node--name"
+        "online-friend-node--image online-friend-node--status"
+        "online-friend-node--image online-friend-node--world";
     cursor: pointer;
 }
 
@@ -929,27 +948,28 @@ button {
     grid-area: online-friend-node--name;
     font-size: 18px;
     height: auto;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.online-friend-node--world {
-    grid-area: online-friend-node--world;
+.online-friend-node--world, .online-friend-node--status {
     font-size: 11px;
     display: block;
     font-style: italic;
     height: auto;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 200%;
 }
 
-.online-friend-node--world-count {
-    grid-area: online-friend-node--world-count;
-    font-size: 12px;
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
-    font-style: italic;
-    height: auto;
+.online-friend-node--world {
+    grid-area: online-friend-node--world;
+}
+
+.online-friend-node--status {
+    grid-area: online-friend-node--status;
+    font-style: initial;
+    font-weight: bold;
 }
 
 /* Overlay Related Stylings */

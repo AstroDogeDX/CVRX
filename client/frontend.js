@@ -254,8 +254,8 @@ window.API.onGetActiveUser((_event, activeUser) => {
 
 function getFriendStatus(friend) {
     if (!friend?.isOnline) return { name: 'Offline', type: null };
-    if (!friend.isConnected) return { name: 'Offline Instance', type: null };
-    if (!friend.instance) return { name: 'Private Instance', type: null };
+    if (!friend.isConnected) return { name: '', type: 'Offline Instance' };
+    if (!friend.instance) return { name: '', type: 'Private Instance' };
     if (friend.instance.name) return {
         name: friend.instance.privacy >= PrivacyLevel.Friends ? 'Private Instance' : friend.instance.name,
         type: GetPrivacyLevelName(friend.instance.privacy),
@@ -332,7 +332,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     for (const friend of friends) {
 
         const { name, type } = getFriendStatus(friend);
-        const instanceTypeStr = type ? ` [${type}]` : '';
+        const instanceTypeStr = type ? `${type}` : '';
         const onlineFriendInPrivateClass = friend.instance ? '' : 'friend-is-offline';
         // Depending on whether it's a refresh or not the image might be already loaded
         const friendImgSrc = friend.imageBase64 ?? 'img/ui/placeholder.png';
@@ -345,7 +345,8 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
             onlineFriendNode.innerHTML = `
                 <img class="online-friend-node--image" src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
                 <p class="online-friend-node--name">${friend.name}</p>
-                <p class="online-friend-node--world ${onlineFriendInPrivateClass}">${name}${instanceTypeStr}</p>`;
+                <p class="online-friend-node--status ${onlineFriendInPrivateClass}">${instanceTypeStr}</p>
+                <p class="online-friend-node--world">${name}</p>`;
             friendsBarNode.appendChild(onlineFriendNode);
         }
 
@@ -358,7 +359,8 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
         listFriendNode.innerHTML = `
             <img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
             <p class="friend-name">${friend.name}</p>
-            <p class="friend-status ${offlineFriendClass}">${name}${instanceTypeStr}</p>`;
+            <p class="${offlineFriendClass} friend-status-type">${instanceTypeStr}</p>
+            <p class="${offlineFriendClass} friend-status">${name}</p>`;
         friendsListNode.appendChild(listFriendNode);
     }
 
@@ -854,9 +856,9 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
 
                 // Get instance info from old and new
                 let { name, type } = getFriendStatus(recentActivity.previous);
-                const previousInstanceInfo = `${name}${type ? ` [${type}]` : ''}`;
+                const previousInstanceInfo = `${name}${type ? ` <span class="history-type">${type}</span>` : ''}`;
                 ({ name, type } = getFriendStatus(recentActivity.current));
-                const currentInstanceInfo = `${name}${type ? ` [${type}]` : ''}`;
+                const currentInstanceInfo = `${name}${type ? ` <span class="history-type">${type}</span>` : ''}`;
 
                 // Depending on whether it's a refresh or not the image might be already loaded
                 const friendImgSrc = recentActivity.current.imageBase64 ?? 'img/ui/placeholder.png';
@@ -868,8 +870,8 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
                 activityUpdateNode.setAttribute('class', 'friend-history-node');
                 activityUpdateNode.innerHTML = `
                     <img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${recentActivity.current.imageHash}"/>
-                    <p class="friend-name">${recentActivity.current.name} <small>(${dateStr})</small></p>
-                    <p class="friend-status"><span class="old-history">${previousInstanceInfo}</span> ➡ ${currentInstanceInfo}</p>`;
+                    <p class="friend-name-history">${recentActivity.current.name} <small>(${dateStr})</small></p>
+                    <p class="friend-status-history"><span class="old-history">${previousInstanceInfo}</span> ➡ ${currentInstanceInfo}</p>`;
 
                 newNodes.push(activityUpdateNode);
                 break;
