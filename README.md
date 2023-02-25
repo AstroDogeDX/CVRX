@@ -2,9 +2,9 @@
 A standalone companion app for ChilloutVR that expands the user experience!
 
 ## Features
+* Friend status information updates **in REAL TIME!**
 * See all your content - avatars, worlds and props!
 * Navigate your friends list
-* Real time friend status information
 * See and respond to real time notifications
 * Built on Electron for multiplatform support
 
