@@ -73,9 +73,11 @@ async function LoadUserImages(userObject) {
 
 class Core {
 
-    constructor(mainWindow) {
+    constructor(mainWindow, isPackaged) {
 
         this.mainWindow = mainWindow;
+
+        this.isPackaged = isPackaged;
 
         this.#ResetCachingObjects();
 
@@ -97,6 +99,9 @@ class Core {
     }
 
     #SetupHandlers() {
+
+        // Misc
+        ipcMain.handle('is-packaged', async (_event) => this.isPackaged);
 
         // Setup on events for IPC
         ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());

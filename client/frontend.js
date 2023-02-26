@@ -66,6 +66,11 @@ const toastDown = () => {
 // FUNCTIONS
 // =========
 
+function log(msg) {
+    if (!window.API.isPackaged) console.log(msg);
+}
+console.log(`Logging on the renderer will be: ${window.API.isPackaged ? 'disabled' : 'enabled'}!`);
+
 // Page changes via the Nav Bar
 function swapNavPages(page) {
     document.querySelectorAll('.display-wrapper').forEach((e) => {
@@ -142,7 +147,7 @@ window.API.onLoadingPage((_event) => {
     document.querySelector('.loading-shade').style.display = 'flex';
 });
 window.API.onLoginPage((_event, availableCredentials) => {
-    console.log('login page!');
+    log('login page!');
 
     const availableCredentialsNode = document.querySelector('#login-available-credentials-wrapper');
     const newNodes = [];
@@ -209,8 +214,8 @@ document.querySelectorAll('.navbar-button').forEach((e) => {
 // const instance = await window.API.getInstanceById(instanceId);
 
 window.API.onGetActiveUser((_event, activeUser) => {
-    console.log('Active User!');
-    console.log(activeUser);
+    log('Active User!');
+    log(activeUser);
     document.querySelector('.home-user--user-icon').setAttribute('data-hash', activeUser.imageHash);
     document.querySelector('.home-user--user-name').innerHTML = activeUser.name;
     document.querySelector('.user-extra--user-avatar').innerHTML =
@@ -319,8 +324,8 @@ async function ShowDetails(entityType, entityId) {
 }
 
 window.API.onFriendsRefresh((_event, friends, isRefresh) => {
-    console.log('Friends Refresh! isRefresh: ' + isRefresh);
-    console.log(friends);
+    log('Friends Refresh! isRefresh: ' + isRefresh);
+    log(friends);
 
     const friendsBarNode = document.querySelector('.friends-sidebar-container');
     const friendsListNode = document.querySelector('.friends-wrapper');
@@ -441,8 +446,8 @@ searchBar.addEventListener('keypress', async (event) => {
 
     // Fetch the search results
     const results = await window.API.search(searchTerm);
-    console.log('Searched!');
-    console.log(results);
+    log('Searched!');
+    log(results);
 
     // Types: avatar, prop, user, world
     //
@@ -515,8 +520,8 @@ window.API.onWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
             // Disable the element because we're loading stuffs (better if there is a spinner or something idk)
             homeActivity.disabled = true;
 
-            console.log('Grabbed active worlds!');
-            console.log(worldsInfo);
+            log('Grabbed active worlds!');
+            log(worldsInfo);
 
             // activeWorlds = [{
             //     playerCount: 1,
@@ -550,8 +555,8 @@ window.API.onWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
 
 // Janky invite listener
 window.API.onInvites((_event, invites) => {
-    console.log('Invites Received!');
-    console.log(invites);
+    log('Invites Received!');
+    log(invites);
     // invites = [{
     //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3:yghREqSG",
     //     "user": {
@@ -592,8 +597,8 @@ window.API.onInvites((_event, invites) => {
 });
 // Janky invite request listener
 window.API.onInviteRequests((_event, requestInvites) => {
-    console.log('Requests to Invite Received!');
-    console.log(requestInvites);
+    log('Requests to Invite Received!');
+    log(requestInvites);
 
     // requestInvites = [{
     //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3:E5nx5n7N",
@@ -624,8 +629,8 @@ window.API.onInviteRequests((_event, requestInvites) => {
 });
 // Janky friend request listener
 window.API.onFriendRequests((_event, friendRequests) => {
-    console.log('On Friend Requests received!');
-    console.log(friendRequests);
+    log('On Friend Requests received!');
+    log(friendRequests);
 
     // friendRequests = [{
     //     "receiverId": "c4eee443-98a0-bab8-a583-f1d9fa10a7d7",
@@ -672,8 +677,8 @@ window.API.onFriendRequests((_event, friendRequests) => {
 
 // Janky Toast Messages (sometimes the serve sends messages, for example when declining a friend req (the popup msg))
 window.API.onNotification((_event, msg, type) => {
-    console.log('Notification!!!');
-    console.log(msg);
+    log('Notification!!!');
+    log(msg);
     toastyNotification(msg, type);
 });
 
@@ -753,8 +758,8 @@ window.API.onUserStats((_event, userStats) => {
 
 // Janky active user avatars
 window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
-    console.log('[On] GetActiveUserAvatars');
-    console.log(ourAvatars);
+    log('[On] GetActiveUserAvatars');
+    log(ourAvatars);
 
     const avatarDisplayNode = document.querySelector('.avatars-wrapper');
     let docFragment = document.createDocumentFragment();
@@ -781,8 +786,8 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
 
 // Janky active user props
 window.API.onGetActiveUserProps((_event, ourProps) => {
-    console.log('[On] GetActiveUserProps');
-    console.log(ourProps);
+    log('[On] GetActiveUserProps');
+    log(ourProps);
 
     const propDisplayNode = document.querySelector('.props-wrapper');
     let docFragment = document.createDocumentFragment();
@@ -809,8 +814,8 @@ window.API.onGetActiveUserProps((_event, ourProps) => {
 
 // Janky active user worlds
 window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
-    console.log('[On] GetActiveUserWorlds');
-    console.log(ourWorlds);
+    log('[On] GetActiveUserWorlds');
+    log(ourWorlds);
 
     const worldDisplayNode = document.querySelector('.worlds-wrapper');
     let docFragment = document.createDocumentFragment();
@@ -834,8 +839,8 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
 
 // Janky recent activity
 window.API.onRecentActivityUpdate((_event, recentActivities) => {
-    console.log('[On] Recent Activity Update');
-    console.log(recentActivities);
+    log('[On] Recent Activity Update');
+    log(recentActivities);
 
     const historyWrapperNode = document.querySelector('.home-history--history-wrapper');
     const newNodes = [];
@@ -891,7 +896,8 @@ function getMemory() {
         resourceValues.size = `${toMb(resourceValues.size)} MB`;
         resourceValues.liveSize = `${toMb(resourceValues.liveSize)} MB`;
     }
-    console.log(resourcesUsage);
+    log(resourcesUsage);
+    return(resourcesUsage);
 }
 
 document.querySelector('#login-use-access-key').addEventListener('click', _event => {
@@ -949,4 +955,10 @@ document.querySelector('#logout-button').addEventListener('click', async _event 
     window.API.logout();
 });
 
-setInterval(getMemory, 5 * 60 * 1000);
+setInterval(() => {
+    window.API.logInfo('Fetching memory info...', getMemory());
+}, 5 * 60 * 1000);
+setInterval(() => {
+    window.API.logInfo('Clearing cache...');
+    window.API.clearCache();
+}, 30 * 60 * 1000);
