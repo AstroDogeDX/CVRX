@@ -59,6 +59,9 @@ const Cache = require('./cache');
 // Remove the menu when the app is packaged
 if (app.isPackaged) Menu.setApplicationMenu(null);
 
+// Set the max limit for renderer process to 4092Mb
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4092');
+
 const CreateWindow = async () => {
 
     log.info(`Starting CVRX... Version: ${app.getVersion()}`);
@@ -80,7 +83,7 @@ const CreateWindow = async () => {
     await Config.Load();
 
     // Initialize the core and Load the listeners
-    const core = new Core(mainWindow);
+    const core = new Core(mainWindow, app.isPackaged);
 
     // and load the index.html of the app.
     await mainWindow.loadFile('client/index.html');

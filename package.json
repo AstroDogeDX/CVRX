@@ -5,7 +5,7 @@
   "description": "A friend/world/avatar/prop management app extension to ChilloutVR.",
   "main": "server/main.js",
   "scripts": {
-    "debug": "electron --unhandled-rejections=strict .",
+    "debug": "electron --inspect=5858 --unhandled-rejections=strict .",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make-mac": "electron-forge make --arch universal",

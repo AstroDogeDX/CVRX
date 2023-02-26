@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('API', {
     // Webframe
     getResourceUsage: () => webFrame.getResourceUsage(),
     clearCache: () => webFrame.clearCache(),
+    isPackaged: () => ipcRenderer.invoke('is-packaged'),
 
     // Pages
     onLoginPage: (callback) => ipcRenderer.on('page-login', callback),
