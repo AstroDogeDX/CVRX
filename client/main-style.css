@@ -580,6 +580,10 @@ button {
     cursor: pointer;
 }
 
+.friend-history-node:nth-of-type(odd) {
+    background: var(--node-nth-color);
+}
+
 .friend-history-node {
     cursor: initial;
 }
@@ -634,6 +638,11 @@ button {
 
 .history-type {
     font-weight: bold;
+    font-size: x-small !important;
+}
+
+.history-type-prev {
+    font-size: x-small !important;
 }
 
 .friend-status-type {

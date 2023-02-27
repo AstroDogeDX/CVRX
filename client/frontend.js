@@ -861,7 +861,7 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
 
                 // Get instance info from old and new
                 let { name, type } = getFriendStatus(recentActivity.previous);
-                const previousInstanceInfo = `${name}${type ? ` <span class="history-type">${type}</span>` : ''}`;
+                const previousInstanceInfo = `${name}${type ? ` <span class="history-type-prev">${type}</span>` : ''}`;
                 ({ name, type } = getFriendStatus(recentActivity.current));
                 const currentInstanceInfo = `${name}${type ? ` <span class="history-type">${type}</span>` : ''}`;
 
