@@ -60,6 +60,9 @@ contextBridge.exposeInMainWorld('API', {
     // Recent Activity Updates
     onRecentActivityUpdate: (callback) => ipcRenderer.on('recent-activity-update', callback),
 
+    // Active instances
+    onActiveInstancesUpdate: (callback) => ipcRenderer.on('active-instances-update', callback),
+
     // Friendship
     sendFriendRequest: (userId) => ipcRenderer.invoke('friend-request-send', userId),
     acceptFriendRequest: (userId) => ipcRenderer.invoke('friend-request-accept', userId),

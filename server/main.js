@@ -83,7 +83,7 @@ const CreateWindow = async () => {
     await Config.Load();
 
     // Initialize the core and Load the listeners
-    const core = new Core(mainWindow, app.isPackaged);
+    const core = new Core(mainWindow, app);
 
     // and load the index.html of the app.
     await mainWindow.loadFile('client/index.html');
