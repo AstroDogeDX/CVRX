@@ -1,3 +1,5 @@
+const { version } = require('./package.json');
+
 module.exports = {
   packagerConfig: {
     icon: 'icon/cvrx-logo',
@@ -8,10 +10,11 @@ module.exports = {
       name: '@electron-forge/maker-squirrel',
       config: {
         // URL to an ICO file to use as the application icon (displayed in Control Panel > Programs and Features).
-        iconUrl: 'https://github.com/AstroDogeDX/CVRX/raw/main/client/img/cvrx-ico.ico',
+        iconUrl: 'https://raw.githubusercontent.com/AstroDogeDX/CVRX/main/icon/cvrx-logo.ico',
         // The ICO file to use as the icon for the generated Setup.exe
         setupIcon: 'icon/cvrx-logo.ico',
         loadingGif: 'icon/loading.gif',
+        setupExe: `CVRX-v${version}-Windows.exe`,
       },
     },
     {

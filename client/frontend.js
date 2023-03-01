@@ -28,16 +28,16 @@ const GetPrivacyLevelName = (privacyLevel) => {
     }
 };
 
-const WorldCategories = Object.freeze({
-    ActiveInstances: 'wrldactive',
-    New: 'wrldnew',
-    Trending: 'wrldtrending',
-    Official: 'wrldofficial',
-    Avatar: 'wrldavatars',
-    Public: 'wrldpublic',
-    RecentlyUpdated: 'wrldrecentlyupdated',
-    Mine: 'wrldmine',
-});
+// const WorldCategories = Object.freeze({
+//     ActiveInstances: 'wrldactive',
+//     New: 'wrldnew',
+//     Trending: 'wrldtrending',
+//     Official: 'wrldofficial',
+//     Avatar: 'wrldavatars',
+//     Public: 'wrldpublic',
+//     RecentlyUpdated: 'wrldrecentlyupdated',
+//     Mine: 'wrldmine',
+// });
 
 const AvatarCategories = Object.freeze({
     Public: 'avtrpublic',
@@ -62,14 +62,20 @@ const toastDown = () => {
     }, 3000);
 };
 
+// Grab the isPackaged and save it
+let isPackaged = false;
+window.API.isPackaged().then(packaged => {
+    isPackaged = packaged;
+    console.log(`Logging on the renderer will be: ${packaged ? 'disabled' : 'enabled'}!`);
+});
+
 // =========
 // FUNCTIONS
 // =========
 
 function log(msg) {
-    if (!window.API.isPackaged) console.log(msg);
+    if (!isPackaged) console.log(msg);
 }
-console.log(`Logging on the renderer will be: ${window.API.isPackaged ? 'disabled' : 'enabled'}!`);
 
 // Page changes via the Nav Bar
 function swapNavPages(page) {
@@ -507,50 +513,99 @@ searchBar.addEventListener('keypress', async (event) => {
 });
 
 
-// Janky Get Active Worlds
+// Janky Active Instances
 // -----------------------------
-window.API.onWorldsByCategoryRefresh((_event, worldCategoryId, worldsInfo) => {
+window.API.onActiveInstancesUpdate((_event, activeInstances) => {
 
-    switch (worldCategoryId) {
+    const homeActivity = document.querySelector('.home-activity--activity-wrapper');
 
-        case WorldCategories.ActiveInstances: {
+    log('Active instances updated!');
+    log(activeInstances);
 
-            const homeActivity = document.querySelector('.home-activity--activity-wrapper');
+    // const activeInstances = [{
+    //     "instanceSettingPrivacy": "Public",
+    //     "privacy": "Public",
+    //     "author": {
+    //         "id": "6a30fba5-8195-2451-f1bc-7c530b2e99ae",
+    //         "name": "LensError",
+    //         "imageUrl": "https://files.abidata.io/user_images/6a30fba5-8195-2451-f1bc-7c530b2e99ae-63518c5b746af.png",
+    //     },
+    //     "owner": {
+    //         "rank": "User",
+    //         "featuredBadge": {
+    //             "name": "Christmas 2022",
+    //             "image": "https://files.abidata.io/static_web/Badges/abi-christmas2022.png",
+    //             "badgeLevel": 24,
+    //         },
+    //         "featuredGroup": {
+    //             "name": "No group featured",
+    //             "image": "https://files.abidata.io/static_web/NoHolderImage.png",
+    //         },
+    //         "avatar": {
+    //             "id": "c68a25d5-6c27-4d2c-8699-803f7a63cc43",
+    //             "name": "Mewmo But Updated",
+    //             "imageUrl": "https://files.abidata.io/user_content/avatars/c68a25d5-6c27-4d2c-8699-803f7a63cc43/c68a25d5-6c27-4d2c-8699-803f7a63cc43.png",
+    //         },
+    //         "id": "7452ea11-86ab-86e8-42bd-1d4d24ed7da6",
+    //         "name": "Momofier",
+    //         "imageUrl": "https://files.abidata.io/user_images/7452ea11-86ab-86e8-42bd-1d4d24ed7da6-61f16a339b94a.png",
+    //     },
+    //     "id": "i+fd3cee3acf65c238-336300-9a9014-1aea3a14",
+    //     "name": "The Purple Fox (#418632)",
+    //     "gameModeId": "",
+    //     "gameModeName": "ABI.SocialVR",
+    //     "region": "eu",
+    //     "world": {
+    //         "tags": [
+    //             "flashingcolors",
+    //             "flashinglights",
+    //         ],
+    //         "id": "406acf24-99b1-4119-8883-4fcda4250743",
+    //         "name": "The Purple Fox",
+    //         "imageUrl": "https://files.abidata.io/user_content/worlds/406acf24-99b1-4119-8883-4fcda4250743/406acf24-99b1-4119-8883-4fcda4250743.png",
+    //     },
+    //     "maxPlayer": 100,
+    //     "currentPlayerCount": 6,
+    //     "members": [
+    //         {
+    //             "id": "7452ea11-86ab-86e8-42bd-1d4d24ed7da6",
+    //             "name": "FriendlyFriend",
+    //             "imageUrl": "https://files.abidata.io/user_images/7452ea11-86ab-86e8-42bd-1d4d24ed7da6-61f16a339b94a.png",
+    //             "isFriend": true, // This property will only exist for friends
+    //             // ALSO!!!!: friends will have every other info that is present in the usual friends entity
+    //         },
+    //         {
+    //             "id": "86ce8e72-9204-359d-1ca0-678ec6783a90",
+    //             "name": "GhostRobot",
+    //             "imageUrl": "https://files.abidata.io/user_images/86ce8e72-9204-359d-1ca0-678ec6783a90-63c6e5b3be27d.png",
+    //         },
+    //     ],
+    // }];
 
-            // Disable the element because we're loading stuffs (better if there is a spinner or something idk)
-            homeActivity.disabled = true;
 
-            log('Grabbed active worlds!');
-            log(worldsInfo);
+    // Create the search result elements
+    const elementsOfResults = [];
+    for (const result of activeInstances) {
 
-            // activeWorlds = [{
-            //     playerCount: 1,
-            //     id: 'e17e2d00-61fc-4d27-8031-4b9bdda50756',
-            //     name: 'Avatarie & Glitch',
-            //     imageUrl: 'https://files.abidata.io/user_content/worlds/e17e2d00-61fc-4d27-8031-4b9bdda50756/e17e2d00-61fc-4d27-8031-4b9bdda50756.png',
-            //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-            // }];
-
-            // Create the search result elements
-            const elementsOfResults = [];
-            for (const result of worldsInfo) {
-                let activeWorldNode = document.createElement('div');
-                activeWorldNode.setAttribute('class', 'home-activity--activity-node');
-                activeWorldNode.innerHTML = `
-                    <img src="img/ui/placeholder.png" data-hash="${result.imageHash}"/>
-                    <p class="search-result-name">${result.name}</p>
-                    <p class="search-result-player-count">${result.playerCount}</p>`;
-                elementsOfResults.push(activeWorldNode);
-            }
-
-            // Replace previous search results with the new ones
-            homeActivity.replaceChildren(...elementsOfResults);
-
-            // Re-enable the element because we're loading stuffs (better if there is a spinner or something idk)
-            searchBar.disabled = false;
-            break;
+        let friendCount = 0;
+        for (const member of result.members) {
+            if (member.isFriend) friendCount++;
         }
+
+        // Depending on whether it's a refresh or not the image might be already loaded
+        const worldImageSource = result?.world?.imageBase64 ?? 'img/ui/placeholder.png';
+
+        let activeWorldNode = document.createElement('div');
+        activeWorldNode.setAttribute('class', 'home-activity--activity-node');
+        activeWorldNode.innerHTML = `
+            <img src="${worldImageSource}" data-hash="${result.world.imageHash}"/>
+            <p class="search-result-name">${result.name}</p>
+            <p class="search-result-player-count">${result.currentPlayerCount} (${friendCount} Friends)</p>`;
+        elementsOfResults.push(activeWorldNode);
     }
+
+    // Replace previous search results with the new ones
+    homeActivity.replaceChildren(...elementsOfResults);
 });
 
 // Janky invite listener
@@ -887,18 +942,18 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
     historyWrapperNode.replaceChildren(...newNodes);
 });
 
-function getMemory() {
-    function toMb(bytes) {
-        return (bytes / (1000.0 * 1000)).toFixed(2);
-    }
-    const resourcesUsage = window.API.getResourceUsage();
-    for (const resourceValues of Object.values(resourcesUsage)) {
-        resourceValues.size = `${toMb(resourceValues.size)} MB`;
-        resourceValues.liveSize = `${toMb(resourceValues.liveSize)} MB`;
-    }
-    log(resourcesUsage);
-    return(resourcesUsage);
-}
+// function getMemory() {
+//     function toMb(bytes) {
+//         return (bytes / (1000.0 * 1000)).toFixed(2);
+//     }
+//     const resourcesUsage = window.API.getResourceUsage();
+//     for (const resourceValues of Object.values(resourcesUsage)) {
+//         resourceValues.size = `${toMb(resourceValues.size)} MB`;
+//         resourceValues.liveSize = `${toMb(resourceValues.liveSize)} MB`;
+//     }
+//     log(resourcesUsage);
+//     return(resourcesUsage);
+// }
 
 document.querySelector('#login-use-access-key').addEventListener('click', _event => {
     const isAccessKey = document.querySelector('#login-use-access-key').checked;
@@ -955,10 +1010,7 @@ document.querySelector('#logout-button').addEventListener('click', async _event 
     window.API.logout();
 });
 
+// Since it's a single page application, lets clear the cache occasionally.
 setInterval(() => {
-    window.API.logInfo('Fetching memory info...', getMemory());
-}, 5 * 60 * 1000);
-setInterval(() => {
-    window.API.logInfo('Clearing cache...');
     window.API.clearCache();
 }, 30 * 60 * 1000);

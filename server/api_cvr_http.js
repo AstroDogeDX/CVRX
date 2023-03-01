@@ -51,6 +51,16 @@ const AuthMethod = Object.freeze({
     PASSWORD: 2,
 });
 
+const PrivacyLevel = Object.freeze({
+    Public: 0,
+    FriendsOfFriends: 1,
+    Friends: 2,
+    Group: 3,
+    EveryoneCanInvite: 4,
+    OwnerMustInvite: 5,
+});
+exports.PrivacyLevel = PrivacyLevel;
+
 
 // API Endpoints
 
