@@ -1336,3 +1336,44 @@ button {
     cursor: pointer;
     border-radius: var(--border-radii);
 }
+
+/* NEW 3DS Instance Nodes Bros. U*/
+
+.active-instance-node {
+    display: grid;
+    min-height: 60px;
+    width: 100%;
+    grid-template-areas: 
+        "instance-icon instance-name instance-id instance-users instance-friends"
+        "instance-icon instance-user-icons instance-remainder";
+}
+
+.active-instance-node--icon {
+    grid-area: instance-icon;
+}
+
+.active-instance-node--name {
+    grid-area: instance-name;
+}
+
+.active-instance-node--id {
+    grid-area: instance-id;
+}
+
+.active-instance-node--users {
+    grid-area: instance-users;
+}
+
+.active-instance-node--friends {
+    grid-area: instance-friends;
+}
+
+.active-instance-node--user-icon-wrapper {
+    grid-area: instance-user-icons;
+}
+
+/* ...Specific Icon Styling Here */
+
+.active-instance-node--remainder {
+    grid-area: instance-remainder;
+}
