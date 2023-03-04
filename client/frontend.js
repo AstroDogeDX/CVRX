@@ -319,6 +319,7 @@ async function ShowDetails(entityType, entityId) {
         case DetailsType.User:
             entityInfo = await window.API.getUserById(entityId);
             detailsName.innerHTML = `${entityInfo.name}`;
+            detailsImg.src = 'img/ui/placeholder.png';
             detailsImg.dataset.hash = entityInfo.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.avatar.imageHash}">${entityInfo.avatar.name}`;
             detailsBadge.innerHTML = `<img data-hash="${entityInfo.featuredBadge.imageHash}">${entityInfo.featuredBadge.name}`;
