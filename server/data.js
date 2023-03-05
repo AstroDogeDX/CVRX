@@ -73,11 +73,11 @@ async function LoadUserImages(userObject) {
 
 class Core {
 
-    constructor(mainWindow, isPackaged) {
+    constructor(mainWindow, app) {
 
         this.mainWindow = mainWindow;
 
-        this.isPackaged = isPackaged;
+        this.app = app;
 
         this.#ResetCachingObjects();
 
@@ -96,12 +96,15 @@ class Core {
             [ActivityUpdatesType.Friends]: {},
         };
         this.recentActivityInitialFriends = false;
+
+        this.activeInstancesDetails = {};
     }
 
     #SetupHandlers() {
 
         // Misc
-        ipcMain.handle('is-packaged', async (_event) => this.isPackaged);
+        ipcMain.handle('is-packaged', (_event) => this.app.isPackaged);
+        ipcMain.handle('get-preferred-locale', (_event) => this.app.getPreferredSystemLanguages());
 
         // Setup on events for IPC
         ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());
@@ -211,7 +214,7 @@ class Core {
             this.FriendsUpdate(true),
             this.UpdateUserStats(),
             this.RefreshFriendRequests(),
-            this.UpdateWorldsByCategory(WorldCategories.ActiveInstances),
+            this.ActiveInstancesUpdate(true),
             //this.UpdateCategories(),
         ]);
 
@@ -231,20 +234,20 @@ class Core {
             try {
                 await Promise.allSettled([
                     this.UpdateUserStats(),
-                    this.UpdateWorldsByCategory(WorldCategories.ActiveInstances),
+                    this.ActiveInstancesUpdate(true),
                 ]);
                 failedTimes = 0;
             }
             catch (e) {
                 if (failedTimes > 3) {
-                    log.error('[Initialize] We failed to update active worlds 3 times, stopping...', e);
+                    log.error('[Initialize] We failed to update active instances 3 times, stopping...', e);
                     if (recurringIntervalId) clearInterval(recurringIntervalId);
                     return;
                 }
-                log.error('[Initialize] Updating the currently active worlds (recurring every 5 mins)...', e);
+                log.error('[Initialize] Updating the currently active instances (recurring every 5 mins)...', e);
                 failedTimes++;
             }
-        }, 5 * 60 * 1000);
+        }, 10 * 60 * 1000);
 
         // const authentication = {
         //     username: 'XXXXXXXXX',
@@ -428,6 +431,9 @@ class Core {
                 log.error('[FriendsUpdate]', err);
             }
         }
+
+        // Handle active instances update (to update our friend's info). So don't trigger a full refresh!
+        await this.ActiveInstancesUpdate(false);
     }
 
     async InvitesUpdate(invites) {
@@ -545,6 +551,80 @@ class Core {
         //         imageUrl: 'https://files.abidata.io/user_content/worlds/406acf24-99b1-4119-8883-4fcda4250743/406acf24-99b1-4119-8883-4fcda4250743.png',
         //     },
         // ];
+    }
+
+    async ActiveInstancesRefresh() {
+        const activeWorlds = await CVRHttp.GetWorldsByCategory(WorldCategories.ActiveInstances);
+        const activeInstancesDetails = {};
+        for (const activeWorld of activeWorlds) {
+            const activeWorldDetails = await CVRHttp.GetWorldById(activeWorld.id);
+            for (const activeInstance of activeWorldDetails.instances) {
+                activeInstancesDetails[activeInstance.id] = await this.GetInstanceById(activeInstance.id);
+            }
+        }
+        return activeInstancesDetails;
+    }
+
+    async ActiveInstancesUpdate(isRefresh) {
+        try {
+
+            // If it's a refresh actually get active instances details
+            if (isRefresh) {
+                this.activeInstancesDetails = await this.ActiveInstancesRefresh();
+            }
+
+            // Let's go through our friends and add any instances our friends are in, but didn't show up
+            for (const friend of Object.values(this.friends)) {
+                if (!friend?.instance?.id) continue;
+
+                // Todo: When the websocket stops leaking the private instances info, we can remove this check so we
+                //  get info about Friends instance we do have access to...
+                // Ignore Friends and higher privacy levels
+                if (friend.instance.privacy >= CVRHttp.PrivacyLevel.Friends) continue;
+
+                // If the instance doesn't exist already, lets fetch it
+                if (!Object.prototype.hasOwnProperty.call(this.activeInstancesDetails, friend.instance.id)) {
+                    this.activeInstancesDetails[friend.instance.id] = await this.GetInstanceById(friend.instance.id);
+                }
+            }
+
+            // Let's update our friends info in the members of the instances
+            const instanceIdsToRemove = [];
+            for (const activeInstanceDetails of Object.values(this.activeInstancesDetails)) {
+                const membersToDelete = [];
+
+                // Remove all friends from members, we're going to add them after (with extra info)
+                for (const member of activeInstanceDetails.members) {
+                    if (Object.prototype.hasOwnProperty.call(this.friends, member.id)) membersToDelete.push(member);
+                }
+                activeInstanceDetails.members = activeInstanceDetails.members.filter(item => !membersToDelete.includes(item));
+
+                // If a friend is in this instance, lets add them to the members! Keep the same order as this.friends
+                let insertIndex = 0;
+                for (const friend of Object.values(this.friends)) {
+                    if (friend?.instance?.id !== activeInstanceDetails.id) continue;
+                    activeInstanceDetails.members.splice(insertIndex++, 0, ({
+                        ...friend,
+                        isFriend: true,
+                    }));
+                }
+
+                // If there are no members delete the instance
+                if (activeInstanceDetails.members.length === 0) {
+                    instanceIdsToRemove.push(activeInstanceDetails.id);
+                }
+                // Otherwise let's make sure the count is accurate
+                else {
+                    activeInstanceDetails.currentPlayerCount = activeInstanceDetails.members.length;
+                }
+            }
+            instanceIdsToRemove.forEach(k => delete this.activeInstancesDetails[k]);
+
+            this.mainWindow.webContents.send('active-instances-update', Object.values(this.activeInstancesDetails));
+        }
+        catch (err) {
+            log.error(`[ActiveInstancesUpdate] ${err.toString()}`);
+        }
     }
 
     async GetWorldById(worldId) {
