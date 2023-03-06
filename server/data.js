@@ -42,6 +42,14 @@ const ActivityUpdatesType = Object.freeze({
     Friends: 'friends',
 });
 
+const htmlEscapeMap =  Object.freeze({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    '\'': '&#039;',
+});
+
 
 function IsObjectEqualExcept(obj1, obj2, keysToIgnore) {
     return JSON.stringify(obj1, (key, value) => keysToIgnore.includes(key) ? undefined : value) ===
@@ -68,6 +76,25 @@ async function LoadUserImages(userObject) {
     if (userObject?.featuredGroup?.image) {
         await LoadImage(userObject.featuredGroup.image, userObject.featuredGroup);
     }
+}
+
+function EscapeStringFromHtml(text) {
+    return text.replace(/[&<>"']/g, (m) => { return htmlEscapeMap[m]; });
+}
+
+function EscapeHtml(obj) {
+    if (obj) {
+        for (let key in obj) {
+            if(!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+            // Note: Array also show as object
+            if (typeof obj[key] === 'object' && obj[key] !== null) {
+                EscapeHtml(obj[key]);
+            } else if (Object.prototype.toString.call(obj[key]) === '[object String]') {
+                obj[key] = EscapeStringFromHtml(obj[key]);
+            }
+        }
+    }
+    return obj;
 }
 
 
@@ -114,7 +141,7 @@ class Core {
         // Active user
         ipcMain.on('active-user-refresh', (_event) => this.GetOurUserInfo());
         ipcMain.on('active-user-avatars-refresh', (_event) => this.GetOurUserAvatars());
-        ipcMain.on('active-user-props-refresh', async (_event) => await this.GetOurUserProps());
+        ipcMain.on('active-user-props-refresh',  (_event) => this.GetOurUserProps());
         ipcMain.on('active-user-worlds-refresh', (_event) => this.GetOurUserWorlds());
 
         // Logging
@@ -124,10 +151,10 @@ class Core {
         ipcMain.on('log-error', (_event, msg, data) => logRenderer.error(msg, data));
 
         // Setup handlers for IPC
-        ipcMain.handle('get-user-by-id', (_event, userId) => this.GetUserById(userId));
-        ipcMain.handle('get-world-by-id', (_event, worldId) => this.GetWorldById(worldId));
-        ipcMain.handle('get-instance-by-id', (_event, instanceId) => this.GetInstanceById(instanceId));
-        ipcMain.handle('search', (_event, term) => this.Search(term));
+        ipcMain.handle('get-user-by-id', async (_event, userId) => EscapeHtml(await this.GetUserById(userId)));
+        ipcMain.handle('get-world-by-id', async (_event, worldId) => EscapeHtml(await this.GetWorldById(worldId)));
+        ipcMain.handle('get-instance-by-id', async (_event, instanceId) => EscapeHtml(await this.GetInstanceById(instanceId)));
+        ipcMain.handle('search', async (_event, term) => EscapeHtml(await this.Search(term)));
 
         // Friendship
         ipcMain.handle('friend-request-send', (_event, userId) => CVRWebsocket.SendFriendRequest(userId));
@@ -172,8 +199,15 @@ class Core {
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.FRIEND_REQUESTS, (friendRequests) => this.UpdateFriendRequests(friendRequests, false));
 
         // Notifications
-        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.MENU_POPUP, (_data, msg) => this.mainWindow.webContents.send('notification', msg, ToastTypes.INFO));
-        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.HUD_MESSAGE, (_data, msg) => this.mainWindow.webContents.send('notification', msg, ToastTypes.INFO));
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.MENU_POPUP, (_data, msg) => this.SendToRenderer('notification', msg, ToastTypes.INFO));
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.HUD_MESSAGE, (_data, msg) => this.SendToRenderer('notification', msg, ToastTypes.INFO));
+    }
+
+    SendToRenderer(channel, ...args) {
+        for (let i = 0; i < args.length; i++) {
+            EscapeHtml(args[i]);
+        }
+        this.mainWindow.webContents.send(channel, ...args);
     }
 
     async Disconnect() {
@@ -225,7 +259,7 @@ class Core {
         cache.StartProcessQueue();
 
         // Tell the renderer to go to the home page
-        this.mainWindow.webContents.send('page-home');
+        this.SendToRenderer('page-home');
 
         // Schedule recurring API Requests every 5 minutes
         if (recurringIntervalId) clearInterval(recurringIntervalId);
@@ -269,13 +303,13 @@ class Core {
             await LoadImage(activeCredential.ImageUrl, activeCredential);
         }
 
-        this.mainWindow.webContents.send('page-login', availableCredentials);
+        this.SendToRenderer('page-login', availableCredentials);
     }
 
     async GetOurUserInfo(ourUserID) {
         const ourUser = await this.GetUserById(ourUserID);
         await Config.SetActiveUserImage(ourUser?.imageUrl);
-        this.mainWindow.webContents.send('active-user-load', ourUser);
+        this.SendToRenderer('active-user-load', ourUser);
     }
 
     async GetOurUserAvatars() {
@@ -294,7 +328,7 @@ class Core {
                 await LoadImage(ourAvatar.imageUrl, ourAvatar);
             }
         }
-        this.mainWindow.webContents.send('active-user-avatars-load', ourAvatars);
+        this.SendToRenderer('active-user-avatars-load', ourAvatars);
     }
 
     async GetOurUserProps() {
@@ -313,7 +347,7 @@ class Core {
                 await LoadImage(ourProp.imageUrl, ourProp);
             }
         }
-        this.mainWindow.webContents.send('active-user-props-load', ourProps);
+        this.SendToRenderer('active-user-props-load', ourProps);
     }
 
     async GetOurUserWorlds() {
@@ -324,7 +358,7 @@ class Core {
         //     name: 'The Purple Fox',
         //     imageUrl: 'https://files.abidata.io/user_content/worlds/406acf24-99b1-4119-8883-4fcda4250743/406acf24-99b1-4119-8883-4fcda4250743.png',
         // }];
-        this.mainWindow.webContents.send('active-user-worlds-load', ourWorlds);
+        this.SendToRenderer('active-user-worlds-load', ourWorlds);
     }
 
     async UpdateRecentActivity(updateType, updateInfo) {
@@ -372,7 +406,7 @@ class Core {
         this.recentActivity = this.recentActivity.slice(0,25);
 
         // Send recent activities update to the view
-        this.mainWindow.webContents.send('recent-activity-update', this.recentActivity);
+        this.SendToRenderer('recent-activity-update', this.recentActivity);
     }
 
     async FriendsUpdate(isRefresh, friendsInfo) {
@@ -420,7 +454,7 @@ class Core {
         if (isRefresh) this.friends = newFriendsObject;
 
         // Send the friend results to the main window
-        this.mainWindow.webContents.send('friends-refresh', Object.values(this.friends), isRefresh);
+        this.SendToRenderer('friends-refresh', Object.values(this.friends), isRefresh);
 
         // Handle the activity update
         if (!isRefresh) {
@@ -463,7 +497,7 @@ class Core {
         //     "instanceName": "Sakura Hotsprings (#811786)",
         //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
         // }]
-        this.mainWindow.webContents.send('invites', invites);
+        this.SendToRenderer('invites', invites);
     }
 
     async RequestInvitesUpdate(requestInvites) {
@@ -483,7 +517,7 @@ class Core {
         //     },
         //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
         // }]
-        this.mainWindow.webContents.send('invite-requests', requestInvites);
+        this.SendToRenderer('invite-requests', requestInvites);
     }
 
     async UpdateCategories() {
@@ -528,7 +562,7 @@ class Core {
     async UpdateUserStats() {
         const userStats = await CVRHttp.GetUserStats();
         // usersOnline: { overall: 47, public: 14, notConnected: 9, other: 24 }
-        this.mainWindow.webContents.send('user-stats', userStats);
+        this.SendToRenderer('user-stats', userStats);
     }
 
     async UpdateWorldsByCategory(categoryId) {
@@ -539,7 +573,7 @@ class Core {
                 await LoadImage(world.imageUrl, world);
             }
         }
-        this.mainWindow.webContents.send('worlds-category-requests', categoryId, worlds);
+        this.SendToRenderer('worlds-category-requests', categoryId, worlds);
 
         return worlds;
 
@@ -620,7 +654,7 @@ class Core {
             }
             instanceIdsToRemove.forEach(k => delete this.activeInstancesDetails[k]);
 
-            this.mainWindow.webContents.send('active-instances-update', Object.values(this.activeInstancesDetails));
+            this.SendToRenderer('active-instances-update', Object.values(this.activeInstancesDetails));
         }
         catch (err) {
             log.error(`[ActiveInstancesUpdate] ${err.toString()}`);
@@ -806,7 +840,7 @@ class Core {
         //     "name": "Kafeijao",
         //     "imageUrl": "https://files.abidata.io/user_images/4a1661f1-2eeb-426e-92ec-1b2f08e609b3.png"
         // }]
-        this.mainWindow.webContents.send('friend-requests', Object.values(this.friendRequests));
+        this.SendToRenderer('friend-requests', Object.values(this.friendRequests));
     }
 
 }
