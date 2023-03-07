@@ -593,6 +593,9 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
             if (member.isFriend) friendCount++;
         }
 
+        let instanceName = result.name.substring(0, result.name.length - 10);
+        let instanceID = result.name.slice(-9);
+
         // Depending on whether it's a refresh or not the image might be already loaded
         const worldImageSource = result?.world?.imageBase64 ?? 'img/ui/placeholder.png';
 
@@ -600,8 +603,8 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
         activeWorldNode.setAttribute('class', 'active-instance-node');
         activeWorldNode.innerHTML = `
             <img class="active-instance-node--icon" src="${worldImageSource}" data-hash="${result.world.imageHash}"/>
-            <p class="active-instance-node--name">${result.name}</p>
-            <p class="active-instance-node--id">(#000000)</p>
+            <p class="active-instance-node--name">${instanceName}</p>
+            <p class="active-instance-node--id">${instanceID}</p>
             <p class="active-instance-node--users"><span class="material-symbols-outlined">person</span>${result.currentPlayerCount}</p>
             <p class="active-instance-node--friends"><span class="material-symbols-outlined">groups</span>${friendCount}</p>
             <div class="active-instance-node--user-icon-wrapper">
