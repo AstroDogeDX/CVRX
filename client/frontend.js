@@ -77,12 +77,6 @@ function log(msg) {
     if (!isPackaged) console.log(msg);
 }
 
-function noachiFix(str) {
-    return str.replace(/[<>]/g, (tag) => {
-      return (tag === '<') ? '&lt;' : '&gt;';
-    });
-  }
-
 // Page changes via the Nav Bar
 function swapNavPages(page) {
     document.querySelectorAll('.display-wrapper').forEach((e) => {
@@ -327,7 +321,7 @@ async function ShowDetails(entityType, entityId) {
             detailsName.innerHTML = `${entityInfo.name}`;
             detailsImg.src = 'img/ui/placeholder.png';
             detailsImg.dataset.hash = entityInfo.imageHash;
-            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.avatar.imageHash}">${noachiFix(entityInfo.avatar.name)}`;
+            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.avatar.imageHash}">${entityInfo.avatar.name}`;
             detailsBadge.innerHTML = `<img data-hash="${entityInfo.featuredBadge.imageHash}">${entityInfo.featuredBadge.name}`;
             detailsRank.innerHTML = `<img src="img/ui/rank.png">${entityInfo.rank}`;
             document.querySelector('.details-shade').style.display = 'flex';
