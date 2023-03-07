@@ -600,16 +600,22 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
         activeWorldNode.setAttribute('class', 'active-instance-node');
         activeWorldNode.innerHTML = `
             <img class="active-instance-node--icon" src="${worldImageSource}" data-hash="${result.world.imageHash}"/>
-            <div class="active-instance-node--name">${result.name}</div>
-            <div class="active-instance-node--users">${result.currentPlayerCount}</div>
-            <div class="active-instance-node--friends">(${friendCount} Friends)</div>
-            <div class="active-instance-node--user-icon-wrapper>Icon Wrapper</div>
-            <div class="active-instance-node--remainder>Remainder</div>`;
+            <p class="active-instance-node--name">${result.name}</p>
+            <p class="active-instance-node--id">(#000000)</p>
+            <p class="active-instance-node--users">${result.currentPlayerCount}</p>
+            <p class="active-instance-node--friends">${friendCount}</p>
+            <div class="active-instance-node--user-icon-wrapper">
+            <img class="active-instance-node--user-icon" src="./img/ui/placeholder.png" />
+            <img class="active-instance-node--user-icon" src="./img/ui/placeholder.png" />
+            <img class="active-instance-node--user-icon" src="./img/ui/placeholder.png" />
+            <img class="active-instance-node--user-icon" src="./img/ui/placeholder.png" />
+            </div>
+            <p class="active-instance-node--remainder">#R</p>`;
         elementsOfResults.push(activeWorldNode);
     }
 
     // Replace previous search results with the new ones
-    /* homeActivity.replaceChildren(...elementsOfResults); */
+    homeActivity.replaceChildren(...elementsOfResults);
 });
 
 // Janky invite listener
