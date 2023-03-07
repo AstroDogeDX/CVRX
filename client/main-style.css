@@ -181,8 +181,10 @@ button {
 }
 
 .home-user--user-extra img {
-    width: 30px;
-    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+    max-width: 30px;
+    max-height: 30px;
     float: left;
     margin-right: 5px;
     border-radius: var(--border-radii);
@@ -195,6 +197,9 @@ button {
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
     border-radius: var(--border-radii);
+    overflow: hidden; /* This cringe won't work because this display is flex.  */
+    white-space: nowrap; /* TODO: change these to grid based nodes like everything else. */
+    text-overflow: ellipsis; /* It at least stops the cringe badges from being cringer */
 }
 
 /* Pending Requests on Home */
@@ -467,14 +472,6 @@ button {
 
 .home-history--history-wrapper:empty:before {
     content: 'No Friend History';
-}
-
-.home-activity :is(img) {
-    width: var(--thumbnail-size-standard);
-    height: var(--thumbnail-size-standard);
-    float: left;
-    margin-right: 5px;
-    border-radius: var(--border-radii);
 }
 
 /* Search Stuff */
@@ -1341,39 +1338,62 @@ button {
 
 .active-instance-node {
     display: grid;
-    min-height: 60px;
-    width: 100%;
+    max-width: 100%;
+    gap: 5px;
+    padding: 5px;
+    grid-template-columns: 50px auto 1fr 30px 30px;
+    grid-template-rows: 15px 30px;
     grid-template-areas: 
         "instance-icon instance-name instance-id instance-users instance-friends"
-        "instance-icon instance-user-icons instance-remainder";
+        "instance-icon instance-user-icons instance-user-icons instance-user-icons instance-remainder";
+    border-radius: var(--border-radii);
+}
+
+.active-instance-node:nth-of-type(odd) {
+    background: var(--node-nth-color);
 }
 
 .active-instance-node--icon {
     grid-area: instance-icon;
+    width: 50px;
+    height: 50px;
+    border-radius: var(--border-radii);
 }
 
 .active-instance-node--name {
     grid-area: instance-name;
+    font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .active-instance-node--id {
     grid-area: instance-id;
+    font-size: 12px;
 }
 
 .active-instance-node--users {
     grid-area: instance-users;
+    font-size: 16px;
 }
 
 .active-instance-node--friends {
     grid-area: instance-friends;
+    font-size: 16px;
 }
 
 .active-instance-node--user-icon-wrapper {
     grid-area: instance-user-icons;
 }
 
-/* ...Specific Icon Styling Here */
+.active-instance-node--user-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--border-radii);
+}
 
 .active-instance-node--remainder {
     grid-area: instance-remainder;
+    font-size: 16px;
 }

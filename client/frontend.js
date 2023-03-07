@@ -597,16 +597,19 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
         const worldImageSource = result?.world?.imageBase64 ?? 'img/ui/placeholder.png';
 
         let activeWorldNode = document.createElement('div');
-        activeWorldNode.setAttribute('class', 'home-activity--activity-node');
+        activeWorldNode.setAttribute('class', 'active-instance-node');
         activeWorldNode.innerHTML = `
-            <img src="${worldImageSource}" data-hash="${result.world.imageHash}"/>
-            <p class="search-result-name">${result.name}</p>
-            <p class="search-result-player-count">${result.currentPlayerCount} (${friendCount} Friends)</p>`;
+            <img class="active-instance-node--icon" src="${worldImageSource}" data-hash="${result.world.imageHash}"/>
+            <div class="active-instance-node--name">${result.name}</div>
+            <div class="active-instance-node--users">${result.currentPlayerCount}</div>
+            <div class="active-instance-node--friends">(${friendCount} Friends)</div>
+            <div class="active-instance-node--user-icon-wrapper>Icon Wrapper</div>
+            <div class="active-instance-node--remainder>Remainder</div>`;
         elementsOfResults.push(activeWorldNode);
     }
 
     // Replace previous search results with the new ones
-    homeActivity.replaceChildren(...elementsOfResults);
+    /* homeActivity.replaceChildren(...elementsOfResults); */
 });
 
 // Janky invite listener
@@ -985,7 +988,7 @@ document.querySelector('#login-import-game-credentials').addEventListener('click
 });
 
 document.querySelector('#login-authenticate').addEventListener('click', async _event => {
-    if(document.querySelector('#login-username').value === '' || document.querySelector('#login-password').value === '') {
+    if (document.querySelector('#login-username').value === '' || document.querySelector('#login-password').value === '') {
         toastyNotification('Missing credential information!', 'error');
         return;
     }
