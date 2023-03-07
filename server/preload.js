@@ -8,6 +8,8 @@ contextBridge.exposeInMainWorld('API', {
     getResourceUsage: () => webFrame.getResourceUsage(),
     clearCache: () => webFrame.clearCache(),
     isPackaged: () => ipcRenderer.invoke('is-packaged'),
+    isDevToolsOpened: () => ipcRenderer.invoke('is-dev-tools-opened'),
+    getLocale: () => ipcRenderer.invoke('get-locale'),
 
     // Pages
     onLoginPage: (callback) => ipcRenderer.on('page-login', callback),

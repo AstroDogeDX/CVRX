@@ -82,15 +82,15 @@ function EscapeStringFromHtml(text) {
     return text.replace(/[&<>"']/g, (m) => { return htmlEscapeMap[m]; });
 }
 
-function EscapeHtml(obj) {
+function EscapeHtml(obj, firstIteration = true) {
     if (obj) {
         // Deep clone to prevent affecting the original objects (we're caching some of those)
-        obj = JSON.parse(JSON.stringify(obj));
+        if (firstIteration) obj = JSON.parse(JSON.stringify(obj));
         for (let key in obj) {
             if(!Object.prototype.hasOwnProperty.call(obj, key)) continue;
             // Note: Array also show as object
             if (typeof obj[key] === 'object' && obj[key] !== null) {
-                EscapeHtml(obj[key]);
+                EscapeHtml(obj[key], false);
             } else if (Object.prototype.toString.call(obj[key]) === '[object String]') {
                 obj[key] = EscapeStringFromHtml(obj[key]);
             }
@@ -133,7 +133,15 @@ class Core {
 
         // Misc
         ipcMain.handle('is-packaged', (_event) => this.app.isPackaged);
-        ipcMain.handle('get-preferred-locale', (_event) => this.app.getPreferredSystemLanguages());
+        ipcMain.handle('get-locale', (_event) => {
+            return {
+                'getLocale': this.app.getLocale(),
+                'getLocaleCountryCode': this.app.getLocaleCountryCode(),
+                'getSystemLocale': this.app.getSystemLocale(),
+                'getPreferredSystemLanguages': this.app.getPreferredSystemLanguages(),
+            };
+        });
+        ipcMain.handle('is-dev-tools-opened', (_event) => this.mainWindow.webContents.isDevToolsOpened());
 
         // Setup on events for IPC
         ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());
@@ -153,7 +161,13 @@ class Core {
         ipcMain.on('log-error', (_event, msg, data) => logRenderer.error(msg, data));
 
         // Setup handlers for IPC
-        ipcMain.handle('get-user-by-id', async (_event, userId) => EscapeHtml(await this.GetUserById(userId)));
+        ipcMain.handle('get-user-by-id', async (_event, userId) => {
+            const userInfo = await this.GetUserById(userId);
+            log.verbose(userInfo);
+            const escapedUserInfo = EscapeHtml(userInfo);
+            log.verbose(escapedUserInfo);
+            return escapedUserInfo;
+        });
         ipcMain.handle('get-world-by-id', async (_event, worldId) => EscapeHtml(await this.GetWorldById(worldId)));
         ipcMain.handle('get-instance-by-id', async (_event, instanceId) => EscapeHtml(await this.GetInstanceById(instanceId)));
         ipcMain.handle('search', async (_event, term) => EscapeHtml(await this.Search(term)));
