@@ -1352,7 +1352,7 @@ button {
     grid-template-columns: 50px auto 1fr auto auto;
     grid-template-rows: 15px auto;
     grid-template-areas:
-        "instance-icon instance-name instance-id instance-users instance-friends"
+        "instance-icon instance-name instance-id instance-friends instance-users"
         "instance-icon instance-user-icons instance-user-icons instance-user-icons instance-user-icons";
     border-radius: var(--border-radii);
 }

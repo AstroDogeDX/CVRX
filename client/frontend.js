@@ -610,6 +610,10 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
         // Depending on whether it's a refresh or not the image might be already loaded
         const worldImageSource = result?.world?.imageBase64 ?? 'img/ui/placeholder.png';
 
+        // If no friends then no friend counter :'(
+
+        let friendDisplay = friendCount ? `<span class="material-symbols-outlined">groups</span>${friendCount}` : '';
+
         let activeWorldNode = document.createElement('div');
         activeWorldNode.setAttribute('class', 'active-instance-node');
         activeWorldNode.innerHTML = `
@@ -617,7 +621,7 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
             <p class="active-instance-node--name">${instanceName}</p>
             <div class="active-instance-node--id"><div class="region-${result.region}"></div>${instanceID}</div>
             <p class="active-instance-node--users"><span class="material-symbols-outlined">person</span>${result.currentPlayerCount}</p>
-            <p class="active-instance-node--friends"><span class="material-symbols-outlined">groups</span>${friendCount}</p>
+            <p class="active-instance-node--friends">${friendDisplay}</p>
             <div class="active-instance-node--user-icon-wrapper">
                 ${elementsOfMembers.map(element => element.outerHTML).join('')}
             </div>`;
