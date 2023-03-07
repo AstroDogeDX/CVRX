@@ -584,13 +584,16 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
     // }];
 
     activeInstances.sort((a, b) => {
+        // Count the number of members in each instance who have isFriend=true
         const aFriendCount = a.members.filter(member => member.isFriend).length;
-        const bFriendCount = a.members.filter(member => member.isFriend).length;
+        const bFriendCount = b.members.filter(member => member.isFriend).length;
 
+        // Sort by friend count first
         if (bFriendCount - aFriendCount !== 0) {
             return bFriendCount - aFriendCount;
         }
 
+        // If friend count is the same, sort by currentPlayerCount
         return b.currentPlayerCount - a.currentPlayerCount;
     });
 
@@ -635,6 +638,7 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
             <div class="active-instance-node--user-icon-wrapper">
                 ${elementsOfMembers.map(element => element.outerHTML).join('')}
             </div>`;
+        /* friendCount ? elementsOfResults.unshift(activeWorldNode) : elementsOfResults.push(activeWorldNode); */
         elementsOfResults.push(activeWorldNode);
     }
 
