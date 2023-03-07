@@ -1341,7 +1341,7 @@ button {
     max-width: 100%;
     gap: 5px;
     padding: 5px;
-    grid-template-columns: 50px auto 1fr 30px 30px;
+    grid-template-columns: 50px auto 1fr 50px 50px;
     grid-template-rows: 15px 30px;
     grid-template-areas: 
         "instance-icon instance-name instance-id instance-users instance-friends"
@@ -1375,12 +1375,25 @@ button {
 
 .active-instance-node--users {
     grid-area: instance-users;
-    font-size: 16px;
+    font-size: 14px !important;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
 }
 
 .active-instance-node--friends {
     grid-area: instance-friends;
-    font-size: 16px;
+    font-size: 14px !important;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.active-instance-node :where(.material-symbols-outlined) {
+    font-size: 18px;
+    margin-right: 3px;
 }
 
 .active-instance-node--user-icon-wrapper {

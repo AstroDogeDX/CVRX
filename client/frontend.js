@@ -602,8 +602,8 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
             <img class="active-instance-node--icon" src="${worldImageSource}" data-hash="${result.world.imageHash}"/>
             <p class="active-instance-node--name">${result.name}</p>
             <p class="active-instance-node--id">(#000000)</p>
-            <p class="active-instance-node--users">${result.currentPlayerCount}</p>
-            <p class="active-instance-node--friends">${friendCount}</p>
+            <p class="active-instance-node--users"><span class="material-symbols-outlined">person</span>${result.currentPlayerCount}</p>
+            <p class="active-instance-node--friends"><span class="material-symbols-outlined">groups</span>${friendCount}</p>
             <div class="active-instance-node--user-icon-wrapper">
             <img class="active-instance-node--user-icon" src="./img/ui/placeholder.png" />
             <img class="active-instance-node--user-icon" src="./img/ui/placeholder.png" />
