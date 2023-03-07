@@ -592,9 +592,10 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
 
         let friendCount = 0;
         for (const member of result.members) {
+            let userIconSource = member?.imageBase64 ?? 'img/ui/placeholder.png';
             let userIcon = document.createElement('img');
             userIcon.setAttribute('class', 'active-instance-node--user-icon');
-            userIcon.src = 'img/ui/placeholder.png';
+            userIcon.src = userIconSource;
             userIcon.dataset.hash = member.imageHash;
             if (member.isFriend) {
                 userIcon.classList.add('icon-is-online');
@@ -602,8 +603,6 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
             }
             elementsOfMembers.push(userIcon);
         }
-
-        console.log(elementsOfMembers);
 
         let instanceName = result.name.substring(0, result.name.length - 10);
         let instanceID = result.name.slice(-9);
