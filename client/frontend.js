@@ -1057,4 +1057,7 @@ document.querySelector('#logout-button').addEventListener('click', async _event 
 // Since it's a single page application, lets clear the cache occasionally.
 setInterval(() => {
     window.API.clearCache();
+    window.API.isDevToolsOpened().then(isOpened => {
+        if (!isOpened) console.clear();
+    });
 }, 30 * 60 * 1000);
