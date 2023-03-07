@@ -583,6 +583,16 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
     //     ],
     // }];
 
+    activeInstances.sort((a, b) => {
+        const aFriendCount = a.members.filter(member => member.isFriend).length;
+        const bFriendCount = a.members.filter(member => member.isFriend).length;
+
+        if (bFriendCount - aFriendCount !== 0) {
+            return bFriendCount - aFriendCount;
+        }
+
+        return b.currentPlayerCount - a.currentPlayerCount;
+    });
 
     // Create the search result elements
     const elementsOfResults = [];
