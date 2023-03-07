@@ -84,6 +84,8 @@ function EscapeStringFromHtml(text) {
 
 function EscapeHtml(obj) {
     if (obj) {
+        // Deep clone to prevent affecting the original objects (we're caching some of those)
+        obj = JSON.parse(JSON.stringify(obj));
         for (let key in obj) {
             if(!Object.prototype.hasOwnProperty.call(obj, key)) continue;
             // Note: Array also show as object
