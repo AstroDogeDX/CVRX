@@ -197,9 +197,12 @@ button {
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
     border-radius: var(--border-radii);
-    overflow: hidden; /* This cringe won't work because this display is flex.  */
-    white-space: nowrap; /* TODO: change these to grid based nodes like everything else. */
-    text-overflow: ellipsis; /* It at least stops the cringe badges from being cringer */
+    overflow: hidden;
+    /* This cringe won't work because this display is flex.  */
+    white-space: nowrap;
+    /* TODO: change these to grid based nodes like everything else. */
+    text-overflow: ellipsis;
+    /* It at least stops the cringe badges from being cringer */
 }
 
 /* Pending Requests on Home */
@@ -248,6 +251,7 @@ button {
     grid-template-rows: 1fr;
     grid-template-areas:
         "friend-request-img friend-request-name friend-request-label friend-request-buttons";
+    border-radius: var(--border-radii);
 }
 
 .home-requests--friend-request--user-img {
@@ -321,6 +325,7 @@ button {
     grid-template-rows: 1fr;
     grid-template-areas:
         "invite-user-img invite-user-name invite-world-img invite-world-name invite-world-notice";
+    border-radius: var(--border-radii);
 }
 
 .home-requests--invite--user-img {
@@ -372,6 +377,7 @@ button {
     grid-template-rows: 1fr;
     grid-template-areas:
         "invite-request-user-img invite-request-user-name invite-request-notice";
+    border-radius: var(--border-radii);
 }
 
 .home-requests--invite-request--user-img {
@@ -608,7 +614,8 @@ button {
     box-shadow: 0 0 5px lime;
 }
 
-.friend-name, .friend-name-history {
+.friend-name,
+.friend-name-history {
     font-size: 18px;
 }
 
@@ -959,7 +966,8 @@ button {
     text-overflow: ellipsis;
 }
 
-.online-friend-node--world, .online-friend-node--status {
+.online-friend-node--world,
+.online-friend-node--status {
     font-size: 11px;
     display: block;
     font-style: italic;
@@ -1341,11 +1349,11 @@ button {
     max-width: 100%;
     gap: 5px;
     padding: 5px;
-    grid-template-columns: 50px auto 1fr 50px 50px;
+    grid-template-columns: 50px auto 1fr auto auto;
     grid-template-rows: 15px 30px;
-    grid-template-areas: 
+    grid-template-areas:
         "instance-icon instance-name instance-id instance-users instance-friends"
-        "instance-icon instance-user-icons instance-user-icons instance-user-icons instance-remainder";
+        "instance-icon instance-user-icons instance-user-icons instance-user-icons instance-user-icons";
     border-radius: var(--border-radii);
 }
 
@@ -1371,6 +1379,13 @@ button {
 .active-instance-node--id {
     grid-area: instance-id;
     font-size: 12px;
+    display: flex;
+    flex-flow: row nowrap;
+    gap: 3px;
+    justify-content: flex-start;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
 }
 
 .active-instance-node--users {
@@ -1380,6 +1395,7 @@ button {
     flex-flow: row nowrap;
     justify-content: center;
     align-items: center;
+    gap: 2px;
 }
 
 .active-instance-node--friends {
@@ -1389,15 +1405,18 @@ button {
     flex-flow: row nowrap;
     justify-content: center;
     align-items: center;
+    gap: 2px;
 }
 
 .active-instance-node :where(.material-symbols-outlined) {
     font-size: 18px;
-    margin-right: 3px;
 }
 
 .active-instance-node--user-icon-wrapper {
     grid-area: instance-user-icons;
+    display: flex;
+    flex-flow: row wrap;
+    gap: 3px;
 }
 
 .active-instance-node--user-icon {
@@ -1409,4 +1428,26 @@ button {
 .active-instance-node--remainder {
     grid-area: instance-remainder;
     font-size: 16px;
+}
+
+.region-eu,
+.region-us,
+.region-as {
+    width: 16px;
+    height: 12px;
+}
+
+.region-eu {
+    background: url(./img/locale/eu.png);
+    background-size: cover;
+}
+
+.region-us {
+    background: url(./img/locale/us.png);
+    background-size: cover;
+}
+
+.region-as {
+    background: url(./img/locale/as.png);
+    background-size: cover;
 }

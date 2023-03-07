@@ -588,10 +588,22 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
     const elementsOfResults = [];
     for (const result of activeInstances) {
 
+        const elementsOfMembers = [];
+
         let friendCount = 0;
         for (const member of result.members) {
-            if (member.isFriend) friendCount++;
+            let userIcon = document.createElement('img');
+            userIcon.setAttribute('class', 'active-instance-node--user-icon');
+            userIcon.src = 'img/ui/placeholder.png';
+            userIcon.dataset.hash = member.imageHash;
+            if (member.isFriend) {
+                userIcon.classList.add('icon-is-online');
+                friendCount++;
+            }
+            elementsOfMembers.push(userIcon);
         }
+
+        console.log(elementsOfMembers);
 
         let instanceName = result.name.substring(0, result.name.length - 10);
         let instanceID = result.name.slice(-9);
@@ -604,16 +616,12 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
         activeWorldNode.innerHTML = `
             <img class="active-instance-node--icon" src="${worldImageSource}" data-hash="${result.world.imageHash}"/>
             <p class="active-instance-node--name">${instanceName}</p>
-            <p class="active-instance-node--id">${instanceID}</p>
+            <div class="active-instance-node--id"><div class="region-${result.region}"></div>${instanceID}</div>
             <p class="active-instance-node--users"><span class="material-symbols-outlined">person</span>${result.currentPlayerCount}</p>
             <p class="active-instance-node--friends"><span class="material-symbols-outlined">groups</span>${friendCount}</p>
             <div class="active-instance-node--user-icon-wrapper">
-            <img class="active-instance-node--user-icon" src="./img/ui/placeholder.png" />
-            <img class="active-instance-node--user-icon" src="./img/ui/placeholder.png" />
-            <img class="active-instance-node--user-icon" src="./img/ui/placeholder.png" />
-            <img class="active-instance-node--user-icon" src="./img/ui/placeholder.png" />
-            </div>
-            <p class="active-instance-node--remainder">#R</p>`;
+                ${elementsOfMembers.map(element => element.outerHTML).join('')}
+            </div>`;
         elementsOfResults.push(activeWorldNode);
     }
 
