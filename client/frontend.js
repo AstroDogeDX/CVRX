@@ -1047,6 +1047,12 @@ document.querySelector('#logout-button').addEventListener('click', async _event 
     document.querySelector('#login-password').value = '';
     window.API.logout();
 });
+document.querySelector('#check-updates-button').addEventListener('click', async _event => {
+    _event.target.disabled = true;
+    const { hasUpdates, msg } = await window.API.checkForUpdates();
+    toastyNotification(msg, hasUpdates ? '' : 'confirm');
+    _event.target.disabled = false;
+});
 
 // Since it's a single page application, lets clear the cache occasionally.
 setInterval(() => {

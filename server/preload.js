@@ -84,6 +84,11 @@ contextBridge.exposeInMainWorld('API', {
     logWarning: (msg, optionalData) => ipcRenderer.send('log-warn', msg, optionalData),
     logError: (msg, optionalData) => ipcRenderer.send('log-error', msg, optionalData),
 
+    // Updater
+    checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+    onUpdateAvailable: (callback) => ipcRenderer.on('update-available', callback),
+    updateAction: (updateAction) => ipcRenderer.send('update-action', updateAction),
+
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),
 });

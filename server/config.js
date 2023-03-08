@@ -29,15 +29,41 @@ let credentials;
 const GetCVRPath = () => path.dirname(config.CVRExecutable);
 const GetCVRAppdataPath = () => path.join(GetCVRPath(), CVRDataFolderName);
 
+
+function MergeDefaultConfig(config, defaultConfig) {
+    for (let key in defaultConfig) {
+        if(Object.prototype.hasOwnProperty.call(defaultConfig, key)) {
+
+            if (typeof defaultConfig[key] === 'object' && defaultConfig[key] !== null) {
+                if(Object.prototype.hasOwnProperty.call(config, key)) {
+                    MergeDefaultConfig(config[key], defaultConfig[key]);
+                }
+                else {
+                    config[key] = defaultConfig[key];
+                }
+            }
+            else {
+                if(!Object.prototype.hasOwnProperty.call(config, key)) {
+                    config[key] = defaultConfig[key];
+                }
+            }
+        }
+    }
+}
+
+
 exports.Load = async () => {
 
     // Load the config file
-    config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, {
+    const defaultObjectConfig = {
         ActiveUsername: null,
         ActiveUserID: null,
         CacheMaxSizeInMegabytes: 1000,
         CVRExecutable: path.join(CVRExecutableDefaultFolderPath, CVRExecutableName),
-    });
+        UpdaterIgnoreVersion: null,
+    };
+    config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, defaultObjectConfig);
+    MergeDefaultConfig(config, defaultObjectConfig);
 
     // Load the credentials file
     credentials = await GetOrCreateJsonFile(ConfigsPath, ConfigCredentialsFileName, {});
@@ -204,3 +230,9 @@ exports.ClearCredentials = async (username) => {
 };
 
 exports.GetMaxCacheSize = () => config.CacheMaxSizeInMegabytes;
+
+exports.GetUpdaterIgnoreVersion = () => config.UpdaterIgnoreVersion;
+exports.SetUpdaterIgnoreVersion = async (versionToIgnore) => {
+    config.UpdaterIgnoreVersion = versionToIgnore;
+    await UpdateJsonFile(FileType.CONFIG);
+};
