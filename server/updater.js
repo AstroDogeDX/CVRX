@@ -22,7 +22,7 @@ const activelyCheckRateLimit = 2 * 60 * 1000;
 
 let ignoredForNow = false;
 let dialogOpened = false;
-let activelyCheckForUpdatesTimesout = null;
+let activelyCheckForUpdatesTimeout = null;
 
 exports.Setup = async (mainWindow) => {
 
@@ -43,13 +43,13 @@ exports.Setup = async (mainWindow) => {
 exports.CheckLatestRelease = async (mainWindow, bypassIgnores = false) => {
 
     if (bypassIgnores) {
-        if (activelyCheckForUpdatesTimesout && activelyCheckForUpdatesTimesout > Date.now()) {
+        if (activelyCheckForUpdatesTimeout && activelyCheckForUpdatesTimeout > Date.now()) {
             const msg = `Manually checked for updates too recently.
-            You can try again in: ${(activelyCheckForUpdatesTimesout - Date.now()) / 1000} seconds.`;
+            You can try again in: ${(activelyCheckForUpdatesTimeout - Date.now()) / 1000} seconds.`;
             log.info(`[CheckLatestRelease] ${msg}`);
             return { hasUpdates: null, msg: msg };
         }
-        activelyCheckForUpdatesTimesout = Date.now() + activelyCheckRateLimit;
+        activelyCheckForUpdatesTimeout = Date.now() + activelyCheckRateLimit;
     }
 
     if (dialogOpened) {
