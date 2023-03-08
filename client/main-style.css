@@ -1342,6 +1342,16 @@ button {
     border-radius: var(--border-radii);
 }
 
+#check-updates-button {
+    font-size: 22px;
+    height: 30px;
+    width: 25%;
+    color: white;
+    background: darkcyan;
+    cursor: pointer;
+    border-radius: var(--border-radii);
+}
+
 /* NEW 3DS Instance Nodes Bros. U*/
 
 .active-instance-node {

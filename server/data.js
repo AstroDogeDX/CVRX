@@ -3,6 +3,7 @@ const cache = require('./cache.js');
 const CVRHttp = require('./api_cvr_http');
 const CVRWebsocket = require('./api_cvr_ws');
 const Config = require('./config');
+const Updater = require('./updater');
 
 const log = require('./logger').GetLogger('Data');
 const logRenderer = require('../server/logger').GetLogger('Renderer');
@@ -142,6 +143,7 @@ class Core {
             };
         });
         ipcMain.handle('is-dev-tools-opened', (_event) => this.mainWindow.webContents.isDevToolsOpened());
+        ipcMain.handle('check-for-updates', (_event) => Updater.CheckLatestRelease(this.mainWindow, true));
 
         // Setup on events for IPC
         ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());
