@@ -1382,8 +1382,10 @@ button {
     grid-area: instance-name;
     font-size: 16px;
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
 }
 
 .active-instance-node--id {
