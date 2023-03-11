@@ -7,7 +7,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; img-src 'self' data:;">
   <link rel="stylesheet" href="fonts/material-symbols.css">
   <link rel="stylesheet" href="main-style.css">
-  <script src="frontend.js" defer></script>
+  <script type="module" src="frontend.js" defer></script>
   <title>CVRX</title>
 </head>
 
@@ -15,37 +15,30 @@
   <div class="cvrx-main">
     <div class="cvrx-navbar">
       <div class="navbar-seg">
-        <div data-page="home" class="navbar-button material-symbols-outlined">
+        <div data-tooltip="Home" data-page="home" class="navbar-button material-symbols-outlined">
           home
-          <div class="navbar-tooltip">Home</div>
         </div>
-        <div data-page="search" class="navbar-button material-symbols-outlined">
+        <div data-tooltip="Search" data-page="search" class="navbar-button material-symbols-outlined">
           search
-          <div class="navbar-tooltip">Search</div>
         </div>
       </div>
       <div class="navbar-seg">
-        <div data-page="friends" class="navbar-button material-symbols-outlined">
+        <div data-tooltip="My Friends" data-page="friends" class="navbar-button material-symbols-outlined">
           groups
-          <div class="navbar-tooltip">Friends</div>
         </div>
-        <div data-page="avatars" class="navbar-button material-symbols-outlined">
+        <div data-tooltip="My Avatars" data-page="avatars" class="navbar-button material-symbols-outlined">
           emoji_people
-          <div class="navbar-tooltip">Avatars</div>
         </div>
-        <div data-page="worlds" class="navbar-button material-symbols-outlined">
+        <div data-tooltip="My Worlds" data-page="worlds" class="navbar-button material-symbols-outlined">
           language
-          <div class="navbar-tooltip">Worlds</div>
         </div>
-        <div data-page="props" class="navbar-button material-symbols-outlined">
+        <div data-tooltip="My Props" data-page="props" class="navbar-button material-symbols-outlined">
           view_in_ar
-          <div class="navbar-tooltip">Props</div>
         </div>
       </div>
       <div class="navbar-seg">
-        <div data-page="settings" class="navbar-button material-symbols-outlined">
+        <div data-tooltip="Settings" data-page="settings" class="navbar-button material-symbols-outlined">
           settings
-          <div class="navbar-tooltip">Settings</div>
         </div>
       </div>
     </div>
@@ -159,7 +152,7 @@
         <input id="login-import-game-credentials" type="button" value="Import Game Credentials" />
         <div id="login-available-credentials-wrapper"></div>
         <label for="login-use-access-key" id="login-use-access-key-label">Use Username/Access Key
-          <span>(?)</span></label>
+          <span id="login-access-key-helper" data-tooltip="Your ABI Game Access Master Key can be found at hub.abinteractive.net in your Profile Settings">(?)</span></label>
         <input id="login-use-access-key" type="checkbox" />
         <input id="login-username" type="text" placeholder="CVR Email" />
         <input id="login-password" type="password" placeholder="CVR Password" />
@@ -167,6 +160,10 @@
         <label for="login-save-credentials" id="login-save-credentials-label">Save Credentials</label>
         <input id="login-save-credentials" type="checkbox" checked />
       </div>
+    </div>
+    <!-- TOOLTIP LAYER -->
+    <div id="tooltip-overlay">
+      <div id="tooltip"></div>
     </div>
   </div>
 </body>
