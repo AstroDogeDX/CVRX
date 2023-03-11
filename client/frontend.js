@@ -1,3 +1,12 @@
+// =======
+// MODULES
+// =======
+
+import { toastyNotification } from './astrolib/toasty-notifications.js';
+import { applyTooltips } from './astrolib/tooltip.js';
+
+applyTooltips();
+
 // ===========
 // GLOBAL VARS
 // ===========
@@ -53,14 +62,6 @@ const PropCategories = Object.freeze({
 const ActivityUpdatesType = Object.freeze({
     Friends: 'friends',
 });
-
-let toastTimer;
-
-const toastDown = () => {
-    toastTimer = setTimeout(() => {
-        document.querySelector('.toast-notification').classList.remove('toast-up');
-    }, 3000);
-};
 
 // Grab the isPackaged and save it
 let isPackaged = false;
@@ -192,13 +193,6 @@ window.API.onHomePage((_event) => swapNavPages('home'));
 
 // Navbar Control Logic
 document.querySelectorAll('.navbar-button').forEach((e) => {
-    let tooltip = e.querySelector('.navbar-tooltip');
-    e.addEventListener('mouseenter', () => {
-        tooltip.style.display = 'block';
-    });
-    e.addEventListener('mouseleave', () => {
-        tooltip.style.display = 'none';
-    });
     e.addEventListener('click', () => {
         swapNavPages(e.dataset.page);
     });
@@ -610,6 +604,7 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
             userIcon.setAttribute('class', 'active-instance-node--user-icon');
             userIcon.src = userIconSource;
             userIcon.dataset.hash = member.imageHash;
+            userIcon.dataset.tooltip = member.name;
             if (member.isFriend) {
                 userIcon.classList.add('icon-is-online');
                 friendCount++;
@@ -644,6 +639,7 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
 
     // Replace previous search results with the new ones
     homeActivity.replaceChildren(...elementsOfResults);
+    applyTooltips();
 });
 
 // Janky invite listener
@@ -814,27 +810,6 @@ document.querySelector('#props-filter').addEventListener('keyup', () => {
         e.classList.toggle('filtered-item', !matched);
     });
 });
-
-// Toasty Notifications!
-
-function toastyNotification(message, type) {
-    const toast = document.querySelector('.toast-notification');
-    clearTimeout(toastTimer);
-    switch (type) {
-        case 'confirm':
-            toast.setAttribute('class', 'toast-notification toast-confirm');
-            break;
-        case 'error':
-            toast.setAttribute('class', 'toast-notification toast-error');
-            break;
-        default:
-            toast.setAttribute('class', 'toast-notification toast-info');
-    }
-    toast.innerHTML = message;
-    toast.classList.add('toast-up');
-    toastDown();
-}
-
 
 window.API.onUserStats((_event, userStats) => {
     const userCountNode = document.querySelector('.home-activity--user-count');
