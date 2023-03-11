@@ -1317,7 +1317,7 @@ button {
 }
 
 #login-access-key-helper {
-    grid-area: login-access-key-helper;
+    cursor: help;
 }
 
 #login-authenticate {
@@ -1486,4 +1486,5 @@ button {
     font-family: sans-serif;
     display: none;
     font-size: 16px;
+    z-index: 101;
   }
