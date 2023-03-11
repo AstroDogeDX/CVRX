@@ -136,10 +136,6 @@
     <div class="toast-notification">
       OH HELLO DERE :)
     </div>
-    <!-- TOOLTIP LAYER -->
-    <div id="tooltip-overlay">
-      <div id="tooltip"></div>
-    </div>
     <!-- OBJECT DETAILS CARDS -->
     <div class="details-shade">
       <div class="details-window">
@@ -156,7 +152,7 @@
         <input id="login-import-game-credentials" type="button" value="Import Game Credentials" />
         <div id="login-available-credentials-wrapper"></div>
         <label for="login-use-access-key" id="login-use-access-key-label">Use Username/Access Key
-          <span>(?)</span></label>
+          <span id="login-access-key-helper" data-tooltip="Your ABI Game Access Master Key can be found at hub.abinteractive.net in your Profile Settings">(?)</span></label>
         <input id="login-use-access-key" type="checkbox" />
         <input id="login-username" type="text" placeholder="CVR Email" />
         <input id="login-password" type="password" placeholder="CVR Password" />
@@ -164,6 +160,10 @@
         <label for="login-save-credentials" id="login-save-credentials-label">Save Credentials</label>
         <input id="login-save-credentials" type="checkbox" checked />
       </div>
+    </div>
+    <!-- TOOLTIP LAYER -->
+    <div id="tooltip-overlay">
+      <div id="tooltip"></div>
     </div>
   </div>
 </body>
