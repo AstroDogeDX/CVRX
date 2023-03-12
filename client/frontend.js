@@ -1,3 +1,10 @@
+// =======
+// MODULES
+// =======
+
+import { toastyNotification } from './astrolib/toasty-notifications.js';
+import { applyTooltips } from './astrolib/tooltip.js';
+
 // ===========
 // GLOBAL VARS
 // ===========
@@ -53,14 +60,6 @@ const PropCategories = Object.freeze({
 const ActivityUpdatesType = Object.freeze({
     Friends: 'friends',
 });
-
-let toastTimer;
-
-const toastDown = () => {
-    toastTimer = setTimeout(() => {
-        document.querySelector('.toast-notification').classList.remove('toast-up');
-    }, 3000);
-};
 
 // Grab the isPackaged and save it
 let isPackaged = false;
@@ -192,13 +191,6 @@ window.API.onHomePage((_event) => swapNavPages('home'));
 
 // Navbar Control Logic
 document.querySelectorAll('.navbar-button').forEach((e) => {
-    let tooltip = e.querySelector('.navbar-tooltip');
-    e.addEventListener('mouseenter', () => {
-        tooltip.style.display = 'block';
-    });
-    e.addEventListener('mouseleave', () => {
-        tooltip.style.display = 'none';
-    });
     e.addEventListener('click', () => {
         swapNavPages(e.dataset.page);
     });
@@ -583,30 +575,69 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
     //     ],
     // }];
 
+    activeInstances.sort((a, b) => {
+        // Count the number of members in each instance who have isFriend=true
+        const aFriendCount = a.members.filter(member => member.isFriend).length;
+        const bFriendCount = b.members.filter(member => member.isFriend).length;
+
+        // Sort by friend count first
+        if (bFriendCount - aFriendCount !== 0) {
+            return bFriendCount - aFriendCount;
+        }
+
+        // If friend count is the same, sort by currentPlayerCount
+        return b.currentPlayerCount - a.currentPlayerCount;
+    });
 
     // Create the search result elements
     const elementsOfResults = [];
     for (const result of activeInstances) {
 
+        const elementsOfMembers = [];
+
         let friendCount = 0;
         for (const member of result.members) {
-            if (member.isFriend) friendCount++;
+            let userIconSource = member?.imageBase64 ?? 'img/ui/placeholder.png';
+            let userIcon = document.createElement('img');
+            userIcon.setAttribute('class', 'active-instance-node--user-icon');
+            userIcon.src = userIconSource;
+            userIcon.dataset.hash = member.imageHash;
+            userIcon.dataset.tooltip = member.name;
+            if (member.isFriend) {
+                userIcon.classList.add('icon-is-online');
+                friendCount++;
+            }
+            elementsOfMembers.push(userIcon);
         }
+
+        let instanceName = result.name.substring(0, result.name.length - 10);
+        let instanceID = result.name.slice(-9);
 
         // Depending on whether it's a refresh or not the image might be already loaded
         const worldImageSource = result?.world?.imageBase64 ?? 'img/ui/placeholder.png';
 
+        // If no friends then no friend counter :'(
+
+        let friendDisplay = friendCount ? `<span class="material-symbols-outlined">groups</span>${friendCount}` : '';
+
         let activeWorldNode = document.createElement('div');
-        activeWorldNode.setAttribute('class', 'home-activity--activity-node');
+        activeWorldNode.setAttribute('class', 'active-instance-node');
         activeWorldNode.innerHTML = `
-            <img src="${worldImageSource}" data-hash="${result.world.imageHash}"/>
-            <p class="search-result-name">${result.name}</p>
-            <p class="search-result-player-count">${result.currentPlayerCount} (${friendCount} Friends)</p>`;
+            <img class="active-instance-node--icon" src="${worldImageSource}" data-hash="${result.world.imageHash}"/>
+            <p class="active-instance-node--name">${instanceName}</p>
+            <div class="active-instance-node--id"><div class="region-${result.region}"></div>${instanceID}</div>
+            <p class="active-instance-node--users"><span class="material-symbols-outlined">person</span>${result.currentPlayerCount}</p>
+            <p class="active-instance-node--friends">${friendDisplay}</p>
+            <div class="active-instance-node--user-icon-wrapper">
+                ${elementsOfMembers.map(element => element.outerHTML).join('')}
+            </div>`;
+        /* friendCount ? elementsOfResults.unshift(activeWorldNode) : elementsOfResults.push(activeWorldNode); */
         elementsOfResults.push(activeWorldNode);
     }
 
     // Replace previous search results with the new ones
     homeActivity.replaceChildren(...elementsOfResults);
+    applyTooltips();
 });
 
 // Janky invite listener
@@ -777,27 +808,6 @@ document.querySelector('#props-filter').addEventListener('keyup', () => {
         e.classList.toggle('filtered-item', !matched);
     });
 });
-
-// Toasty Notifications!
-
-function toastyNotification(message, type) {
-    const toast = document.querySelector('.toast-notification');
-    clearTimeout(toastTimer);
-    switch (type) {
-        case 'confirm':
-            toast.setAttribute('class', 'toast-notification toast-confirm');
-            break;
-        case 'error':
-            toast.setAttribute('class', 'toast-notification toast-error');
-            break;
-        default:
-            toast.setAttribute('class', 'toast-notification toast-info');
-    }
-    toast.innerHTML = message;
-    toast.classList.add('toast-up');
-    toastDown();
-}
-
 
 window.API.onUserStats((_event, userStats) => {
     const userCountNode = document.querySelector('.home-activity--user-count');
@@ -985,7 +995,7 @@ document.querySelector('#login-import-game-credentials').addEventListener('click
 });
 
 document.querySelector('#login-authenticate').addEventListener('click', async _event => {
-    if(document.querySelector('#login-username').value === '' || document.querySelector('#login-password').value === '') {
+    if (document.querySelector('#login-username').value === '' || document.querySelector('#login-password').value === '') {
         toastyNotification('Missing credential information!', 'error');
         return;
     }
@@ -1011,7 +1021,19 @@ document.querySelector('#logout-button').addEventListener('click', async _event 
     window.API.logout();
 });
 
+document.querySelector('#check-updates-button').addEventListener('click', async _event => {
+    _event.target.disabled = true;
+    const { hasUpdates, msg } = await window.API.checkForUpdates();
+    toastyNotification(msg, hasUpdates ? '' : 'confirm');
+    _event.target.disabled = false;
+});
+
 // Since it's a single page application, lets clear the cache occasionally.
 setInterval(() => {
     window.API.clearCache();
+    window.API.isDevToolsOpened().then(isOpened => {
+        if (!isOpened) console.clear();
+    });
 }, 30 * 60 * 1000);
+
+applyTooltips();

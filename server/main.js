@@ -24,6 +24,7 @@ const Config = require('./config');
 const { Core } = require('./data');
 const CVRWebsocket = require('./api_cvr_ws');
 const Cache = require('./cache');
+const Updater = require('./updater');
 
 
 // // Test server
@@ -145,6 +146,8 @@ app.whenReady().then(async () => {
         //     app.exit(0)
         // }
     });
+
+    await Updater.Setup(mainWindow);
 });
 
 app.on('window-all-closed', () => app.quit());

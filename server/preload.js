@@ -8,6 +8,8 @@ contextBridge.exposeInMainWorld('API', {
     getResourceUsage: () => webFrame.getResourceUsage(),
     clearCache: () => webFrame.clearCache(),
     isPackaged: () => ipcRenderer.invoke('is-packaged'),
+    isDevToolsOpened: () => ipcRenderer.invoke('is-dev-tools-opened'),
+    getLocale: () => ipcRenderer.invoke('get-locale'),
 
     // Pages
     onLoginPage: (callback) => ipcRenderer.on('page-login', callback),
@@ -81,6 +83,11 @@ contextBridge.exposeInMainWorld('API', {
     logInfo: (msg, optionalData) => ipcRenderer.send('log-info', msg, optionalData),
     logWarning: (msg, optionalData) => ipcRenderer.send('log-warn', msg, optionalData),
     logError: (msg, optionalData) => ipcRenderer.send('log-error', msg, optionalData),
+
+    // Updater
+    checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+    onUpdateAvailable: (callback) => ipcRenderer.on('update-available', callback),
+    updateAction: (updateAction) => ipcRenderer.send('update-action', updateAction),
 
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),

@@ -181,8 +181,10 @@ button {
 }
 
 .home-user--user-extra img {
-    width: 30px;
-    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+    max-width: 30px;
+    max-height: 30px;
     float: left;
     margin-right: 5px;
     border-radius: var(--border-radii);
@@ -195,6 +197,12 @@ button {
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
     border-radius: var(--border-radii);
+    overflow: hidden;
+    /* This cringe won't work because this display is flex.  */
+    white-space: nowrap;
+    /* TODO: change these to grid based nodes like everything else. */
+    text-overflow: ellipsis;
+    /* It at least stops the cringe badges from being cringer */
 }
 
 /* Pending Requests on Home */
@@ -243,6 +251,7 @@ button {
     grid-template-rows: 1fr;
     grid-template-areas:
         "friend-request-img friend-request-name friend-request-label friend-request-buttons";
+    border-radius: var(--border-radii);
 }
 
 .home-requests--friend-request--user-img {
@@ -316,6 +325,7 @@ button {
     grid-template-rows: 1fr;
     grid-template-areas:
         "invite-user-img invite-user-name invite-world-img invite-world-name invite-world-notice";
+    border-radius: var(--border-radii);
 }
 
 .home-requests--invite--user-img {
@@ -367,6 +377,7 @@ button {
     grid-template-rows: 1fr;
     grid-template-areas:
         "invite-request-user-img invite-request-user-name invite-request-notice";
+    border-radius: var(--border-radii);
 }
 
 .home-requests--invite-request--user-img {
@@ -467,14 +478,6 @@ button {
 
 .home-history--history-wrapper:empty:before {
     content: 'No Friend History';
-}
-
-.home-activity :is(img) {
-    width: var(--thumbnail-size-standard);
-    height: var(--thumbnail-size-standard);
-    float: left;
-    margin-right: 5px;
-    border-radius: var(--border-radii);
 }
 
 /* Search Stuff */
@@ -611,7 +614,8 @@ button {
     box-shadow: 0 0 5px lime;
 }
 
-.friend-name, .friend-name-history {
+.friend-name,
+.friend-name-history {
     font-size: 18px;
 }
 
@@ -962,7 +966,8 @@ button {
     text-overflow: ellipsis;
 }
 
-.online-friend-node--world, .online-friend-node--status {
+.online-friend-node--world,
+.online-friend-node--status {
     font-size: 11px;
     display: block;
     font-style: italic;
@@ -1312,7 +1317,7 @@ button {
 }
 
 #login-access-key-helper {
-    grid-area: login-access-key-helper;
+    cursor: help;
 }
 
 #login-authenticate {
@@ -1337,43 +1342,150 @@ button {
     border-radius: var(--border-radii);
 }
 
+#check-updates-button {
+    font-size: 22px;
+    height: 30px;
+    width: 25%;
+    color: white;
+    background: darkcyan;
+    cursor: pointer;
+    border-radius: var(--border-radii);
+}
+
 /* NEW 3DS Instance Nodes Bros. U*/
 
 .active-instance-node {
     display: grid;
-    min-height: 60px;
-    width: 100%;
-    grid-template-areas: 
-        "instance-icon instance-name instance-id instance-users instance-friends"
-        "instance-icon instance-user-icons instance-remainder";
+    max-width: 100%;
+    gap: 5px;
+    padding: 5px;
+    grid-template-columns: 50px auto 1fr auto auto;
+    grid-template-rows: 15px auto;
+    grid-template-areas:
+        "instance-icon instance-name instance-id instance-friends instance-users"
+        "instance-icon instance-user-icons instance-user-icons instance-user-icons instance-user-icons";
+    border-radius: var(--border-radii);
+}
+
+.active-instance-node:nth-of-type(odd) {
+    background: var(--node-nth-color);
 }
 
 .active-instance-node--icon {
     grid-area: instance-icon;
+    width: 50px;
+    height: 50px;
+    border-radius: var(--border-radii);
 }
 
 .active-instance-node--name {
     grid-area: instance-name;
+    font-size: 16px;
+    overflow: hidden;
+    white-space: nowrap;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
 }
 
 .active-instance-node--id {
     grid-area: instance-id;
+    font-size: 12px;
+    display: flex;
+    flex-flow: row nowrap;
+    gap: 3px;
+    justify-content: flex-start;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
 }
 
 .active-instance-node--users {
     grid-area: instance-users;
+    font-size: 14px !important;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
 }
 
 .active-instance-node--friends {
     grid-area: instance-friends;
+    font-size: 14px !important;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+}
+
+.active-instance-node :where(.material-symbols-outlined) {
+    font-size: 18px;
 }
 
 .active-instance-node--user-icon-wrapper {
     grid-area: instance-user-icons;
+    display: flex;
+    flex-flow: row wrap;
+    gap: 3px;
 }
 
-/* ...Specific Icon Styling Here */
+.active-instance-node--user-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--border-radii);
+    cursor: help;
+}
 
 .active-instance-node--remainder {
     grid-area: instance-remainder;
+    font-size: 16px;
 }
+
+.region-eu,
+.region-us,
+.region-as {
+    width: 16px;
+    height: 12px;
+}
+
+.region-eu {
+    background: url(./img/locale/eu.png);
+    background-size: cover;
+}
+
+.region-us {
+    background: url(./img/locale/us.png);
+    background-size: cover;
+}
+
+.region-as {
+    background: url(./img/locale/as.png);
+    background-size: cover;
+}
+
+/* TOOLTIP STUFF */
+
+#tooltip-overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#tooltip {
+    position: absolute;
+    width: max-content;
+    max-width: 15vw;
+    background: rgba(0, 0, 0, 0.95);
+    color: white;
+    filter: drop-shadow(5px 5px 0px rgba(0, 0, 0, 0.5));
+    padding: 5px;
+    border-radius: 5px;
+    font-family: sans-serif;
+    display: none;
+    font-size: 16px;
+    z-index: 101;
+  }
