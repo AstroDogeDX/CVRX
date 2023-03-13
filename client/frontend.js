@@ -1036,4 +1036,7 @@ setInterval(() => {
     });
 }, 30 * 60 * 1000);
 
+// Refresh active instances
+document.querySelector('#instances-refresh').addEventListener('click', _event => window.API.refreshInstances());
+
 applyTooltips();

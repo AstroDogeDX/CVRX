@@ -421,6 +421,10 @@ button {
     margin-right: 5px;
 }
 
+.home-activity--refresh {
+    margin-right: auto;
+}
+
 .home-activity--user-count {
     float: right;
     font-size: small;
