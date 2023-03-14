@@ -129,6 +129,8 @@ class Core {
         this.recentActivityInitialFriends = false;
 
         this.activeInstancesDetails = {};
+
+        this.nextInstancesRefreshAvailableExecuteTime = 0;
     }
 
     #SetupHandlers() {
@@ -150,7 +152,24 @@ class Core {
         ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-friend-requests', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-worlds-category', (_event, worldCategoryId) => this.UpdateWorldsByCategory(worldCategoryId));
-        ipcMain.on('refresh-instances', (_event) => this.ActiveInstancesUpdate(true, true));
+        ipcMain.handle('refresh-instances', (_event) => {
+
+            // If this function is being called from the frontend, let's limit it max once a second
+            const currentTime = new Date().getTime();
+            if (this.nextInstancesRefreshAvailableExecuteTime > currentTime) {
+                const timeUntilExecute = Math.ceil((this.nextInstancesRefreshAvailableExecuteTime - currentTime) / 1000);
+                this.SendToRenderer('notification',
+                    `You can only refresh Instances every 1 minute. Wait ${timeUntilExecute} seconds...`,
+                    ToastTypes.INFO);
+                return false;
+            }
+            this.nextInstancesRefreshAvailableExecuteTime = currentTime + (60 * 1000);
+
+            this.UpdateUserStats().then();
+            this.ActiveInstancesUpdate(true, true).then();
+
+            return true;
+        });
 
         // Active user
         ipcMain.on('active-user-refresh', (_event) => this.GetOurUserInfo());
@@ -619,22 +638,8 @@ class Core {
         return activeInstancesDetails;
     }
 
-    nextAvailableExecuteTime = 0;
-    async ActiveInstancesUpdate(isRefresh, isManual = false) {
+    async ActiveInstancesUpdate(isRefresh) {
         try {
-
-            // If this function is being called from the frontend, let's limit it max once a second
-            if (isManual) {
-                const currentTime = new Date().getTime();
-                if (this.nextAvailableExecuteTime > currentTime) {
-                    const timeUntilExecute = Math.ceil((this.nextAvailableExecuteTime - currentTime) / 1000);
-                    this.SendToRenderer('notification',
-                        `You can only refresh Instances every 1 minute. Wait ${timeUntilExecute} seconds...`,
-                        ToastTypes.INFO);
-                    return;
-                }
-                this.nextAvailableExecuteTime = currentTime + (60 * 1000);
-            }
 
             // If it's a refresh actually get active instances details
             if (isRefresh) {

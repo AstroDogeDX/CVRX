@@ -515,6 +515,9 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
     log('Active instances updated!');
     log(activeInstances);
 
+    // Disable spinner
+    document.querySelector('#instances-refresh').classList.toggle('spinner', false);
+
     // const activeInstances = [{
     //     "instanceSettingPrivacy": "Public",
     //     "privacy": "Public",
@@ -1037,6 +1040,10 @@ setInterval(() => {
 }, 30 * 60 * 1000);
 
 // Refresh active instances
-document.querySelector('#instances-refresh').addEventListener('click', _event => window.API.refreshInstances());
+document.querySelector('#instances-refresh').addEventListener('click', async _event => {
+    _event.target.classList.toggle('spinner', true);
+    const requestInitialized = await window.API.refreshInstances();
+    if (!requestInitialized) _event.target.classList.toggle('spinner', false);
+});
 
 applyTooltips();

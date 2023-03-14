@@ -423,6 +423,13 @@ button {
 
 .home-activity--refresh {
     margin-right: auto;
+    margin-left: 5px;
+    background-color: transparent;
+    border: none;
+}
+
+.home-activity--refresh:hover {
+    color: darkgrey;
 }
 
 .home-activity--user-count {
