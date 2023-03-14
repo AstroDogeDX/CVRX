@@ -18,3 +18,13 @@
     white-space: nowrap;
     direction: ltr;
 }
+
+@keyframes material-symbol-spin {
+    100% {
+        transform:rotate(360deg);
+    }
+}
+
+.material-symbols-outlined.spinner {
+    animation:material-symbol-spin 4s linear infinite;
+}
