@@ -751,10 +751,12 @@ window.API.onFriendRequests((_event, friendRequests) => {
         acceptButton.append('✔');
         acceptButton.setAttribute('class', 'request-node--button-accept');
         acceptButton.addEventListener('click', () => window.API.acceptFriendRequest(friendRequest.id));
+        acceptButton.dataset.tooltip = 'Accept Friend Request';
         const declineButton = document.createElement('button');
         declineButton.append('✖');
         declineButton.setAttribute('class', 'request-node--button-reject');
         declineButton.addEventListener('click', () => window.API.declineFriendRequest(friendRequest.id));
+        declineButton.dataset.tooltip = 'Reject Friend Request';
         const buttonWrapper = document.createElement('div');
         buttonWrapper.setAttribute('class', 'request-node--button-wrapper');
         buttonWrapper.append(acceptButton, declineButton);
@@ -762,6 +764,7 @@ window.API.onFriendRequests((_event, friendRequests) => {
 
         // Append friendRequest Node element at the beginning
         homeRequests.prepend(friendRequestNode);
+        applyTooltips();
     }
 });
 
