@@ -152,24 +152,7 @@ class Core {
         ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-friend-requests', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-worlds-category', (_event, worldCategoryId) => this.UpdateWorldsByCategory(worldCategoryId));
-        ipcMain.handle('refresh-instances', (_event) => {
-
-            // If this function is being called from the frontend, let's limit it max once a second
-            const currentTime = new Date().getTime();
-            if (this.nextInstancesRefreshAvailableExecuteTime > currentTime) {
-                const timeUntilExecute = Math.ceil((this.nextInstancesRefreshAvailableExecuteTime - currentTime) / 1000);
-                this.SendToRenderer('notification',
-                    `You can only refresh Instances every 1 minute. Wait ${timeUntilExecute} seconds...`,
-                    ToastTypes.INFO);
-                return false;
-            }
-            this.nextInstancesRefreshAvailableExecuteTime = currentTime + (60 * 1000);
-
-            this.UpdateUserStats().then();
-            this.ActiveInstancesUpdate(true, true).then();
-
-            return true;
-        });
+        ipcMain.handle('refresh-instances', async (_event) => await this.RefreshInstancesManual(true));
 
         // Active user
         ipcMain.on('active-user-refresh', (_event) => this.GetOurUserInfo());
@@ -299,6 +282,9 @@ class Core {
 
         // Tell the renderer to go to the home page
         this.SendToRenderer('page-home');
+
+        // Setup Window Events
+        this.mainWindow.on('focus', () => this.RefreshInstancesManual(false));
 
         // Schedule recurring API Requests every 5 minutes
         if (recurringIntervalId) clearInterval(recurringIntervalId);
@@ -636,6 +622,27 @@ class Core {
             }
         }
         return activeInstancesDetails;
+    }
+
+    async RefreshInstancesManual(sendMessageToFrontend) {
+
+        // If this function is being called from the frontend, let's limit it max once a second
+        const currentTime = new Date().getTime();
+        if (this.nextInstancesRefreshAvailableExecuteTime > currentTime) {
+            const timeUntilExecute = Math.ceil((this.nextInstancesRefreshAvailableExecuteTime - currentTime) / 1000);
+            if (sendMessageToFrontend) {
+                this.SendToRenderer('notification',
+                    `Instance were refreshed less than 1 minute ago. Wait ${timeUntilExecute} seconds...`,
+                    ToastTypes.INFO);
+            }
+            return false;
+        }
+        this.nextInstancesRefreshAvailableExecuteTime = currentTime + (60 * 1000);
+
+        this.UpdateUserStats().then();
+        this.ActiveInstancesUpdate(true, true).then();
+
+        return true;
     }
 
     async ActiveInstancesUpdate(isRefresh) {
