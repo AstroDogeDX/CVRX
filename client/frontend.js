@@ -515,6 +515,9 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
     log('Active instances updated!');
     log(activeInstances);
 
+    // Disable spinner
+    document.querySelector('#instances-refresh').classList.toggle('spinner', false);
+
     // const activeInstances = [{
     //     "instanceSettingPrivacy": "Public",
     //     "privacy": "Public",
@@ -748,10 +751,12 @@ window.API.onFriendRequests((_event, friendRequests) => {
         acceptButton.append('✔');
         acceptButton.setAttribute('class', 'request-node--button-accept');
         acceptButton.addEventListener('click', () => window.API.acceptFriendRequest(friendRequest.id));
+        acceptButton.dataset.tooltip = 'Accept Friend Request';
         const declineButton = document.createElement('button');
         declineButton.append('✖');
         declineButton.setAttribute('class', 'request-node--button-reject');
         declineButton.addEventListener('click', () => window.API.declineFriendRequest(friendRequest.id));
+        declineButton.dataset.tooltip = 'Reject Friend Request';
         const buttonWrapper = document.createElement('div');
         buttonWrapper.setAttribute('class', 'request-node--button-wrapper');
         buttonWrapper.append(acceptButton, declineButton);
@@ -759,6 +764,7 @@ window.API.onFriendRequests((_event, friendRequests) => {
 
         // Append friendRequest Node element at the beginning
         homeRequests.prepend(friendRequestNode);
+        applyTooltips();
     }
 });
 
@@ -1035,5 +1041,12 @@ setInterval(() => {
         if (!isOpened) console.clear();
     });
 }, 30 * 60 * 1000);
+
+// Refresh active instances
+document.querySelector('#instances-refresh').addEventListener('click', async _event => {
+    _event.target.classList.toggle('spinner', true);
+    const requestInitialized = await window.API.refreshInstances();
+    if (!requestInitialized) _event.target.classList.toggle('spinner', false);
+});
 
 applyTooltips();

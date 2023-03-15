@@ -8,6 +8,7 @@ const Updater = require('./updater');
 const log = require('./logger').GetLogger('Data');
 const logRenderer = require('../server/logger').GetLogger('Renderer');
 
+const recurringIntervalMinutes = 5;
 let recurringIntervalId;
 
 
@@ -128,6 +129,8 @@ class Core {
         this.recentActivityInitialFriends = false;
 
         this.activeInstancesDetails = {};
+
+        this.nextInstancesRefreshAvailableExecuteTime = 0;
     }
 
     #SetupHandlers() {
@@ -149,6 +152,24 @@ class Core {
         ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-friend-requests', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-worlds-category', (_event, worldCategoryId) => this.UpdateWorldsByCategory(worldCategoryId));
+        ipcMain.handle('refresh-instances', (_event) => {
+
+            // If this function is being called from the frontend, let's limit it max once a second
+            const currentTime = new Date().getTime();
+            if (this.nextInstancesRefreshAvailableExecuteTime > currentTime) {
+                const timeUntilExecute = Math.ceil((this.nextInstancesRefreshAvailableExecuteTime - currentTime) / 1000);
+                this.SendToRenderer('notification',
+                    `You can only refresh Instances every 1 minute. Wait ${timeUntilExecute} seconds...`,
+                    ToastTypes.INFO);
+                return false;
+            }
+            this.nextInstancesRefreshAvailableExecuteTime = currentTime + (60 * 1000);
+
+            this.UpdateUserStats().then();
+            this.ActiveInstancesUpdate(true, true).then();
+
+            return true;
+        });
 
         // Active user
         ipcMain.on('active-user-refresh', (_event) => this.GetOurUserInfo());
@@ -286,20 +307,20 @@ class Core {
             try {
                 await Promise.allSettled([
                     this.UpdateUserStats(),
-                    this.ActiveInstancesUpdate(true),
+                    // this.ActiveInstancesUpdate(true),
                 ]);
                 failedTimes = 0;
             }
             catch (e) {
                 if (failedTimes > 3) {
-                    log.error('[Initialize] We failed to update active instances 3 times, stopping...', e);
+                    log.error('[Initialize] We failed to update player stats 3 times, stopping...', e);
                     if (recurringIntervalId) clearInterval(recurringIntervalId);
                     return;
                 }
-                log.error('[Initialize] Updating the currently active instances (recurring every 5 mins)...', e);
+                log.error(`[Initialize] Updating the player stats (recurring every ${recurringIntervalMinutes} mins)...`, e);
                 failedTimes++;
             }
-        }, 10 * 60 * 1000);
+        }, recurringIntervalMinutes * 60 * 1000);
 
         // const authentication = {
         //     username: 'XXXXXXXXX',
