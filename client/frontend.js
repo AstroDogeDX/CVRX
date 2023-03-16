@@ -214,8 +214,12 @@ document.querySelectorAll('.navbar-button').forEach((e) => {
 window.API.onGetActiveUser((_event, activeUser) => {
     log('Active User!');
     log(activeUser);
-    document.querySelector('.home-user--user-icon').setAttribute('data-hash', activeUser.imageHash);
-    document.querySelector('.home-user--user-name').innerHTML = activeUser.name;
+    const userIcon = document.querySelector('.home-user--user-icon');
+    userIcon.setAttribute('data-hash', activeUser.imageHash);
+    userIcon.onclick = () => ShowDetails(DetailsType.User, activeUser.id);
+    const userName = document.querySelector('.home-user--user-name');
+    userName.innerHTML = activeUser.name;
+    userName.onclick = () => ShowDetails(DetailsType.User, activeUser.id);
     document.querySelector('.user-extra--user-avatar').innerHTML =
         `<img data-hash="${activeUser.avatar.imageHash}">${activeUser.avatar.name}`;
     document.querySelector('.user-extra--user-badge').innerHTML =
@@ -478,6 +482,7 @@ searchBar.addEventListener('keypress', async (event) => {
             <p class="search-result-type">${result.type}</p>`;
         switch (result.type) {
             case 'user':
+                userResults.onclick = () => ShowDetails(DetailsType.User, result.id);
                 userResults.push(searchResult);
                 break;
             case 'world':
@@ -602,6 +607,7 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
         for (const member of result.members) {
             let userIconSource = member?.imageBase64 ?? 'img/ui/placeholder.png';
             let userIcon = document.createElement('img');
+            userIcon.onclick = () => ShowDetails(DetailsType.User, member.id);
             userIcon.setAttribute('class', 'active-instance-node--user-icon');
             userIcon.src = userIconSource;
             userIcon.dataset.hash = member.imageHash;
@@ -623,6 +629,10 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
 
         let friendDisplay = friendCount ? `<span class="material-symbols-outlined">groups</span>${friendCount}` : '';
 
+        const activeWorldUserIconWrapper = document.createElement('div');
+        activeWorldUserIconWrapper.classList.add('active-instance-node--user-icon-wrapper');
+        activeWorldUserIconWrapper.append(...elementsOfMembers);
+
         let activeWorldNode = document.createElement('div');
         activeWorldNode.setAttribute('class', 'active-instance-node');
         activeWorldNode.innerHTML = `
@@ -630,10 +640,9 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
             <p class="active-instance-node--name">${instanceName}</p>
             <div class="active-instance-node--id"><div class="region-${result.region}"></div>${instanceID}</div>
             <p class="active-instance-node--users"><span class="material-symbols-outlined">person</span>${result.currentPlayerCount}</p>
-            <p class="active-instance-node--friends">${friendDisplay}</p>
-            <div class="active-instance-node--user-icon-wrapper">
-                ${elementsOfMembers.map(element => element.outerHTML).join('')}
-            </div>`;
+            <p class="active-instance-node--friends">${friendDisplay}</p>`;
+        activeWorldNode.append(activeWorldUserIconWrapper);
+
         /* friendCount ? elementsOfResults.unshift(activeWorldNode) : elementsOfResults.push(activeWorldNode); */
         elementsOfResults.push(activeWorldNode);
     }
@@ -673,15 +682,26 @@ window.API.onInvites((_event, invites) => {
 
     // Create the search result elements
     for (const invite of invites) {
-        let inviteNode = document.createElement('div');
+
+        const userImageNode = document.createElement('img');
+        userImageNode.classList.add('home-requests--invite--user-img');
+        userImageNode.src = 'img/ui/placeholder.png';
+        userImageNode.dataset.hash = invite.user.imageHash;
+        userImageNode.onclick = () => ShowDetails(DetailsType.User, invite.user.id);
+
+        const userNameNode = document.createElement('p');
+        userNameNode.classList.add('home-requests--invite--user-name');
+        userNameNode.innerHTML = `<strong>${invite.user.name}</strong>`;
+        userNameNode.onclick = () => ShowDetails(DetailsType.User, invite.user.id);
+
+        const inviteNode = document.createElement('div');
         inviteNode.setAttribute('class', 'home-requests--invite-node');
         inviteNode.innerHTML = `
-        <img class="home-requests--invite--user-img" src="img/ui/placeholder.png" data-hash="${invite.user.imageHash}"/>
-        <p class="home-requests--invite--user-name"><strong>${invite.user.name}</strong>
         <small>has invited you to...</p></small>
         <img class="home-requests--invite--world-img" src="img/ui/placeholder.png" data-hash="${invite.world.imageHash}"/>
         <p class="home-requests--invite--instance-name"><strong>${invite.instanceName}</strong></p>
         <p class="home-requests--invite--label"><small class="friend-is-offline">Accept In Game</small></p>`;
+        inviteNode.prepend(userImageNode, userNameNode);
         homeRequests.prepend(inviteNode);
     }
 });
@@ -708,12 +728,19 @@ window.API.onInviteRequests((_event, requestInvites) => {
 
     // Create the search result elements
     for (const requestInvite of requestInvites) {
+
+        const userImageNode = document.createElement('img');
+        userImageNode.classList.add('home-requests--invite-request--user-img');
+        userImageNode.src = 'img/ui/placeholder.png';
+        userImageNode.dataset.hash = requestInvite.sender.imageHash;
+        userImageNode.onclick = () => ShowDetails(DetailsType.User, requestInvite.sender.id);
+
         let requestInviteNode = document.createElement('div');
         requestInviteNode.setAttribute('class', 'home-requests--invite-request-node');
         requestInviteNode.innerHTML = `
-        <img class="home-requests--invite-request--user-img" src="img/ui/placeholder.png" data-hash="${requestInvite.sender.imageHash}"/>
         <p class="home-requests--invite-request--user-name"><strong>${requestInvite.sender.name}</strong><small>wants to join you.</small></p>
         <p class="home-requests--invite-request--label"><small class="friend-is-offline">Accept In Game</small></p>`;
+        requestInviteNode.prepend(userImageNode);
         homeRequests.prepend(requestInviteNode);
     }
 });
@@ -745,6 +772,7 @@ window.API.onFriendRequests((_event, friendRequests) => {
         <img class="home-requests--friend-request--user-img" src="img/ui/placeholder.png" data-hash="${friendRequest.imageHash}"/>
         <p class="home-requests--friend-request--user-name">${friendRequest.name}</p>
         <p class="home-requests--friend-request--request-type">Friend Request</p>`;
+        friendRequestNode.onclick = () => ShowDetails(DetailsType.User, friendRequest.id);
 
         // Create buttons (can't do it with template strings because won't let me inline the function call)
         const acceptButton = document.createElement('button');
@@ -949,6 +977,7 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
                     <img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${recentActivity.current.imageHash}"/>
                     <p class="friend-name-history">${recentActivity.current.name} <small>(${dateStr})</small></p>
                     <p class="friend-status-history"><span class="old-history">${previousInstanceInfo}</span> ➡ ${currentInstanceInfo}</p>`;
+                activityUpdateNode.onclick = () => ShowDetails(DetailsType.User, recentActivity.current.id);
 
                 newNodes.push(activityUpdateNode);
                 break;
