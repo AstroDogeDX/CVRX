@@ -34,6 +34,10 @@ function applyTooltips() {
                 tooltip.style.display = 'none';
                 tooltip.innerHTML = '';
             });
+            e.addEventListener('mouseup', () => {
+                tooltip.style.display = 'none';
+                tooltip.innerHTML = '';
+            });
             e.setAttribute('has-tooltip', 'true');
         }
     });
