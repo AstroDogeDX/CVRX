@@ -1122,25 +1122,25 @@ button {
 .toast {
     position: relative;
     padding: 5px;
-    background: grey;
+    background: rgba(128, 128, 128, 0.75);
     color: white;
     width: auto;
-    font-size: 24px;
+    font-size: 20px;
     border-radius: 5px;
     animation: toastPopup 0.25s;
     max-width: 25vw;
 }
 
 .toast-confirm {
-    background: green;
+    background: rgba(0, 128, 0, 0.75);
 }
 
 .toast-error {
-    background: red;
+    background: rgba(139, 0, 0, 0.75);
 }
 
 .toast-info {
-    background: blue;
+    background: rgba(0, 0, 255, 0.75);
 }
 
 .toast-begone {
