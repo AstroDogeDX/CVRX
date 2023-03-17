@@ -633,7 +633,7 @@ class Core {
             if (sendMessageToFrontend) {
                 this.SendToRenderer('notification',
                     `Instance were refreshed less than 1 minute ago. Wait ${timeUntilExecute} seconds...`,
-                    ToastTypes.INFO);
+                    ToastTypes.BAD);
             }
             return false;
         }
