@@ -599,7 +599,7 @@ button {
 }
 
 .friend-history-node {
-    cursor: initial;
+    cursor: pointer;
 }
 
 .old-history {
@@ -628,6 +628,10 @@ button {
 .friend-name,
 .friend-name-history {
     font-size: 18px;
+}
+
+.friend-history-node:hover .friend-name-history {
+    text-decoration: underline;
 }
 
 .friend-name-history small {
@@ -1101,36 +1105,66 @@ button {
 /* Toast Notifications */
 
 .toast-notification {
-    position: absolute;
-    bottom: -50px;
+    position: fixed;
+    width: 100%;
+    height: 100%;
     left: 0;
-    right: 0;
-    width: max-content;
-    max-width: 80vw;
-    background: purple;
-    border-radius: var(--border-radii);
-    padding: 10px;
-    font-size: 20px;
-    text-align: center;
-    margin: auto;
-    transition: bottom 0.2s ease;
-    z-index: 100;
+    top: 0;
+    pointer-events: none;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 5px;
+    padding: 5px;
+}
+
+.toast {
+    position: relative;
+    padding: 5px;
+    background: grey;
+    color: white;
+    width: auto;
+    font-size: 24px;
+    border-radius: 5px;
+    animation: toastPopup 0.25s;
+    max-width: 25vw;
 }
 
 .toast-confirm {
-    background: rgba(0, 128, 0, 0.75);
+    background: green;
 }
 
 .toast-error {
-    background: rgba(139, 0, 0, 0.75);
+    background: red;
 }
 
 .toast-info {
-    background: rgba(0, 0, 0, 0.25)
+    background: blue;
 }
 
-.toast-up {
-    bottom: 10px;
+.toast-begone {
+    animation: toastSwooce 0.25s;
+}
+
+@keyframes toastPopup {
+    from {
+        bottom: -100%;
+    }
+
+    to {
+        bottom: 0px;
+    }
+}
+
+@keyframes toastSwooce {
+    from {
+        bottom: 0;
+    }
+
+    to {
+        bottom: -100%;
+    }
 }
 
 /* Loading shade to hide our shame */
@@ -1499,4 +1533,4 @@ button {
     display: none;
     font-size: 16px;
     z-index: 101;
-  }
+}

@@ -2,7 +2,7 @@
 // MODULES
 // =======
 
-import { toastyNotification } from './astrolib/toasty-notifications.js';
+import { pushToast } from './astrolib/toasty-notifications.js';
 import { applyTooltips } from './astrolib/tooltip.js';
 
 // ===========
@@ -445,7 +445,7 @@ searchBar.addEventListener('keypress', async (event) => {
 
     // Disable the search while we're fetching and populating the results
     searchBar.disabled = true;
-    toastyNotification('Searching...');
+    pushToast('Searching...');
 
     // Fetch the search results
     const results = await window.API.search(searchTerm);
@@ -495,7 +495,7 @@ searchBar.addEventListener('keypress', async (event) => {
                 propsResults.push(searchResult);
                 break;
             default:
-                toastyNotification('Found a result with invalid type!', 'error');
+                pushToast('Found a result with invalid type!', 'error');
         }
     }
 
@@ -507,7 +507,7 @@ searchBar.addEventListener('keypress', async (event) => {
 
     // Re-enable the search
     searchBar.disabled = false;
-    toastyNotification('Search Complete!', 'confirm');
+    pushToast('Search Complete!', 'confirm');
 });
 
 
@@ -800,7 +800,7 @@ window.API.onFriendRequests((_event, friendRequests) => {
 window.API.onNotification((_event, msg, type) => {
     log('Notification!!!');
     log(msg);
-    toastyNotification(msg, type);
+    pushToast(msg, type);
 });
 
 // Friends filtering :D
@@ -1022,16 +1022,16 @@ document.querySelector('#login-password').addEventListener('keypress', (e) => {
 document.querySelector('#login-import-game-credentials').addEventListener('click', async _event => {
     try {
         await window.API.importGameCredentials();
-        toastyNotification('Credential import successful!', 'confirm');
+        pushToast('Credential import successful!', 'confirm');
     }
     catch (e) {
-        toastyNotification(e.message, 'error');
+        pushToast(e.message, 'error');
     }
 });
 
 document.querySelector('#login-authenticate').addEventListener('click', async _event => {
     if (document.querySelector('#login-username').value === '' || document.querySelector('#login-password').value === '') {
-        toastyNotification('Missing credential information!', 'error');
+        pushToast('Missing credential information!', 'error');
         return;
     }
     const isAccessKey = document.querySelector('#login-use-access-key').checked;
@@ -1042,10 +1042,10 @@ document.querySelector('#login-authenticate').addEventListener('click', async _e
     document.querySelector('.loading-shade').style.display = 'flex';
     try {
         await window.API.authenticate(username, credential, isAccessKey, saveCredentials);
-        toastyNotification(`Authenticated with the user ${username}`, 'confirm');
+        pushToast(`Authenticated with the user ${username}`, 'confirm');
     }
     catch (e) {
-        toastyNotification(e.message, 'error');
+        pushToast(e.message, 'error');
     }
     document.querySelector('.loading-shade').style.display = 'none';
 });
@@ -1059,7 +1059,7 @@ document.querySelector('#logout-button').addEventListener('click', async _event 
 document.querySelector('#check-updates-button').addEventListener('click', async _event => {
     _event.target.disabled = true;
     const { hasUpdates, msg } = await window.API.checkForUpdates();
-    toastyNotification(msg, hasUpdates ? '' : 'confirm');
+    pushToast(msg, hasUpdates ? '' : 'confirm');
     _event.target.disabled = false;
 });
 
