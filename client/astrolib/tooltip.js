@@ -1,4 +1,5 @@
 const tooltip = document.querySelector('#tooltip');
+const overlay = document.querySelector('#tooltip-overlay');
 
 let isPackaged = false;
 window.API.isPackaged().then(packaged => {
@@ -11,6 +12,16 @@ function log(msg) {
 }
 
 function applyTooltips() {
+    if (!overlay.hasAttribute('tooltips-enabled')) {
+        window.addEventListener('mousemove', (e) => {
+            let offsetX = e.clientX >= (window.innerWidth / 2) ? -Math.abs(tooltip.offsetWidth + 5) : 15;
+            let offsetY = e.clientY >= (window.innerHeight / 2) ? -Math.abs(tooltip.offsetHeight) : 15;
+            tooltip.style.left = `${e.clientX + offsetX}px`;
+            tooltip.style.top = `${e.clientY + offsetY}px`;
+        });
+        overlay.setAttribute('tooltips-enabled', 'true');
+        log('[astrolib/tooltip.js] Tooltips Enabled');
+    }
     document.querySelectorAll('[data-tooltip]').forEach((e) => {
         if (e.hasAttribute('has-tooltip')) {
             log('[astrolib/tooltip.js] Node already has tooltip applied, skipping...');
@@ -22,12 +33,6 @@ function applyTooltips() {
             e.addEventListener('mouseleave', () => {
                 tooltip.style.display = 'none';
                 tooltip.innerHTML = '';
-            });
-            e.addEventListener('mousemove', (e) => {
-                let offsetX = e.clientX >= (window.innerWidth / 2) ? -Math.abs(tooltip.offsetWidth + 5) : 15;
-                let offsetY = e.clientY >= (window.innerHeight / 2) ? -Math.abs(tooltip.offsetHeight) : 15;
-                tooltip.style.left = `${e.clientX + offsetX}px`;
-                tooltip.style.top = `${e.clientY + offsetY}px`;
             });
             e.setAttribute('has-tooltip', 'true');
         }
