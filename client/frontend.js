@@ -2,7 +2,7 @@
 // MODULES
 // =======
 
-import { pushToast } from './astrolib/toasty-notifications.js';
+import { pushToast } from './astrolib/toasty_notifications.js';
 import { applyTooltips } from './astrolib/tooltip.js';
 
 // ===========
