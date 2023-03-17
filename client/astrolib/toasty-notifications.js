@@ -1,27 +1,33 @@
-let toastTimer;
+const overlay = document.querySelector('.toast-notification');
 
-const toastDown = () => {
-    toastTimer = setTimeout(() => {
-        document.querySelector('.toast-notification').classList.remove('toast-up');
-    }, 3000);
-};
-
-function toastyNotification(message, type) {
-    const toast = document.querySelector('.toast-notification');
-    clearTimeout(toastTimer);
-    switch (type) {
+function pushToast(text, type) {
+    let newToast = document.createElement('div');
+    let toastType = type ? type : 'none';
+    let toastText = text ? text : 'error: no toast message!';
+    newToast.textContent = toastText;
+    newToast.classList.add('toast');
+    switch (toastType) {
         case 'confirm':
-            toast.setAttribute('class', 'toast-notification toast-confirm');
+            newToast.classList.add('toast-confirm');
             break;
         case 'error':
-            toast.setAttribute('class', 'toast-notification toast-error');
+            newToast.classList.add('toast-error');
+            break;
+        case 'info':
+            newToast.classList.add('toast-info');
             break;
         default:
-            toast.setAttribute('class', 'toast-notification toast-info');
+        // Do nothing
     }
-    toast.innerHTML = message;
-    toast.classList.add('toast-up');
-    toastDown();
+    overlay.append(newToast);
+    setTimeout(removeToast, 3000, newToast);
 }
 
-export { toastyNotification };
+function removeToast(newToast) {
+    newToast.classList.add('toast-begone');
+    setTimeout(() => {
+        newToast.remove();
+    }, 200);
+}
+
+export { pushToast };
