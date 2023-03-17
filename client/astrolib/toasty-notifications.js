@@ -20,7 +20,7 @@ function pushToast(text, type) {
         // Do nothing
     }
     overlay.append(newToast);
-    setTimeout(removeToast, 3000, newToast);
+    setTimeout(removeToast, 2500, newToast);
 }
 
 function removeToast(newToast) {
