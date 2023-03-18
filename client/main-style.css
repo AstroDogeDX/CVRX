@@ -545,6 +545,21 @@ button {
     padding: 5px;
 }
 
+.search-result-type {
+    font-size: small;
+    color: rgba(255,255,255,0.5);
+    text-transform: capitalize;
+}
+
+.search-output--users > .search-output--node:hover, 
+.search-output--users > .search-output--node:hover .search-result-name {
+    cursor: pointer;
+}
+
+.search-output--users > .search-output--node:hover .search-result-name {
+    text-decoration: underline;
+}
+
 .search-output--node:nth-of-type(odd) {
     background: var(--node-nth-color);
 }
