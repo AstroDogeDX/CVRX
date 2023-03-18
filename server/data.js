@@ -152,7 +152,7 @@ class Core {
         ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-friend-requests', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-worlds-category', (_event, worldCategoryId) => this.UpdateWorldsByCategory(worldCategoryId));
-        ipcMain.handle('refresh-instances', async (_event) => await this.RefreshInstancesManual(true));
+        ipcMain.handle('refresh-instances', async (_event, fromButton) => await this.RefreshInstancesManual(fromButton));
 
         // Active user
         ipcMain.on('active-user-refresh', (_event) => this.GetOurUserInfo());
@@ -167,13 +167,7 @@ class Core {
         ipcMain.on('log-error', (_event, msg, data) => logRenderer.error(msg, data));
 
         // Setup handlers for IPC
-        ipcMain.handle('get-user-by-id', async (_event, userId) => {
-            const userInfo = await this.GetUserById(userId);
-            log.verbose(userInfo);
-            const escapedUserInfo = EscapeHtml(userInfo);
-            log.verbose(escapedUserInfo);
-            return escapedUserInfo;
-        });
+        ipcMain.handle('get-user-by-id', async (_event, userId) => EscapeHtml(await this.GetUserById(userId)));
         ipcMain.handle('get-world-by-id', async (_event, worldId) => EscapeHtml(await this.GetWorldById(worldId)));
         ipcMain.handle('get-instance-by-id', async (_event, instanceId) => EscapeHtml(await this.GetInstanceById(instanceId)));
         ipcMain.handle('search', async (_event, term) => EscapeHtml(await this.Search(term)));
@@ -282,9 +276,6 @@ class Core {
 
         // Tell the renderer to go to the home page
         this.SendToRenderer('page-home');
-
-        // Setup Window Events
-        this.mainWindow.on('focus', () => this.RefreshInstancesManual(false));
 
         // Schedule recurring API Requests every 5 minutes
         if (recurringIntervalId) clearInterval(recurringIntervalId);
