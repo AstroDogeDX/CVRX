@@ -482,7 +482,7 @@ searchBar.addEventListener('keypress', async (event) => {
             <p class="search-result-type">${result.type}</p>`;
         switch (result.type) {
             case 'user':
-                userResults.onclick = () => ShowDetails(DetailsType.User, result.id);
+                searchResult.onclick = () => ShowDetails(DetailsType.User, result.id);
                 userResults.push(searchResult);
                 break;
             case 'world':
@@ -768,11 +768,21 @@ window.API.onFriendRequests((_event, friendRequests) => {
         // Create friendRequest Node element
         let friendRequestNode = document.createElement('div');
         friendRequestNode.setAttribute('class', 'home-requests--friend-request-node');
-        friendRequestNode.innerHTML = `
-        <img class="home-requests--friend-request--user-img" src="img/ui/placeholder.png" data-hash="${friendRequest.imageHash}"/>
-        <p class="home-requests--friend-request--user-name">${friendRequest.name}</p>
-        <p class="home-requests--friend-request--request-type">Friend Request</p>`;
-        friendRequestNode.onclick = () => ShowDetails(DetailsType.User, friendRequest.id);
+
+        const userImageNode = document.createElement('img');
+        userImageNode.classList.add('home-requests--friend-request--user-img');
+        userImageNode.src = 'img/ui/placeholder.png';
+        userImageNode.dataset.hash = friendRequest.imageHash;
+        userImageNode.onclick = () => ShowDetails(DetailsType.User, friendRequest.id);
+
+        const userNameNode = document.createElement('p');
+        userNameNode.classList.add('home-requests--friend-request--user-name');
+        userNameNode.textContent = `${friendRequest.name}`;
+        userNameNode.onclick = () => ShowDetails(DetailsType.User, friendRequest.id);
+
+        const friendRequestTypeNode = document.createElement('p');
+        friendRequestTypeNode.classList.add('home-requests--friend-request--request-type');
+        friendRequestTypeNode.textContent = 'Friend Request';
 
         // Create buttons (can't do it with template strings because won't let me inline the function call)
         const acceptButton = document.createElement('button');
@@ -780,15 +790,18 @@ window.API.onFriendRequests((_event, friendRequests) => {
         acceptButton.setAttribute('class', 'request-node--button-accept');
         acceptButton.addEventListener('click', () => window.API.acceptFriendRequest(friendRequest.id));
         acceptButton.dataset.tooltip = 'Accept Friend Request';
+
         const declineButton = document.createElement('button');
         declineButton.append('✖');
         declineButton.setAttribute('class', 'request-node--button-reject');
         declineButton.addEventListener('click', () => window.API.declineFriendRequest(friendRequest.id));
         declineButton.dataset.tooltip = 'Reject Friend Request';
+
         const buttonWrapper = document.createElement('div');
         buttonWrapper.setAttribute('class', 'request-node--button-wrapper');
         buttonWrapper.append(acceptButton, declineButton);
-        friendRequestNode.append(buttonWrapper);
+
+        friendRequestNode.append(userImageNode, userNameNode, friendRequestTypeNode, buttonWrapper);
 
         // Append friendRequest Node element at the beginning
         homeRequests.prepend(friendRequestNode);
