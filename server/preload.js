@@ -54,7 +54,7 @@ contextBridge.exposeInMainWorld('API', {
     onWorldsByCategoryRefresh: (callback) => ipcRenderer.on('worlds-category-requests', callback),
 
     refreshUserStats: () => ipcRenderer.send('refresh-user-stats'),
-    refreshInstances: () => ipcRenderer.invoke('refresh-instances'),
+    refreshInstances: (fromButton) => ipcRenderer.invoke('refresh-instances', fromButton),
     onUserStats: (callback) => ipcRenderer.on('user-stats', callback),
 
     refreshFriendRequests: () => ipcRenderer.send('refresh-friend-requests'),

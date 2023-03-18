@@ -1087,8 +1087,15 @@ setInterval(() => {
 // Refresh active instances
 document.querySelector('#instances-refresh').addEventListener('click', async _event => {
     _event.target.classList.toggle('spinner', true);
-    const requestInitialized = await window.API.refreshInstances();
+    const requestInitialized = await window.API.refreshInstances(true);
     if (!requestInitialized) _event.target.classList.toggle('spinner', false);
+});
+
+window.addEventListener('focus', async () => {
+    const refreshButton = document.querySelector('#instances-refresh');
+    refreshButton.classList.toggle('spinner', true);
+    const requestInitialized = await window.API.refreshInstances(false);
+    if (!requestInitialized) refreshButton.classList.toggle('spinner', false);
 });
 
 applyTooltips();
