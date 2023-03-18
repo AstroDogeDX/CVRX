@@ -609,7 +609,12 @@ class Core {
         for (const activeWorld of activeWorlds) {
             const activeWorldDetails = await CVRHttp.GetWorldById(activeWorld.id);
             for (const activeInstance of activeWorldDetails.instances) {
-                activeInstancesDetails[activeInstance.id] = await this.GetInstanceById(activeInstance.id);
+                try {
+                    activeInstancesDetails[activeInstance.id] = await this.GetInstanceById(activeInstance.id);
+                }
+                catch (err) {
+                    log.error(`[ActiveInstancesRefresh] Failed to fetch Instance ${activeInstance.id}`, err.toString());
+                }
             }
         }
         return activeInstancesDetails;
@@ -655,7 +660,12 @@ class Core {
 
                 // If the instance doesn't exist already, lets fetch it
                 if (!Object.prototype.hasOwnProperty.call(this.activeInstancesDetails, friend.instance.id)) {
-                    this.activeInstancesDetails[friend.instance.id] = await this.GetInstanceById(friend.instance.id);
+                    try {
+                        this.activeInstancesDetails[friend.instance.id] = await this.GetInstanceById(friend.instance.id);
+                    }
+                    catch (err) {
+                        log.error(`[ActiveInstancesUpdate] Failed to fetch Instance ${friend.instance.id}`, err.toString());
+                    }
                 }
             }
 
