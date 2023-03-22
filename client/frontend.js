@@ -142,6 +142,42 @@ function swapNavPages(page) {
     document.querySelector('.loading-shade').style.display = 'none';
 }
 
+// Simplify Element w/ Class/ID Creation
+function createElementWithClass(type, className) {
+    const element = document.createElement(type);
+    element.className = className;
+    return element;
+}
+
+function createElementWithId(type, id) {
+    const element = document.createElement(type);
+    element.id = id;
+    return element;
+}
+
+// Temporary reconnect prompt - will be expanded with a proper library later.
+function promptReconnect() {
+    let promptShade = document.querySelector('.prompt-layer');
+    let newPrompt = createElementWithClass('div', 'prompt');
+    let promptTitle = createElementWithClass('div', 'prompt-title');
+    let promptText = createElementWithClass('div', 'prompt-text');
+    let promptButtons = createElementWithClass('div', 'prompt-buttons');
+    let confirmButton = createElementWithId('button', 'prompt-confirm');
+    promptTitle.textContent = 'Socket Error';
+    promptText.textContent = 'Socket failed to reconnect after 5 attempts. Click below to manually reconnect.';
+    confirmButton.textContent = 'Reconnect Socket';
+    confirmButton.addEventListener('click', () => {
+        // Do your reconnect magic here.
+        newPrompt.remove();
+        promptShade.style.display = 'none';
+    });
+    promptButtons.append(confirmButton);
+    newPrompt.append(promptTitle, promptText, promptButtons);
+    promptShade.append(newPrompt);
+    promptShade.style.display = 'flex';
+}
+
+
 // ===============
 // EVERYTHING ELSE
 // ===============
@@ -1099,3 +1135,5 @@ window.addEventListener('focus', async () => {
 });
 
 applyTooltips();
+
+promptReconnect();
