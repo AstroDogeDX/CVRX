@@ -1135,5 +1135,3 @@ window.addEventListener('focus', async () => {
 });
 
 applyTooltips();
-
-promptReconnect();
