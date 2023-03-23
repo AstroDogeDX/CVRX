@@ -198,15 +198,16 @@ class Core {
             await Config.ImportCVRCredentials();
             await this.SendToLoginPage();
         });
+        ipcMain.on('reconnect-web-socket',  (_event) => CVRWebsocket.Reconnect());
 
         // Moderation
         ipcMain.handle('block-user', (_event, userId) => CVRWebsocket.BlockUser(userId));
         ipcMain.handle('unblock-user', (_event, userId) => CVRWebsocket.UnblockUser(userId));
 
         // Socket Events
-        CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.CONNECTED, () => {
-            this.recentActivityInitialFriends = true;
-        });
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.CONNECTED, () => this.recentActivityInitialFriends = true);
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.DEAD, () => this.SendToRenderer('socket-died'));
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.RECONNECTION_FAILED, (msg) => this.SendToRenderer('notification', msg, ToastTypes.BAD));
 
         // Setup Handlers for the websocket
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, (friendsInfo) => this.FriendsUpdate(false, friendsInfo));

@@ -5,7 +5,6 @@ const WebSocketAddress = 'wss://api.abinteractive.net/1/users/ws';
 const log = require('./logger').GetLogger('API_WS');
 
 const events = require('events');
-const { app, dialog } = require('electron');
 const utils = require('./utils');
 const EventEmitter = new events.EventEmitter();
 exports.EventEmitter = EventEmitter;
@@ -21,6 +20,8 @@ let reconnectAttempts = 0;
 
 const SOCKET_EVENTS = Object.freeze({
     CONNECTED: Symbol(),
+    DEAD: Symbol(),
+    RECONNECTION_FAILED: Symbol(),
 });
 exports.SocketEvents = SOCKET_EVENTS;
 
@@ -53,6 +54,21 @@ exports.ConnectWithCredentials = async (username, accessKey) => {
     currentAccessKey = accessKey;
 
     await ConnectWebsocket(username, accessKey);
+};
+
+exports.Reconnect = async () => {
+
+    if (socket && socket.connected) {
+        EventEmitter.emit(SOCKET_EVENTS.RECONNECTION_FAILED, 'The socket is already connected...');
+        return;
+    }
+
+    if (!currentUsername || !currentAccessKey) {
+        EventEmitter.emit(SOCKET_EVENTS.RECONNECTION_FAILED, 'Missing current credentials... Close the CVRX and try again.');
+        return;
+    }
+
+    await ConnectWebsocket(currentUsername, currentAccessKey);
 };
 
 
@@ -118,22 +134,16 @@ function ConnectWebsocket(username, accessKey) {
             // Only reconnect if we didn't disconnect ourselves and the close code is one of the following:
             if (!disconnected && (code === 1001 || code === 1005 || code === 1006)) {
                 if (reconnectAttempts >= MaxReconnectionAttempts) {
-                    try {
-                        await dialog.showErrorBox(
-                            'Failed to reconnect to CVR Servers...',
-                            'Our 5 attempts to connect/reconnect to CVR Socket failed. The app will close!',
-                        );
-                    }
-                    catch (e) {
-                        log.error(e);
-                    }
-                    app.quit();
-                    throw new Error('[ConnectWebsocket] [onClose] Failed to connect to CVR Websocket, attempted 5 times!');
+                    log.error(`[ConnectWebsocket] [onClose] Failed to connect to CVR Websocket, attempted ${reconnectAttempts} times!`);
+                    EventEmitter.emit(SOCKET_EVENTS.DEAD);
+                    return;
                 }
                 log.info(`[ConnectWebsocket] [onClose] Reconnecting in 5 seconds... Attempt: ${reconnectAttempts + 1}`);
                 await Wait5Seconds();
                 reconnectAttempts++;
                 try {
+                    socket = null;
+                    disconnected = true;
                     await ConnectWebsocket(currentUsername, currentAccessKey);
                 }
                 catch (e) {
