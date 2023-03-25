@@ -198,7 +198,7 @@ class Core {
             await Config.ImportCVRCredentials();
             await this.SendToLoginPage();
         });
-        ipcMain.on('reconnect-web-socket',  (_event) => CVRWebsocket.Reconnect());
+        ipcMain.on('reconnect-web-socket',  (_event) => CVRWebsocket.Reconnect(true));
 
         // Moderation
         ipcMain.handle('block-user', (_event, userId) => CVRWebsocket.BlockUser(userId));
