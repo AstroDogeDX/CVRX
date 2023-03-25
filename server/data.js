@@ -192,7 +192,7 @@ class Core {
         ipcMain.handle('login-authenticate', async (_event, credentialUser, credentialSecret, isAccessKey, saveCredentials) => {
             return await this.Authenticate(credentialUser, credentialSecret, isAccessKey, saveCredentials);
         });
-        ipcMain.on('logout', async (_event) => await this.Disconnect());
+        ipcMain.on('logout', async (_event) => await this.Disconnect('The CVRX User is logging out...'));
         ipcMain.handle('delete-credentials', async (_event, username) => Config.ClearCredentials(username));
         ipcMain.handle('import-game-credentials', async (_event) => {
             await Config.ImportCVRCredentials();
@@ -227,11 +227,11 @@ class Core {
         this.mainWindow.webContents.send(channel, ...args);
     }
 
-    async Disconnect() {
+    async Disconnect(reason) {
 
         // Disable the websocket reconnection
         if (recurringIntervalId) clearInterval(recurringIntervalId);
-        await CVRWebsocket.DisconnectWebsocket();
+        await CVRWebsocket.DisconnectWebsocket(true, reason);
         await Config.ClearActiveCredentials();
         cache.Initialize(this.mainWindow);
 
@@ -636,8 +636,12 @@ class Core {
         }
         this.nextInstancesRefreshAvailableExecuteTime = currentTime + (60 * 1000);
 
-        this.UpdateUserStats().then();
-        this.ActiveInstancesUpdate(true, true).then();
+        Promise.allSettled([
+            this.UpdateUserStats(),
+            this.ActiveInstancesUpdate(true, true),
+        ]).then().catch(e => {
+            log.error('[RefreshInstancesManual] Failed API Requests...', e);
+        });
 
         return true;
     }

@@ -125,5 +125,5 @@ app.on('window-all-closed', () => app.quit());
 app.on('will-quit', async () => {
     // This won't be called if the application is quit by a Windows shutdown/logout/restart
     // On quitting let's close our socket if exist
-    await CVRWebsocket.DisconnectWebsocket();
+    await CVRWebsocket.DisconnectWebsocket(true, 'The CVRX Application is closing...');
 });

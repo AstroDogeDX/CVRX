@@ -51,8 +51,8 @@ function heartbeat(socket) {
     // The server will send a pong every 60 seconds, if there's no pong within 5 minutes let's nuke the socket
     clearTimeout(heartbeatTimeout);
     heartbeatTimeout = setTimeout(async () => {
-        log.warn(`[Heartbeat] {${socket.uniqueId}} timed out... Destroying socket!`);
-        exports.DisconnectWebsocket();
+        log.warn(`[Heartbeat] {${socket.uniqueId}} timed out... Closing socket...`);
+        exports.DisconnectWebsocket(false);
     }, missedPongsTimeout * heartbeatInterval);
 }
 
@@ -68,19 +68,24 @@ exports.ConnectWithCredentials = async (username, accessKey) => {
 
     // If we have a socket connected and the credentials changed, lets nuke it
     if ((username !== currentUsername || accessKey !== currentAccessKey) && previousSocket) {
-        await exports.DisconnectWebsocket();
+        await exports.DisconnectWebsocket(true, 'The CVRX User is changing...');
     }
 
-    // Clear previous connection stuff
-    clearTimeout(reconnectTimeoutId);
-    clearTimeout(heartbeatTimeout);
-    reconnectCounter = 0;
+    ResetReconnectionInfo();
 
     currentUsername = username;
     currentAccessKey = accessKey;
 
     await ConnectWebsocket(username, accessKey);
 };
+
+
+function ResetReconnectionInfo() {
+    // Clear previous connection stuff
+    clearTimeout(reconnectTimeoutId);
+    clearTimeout(heartbeatTimeout);
+    reconnectCounter = 0;
+}
 
 
 let reconnectCounter = 0;
@@ -99,9 +104,7 @@ exports.Reconnect = async (manualRetry = false) => {
         return;
     }
 
-    if (manualRetry) {
-        reconnectCounter = 0;
-    }
+    if (manualRetry) ResetReconnectionInfo();
 
     reconnectCounter += 1;
     if (reconnectCounter > MaxReconnectionAttempts) {
@@ -129,11 +132,15 @@ exports.Reconnect = async (manualRetry = false) => {
 };
 
 
-exports.DisconnectWebsocket = () => {
+exports.DisconnectWebsocket = (expectedClose = false, reason = '') => {
     if (previousSocket) {
-        previousSocket.close();
-        previousSocket.terminate();
-        log.info(`[DisconnectWebsocket] {${previousSocket.uniqueId}} The socket has been closed and destroyed!`);
+        if (expectedClose) {
+            previousSocket.close(1000, reason);
+        }
+        else {
+            previousSocket.close();
+        }
+        log.info(`[DisconnectWebsocket] {${previousSocket.uniqueId}} The close request was initiated...`);
     }
 };
 
@@ -197,6 +204,7 @@ function ConnectWebsocket(username, accessKey) {
         socket.on('close', async (code, reason) => {
             log.warn(`[ConnectWebsocket] [onClose] {${socket.uniqueId}} Closed! Code: ${code}, Reason: ${reason.toString()}`);
             previousSocket = null;
+
             // Only attempt to reconnect if the close code is one of the following:
             if (code === 1001 || code === 1005 || code === 1006) {
                 log.info('[ConnectWebsocket] [onClose] Attempting to reconnect in 5 seconds...');
