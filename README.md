@@ -2,20 +2,20 @@
 A standalone companion app for ChilloutVR that expands the user experience!
 
 ## Features
-* Friend status information updates **in REAL TIME!**
-* See all your content - avatars, worlds and props!
-* Navigate your friends list
-* See and respond to real time notifications
-* Built on Electron for multiplatform support
+* **Real Time** Friends List
+* **Live Instances** with Friend Count
+* See your **Friends, Avatars, Worlds & Props**
+* Get & Reply **Notifications** in Real Time
+* **Built on Electron** for Multiplatform Support
 
 ## Screenshots
 ![CVRX Getting Credentials](https://i.imgur.com/tSnPiKH.gif)
 ---
-![CVRX Logging In](https://i.imgur.com/iVYEbWF.gif)
+![CVRX Logging In](https://i.imgur.com/9uTEvbi.gif)
 ---
-![CVRX Home Page](https://i.imgur.com/1Wba6S3.png)
+![CVRX Home Page](https://i.imgur.com/gy3HQzN.png)
 ---
-![CVRX Search Feature](https://i.imgur.com/KHOeXuf.gif)
+![CVRX Search Feature](https://i.imgur.com/cKW1mJH.gif)
 
 ## Coming Soon™
 * Manage your friends and content in-app
