@@ -98,9 +98,20 @@ async function GetOrCreateJsonFile(folderPath, fileName, defaultObject = {}) {
     }
 
     // Get and parse the json file
-    const fileContents = await fs.promises.readFile(filePath, 'utf8');
-    const parsedFile = JSON.parse(fileContents);
-    return parsedFile.data;
+    try {
+        const fileContents = await fs.promises.readFile(filePath, 'utf8');
+        const parsedFile = JSON.parse(fileContents);
+        return parsedFile.data;
+    }
+    catch (err) {
+        // If we fail to read the config, let's reset the config file (needs improvement)
+        log.error('[GetOrCreateJsonFile] Failed to read the config file!', err.toString(), err.message?.toString());
+        log.info('[GetOrCreateJsonFile] Generating a new one, using the default config...');
+        await WriteToJsonFile(folderPath, fileName, defaultObject);
+        const fileContents = await fs.promises.readFile(filePath, 'utf8');
+        const parsedFile = JSON.parse(fileContents);
+        return parsedFile.data;
+    }
 }
 
 
