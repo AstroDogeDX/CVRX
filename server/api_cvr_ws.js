@@ -1,12 +1,20 @@
 const WebSocket = require('ws');
+
 const WebSocketAddress = 'wss://api.abinteractive.net/1/users/ws';
-// const WebSocketAddress = 'ws://localhost';
 
 const log = require('./logger').GetLogger('API_WS');
 
 const events = require('events');
-const { app, dialog } = require('electron');
 const utils = require('./utils');
+
+// // Test websocket server start
+// if (process.env.TEST_WS_SERVER === 'true' && !require('electron').app.isPackaged) {
+//     log.warn('Initializing testing websocket server...');
+//     require('./ws_fake.test');
+//     log.warn('Setting websocket url to localhost...');
+//     WebSocketAddress = 'ws://localhost';
+// }
+
 const EventEmitter = new events.EventEmitter();
 exports.EventEmitter = EventEmitter;
 
@@ -14,13 +22,13 @@ const MaxReconnectionAttempts = 5;
 
 let currentUsername;
 let currentAccessKey;
-let socket;
-let disconnected = true;
 
-let reconnectAttempts = 0;
+let previousSocket;
 
 const SOCKET_EVENTS = Object.freeze({
     CONNECTED: Symbol(),
+    DEAD: Symbol(),
+    RECONNECTION_FAILED: Symbol(),
 });
 exports.SocketEvents = SOCKET_EVENTS;
 
@@ -36,18 +44,34 @@ exports.ResponseType = RESPONSE_TYPE;
 const GetResponseTypeName = (value) => Object.keys(RESPONSE_TYPE).find(key => RESPONSE_TYPE[key] === value);
 
 
+const heartbeatInterval = 60 * 1000;
+const missedPongsTimeout = 5;
+let heartbeatTimeout;
+function heartbeat(socket) {
+    // The server will send a pong every 60 seconds, if there's no pong within 5 minutes let's nuke the socket
+    clearTimeout(heartbeatTimeout);
+    heartbeatTimeout = setTimeout(async () => {
+        log.warn(`[Heartbeat] {${socket.uniqueId}} timed out... Closing socket...`);
+        exports.DisconnectWebsocket(false);
+    }, missedPongsTimeout * heartbeatInterval);
+}
+
+
 function Wait5Seconds() {
     return new Promise((resolve) => {
         setTimeout(resolve, 5000);
     });
 }
 
+
 exports.ConnectWithCredentials = async (username, accessKey) => {
 
     // If we have a socket connected and the credentials changed, lets nuke it
-    if ((username !== currentUsername || accessKey !== currentAccessKey) && socket) {
-        await exports.DisconnectWebsocket();
+    if ((username !== currentUsername || accessKey !== currentAccessKey) && previousSocket) {
+        await exports.DisconnectWebsocket(true, 'The CVRX User is changing...');
     }
+
+    ResetReconnectionInfo();
 
     currentUsername = username;
     currentAccessKey = accessKey;
@@ -56,26 +80,88 @@ exports.ConnectWithCredentials = async (username, accessKey) => {
 };
 
 
-exports.DisconnectWebsocket = async () => {
-    disconnected = true;
-    if (socket) {
-        await socket.close();
-        socket = null;
-        log.info('[DisconnectWebsocket] The socket has been closed.');
+function ResetReconnectionInfo() {
+    // Clear previous connection stuff
+    clearTimeout(reconnectTimeoutId);
+    clearTimeout(heartbeatTimeout);
+    reconnectCounter = 0;
+}
+
+
+let reconnectCounter = 0;
+let reconnectTimeoutId;
+exports.Reconnect = async (manualRetry = false) => {
+
+    if (previousSocket && (previousSocket.readyState === WebSocket.OPEN || previousSocket.readyState === WebSocket.CONNECTING)) {
+        const msg = 'The socket is already connected or connecting...';
+        if (manualRetry) EventEmitter.emit(SOCKET_EVENTS.RECONNECTION_FAILED, msg);
+        return;
+    }
+
+    if (!currentUsername || !currentAccessKey) {
+        const msg = 'Missing current credentials... Close the CVRX and try again.';
+        if (manualRetry) EventEmitter.emit(SOCKET_EVENTS.RECONNECTION_FAILED, msg);
+        return;
+    }
+
+    if (manualRetry) ResetReconnectionInfo();
+
+    reconnectCounter += 1;
+    if (reconnectCounter > MaxReconnectionAttempts) {
+        log.error(`[Reconnect] Failed to connect to CVR Websocket, attempted ${reconnectCounter - 1}/${MaxReconnectionAttempts} times! Giving up...`);
+        EventEmitter.emit(SOCKET_EVENTS.DEAD);
+        return;
+    }
+    else {
+        log.warn(`[Reconnect] Attempting to connect to CVR Websocket, attempt: ${reconnectCounter}/${MaxReconnectionAttempts}`);
+    }
+
+    // If the last reconnection was 2 minutes ago, reset the reconnection counter
+    clearTimeout(reconnectTimeoutId);
+    reconnectTimeoutId = setTimeout(() => {
+        reconnectCounter = 0;
+    }, 2 * 60 * 1000);
+
+    try {
+        await ConnectWebsocket(currentUsername, currentAccessKey);
+    }
+    catch (e) {
+        log.error('[Reconnect] Error connecting to the Websocket...', e.toString(), e.message.toString());
+        EventEmitter.emit(SOCKET_EVENTS.DEAD);
     }
 };
 
 
+exports.DisconnectWebsocket = (expectedClose = false, reason = '') => {
+    if (previousSocket) {
+        if (expectedClose) {
+            previousSocket.close(1000, reason);
+        }
+        else {
+            previousSocket.close();
+        }
+        log.info(`[DisconnectWebsocket] {${previousSocket.uniqueId}} The close request was initiated...`);
+    }
+};
+
+
+let socketIdGenerator = 0;
 function ConnectWebsocket(username, accessKey) {
 
     return new Promise((resolve, _reject) => {
 
-        if (socket) {
-            log.error('[ConnectWebsocket] The socket was already connected!');
-            resolve();
+        if (previousSocket) {
+            if (previousSocket.readyState === WebSocket.OPEN || previousSocket.readyState === WebSocket.CONNECTING) {
+                log.error(`[ConnectWebsocket] {${previousSocket.uniqueId}} The previous socket is still connected/connecting. readyState: ${previousSocket.readyState}`);
+                resolve();
+                return;
+            }
+            if (previousSocket.readyState === WebSocket.CLOSING || previousSocket.readyState === WebSocket.CLOSED) {
+                log.warn(`[ConnectWebsocket] {${previousSocket.uniqueId}} There was a previous socket, but it was closed/closing. readyState: ${previousSocket.readyState}`);
+            }
         }
 
-        socket = new WebSocket(WebSocketAddress, {
+        const socket = new WebSocket(WebSocketAddress, {
             perMessageDeflate: false,
             headers: {
                 'Username': username,
@@ -84,61 +170,46 @@ function ConnectWebsocket(username, accessKey) {
             },
         });
 
+        socket.uniqueId = socketIdGenerator++;
+        previousSocket = socket;
+
         socket.on('error', async (error) => {
-            log.error('[ConnectWebsocket] [onError]', error);
+            log.error(`[ConnectWebsocket] [onError] {${socket.uniqueId}}`, error);
         });
 
         socket.on('open', () => {
-            log.info('[ConnectWebsocket] [onOpen] Opened!');
-            disconnected = false;
-            reconnectAttempts = 0;
+            log.info(`[ConnectWebsocket] [onOpen] {${socket.uniqueId}} Opened!`);
             EventEmitter.emit(SOCKET_EVENTS.CONNECTED);
+            heartbeat(socket);
             resolve();
         });
 
         socket.on('ping', (data) => {
-            log.verbose('[ConnectWebsocket] [onPing] Received Ping', data.toString());
+            log.verbose(`[ConnectWebsocket] [onPing] {${socket.uniqueId}} Received Ping`, data.toString());
         });
         socket.on('pong', (data) => {
-            log.verbose('[ConnectWebsocket] [onPong] Received Pong', data.toString());
+            heartbeat(socket);
+            log.verbose(`[ConnectWebsocket] [onPong] {${socket.uniqueId}} Received Pong`, data.toString());
         });
         socket.on('redirect', (url, _request) => {
-            log.verbose(`[ConnectWebsocket] [onRedirect] Received Redirect Request: ${url}`);
+            log.verbose(`[ConnectWebsocket] [onRedirect] {${socket.uniqueId}} Received Redirect Request: ${url}`);
         });
         socket.on('unexpected-response', (request, response) => {
-            log.debug(`[ConnectWebsocket] [onUnexpectedResponse] Unexpected Response! Request Code: ${request.code}, Response Code: ${response.code}`);
+            log.debug(`[ConnectWebsocket] [onUnexpectedResponse] {${socket.uniqueId}} Unexpected Response! Request Code: ${request.code}, Response Code: ${response.code}`);
         });
         socket.on('upgrade', (response) => {
-            log.verbose(`[ConnectWebsocket] [onUpgrade] Upgrade: Response Code: ${response.code}`);
+            log.verbose(`[ConnectWebsocket] [onUpgrade] {${socket.uniqueId}} Upgrade: Response Code: ${response.code}`);
         });
 
         socket.on('close', async (code, reason) => {
-            log.warn(`[ConnectWebsocket] [onClose] Closed! Code: ${code}, Reason: ${reason.toString()}`);
-            socket = null;
-            // Only reconnect if we didn't disconnect ourselves and the close code is one of the following:
-            if (!disconnected && (code === 1001 || code === 1005 || code === 1006)) {
-                if (reconnectAttempts >= MaxReconnectionAttempts) {
-                    try {
-                        await dialog.showErrorBox(
-                            'Failed to reconnect to CVR Servers...',
-                            'Our 5 attempts to connect/reconnect to CVR Socket failed. The app will close!',
-                        );
-                    }
-                    catch (e) {
-                        log.error(e);
-                    }
-                    app.quit();
-                    throw new Error('[ConnectWebsocket] [onClose] Failed to connect to CVR Websocket, attempted 5 times!');
-                }
-                log.info(`[ConnectWebsocket] [onClose] Reconnecting in 5 seconds... Attempt: ${reconnectAttempts + 1}`);
+            log.warn(`[ConnectWebsocket] [onClose] {${socket.uniqueId}} Closed! Code: ${code}, Reason: ${reason.toString()}`);
+            previousSocket = null;
+
+            // Only attempt to reconnect if the close code is one of the following:
+            if (code === 1001 || code === 1005 || code === 1006) {
+                log.info('[ConnectWebsocket] [onClose] Attempting to reconnect in 5 seconds...');
                 await Wait5Seconds();
-                reconnectAttempts++;
-                try {
-                    await ConnectWebsocket(currentUsername, currentAccessKey);
-                }
-                catch (e) {
-                    log.error(e);
-                }
+                await exports.Reconnect();
             }
         });
 
@@ -146,7 +217,7 @@ function ConnectWebsocket(username, accessKey) {
 
             // Ignore binary messages, but log them
             if (isBinary) {
-                log.warn('[ConnectWebsocket] [onMessage] Received Message in binary...', messageBuffer?.toString());
+                log.warn(`[ConnectWebsocket] [onMessage] {${socket.uniqueId}} Received Message in binary...`, messageBuffer?.toString());
                 return;
             }
 
@@ -155,14 +226,14 @@ function ConnectWebsocket(username, accessKey) {
                 const { responseType, message, data } = JSON.parse(messageBuffer.toString());
                 if (Object.values(RESPONSE_TYPE).includes(responseType)) {
                     EventEmitter.emit(responseType, data, message);
-                    log.debug(`[ConnectWebsocket] [onMessage] Type: ${GetResponseTypeName(responseType)} (${responseType}), Msg: ${message}`, data);
+                    log.debug(`[ConnectWebsocket] [onMessage] {${socket.uniqueId}} Type: ${GetResponseTypeName(responseType)} (${responseType}), Msg: ${message}`, data);
                 }
                 else {
-                    log.warn(`[ConnectWebsocket] [onMessage] Response type ${responseType} is not mapped! Msg: ${message}`, data);
+                    log.warn(`[ConnectWebsocket] [onMessage] {${socket.uniqueId}} Response type ${responseType} is not mapped! Msg: ${message}`, data);
                 }
             } catch (e) {
                 log.error(e);
-                log.error('[ConnectWebsocket] [onMessage] Failed to parse the base message. This could mean the API changed...', messageBuffer?.toString());
+                log.error(`[ConnectWebsocket] [onMessage] {${socket.uniqueId}} Failed to parse the base message. This could mean the API changed...`, messageBuffer?.toString());
             }
         });
     });
@@ -178,24 +249,24 @@ const RequestType = Object.freeze({
 });
 const GetRequestName = (value) => Object.keys(RequestType).find(key => RequestType[key] === value);
 
-async function SendRequest(requestType, data) {
-    if (!socket) {
-        log.error(`[SendRequest] Attempted to send a ${GetRequestName(requestType)} request while the socket was disconnected!`);
+function SendRequest(requestType, data) {
+    if (!previousSocket || previousSocket.readyState !== WebSocket.OPEN) {
+        log.error(`[SendRequest] Attempted to send a ${GetRequestName(requestType)} request while the socket was not Opened! readyState: ${previousSocket.readyState}`);
         return;
     }
     // Prepare the request json and send
-    await socket.send(JSON.stringify({
+    previousSocket.send(JSON.stringify({
         RequestType: requestType,
         Data: data,
     }));
 }
 
 // Friendship
-exports.SendFriendRequest = async (userId) => await SendRequest(RequestType.FRIEND_REQUEST_SEND, {id: userId});
-exports.AcceptFriendRequest = async (userId) => await SendRequest(RequestType.FRIEND_REQUEST_ACCEPT, {id: userId});
-exports.DeclineFriendRequest = async (userId) => await SendRequest(RequestType.FRIEND_REQUEST_DECLINE, {id: userId});
-exports.Unfriend = async (userId) => await SendRequest(RequestType.UNFRIEND, {id: userId});
+exports.SendFriendRequest = async (userId) => SendRequest(RequestType.FRIEND_REQUEST_SEND, {id: userId});
+exports.AcceptFriendRequest = async (userId) => SendRequest(RequestType.FRIEND_REQUEST_ACCEPT, {id: userId});
+exports.DeclineFriendRequest = async (userId) => SendRequest(RequestType.FRIEND_REQUEST_DECLINE, {id: userId});
+exports.Unfriend = async (userId) => SendRequest(RequestType.UNFRIEND, {id: userId});
 
 // Moderation
-exports.BlockUser = async (userId) => await SendRequest(RequestType.BLOCK_USER, {id: userId});
-exports.UnblockUser = async (userId) => await SendRequest(RequestType.UNBLOCK_USER, {id: userId});
+exports.BlockUser = async (userId) => SendRequest(RequestType.BLOCK_USER, {id: userId});
+exports.UnblockUser = async (userId) => SendRequest(RequestType.UNBLOCK_USER, {id: userId});

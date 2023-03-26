@@ -6,6 +6,12 @@
     },
     "extends": "eslint:recommended",
     "overrides": [
+        {
+            "files": ["server/**/*.js"],
+            "parserOptions": {
+                "sourceType": "script"
+            }
+        }
     ],
     "parserOptions": {
         "ecmaVersion": "latest",

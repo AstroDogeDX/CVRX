@@ -27,36 +27,6 @@ const Cache = require('./cache');
 const Updater = require('./updater');
 
 
-// // Test server
-// const WebSocket = require('ws');
-// function ConnectTest() {
-//     let connected = false;
-//     let nuked = false;
-//     const wss = new WebSocket.WebSocketServer({ port: 80 });
-//     wss.on('connection', (ws, request) => {
-//         connected = true;
-//         ws.on('error', (err) => log.error('[TestServer] [onError]', err));
-//         ws.on('message', (data) => {
-//             log.info('[TestServer] Received:', data);
-//         });
-//         ws.send(JSON.stringify( { responseType: -1, message: 'You have connected!', data: null }));
-//         log.info('[TestServer] Headers:', request.headers);
-//         // ipcMain.on('close-socket-server', (_event, closeId, closeServer = null) => {
-//         //     if (nuked) return;
-//         //     ws.close(closeId, 'test close');
-//         //     if (closeServer === true && connected) {
-//         //         wss.close();
-//         //         connected = false;
-//         //     }
-//         //     else if(closeServer === false && !connected) {
-//         //         nuked = true;
-//         //         ConnectTest();
-//         //     }
-//         // });
-//     });
-// }
-// ConnectTest();
-
 // Remove the menu when the app is packaged
 if (app.isPackaged) Menu.setApplicationMenu(null);
 
@@ -155,5 +125,5 @@ app.on('window-all-closed', () => app.quit());
 app.on('will-quit', async () => {
     // This won't be called if the application is quit by a Windows shutdown/logout/restart
     // On quitting let's close our socket if exist
-    await CVRWebsocket.DisconnectWebsocket();
+    await CVRWebsocket.DisconnectWebsocket(true, 'The CVRX Application is closing...');
 });

@@ -192,21 +192,22 @@ class Core {
         ipcMain.handle('login-authenticate', async (_event, credentialUser, credentialSecret, isAccessKey, saveCredentials) => {
             return await this.Authenticate(credentialUser, credentialSecret, isAccessKey, saveCredentials);
         });
-        ipcMain.on('logout', async (_event) => await this.Disconnect());
+        ipcMain.on('logout', async (_event) => await this.Disconnect('The CVRX User is logging out...'));
         ipcMain.handle('delete-credentials', async (_event, username) => Config.ClearCredentials(username));
         ipcMain.handle('import-game-credentials', async (_event) => {
             await Config.ImportCVRCredentials();
             await this.SendToLoginPage();
         });
+        ipcMain.on('reconnect-web-socket',  (_event) => CVRWebsocket.Reconnect(true));
 
         // Moderation
         ipcMain.handle('block-user', (_event, userId) => CVRWebsocket.BlockUser(userId));
         ipcMain.handle('unblock-user', (_event, userId) => CVRWebsocket.UnblockUser(userId));
 
         // Socket Events
-        CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.CONNECTED, () => {
-            this.recentActivityInitialFriends = true;
-        });
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.CONNECTED, () => this.recentActivityInitialFriends = true);
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.DEAD, () => this.SendToRenderer('socket-died'));
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.RECONNECTION_FAILED, (msg) => this.SendToRenderer('notification', msg, ToastTypes.BAD));
 
         // Setup Handlers for the websocket
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, (friendsInfo) => this.FriendsUpdate(false, friendsInfo));
@@ -226,11 +227,11 @@ class Core {
         this.mainWindow.webContents.send(channel, ...args);
     }
 
-    async Disconnect() {
+    async Disconnect(reason) {
 
         // Disable the websocket reconnection
         if (recurringIntervalId) clearInterval(recurringIntervalId);
-        await CVRWebsocket.DisconnectWebsocket();
+        await CVRWebsocket.DisconnectWebsocket(true, reason);
         await Config.ClearActiveCredentials();
         cache.Initialize(this.mainWindow);
 
@@ -635,8 +636,12 @@ class Core {
         }
         this.nextInstancesRefreshAvailableExecuteTime = currentTime + (60 * 1000);
 
-        this.UpdateUserStats().then();
-        this.ActiveInstancesUpdate(true, true).then();
+        Promise.allSettled([
+            this.UpdateUserStats(),
+            this.ActiveInstancesUpdate(true, true),
+        ]).then().catch(e => {
+            log.error('[RefreshInstancesManual] Failed API Requests...', e);
+        });
 
         return true;
     }
