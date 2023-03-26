@@ -1,7 +1,7 @@
 {
   "name": "cvrx",
   "productName": "CVRX",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "A friend/world/avatar/prop management app extension to ChilloutVR.",
   "main": "server/main.js",
   "scripts": {
