@@ -118,8 +118,6 @@ exports.CheckLatestRelease = async (mainWindow, bypassIgnores = false) => {
             const dialogResponse = await dialog.showMessageBox(mainWindow, options);
             if (dialogResponse.response === 0) {
                 await DownloadFile(asset.browser_download_url, asset.name);
-                // Clear ignore version setting
-                await Config.SetUpdaterIgnoreVersion(null);
             }
             if (dialogResponse.response === 1) {
                 // Clear ignore version setting
