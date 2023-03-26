@@ -90,6 +90,10 @@ contextBridge.exposeInMainWorld('API', {
     onUpdateAvailable: (callback) => ipcRenderer.on('update-available', callback),
     updateAction: (updateAction) => ipcRenderer.send('update-action', updateAction),
 
+    // Websocket
+    reconnectWebSocket: () => ipcRenderer.send('reconnect-web-socket'),
+    onSocketDied: (callback) => ipcRenderer.on('socket-died', callback),
+
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),
 });
