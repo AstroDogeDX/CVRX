@@ -448,9 +448,9 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
         for (const key in categories) {
             const category = categories[key];
             if (category.children.length) {
-              friendsBarNode.appendChild(category);
+                friendsBarNode.appendChild(category);
             }
-          }
+        }
 
         // Setting up the HTMLElement used for the Friends List page.
         let listFriendNode = document.createElement('div');
