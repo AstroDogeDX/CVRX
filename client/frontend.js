@@ -377,6 +377,8 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     const friendsBarNode = document.querySelector('.friends-sidebar-container');
     const friendsListNode = document.querySelector('.friends-wrapper');
 
+    let totalFriends = 0;
+
     // Friends Sidebar Categories
     const categories = {
         public: null,
@@ -399,7 +401,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
         'Friends of Friends': 'friendsOfFriends',
         'Friends Only': 'friendsOnly',
         'Anyone Can Invite': 'anyoneCanInvite',
-        'Owner Must Invite': 'ownerOnlyInvite',
+        'Owner must Invite': 'ownerOnlyInvite',
         'Private Instance': 'privateInstance',
         'Offline Instance': 'offlineInstance',
     };
@@ -418,6 +420,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
 
         // Setting up the HTMLElement used for the Online Friends panel.
         if (friend.isOnline) {
+            totalFriends = totalFriends + 1;
             let onlineFriendNode = document.createElement('div');
             onlineFriendNode.onclick = () => ShowDetails(DetailsType.User, friend.id);
             onlineFriendNode.setAttribute('class', 'friends-sidebar--online-friend-node');
@@ -519,7 +522,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     // ]
 
     // Update the Total Friend Counter :)
-    document.querySelector('#friend-count').textContent = friendsBarNode.children.length;
+    document.querySelector('#friend-count').textContent = totalFriends;
 });
 
 // returns .imageBase64, .imageHash, .imageUrl
