@@ -27,7 +27,7 @@ const GetPrivacyLevelName = (privacyLevel) => {
     switch (privacyLevel) {
         case PrivacyLevel.Public: return 'Public';
         case PrivacyLevel.FriendsOfFriends: return 'Friends of Friends';
-        case PrivacyLevel.Friends: return 'Friends';
+        case PrivacyLevel.Friends: return 'Friends Only';
         case PrivacyLevel.Group: return 'Group';
         case PrivacyLevel.EveryoneCanInvite: return 'Everyone Can Invite';
         case PrivacyLevel.OwnerMustInvite: return 'Owner Must Invite';
