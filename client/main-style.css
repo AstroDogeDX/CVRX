@@ -955,6 +955,10 @@ button {
     font-size: 18px;
 }
 
+.friend-sidebar-category-group {
+    margin-bottom: 5px;
+}
+
 .friends-sidebar-container {
     width: calc(100% - 10px);
     height: 100%;

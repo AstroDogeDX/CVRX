@@ -393,6 +393,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     // Prep by assigning nodes to the categories
     for (const key in categories) {
         categories[key] = document.createElement('div');
+        categories[key].classList.add('friend-sidebar-category-group');
     }
 
     // Instance type to category map
@@ -400,7 +401,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
         'Public': 'public',
         'Friends of Friends': 'friendsOfFriends',
         'Friends Only': 'friendsOnly',
-        'Anyone Can Invite': 'anyoneCanInvite',
+        'Everyone can Invite': 'anyoneCanInvite',
         'Owner must Invite': 'ownerOnlyInvite',
         'Private Instance': 'privateInstance',
         'Offline Instance': 'offlineInstance',
