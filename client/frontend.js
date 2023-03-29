@@ -155,6 +155,13 @@ function createElementWithId(type, id) {
     return element;
 }
 
+function createFriendsListCategory(title) {
+    const element = document.createElement('p');
+    element.classList.add('friend-sidebar-header');
+    element.textContent = title;
+    return element;
+}
+
 // Temporary reconnect prompt - will be expanded with a proper library later.
 function promptReconnect() {
     let promptShade = document.querySelector('.prompt-layer');
@@ -370,6 +377,33 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     const friendsBarNode = document.querySelector('.friends-sidebar-container');
     const friendsListNode = document.querySelector('.friends-wrapper');
 
+    // Friends Sidebar Categories
+    const categories = {
+        public: null,
+        friendsOfFriends: null,
+        friendsOnly: null,
+        anyoneCanInvite: null,
+        ownerOnlyInvite: null,
+        privateInstance: null,
+        offlineInstance: null,
+    };
+
+    // Prep by assigning nodes to the categories
+    for (const key in categories) {
+        categories[key] = document.createElement('div');
+    }
+
+    // Instance type to category map
+    const instanceTypeToCategoryKey = {
+        'Public': 'public',
+        'Friends of Friends': 'friendsOfFriends',
+        'Friends Only': 'friendsOnly',
+        'Anyone Can Invite': 'anyoneCanInvite',
+        'Owner Must Invite': 'ownerOnlyInvite',
+        'Private Instance': 'privateInstance',
+        'Offline Instance': 'offlineInstance',
+    };
+
     // Clear all children (this event sends all friends, we so can empty our previous state)
     friendsBarNode.replaceChildren();
     friendsListNode.replaceChildren();
@@ -392,8 +426,31 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
                 <p class="online-friend-node--name">${friend.name}</p>
                 <p class="online-friend-node--status ${onlineFriendInPrivateClass}">${instanceTypeStr}</p>
                 <p class="online-friend-node--world">${name}</p>`;
-            friendsBarNode.appendChild(onlineFriendNode);
+
+            // Get category from map
+            const categoryKey = instanceTypeToCategoryKey[instanceTypeStr];
+
+            // Populate category with friend
+            if (categoryKey) {
+                const category = categories[categoryKey];
+
+                // If the category is empty, start by giving it its title
+                if (!category.children.length) {
+                    category.appendChild(createFriendsListCategory(instanceTypeStr));
+                }
+                category.appendChild(onlineFriendNode);
+            } else {
+                friendsBarNode.appendChild(onlineFriendNode);
+            }
         }
+
+        // After getting all friends statuses, populate the Friends Sidebar in order of Categories
+        for (const key in categories) {
+            const category = categories[key];
+            if (category.children.length) {
+              friendsBarNode.appendChild(category);
+            }
+          }
 
         // Setting up the HTMLElement used for the Friends List page.
         let listFriendNode = document.createElement('div');

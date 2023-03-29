@@ -547,16 +547,16 @@ button {
 
 .search-result-type {
     font-size: small;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
     text-transform: capitalize;
 }
 
-.search-output--users > .search-output--node:hover, 
-.search-output--users > .search-output--node:hover .search-result-name {
+.search-output--users>.search-output--node:hover,
+.search-output--users>.search-output--node:hover .search-result-name {
     cursor: pointer;
 }
 
-.search-output--users > .search-output--node:hover .search-result-name {
+.search-output--users>.search-output--node:hover .search-result-name {
     text-decoration: underline;
 }
 
@@ -939,6 +939,15 @@ button {
     justify-content: center;
     align-items: center;
     gap: 5px;
+}
+
+.friend-sidebar-header {
+    font-style: italic;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: left;
+    width: 100%;
 }
 
 .friend-sidebar-count-icon {
@@ -1571,7 +1580,7 @@ button {
     position: fixed;
     left: 0;
     top: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.5);
     pointer-events: initial;
     flex-flow: row nowrap;
     justify-content: center;
