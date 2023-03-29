@@ -448,14 +448,6 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
             }
         }
 
-        // After getting all friends statuses, populate the Friends Sidebar in order of Categories
-        for (const key in categories) {
-            const category = categories[key];
-            if (category.children.length) {
-                friendsBarNode.appendChild(category);
-            }
-        }
-
         // Setting up the HTMLElement used for the Friends List page.
         let listFriendNode = document.createElement('div');
         const offlineFriendClass = friend.isOnline ? '' : 'friend-is-offline';
@@ -521,6 +513,16 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     //         imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
     //     }
     // ]
+
+    // After getting all friends statuses, populate the Friends Sidebar in order of Categories
+    for (const key in categories) {
+        const category = categories[key];
+        if (category.children.length) {
+            let categoryName = category.querySelector('p').textContent;
+            category.querySelector('p').textContent = `${categoryName} - ${category.children.length - 1}`;
+            friendsBarNode.appendChild(category);
+        }
+    }
 
     // Update the Total Friend Counter :)
     document.querySelector('#friend-count').textContent = totalFriends;
