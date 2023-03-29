@@ -932,6 +932,19 @@ button {
     color: rgba(255, 255, 255, 0.1);
 }
 
+.friend-sidebar-count {
+    font-size: 12px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.friend-sidebar-count-icon {
+    font-size: 18px;
+}
+
 .friends-sidebar-container {
     width: calc(100% - 10px);
     height: 100%;

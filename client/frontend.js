@@ -460,6 +460,9 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     //         imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
     //     }
     // ]
+
+    // Update the Total Friend Counter :)
+    document.querySelector('#friend-count').textContent = friendsBarNode.children.length;
 });
 
 // returns .imageBase64, .imageHash, .imageUrl
