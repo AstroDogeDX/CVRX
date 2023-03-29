@@ -948,7 +948,6 @@ button {
     color: rgba(255, 255, 255, 0.5);
     text-align: left;
     width: 100%;
-    margin-bottom: 5px;
 }
 
 .friend-sidebar-count-icon {
@@ -956,6 +955,9 @@ button {
 }
 
 .friend-sidebar-category-group {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 2.5px;
     margin-bottom: 5px;
 }
 
