@@ -29,8 +29,8 @@ const GetPrivacyLevelName = (privacyLevel) => {
         case PrivacyLevel.FriendsOfFriends: return 'Friends of Friends';
         case PrivacyLevel.Friends: return 'Friends';
         case PrivacyLevel.Group: return 'Group';
-        case PrivacyLevel.EveryoneCanInvite: return 'Everyone can Invite';
-        case PrivacyLevel.OwnerMustInvite: return 'Owner must Invite';
+        case PrivacyLevel.EveryoneCanInvite: return 'Everyone Can Invite';
+        case PrivacyLevel.OwnerMustInvite: return 'Owner Must Invite';
         default: return 'Unknown';
     }
 };
@@ -401,8 +401,8 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
         'Public': 'public',
         'Friends of Friends': 'friendsOfFriends',
         'Friends Only': 'friendsOnly',
-        'Everyone can Invite': 'anyoneCanInvite',
-        'Owner must Invite': 'ownerOnlyInvite',
+        'Everyone Can Invite': 'anyoneCanInvite',
+        'Owner Must Invite': 'ownerOnlyInvite',
         'Private Instance': 'privateInstance',
         'Offline Instance': 'offlineInstance',
     };
