@@ -948,6 +948,7 @@ button {
     color: rgba(255, 255, 255, 0.5);
     text-align: left;
     width: 100%;
+    margin-bottom: 5px;
 }
 
 .friend-sidebar-count-icon {
@@ -976,7 +977,7 @@ button {
     content: 'No Friends Online :(';
 }
 
-.friends-sidebar-container :is(.friends-sidebar--online-friend-node):nth-child(odd) {
+.friends-sidebar-container :is(.friends-sidebar--online-friend-node):nth-child(even) {
     background: rgba(255, 255, 255, 0.1);
 }
 
