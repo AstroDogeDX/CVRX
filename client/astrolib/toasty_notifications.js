@@ -1,23 +1,18 @@
 const overlay = document.querySelector('.toast-notification');
 
-function pushToast(text, type) {
-    let newToast = document.createElement('div');
-    let toastType = type ? type : 'none';
-    let toastText = text ? text : 'error: no toast message!';
+function pushToast(text, type = 'none') {
+    const newToast = document.createElement('div');
+    const toastText = text || 'error: no toast message!';
+    const toastClassMap = {
+        'confirm': 'toast-confirm',
+        'error': 'toast-error',
+        'info': 'toast-info'
+    };
+
     newToast.textContent = toastText;
     newToast.classList.add('toast');
-    switch (toastType) {
-        case 'confirm':
-            newToast.classList.add('toast-confirm');
-            break;
-        case 'error':
-            newToast.classList.add('toast-error');
-            break;
-        case 'info':
-            newToast.classList.add('toast-info');
-            break;
-        default:
-        // Do nothing
+    if (toastClassMap[type]) {
+        newToast.classList.add(toastClassMap[type]);
     }
     overlay.append(newToast);
     setTimeout(removeToast, 2500, newToast);
@@ -31,3 +26,4 @@ function removeToast(newToast) {
 }
 
 export { pushToast };
+
