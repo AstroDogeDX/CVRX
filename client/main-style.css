@@ -939,6 +939,7 @@ button {
     justify-content: center;
     align-items: center;
     gap: 5px;
+    cursor: help;
 }
 
 .friend-sidebar-header {
