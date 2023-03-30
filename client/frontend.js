@@ -202,8 +202,7 @@ window.API.onLoginPage((_event, availableCredentials) => {
     const newNodes = [];
 
     for (const availableCredential of availableCredentials) {
-        const credentialNode = document.createElement('div');
-        credentialNode.setAttribute('class', 'login-credential-node');
+        const credentialNode = createElementWithClass('div', 'login-credential-node');
         credentialNode.innerHTML = `
             <img src="img/ui/placeholder.png" data-hash="${availableCredential.imageHash}"/>
             <p class="login-credential-node--name">${availableCredential.Username}</p>`;
@@ -213,9 +212,8 @@ window.API.onLoginPage((_event, availableCredentials) => {
             document.querySelector('.loading-shade').style.display = 'flex';
             await window.API.authenticate(availableCredential.Username, availableCredential.AccessKey, true, true);
         });
-        const deleteCredentialButton = document.createElement('button');
+        const deleteCredentialButton = createElementWithClass('div', 'login-credential-node--delete');
         deleteCredentialButton.append('✖');
-        deleteCredentialButton.setAttribute('class', 'login-credential-node--delete');
         deleteCredentialButton.addEventListener('click', (event) => {
             event.stopPropagation();
             deleteCredentialButton.disabled = true;
@@ -392,8 +390,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
 
     // Prep by assigning nodes to the categories
     for (const key in categories) {
-        categories[key] = document.createElement('div');
-        categories[key].classList.add('friend-sidebar-category-group');
+        categories[key] = createElementWithClass('div', 'friend-sidebar-category-group');
     }
 
     // Instance type to category map
@@ -422,9 +419,8 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
         // Setting up the HTMLElement used for the Online Friends panel.
         if (friend.isOnline) {
             totalFriends = totalFriends + 1;
-            let onlineFriendNode = document.createElement('div');
+            let onlineFriendNode = createElementWithClass('div', 'friends-sidebar--online-friend-node');
             onlineFriendNode.onclick = () => ShowDetails(DetailsType.User, friend.id);
-            onlineFriendNode.setAttribute('class', 'friends-sidebar--online-friend-node');
             onlineFriendNode.innerHTML = `
                 <img class="online-friend-node--image" src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
                 <p class="online-friend-node--name">${friend.name}</p>
@@ -449,11 +445,10 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
         }
 
         // Setting up the HTMLElement used for the Friends List page.
-        let listFriendNode = document.createElement('div');
+        let listFriendNode = createElementWithClass('div', 'friend-list-node');
         const offlineFriendClass = friend.isOnline ? '' : 'friend-is-offline';
         const imgOnlineClass = friend.isOnline ? 'class="icon-is-online"' : '';
         listFriendNode.onclick = () => ShowDetails(DetailsType.User, friend.id);
-        listFriendNode.setAttribute('class', 'friend-list-node');
         listFriendNode.innerHTML = `
             <img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
             <p class="friend-name">${friend.name}</p>
@@ -577,8 +572,7 @@ searchBar.addEventListener('keypress', async (event) => {
 
     // Create the search result elements
     for (const result of results) {
-        let searchResult = document.createElement('div');
-        searchResult.setAttribute('class', 'search-output--node');
+        let searchResult = createElementWithClass('div', 'search-output--node');
         searchResult.innerHTML = `
             <img src="img/ui/placeholder.png" data-hash="${result.imageHash}"/>
             <p class="search-result-name">${result.name}</p>
@@ -709,9 +703,8 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
         let friendCount = 0;
         for (const member of result.members) {
             let userIconSource = member?.imageBase64 ?? 'img/ui/placeholder.png';
-            let userIcon = document.createElement('img');
+            let userIcon = createElementWithClass('img', 'active-instance-node--user-icon');
             userIcon.onclick = () => ShowDetails(DetailsType.User, member.id);
-            userIcon.setAttribute('class', 'active-instance-node--user-icon');
             userIcon.src = userIconSource;
             userIcon.dataset.hash = member.imageHash;
             userIcon.dataset.tooltip = member.name;
@@ -732,12 +725,10 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
 
         let friendDisplay = friendCount ? `<span class="material-symbols-outlined">groups</span>${friendCount}` : '';
 
-        const activeWorldUserIconWrapper = document.createElement('div');
-        activeWorldUserIconWrapper.classList.add('active-instance-node--user-icon-wrapper');
+        const activeWorldUserIconWrapper = createElementWithClass('div', 'active-instance-node--user-icon-wrapper');
         activeWorldUserIconWrapper.append(...elementsOfMembers);
 
-        let activeWorldNode = document.createElement('div');
-        activeWorldNode.setAttribute('class', 'active-instance-node');
+        let activeWorldNode = createElementWithClass('div', 'active-instance-node');
         activeWorldNode.innerHTML = `
             <img class="active-instance-node--icon" src="${worldImageSource}" data-hash="${result.world.imageHash}"/>
             <p class="active-instance-node--name">${instanceName}</p>
@@ -786,19 +777,16 @@ window.API.onInvites((_event, invites) => {
     // Create the search result elements
     for (const invite of invites) {
 
-        const userImageNode = document.createElement('img');
-        userImageNode.classList.add('home-requests--invite--user-img');
+        const userImageNode = createElementWithClass('img', 'home-requests--invite--user-img');
         userImageNode.src = 'img/ui/placeholder.png';
         userImageNode.dataset.hash = invite.user.imageHash;
         userImageNode.onclick = () => ShowDetails(DetailsType.User, invite.user.id);
 
-        const userNameNode = document.createElement('p');
-        userNameNode.classList.add('home-requests--invite--user-name');
+        const userNameNode = createElementWithClass('p', 'home-requests--invite--user-name');
         userNameNode.innerHTML = `<strong>${invite.user.name}</strong>`;
         userNameNode.onclick = () => ShowDetails(DetailsType.User, invite.user.id);
 
-        const inviteNode = document.createElement('div');
-        inviteNode.setAttribute('class', 'home-requests--invite-node');
+        const inviteNode = createElementWithClass('div', 'home-requests--invite-node');
         inviteNode.innerHTML = `
         <small>has invited you to...</p></small>
         <img class="home-requests--invite--world-img" src="img/ui/placeholder.png" data-hash="${invite.world.imageHash}"/>
@@ -832,14 +820,12 @@ window.API.onInviteRequests((_event, requestInvites) => {
     // Create the search result elements
     for (const requestInvite of requestInvites) {
 
-        const userImageNode = document.createElement('img');
-        userImageNode.classList.add('home-requests--invite-request--user-img');
+        const userImageNode = createElementWithClass('img', 'home-requests--invite-request--user-img');
         userImageNode.src = 'img/ui/placeholder.png';
         userImageNode.dataset.hash = requestInvite.sender.imageHash;
         userImageNode.onclick = () => ShowDetails(DetailsType.User, requestInvite.sender.id);
 
-        let requestInviteNode = document.createElement('div');
-        requestInviteNode.setAttribute('class', 'home-requests--invite-request-node');
+        let requestInviteNode = createElementWithClass('div', 'home-requests--invite-request-node');
         requestInviteNode.innerHTML = `
         <p class="home-requests--invite-request--user-name"><strong>${requestInvite.sender.name}</strong><small>wants to join you.</small></p>
         <p class="home-requests--invite-request--label"><small class="friend-is-offline">Accept In Game</small></p>`;
@@ -869,39 +855,32 @@ window.API.onFriendRequests((_event, friendRequests) => {
     for (const friendRequest of friendRequests) {
 
         // Create friendRequest Node element
-        let friendRequestNode = document.createElement('div');
-        friendRequestNode.setAttribute('class', 'home-requests--friend-request-node');
+        let friendRequestNode = createElementWithClass('div', 'home-requests--friend-request-node');
 
-        const userImageNode = document.createElement('img');
-        userImageNode.classList.add('home-requests--friend-request--user-img');
+        const userImageNode = createElementWithClass('img', 'home-requests--friend-request--user-img');
         userImageNode.src = 'img/ui/placeholder.png';
         userImageNode.dataset.hash = friendRequest.imageHash;
         userImageNode.onclick = () => ShowDetails(DetailsType.User, friendRequest.id);
 
-        const userNameNode = document.createElement('p');
-        userNameNode.classList.add('home-requests--friend-request--user-name');
+        const userNameNode = createElementWithClass('p', 'home-requests--friend-request--user-name');
         userNameNode.textContent = `${friendRequest.name}`;
         userNameNode.onclick = () => ShowDetails(DetailsType.User, friendRequest.id);
 
-        const friendRequestTypeNode = document.createElement('p');
-        friendRequestTypeNode.classList.add('home-requests--friend-request--request-type');
+        const friendRequestTypeNode = createElementWithClass('p', 'home-requests--friend-request--request-type');
         friendRequestTypeNode.textContent = 'Friend Request';
 
         // Create buttons (can't do it with template strings because won't let me inline the function call)
-        const acceptButton = document.createElement('button');
+        const acceptButton = createElementWithClass('button', 'request-node--button-accept');
         acceptButton.append('✔');
-        acceptButton.setAttribute('class', 'request-node--button-accept');
         acceptButton.addEventListener('click', () => window.API.acceptFriendRequest(friendRequest.id));
         acceptButton.dataset.tooltip = 'Accept Friend Request';
 
-        const declineButton = document.createElement('button');
+        const declineButton = createElementWithClass('button', 'request-node--button-reject');
         declineButton.append('✖');
-        declineButton.setAttribute('class', 'request-node--button-reject');
         declineButton.addEventListener('click', () => window.API.declineFriendRequest(friendRequest.id));
         declineButton.dataset.tooltip = 'Reject Friend Request';
 
-        const buttonWrapper = document.createElement('div');
-        buttonWrapper.setAttribute('class', 'request-node--button-wrapper');
+        const buttonWrapper = createElementWithClass('div', 'request-node--button-wrapper');
         buttonWrapper.append(acceptButton, declineButton);
 
         friendRequestNode.append(userImageNode, userNameNode, friendRequestTypeNode, buttonWrapper);
@@ -919,45 +898,26 @@ window.API.onNotification((_event, msg, type) => {
     pushToast(msg, type);
 });
 
+// Cleaner Search Box Filtering!
+function addFilterListener(inputSelector, itemSelector, itemNameSelector) {
+    document.querySelector(inputSelector).addEventListener('keyup', () => {
+        const filterQuery = document.querySelector(inputSelector).value.toLowerCase();
+        document.querySelectorAll(itemSelector).forEach((e) => {
+            const matched = e.querySelector(itemNameSelector).textContent.toLowerCase().includes(filterQuery);
+            e.classList.toggle('filtered-item', !matched);
+        });
+    });
+}
+
 // Friends filtering :D
-
-document.querySelector('.friends-filter').addEventListener('keyup', () => {
-    const filterQuery = document.querySelector('.friends-filter').value.toLowerCase();
-    document.querySelectorAll('.friend-list-node').forEach((e) => {
-        const matched = e.querySelector('.friend-name').textContent.toLowerCase().includes(filterQuery);
-        e.classList.toggle('filtered-item', !matched);
-    });
-});
-
+addFilterListener('.friends-filter', '.friend-list-node', '.friend-name');
 // Avatars filtering :O
-
-document.querySelector('#avatars-filter').addEventListener('keyup', () => {
-    const filterQuery = document.querySelector('#avatars-filter').value.toLowerCase();
-    document.querySelectorAll('.avatars-wrapper--avatars-node').forEach((e) => {
-        const matched = e.querySelector('.avatars-node--name').textContent.toLowerCase().includes(filterQuery);
-        e.classList.toggle('filtered-item', !matched);
-    });
-});
-
+addFilterListener('#avatars-filter', '.avatars-wrapper--avatars-node', '.avatars-node--name');
 // Worlds filtering :)
-
-document.querySelector('#worlds-filter').addEventListener('keyup', () => {
-    const filterQuery = document.querySelector('#worlds-filter').value.toLowerCase();
-    document.querySelectorAll('.worlds-wrapper--worlds-node').forEach((e) => {
-        const matched = e.querySelector('.worlds-node--name').textContent.toLowerCase().includes(filterQuery);
-        e.classList.toggle('filtered-item', !matched);
-    });
-});
-
+addFilterListener('#worlds-filter', '.worlds-wrapper--worlds-node', '.worlds-node--name');
 // Props filtering :P
+addFilterListener('#props-filter', '.props-wrapper--props-node', '.props-node--name');
 
-document.querySelector('#props-filter').addEventListener('keyup', () => {
-    const filterQuery = document.querySelector('#props-filter').value.toLowerCase();
-    document.querySelectorAll('.props-wrapper--props-node').forEach((e) => {
-        const matched = e.querySelector('.props-node--name').textContent.toLowerCase().includes(filterQuery);
-        e.classList.toggle('filtered-item', !matched);
-    });
-});
 
 window.API.onUserStats((_event, userStats) => {
     const userCountNode = document.querySelector('.home-activity--user-count');
@@ -988,8 +948,7 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
         // Ignore avatars that are not our own
         if (!ourAvatar.categories.includes(AvatarCategories.Mine)) continue;
 
-        const ourAvatarNode = document.createElement('div');
-        ourAvatarNode.setAttribute('class', 'avatars-wrapper--avatars-node');
+        const ourAvatarNode = createElementWithClass('div', 'avatars-wrapper--avatars-node');
         ourAvatarNode.innerHTML = `
             <img src="img/ui/placeholder.png" data-hash="${ourAvatar.imageHash}"/>
             <p class="avatars-node--name">${ourAvatar.name}</p>
@@ -1016,8 +975,7 @@ window.API.onGetActiveUserProps((_event, ourProps) => {
         // Ignore avatars that are not our own
         if (!ourProp.categories.includes(PropCategories.Mine)) continue;
 
-        const ourPropNode = document.createElement('div');
-        ourPropNode.setAttribute('class', 'props-wrapper--props-node');
+        const ourPropNode = createElementWithClass('div', 'props-wrapper--props-node');
         ourPropNode.innerHTML = `
             <img src="img/ui/placeholder.png" data-hash="${ourProp.imageHash}"/>
             <p class="props-node--name">${ourProp.name}</p>
@@ -1041,8 +999,7 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
     reloadAvatarsButton.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
 
     for (const ourWorld of ourWorlds) {
-        const ourWorldNode = document.createElement('div');
-        ourWorldNode.setAttribute('class', 'worlds-wrapper--worlds-node');
+        const ourWorldNode = createElementWithClass('div', 'worlds-wrapper--worlds-node');
         ourWorldNode.innerHTML = `
             <img src="img/ui/placeholder.png" data-hash="${ourWorld.imageHash}"/>
             <p class="worlds-node--name">${ourWorld.name}</p>
@@ -1086,9 +1043,7 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
 
                 const imgOnlineClass = recentActivity.current.isOnline ? 'class="icon-is-online"' : '';
 
-                let activityUpdateNode = document.createElement('div');
-
-                activityUpdateNode.setAttribute('class', 'friend-history-node');
+                let activityUpdateNode = createElementWithClass('div', 'friend-history-node');
                 activityUpdateNode.innerHTML = `
                     <img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${recentActivity.current.imageHash}"/>
                     <p class="friend-name-history">${recentActivity.current.name} <small>(${dateStr})</small></p>
