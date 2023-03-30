@@ -77,64 +77,60 @@ function log(msg) {
 }
 
 // Page changes via the Nav Bar
-function swapNavPages(page) {
+function hideAllDisplayWrappers() {
     document.querySelectorAll('.display-wrapper').forEach((e) => {
         e.style.display = 'none';
-        document.getElementById(`display-${page}`).style.display = 'grid';
-        // Sets the window title to 'CVRX - [Page Name]'
-        document.title = 'CVRX - ' + page.charAt(0).toUpperCase() + page.slice(1);
     });
+}
+
+function setPageTitle(page) {
+    document.title = 'CVRX - ' + page.charAt(0).toUpperCase() + page.slice(1);
+}
+
+function setInputValueAndFocus(selector, value) {
+    const inputElement = document.querySelector(selector);
+    inputElement.value = value;
+    inputElement.focus({ focusVisible: true });
+}
+
+function removeFilteredItemClass(selector) {
+    document.querySelectorAll(selector).forEach((e) => {
+        e.classList.remove('filtered-item');
+    });
+}
+
+function loadAndFilterPageContent(page, elementSelector, loadFunction, filterSelector) {
+    const element = document.querySelector(elementSelector);
+    if (!element.hasAttribute(`loaded-${page}`)) {
+        element.setAttribute(`loaded-${page}`, '');
+        loadFunction();
+    }
+    setInputValueAndFocus(filterSelector, '');
+    removeFilteredItemClass(`.${page}-wrapper--${page}-node`);
+}
+
+function swapNavPages(page) {
+    hideAllDisplayWrappers();
+    document.getElementById(`display-${page}`).style.display = 'grid';
+    setPageTitle(page);
+
     switch (page) {
         case 'search':
-            document.querySelector('#search-bar').value = '';
-            document.querySelector('#search-bar').focus({ focusVisible: true });
+            setInputValueAndFocus('#search-bar', '');
             break;
         case 'friends':
-            document.querySelector('.friends-filter').value = '';
-            document.querySelector('.friends-filter').focus({ focusVisible: true });
-            document.querySelectorAll('.friend-list-node').forEach((e) => {
-                e.classList.remove('filtered-item');
-            });
+            setInputValueAndFocus('.friends-filter', '');
+            removeFilteredItemClass('.friend-list-node');
             break;
-        case 'avatars': {
-            const avatarsElement = document.querySelector('#display-avatars');
-            if (!avatarsElement.hasAttribute('loaded-avatars')) {
-                avatarsElement.setAttribute('loaded-avatars', '');
-                window.API.refreshGetActiveUserAvatars();
-            }
-            document.querySelector('#avatars-filter').value = '';
-            document.querySelector('#avatars-filter').focus({ focusVisible: true });
-            document.querySelectorAll('.avatars-wrapper--avatars-node').forEach((e) => {
-                e.classList.remove('filtered-item');
-            });
+        case 'avatars':
+            loadAndFilterPageContent('avatars', '#display-avatars', window.API.refreshGetActiveUserAvatars, '#avatars-filter');
             break;
-        }
-        case 'worlds': {
-            const worldsElement = document.querySelector('#display-worlds');
-            if (!worldsElement.hasAttribute('loaded-worlds')) {
-                worldsElement.setAttribute('loaded-worlds', '');
-                window.API.refreshGetActiveUserWorlds();
-            }
-            document.querySelector('#worlds-filter').value = '';
-            document.querySelector('#worlds-filter').focus({ focusVisible: true });
-            document.querySelectorAll('.worlds-wrapper--worlds-node').forEach((e) => {
-                e.classList.remove('filtered-item');
-            });
+        case 'worlds':
+            loadAndFilterPageContent('worlds', '#display-worlds', window.API.refreshGetActiveUserWorlds, '#worlds-filter');
             break;
-        }
-        case 'props': {
-            const propsElement = document.querySelector('#display-props');
-            if (!propsElement.hasAttribute('loaded-props')) {
-                propsElement.setAttribute('loaded-props', '');
-                window.API.refreshGetActiveUserProps();
-            }
-            document.querySelector('#props-filter').value = '';
-            document.querySelector('#props-filter').focus({ focusVisible: true });
-            document.querySelectorAll('.props-wrapper--props-node').forEach((e) => {
-                e.classList.remove('filtered-item');
-            });
+        case 'props':
+            loadAndFilterPageContent('props', '#display-props', window.API.refreshGetActiveUserProps, '#props-filter');
             break;
-        }
     }
 
     // Hide the loading screen
