@@ -139,15 +139,20 @@ function swapNavPages(page) {
 }
 
 // Simplify Element w/ Class/ID Creation
-function createElementWithClass(type, className) {
+// TODO: Replace all instances of other functions below with this one,
+// and expand createElement's functionality - or put it in its own module.
+function createElement(type, options = {}) {
     const element = document.createElement(type);
-    element.className = className;
+    if (options.id) element.id = options.id;
+    if (options.className) element.className = options.className;
+    if (options.textContent) element.textContent = options.textContent;
+    if (options.onClick) element.addEventListener('click', options.onClick);
     return element;
 }
 
-function createElementWithId(type, id) {
+function createElementWithClass(type, className) {
     const element = document.createElement(type);
-    element.id = id;
+    element.className = className;
     return element;
 }
 
@@ -160,21 +165,22 @@ function createFriendsListCategory(title) {
 
 // Temporary reconnect prompt - will be expanded with a proper library later.
 function promptReconnect() {
-    let promptShade = document.querySelector('.prompt-layer');
-    let newPrompt = createElementWithClass('div', 'prompt');
-    let promptTitle = createElementWithClass('div', 'prompt-title');
-    let promptText = createElementWithClass('div', 'prompt-text');
-    let promptButtons = createElementWithClass('div', 'prompt-buttons');
-    let confirmButton = createElementWithId('button', 'prompt-confirm');
-    promptTitle.textContent = 'Socket Error';
-    promptText.textContent = 'Socket failed to reconnect after 5 attempts. Click below to manually reconnect.';
-    confirmButton.textContent = 'Reconnect Socket';
-    confirmButton.addEventListener('click', async () => {
-        // Do your reconnect magic here.
-        await window.API.reconnectWebSocket();
-        newPrompt.remove();
-        promptShade.style.display = 'none';
+    const promptShade = document.querySelector('.prompt-layer');
+    const newPrompt = createElement('div', { className: 'prompt' });
+    const promptTitle = createElement('div', { className: 'prompt-title', textContent: 'Socket Error' });
+    const promptText = createElement('div', { className: 'prompt-text', textContent: 'Socket failed to reconnect after 5 attempts. Click below to manually reconnect.' });
+    const promptButtons = createElement('div', { className: 'prompt-buttons' });
+    const confirmButton = createElement('button', {
+        id: 'prompt-confirm',
+        textContent: 'Reconnect Socket',
+        onClick: async () => {
+            // Do your reconnect magic here.
+            await window.API.reconnectWebSocket();
+            newPrompt.remove();
+            promptShade.style.display = 'none';
+        },
     });
+
     promptButtons.append(confirmButton);
     newPrompt.append(promptTitle, promptText, promptButtons);
     promptShade.append(newPrompt);
