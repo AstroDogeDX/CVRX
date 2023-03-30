@@ -6,7 +6,7 @@ function pushToast(text, type = 'none') {
     const toastClassMap = {
         'confirm': 'toast-confirm',
         'error': 'toast-error',
-        'info': 'toast-info'
+        'info': 'toast-info',
     };
 
     newToast.textContent = toastText;
@@ -26,4 +26,3 @@ function removeToast(newToast) {
 }
 
 export { pushToast };
-
