@@ -1498,6 +1498,7 @@ button {
     justify-content: center;
     align-items: center;
     gap: 2px;
+    cursor: help;
 }
 
 .active-instance-node--friends {
@@ -1508,6 +1509,7 @@ button {
     justify-content: center;
     align-items: center;
     gap: 2px;
+    cursor: help;
 }
 
 .active-instance-node :where(.material-symbols-outlined) {
@@ -1525,7 +1527,7 @@ button {
     width: 30px;
     height: 30px;
     border-radius: var(--border-radii);
-    cursor: help;
+    cursor: pointer;
 }
 
 .active-instance-node--remainder {

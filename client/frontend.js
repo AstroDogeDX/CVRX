@@ -733,8 +733,8 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
             <img class="active-instance-node--icon" src="${worldImageSource}" data-hash="${result.world.imageHash}"/>
             <p class="active-instance-node--name">${instanceName}</p>
             <div class="active-instance-node--id"><div class="region-${result.region}"></div>${instanceID}</div>
-            <p class="active-instance-node--users"><span class="material-symbols-outlined">person</span>${result.currentPlayerCount}</p>
-            <p class="active-instance-node--friends">${friendDisplay}</p>`;
+            <p class="active-instance-node--users" data-tooltip="Users In Instance"><span class="material-symbols-outlined">person</span>${result.currentPlayerCount}</p>
+            <p class="active-instance-node--friends" data-tooltip="Friends In Instance">${friendDisplay}</p>`;
         activeWorldNode.append(activeWorldUserIconWrapper);
 
         /* friendCount ? elementsOfResults.unshift(activeWorldNode) : elementsOfResults.push(activeWorldNode); */
