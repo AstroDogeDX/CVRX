@@ -269,6 +269,7 @@ button {
     text-overflow: ellipsis;
     overflow: hidden;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .home-requests--friend-request--request-type {
