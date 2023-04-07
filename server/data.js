@@ -131,6 +131,8 @@ class Core {
         this.activeInstancesDetails = {};
 
         this.nextInstancesRefreshAvailableExecuteTime = 0;
+
+        this.blockedUserIds = [];
     }
 
     #SetupHandlers() {
@@ -257,6 +259,8 @@ class Core {
 
             // Reset and stop image processing queue
             cache.ResetProcessQueue();
+
+            this.blockedUserIds = authentication.blockedUsers;
 
             // Call more events to update the initial state
             await Promise.allSettled([
@@ -693,6 +697,7 @@ class Core {
 
                 // Remove all friends from members, we're going to add them after (with extra info)
                 for (const member of activeInstanceDetails.members) {
+                    if (this.blockedUserIds.includes(member.id)) member.isBlocked = true;
                     if (Object.prototype.hasOwnProperty.call(this.friends, member.id)) membersToDelete.push(member);
                 }
                 activeInstanceDetails.members = activeInstanceDetails.members.filter(item => !membersToDelete.includes(item));
@@ -704,6 +709,7 @@ class Core {
                     activeInstanceDetails.members.splice(insertIndex++, 0, ({
                         ...friend,
                         isFriend: true,
+                        isBlocked: this.blockedUserIds.includes(friend.id),
                     }));
                 }
 
