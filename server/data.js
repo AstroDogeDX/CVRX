@@ -1,4 +1,4 @@
-const { ipcMain } = require('electron');
+const { ipcMain, dialog } = require('electron');
 const cache = require('./cache.js');
 const CVRHttp = require('./api_cvr_http');
 const CVRWebsocket = require('./api_cvr_ws');
@@ -243,73 +243,85 @@ class Core {
 
     async Authenticate(credentialUser, credentialSecret, isAccessKey, saveCredentials) {
 
-        let authentication;
-        if (isAccessKey) authentication = await CVRHttp.AuthenticateViaAccessKey(credentialUser, credentialSecret);
-        else authentication = await CVRHttp.AuthenticateViaPassword(credentialUser, credentialSecret);
+        try {
 
-        // Save credentials and set them as active
-        if (saveCredentials) {
-            await Config.SaveCredential(authentication.username, authentication.accessKey);
-            await Config.SetActiveCredentials(authentication.username, authentication.userId);
-        }
+            let authentication;
+            if (isAccessKey) authentication = await CVRHttp.AuthenticateViaAccessKey(credentialUser, credentialSecret);
+            else authentication = await CVRHttp.AuthenticateViaPassword(credentialUser, credentialSecret);
 
-        // Reset and stop image processing queue
-        cache.ResetProcessQueue();
-
-        // Call more events to update the initial state
-        await Promise.allSettled([
-            this.GetOurUserInfo(authentication.userId),
-            // this.GetOurUserAvatars(),
-            // this.GetOurUserProps(),
-            // this.GetOurUserWorlds(),
-            this.FriendsUpdate(true),
-            this.UpdateUserStats(),
-            this.RefreshFriendRequests(),
-            this.ActiveInstancesUpdate(true),
-            //this.UpdateCategories(),
-        ]);
-
-        // Initialize the websocket
-        await CVRWebsocket.ConnectWithCredentials(authentication.username, authentication.accessKey);
-
-        // Tell cache we're initialized to start loading images...
-        cache.StartProcessQueue();
-
-        // Tell the renderer to go to the home page
-        this.SendToRenderer('page-home');
-
-        // Schedule recurring API Requests every 5 minutes
-        if (recurringIntervalId) clearInterval(recurringIntervalId);
-        let failedTimes = 0;
-        recurringIntervalId = setInterval(async () => {
-            try {
-                await Promise.allSettled([
-                    this.UpdateUserStats(),
-                    // this.ActiveInstancesUpdate(true),
-                ]);
-                failedTimes = 0;
+            // Save credentials and set them as active
+            if (saveCredentials) {
+                await Config.SaveCredential(authentication.username, authentication.accessKey);
+                await Config.SetActiveCredentials(authentication.username, authentication.userId);
             }
-            catch (e) {
-                if (failedTimes > 3) {
-                    log.error('[Initialize] We failed to update player stats 3 times, stopping...', e);
-                    if (recurringIntervalId) clearInterval(recurringIntervalId);
-                    return;
+
+            // Reset and stop image processing queue
+            cache.ResetProcessQueue();
+
+            // Call more events to update the initial state
+            await Promise.allSettled([
+                this.GetOurUserInfo(authentication.userId),
+                // this.GetOurUserAvatars(),
+                // this.GetOurUserProps(),
+                // this.GetOurUserWorlds(),
+                this.FriendsUpdate(true),
+                this.UpdateUserStats(),
+                this.RefreshFriendRequests(),
+                this.ActiveInstancesUpdate(true),
+                //this.UpdateCategories(),
+            ]);
+
+            // Initialize the websocket
+            await CVRWebsocket.ConnectWithCredentials(authentication.username, authentication.accessKey);
+
+            // Tell cache we're initialized to start loading images...
+            cache.StartProcessQueue();
+
+            // Tell the renderer to go to the home page
+            this.SendToRenderer('page-home');
+
+            // Schedule recurring API Requests every 5 minutes
+            if (recurringIntervalId) clearInterval(recurringIntervalId);
+            let failedTimes = 0;
+            recurringIntervalId = setInterval(async () => {
+                try {
+                    await Promise.allSettled([
+                        this.UpdateUserStats(),
+                        // this.ActiveInstancesUpdate(true),
+                    ]);
+                    failedTimes = 0;
                 }
-                log.error(`[Initialize] Updating the player stats (recurring every ${recurringIntervalMinutes} mins)...`, e);
-                failedTimes++;
-            }
-        }, recurringIntervalMinutes * 60 * 1000);
+                catch (e) {
+                    if (failedTimes > 3) {
+                        log.error('[Initialize] We failed to update player stats 3 times, stopping...', e);
+                        if (recurringIntervalId) clearInterval(recurringIntervalId);
+                        return;
+                    }
+                    log.error(`[Initialize] Updating the player stats (recurring every ${recurringIntervalMinutes} mins)...`, e);
+                    failedTimes++;
+                }
+            }, recurringIntervalMinutes * 60 * 1000);
 
-        // const authentication = {
-        //     username: 'XXXXXXXXX',
-        //     accessKey: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-        //     userId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-        //     currentAvatar: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-        //     currentHomeWorld: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-        //     videoUrlResolverExecutable: 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe',
-        //     videoUrlResolverHashes: 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS',
-        //     blockedUsers: [],
-        // }
+        }
+        catch (e) {
+            log.error('[Authenticate] Error while authentication or initial requests...', e.toString(), e.message?.toString());
+            await dialog.showErrorBox(
+                'Authentication/Initial Requests failed',
+                'Something went wrong during CVRX Startup. Make sure you have an internet connection.' +
+                '\nThe application will quit! Error: \n' + e.toString(),
+            );
+            this.app.quit();
+        }
+            // const authentication = {
+            //     username: 'XXXXXXXXX',
+            //     accessKey: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+            //     userId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+            //     currentAvatar: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+            //     currentHomeWorld: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+            //     videoUrlResolverExecutable: 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe',
+            //     videoUrlResolverHashes: 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS',
+            //     blockedUsers: [],
+            // }
     }
 
     async SendToLoginPage() {
