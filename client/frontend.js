@@ -678,6 +678,7 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
     //             "imageUrl": "https://files.abidata.io/user_images/7452ea11-86ab-86e8-42bd-1d4d24ed7da6-61f16a339b94a.png",
     //             "isFriend": true, // This property will only exist for friends
     //             // ALSO!!!!: friends will have every other info that is present in the usual friends entity
+    //             "isBlocked": true, // This property will only exist for blocked people
     //         },
     //         {
     //             "id": "86ce8e72-9204-359d-1ca0-678ec6783a90",
