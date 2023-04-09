@@ -707,6 +707,7 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
     for (const result of activeInstances) {
 
         const elementsOfMembers = [];
+        const elementsOfBlocked = [];
 
         let friendCount = 0;
         for (const member of result.members) {
@@ -718,9 +719,17 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
             });
             userIcon.dataset.hash = member.imageHash;
             userIcon.dataset.tooltip = member.name;
+            if (member.isBlocked) {
+                userIcon.classList.add('active-instance-node--blocked');
+                userIcon.dataset.tooltip = `<span class="tooltip-blocked">${userIcon.dataset.tooltip} <small>(Blocked)</small></span>`;
+                elementsOfBlocked.push(userIcon);
+                continue;
+            }
             if (member.isFriend) {
                 userIcon.classList.add('icon-is-online');
                 friendCount++;
+                elementsOfMembers.push(userIcon);
+                continue;
             }
             elementsOfMembers.push(userIcon);
         }
@@ -736,7 +745,7 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
         let friendDisplay = friendCount ? `<span class="material-symbols-outlined">groups</span>${friendCount}` : '';
 
         const activeWorldUserIconWrapper = createElement('div', { className: 'active-instance-node--user-icon-wrapper' });
-        activeWorldUserIconWrapper.append(...elementsOfMembers);
+        activeWorldUserIconWrapper.append(...elementsOfMembers, ...elementsOfBlocked);
 
         let activeWorldNode = createElement('div', {
             className: 'active-instance-node',

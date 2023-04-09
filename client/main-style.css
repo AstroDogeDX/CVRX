@@ -1469,6 +1469,13 @@ button {
     border-radius: var(--border-radii);
 }
 
+.active-instance-node--blocked {
+    opacity: 0.5;
+    filter: grayscale(1);
+    border: thin solid grey;
+    box-shadow: 0 0 5px grey;
+}
+
 .active-instance-node--name {
     grid-area: instance-name;
     font-size: 16px;
@@ -1581,6 +1588,16 @@ button {
     display: none;
     font-size: 16px;
     z-index: 101;
+}
+
+.tooltip-blocked {
+    font-style: italic;
+    color: rgba(255,255,255,0.5);
+}
+
+.tooltip-blocked small {
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
 }
 
 /* PROMPT STYLINGS */
