@@ -122,11 +122,24 @@
       <!-- SETTINGS -->
       <div class="display-wrapper" id="display-settings">
         <div class="settings--navbar">
-          Navbar
+          <a href="#setcat-general">General</a>
+          <a href="#setcat-appearance">Theme & Display</a>
+          <a href="#setcat-system">System</a>
         </div>
         <div class="settings--display">
-          <input id="check-updates-button" type="button" value="Check for Updates" />
+          <h2 id="setcat-general">General</h2>
           <input id="logout-button" type="button" value="Logout" />
+          <h2 id="setcat-appearance">Theme & Display</h2>
+          <p>
+            <label for="#setting-slider">Test Slider</label>
+            <input type="range" id="setting-slider">
+          </p>
+          <p>
+            <label for="#setting-check">Test Check</label>
+            <input type="checkbox" id="setting-check">
+          </p>
+          <h2 id="setcat-system">System</h2>
+          <input id="check-updates-button" type="button" value="Check for Updates" />
         </div>
       </div>
     </div>

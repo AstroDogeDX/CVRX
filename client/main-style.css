@@ -907,6 +907,29 @@ button {
     font-size: small;
 }
 
+/* Settings Page Styles */
+
+#display-settings {
+    display: grid;
+    grid-template-rows: 50px 1fr;
+    grid-template-columns: 1fr;
+    grid-template-areas: 
+        'settings-navbar' 
+        'settings-display';
+    gap: 5px;
+}
+
+.settings--navbar {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.settings--display {
+
+}
+
 /* Friends Sidebar Area */
 
 .friends-sidebar {
