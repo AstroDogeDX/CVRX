@@ -12,6 +12,10 @@ button {
     cursor: pointer;
 }
 
+input, select {
+    color: var(--master-input-color);
+}
+
 /* CSS Variables for EZ Themes */
 
 :root {
@@ -22,6 +26,7 @@ button {
     --button-reject-color: darkred;
     --border-radii: 5px;
     --thumbnail-size-standard: 50px;
+    --master-input-color: black;
 }
 
 /* Scrollbar Styling */
