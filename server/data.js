@@ -312,8 +312,9 @@ class Core {
             await dialog.showErrorBox(
                 'Authentication/Initial Requests failed',
                 'Something went wrong during CVRX Startup. Make sure you have an internet connection.' +
-                '\nThe application will quit! Error: \n' + e.toString(),
+                '\nThe current user will be logged out and the application will quit!\n' + e.toString(),
             );
+            await Config.ClearActiveCredentials();
             this.app.quit();
         }
             // const authentication = {
