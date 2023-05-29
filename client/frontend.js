@@ -307,7 +307,7 @@ function getFriendStatus(friend) {
     if (!friend.isConnected) return { name: '', type: 'Offline Instance' };
     if (!friend.instance) return { name: '', type: 'Private Instance' };
     if (friend.instance.name) return {
-        name: friend.instance.privacy >= PrivacyLevel.Friends ? 'Private Instance' : friend.instance.name,
+        name: friend.instance.name,
         type: GetPrivacyLevelName(friend.instance.privacy),
     };
     return { name: 'Unknown', type: null };
