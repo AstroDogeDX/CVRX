@@ -675,11 +675,6 @@ class Core {
             for (const friend of Object.values(this.friends)) {
                 if (!friend?.instance?.id) continue;
 
-                // Todo: When the websocket stops leaking the private instances info, we can remove this check so we
-                //  get info about Friends instance we do have access to...
-                // Ignore Friends and higher privacy levels
-                if (friend.instance.privacy >= CVRHttp.PrivacyLevel.Friends) continue;
-
                 // If the instance doesn't exist already, lets fetch it
                 if (!Object.prototype.hasOwnProperty.call(this.activeInstancesDetails, friend.instance.id)) {
                     try {
