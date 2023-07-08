@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 
 // Prevent app launching multiple times during the installation
 if (require('electron-squirrel-startup')) {
@@ -119,6 +119,14 @@ app.whenReady().then(async () => {
 
     await Updater.Setup(mainWindow);
 });
+
+app.on('ready', () => {
+    let appVersion = app.getVersion();
+    // Send version info to renderer process
+    ipcMain.on('get-app-version', (event) => {
+      event.sender.send('app-version', appVersion);
+    });
+  });
 
 app.on('window-all-closed', () => app.quit());
 

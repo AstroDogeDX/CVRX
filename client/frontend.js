@@ -1205,6 +1205,12 @@ window.addEventListener('focus', async () => {
     if (!requestInitialized) refreshButton.classList.toggle('spinner', false);
 });
 
+window.API.getVersion();
+
+window.API.receiveVersion((appVersion) => {
+  document.querySelector('.navbar-version').innerHTML = `v${appVersion}`;
+});
+
 window.API.onSocketDied((_event) => promptReconnect());
 
 applyTooltips();

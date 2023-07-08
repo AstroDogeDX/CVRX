@@ -94,6 +94,10 @@ contextBridge.exposeInMainWorld('API', {
     reconnectWebSocket: () => ipcRenderer.send('reconnect-web-socket'),
     onSocketDied: (callback) => ipcRenderer.on('socket-died', callback),
 
+    // App Version
+    getVersion: () => ipcRenderer.send('get-app-version'),
+    receiveVersion: (callback) => ipcRenderer.on('app-version', (event, arg) => callback(arg)),
+
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),
 });
