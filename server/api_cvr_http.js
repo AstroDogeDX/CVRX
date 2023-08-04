@@ -79,6 +79,9 @@ async function Authenticate(authType, credentialUser, credentialSecret) {
             'Username': authentication.username,
             'AccessKey': authentication.accessKey,
             'User-Agent': utils.GetUserAgent(),
+            'MatureContentDlc': 'true',
+            'Platform': 'pc_standalone',
+            'CompatibleVersions': '0,1,2',
         },
     });
     return authentication;

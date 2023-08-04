@@ -167,6 +167,9 @@ function ConnectWebsocket(username, accessKey) {
                 'Username': username,
                 'AccessKey': accessKey,
                 'User-Agent': utils.GetUserAgent(),
+                'MatureContentDlc': 'true',
+                'Platform': 'pc_standalone',
+                'CompatibleVersions': '0,1,2',
             },
         });
 
