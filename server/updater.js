@@ -11,7 +11,6 @@ const log = require('./logger').GetLogger('Updater');
 const AppDataPath = app.getPath('userData');
 const UpdaterPath = path.join(AppDataPath, 'CVRUpdater');
 
-const binaryContentType = 'application/octet-stream';
 const windowsPlatform = 'win32';
 const latestRelease = 'https://api.github.com/repos/AstroDogeDX/CVRX/releases/latest';
 
@@ -95,7 +94,7 @@ exports.CheckLatestRelease = async (mainWindow, bypassIgnores = false) => {
 
         // Iterate the assets and find an .exe
         for (const asset of data.assets) {
-            if (asset.content_type !== binaryContentType || path.extname(asset.name) !== '.exe') continue;
+            if (path.extname(asset.name) !== '.exe') continue;
 
             const changeLogs = data.body;
 
