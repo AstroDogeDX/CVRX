@@ -731,11 +731,23 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
                 elementsOfMembers.push(userIcon);
                 continue;
             }
+            if (member.name === document.querySelector('.home-user--user-name').textContent) {
+                userIcon.classList.add('icon-is-you');
+                userIcon.dataset.tooltip = `<span>${userIcon.dataset.tooltip} <small>(You)</small></span>`;
+                elementsOfMembers.unshift(userIcon);
+                continue;
+            }
             elementsOfMembers.push(userIcon);
         }
 
         let instanceName = result.name.substring(0, result.name.length - 10);
         let instanceID = result.name.slice(-9);
+
+        if (result.privacy === 'Public') {
+            instanceName = `<span class="instance-privacy-type material-symbols-outlined" data-tooltip="Public Instance">Public</span> ${instanceName}`;
+        } else {
+            instanceName = `<span class="instance-privacy-type material-symbols-outlined" data-tooltip="Friends Instance">Group</span> ${instanceName}`;
+        }
 
         // Depending on whether it's a refresh or not the image might be already loaded
         const worldImageSource = result?.world?.imageBase64 ?? 'img/ui/placeholder.png';

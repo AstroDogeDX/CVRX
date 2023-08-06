@@ -1572,6 +1572,16 @@ button {
     background-size: cover;
 }
 
+.instance-privacy-type {
+    font-size: 15px;
+    cursor: help;
+}
+
+.icon-is-you {
+    border: thin solid aqua;
+    box-shadow: 0 0 5px aqua;
+}
+
 /* TOOLTIP STUFF */
 
 #tooltip-overlay {
