@@ -426,7 +426,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
                     `<img class="online-friend-node--image" src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
                     <p class="online-friend-node--name">${friend.name}</p>
                     <p class="online-friend-node--status ${onlineFriendInPrivateClass}">${instanceTypeStr}</p>
-                    <p class="online-friend-node--world">${name}</p>`,
+                    <p class="online-friend-node--world" data-tooltip="${name}">${name}</p>`,
                 onClick: () => ShowDetails(DetailsType.User, friend.id),
             });
 
