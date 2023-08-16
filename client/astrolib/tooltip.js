@@ -35,6 +35,10 @@ function applyTooltips() {
     }
 
     document.querySelectorAll('[data-tooltip]').forEach((e) => {
+        if (e.getAttribute('data-tooltip') === '') {
+            log('[astrolib/tooltip.js] Node has no tooltip data, skipping...');
+            return;
+        }
         if (e.hasAttribute(HAS_TOOLTIP)) {
             log('[astrolib/tooltip.js] Node already has tooltip applied, skipping...');
         } else {
