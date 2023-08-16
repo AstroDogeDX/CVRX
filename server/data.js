@@ -4,6 +4,7 @@ const CVRHttp = require('./api_cvr_http');
 const CVRWebsocket = require('./api_cvr_ws');
 const Config = require('./config');
 const Updater = require('./updater');
+const Utils = require('./utils');
 
 const log = require('./logger').GetLogger('Data');
 const logRenderer = require('../server/logger').GetLogger('Renderer');
@@ -16,6 +17,12 @@ const ToastTypes = Object.freeze({
     GOOD: 'confirm',
     BAD: 'error',
     INFO: 'info',
+});
+
+const PublicContentType = Object.freeze({
+    AVATARS: 'avatars',
+    WORLDS: 'worlds',
+    PROPS: 'props',
 });
 
 // const AvatarCategories = Object.freeze({
@@ -87,7 +94,7 @@ function EscapeStringFromHtml(text) {
 function EscapeHtml(obj, firstIteration = true) {
     if (obj) {
         // Deep clone to prevent affecting the original objects (we're caching some of those)
-        if (firstIteration) obj = JSON.parse(JSON.stringify(obj));
+        if (firstIteration) obj = Utils.DeepClone(obj);
         for (let key in obj) {
             if(!Object.prototype.hasOwnProperty.call(obj, key)) continue;
             // Note: Array also show as object
@@ -170,6 +177,11 @@ class Core {
 
         // Setup handlers for IPC
         ipcMain.handle('get-user-by-id', async (_event, userId) => EscapeHtml(await this.GetUserById(userId)));
+        ipcMain.handle('get-user-public-avatars', async (_event, userId) => EscapeHtml(await this.GetUserPublicContent(userId, PublicContentType.AVATARS)));
+        ipcMain.handle('get-user-public-worlds', async (_event, userId) => EscapeHtml(await this.GetUserPublicContent(userId, PublicContentType.WORLDS)));
+        ipcMain.handle('get-user-public-props', async (_event, userId) => EscapeHtml(await this.GetUserPublicContent(userId, PublicContentType.PROPS)));
+        ipcMain.handle('set-friend-note', async (_event, userId, note) => await CVRHttp.SetFriendNote(userId, note));
+
         ipcMain.handle('get-world-by-id', async (_event, worldId) => EscapeHtml(await this.GetWorldById(worldId)));
         ipcMain.handle('get-instance-by-id', async (_event, instanceId) => EscapeHtml(await this.GetInstanceById(instanceId)));
         ipcMain.handle('search', async (_event, term) => EscapeHtml(await this.Search(term)));
@@ -565,32 +577,65 @@ class Core {
         return user;
 
         // const userDetailed = {
-        //     "onlineState": false,
-        //     "isConnected": false,
-        //     "isFriend": true,
-        //     "isBlocked": false,
-        //     "instance": null,
-        //     "categories": [],
-        //     "rank": "User",
-        //     "featuredBadge": {
-        //         "name": "Closed Alpha Participant",
-        //         "image": "https://files.abidata.io/static_web/Badges/abi-alpha.png",
-        //         "badgeLevel": 1,
+        //     'onlineState': false,
+        //     'isConnected': false,
+        //     'isFriend': true,
+        //     'note': '',
+        //     'isBlocked': false,
+        //     'instance': null,
+        //     'categories': [],
+        //     'rank': 'User',
+        //     'featuredBadge': {
+        //         'name': 'Closed Alpha Participant',
+        //         'image': 'https://files.abidata.io/static_web/Badges/abi-alpha.png',
+        //         'badgeLevel': 1,
         //     },
-        //     "featuredGroup": {
-        //         "name": "No group featured",
-        //         "image": "https://files.abidata.io/static_web/NoHolderImage.png",
+        //     'featuredGroup': {
+        //         'name': 'No group featured',
+        //         'image': 'https://files.abidata.io/static_web/NoHolderImage.png',
         //     },
-        //     "avatar": {
-        //         "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-        //         "name": "Lop",
-        //         "imageUrl": "https://files.abidata.io/user_content/avatars/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.png",
+        //     'avatar': {
+        //         'id': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+        //         'name': 'Lop',
+        //         'imageUrl': 'https://files.abidata.io/user_content/avatars/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.png',
         //     },
-        //     "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-        //     "name": "uSeRnAmE",
-        //     "imageUrl": "https://files.abidata.io/user_images/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.png",
+        //     'id': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+        //     'name': 'uSeRnAmE',
+        //     'imageUrl': 'https://files.abidata.io/user_images/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.png',
         // };
+    }
 
+    async GetUserPublicContent(userId, publicContentType) {
+
+        let entries;
+
+        switch (publicContentType) {
+            case PublicContentType.AVATARS:
+                entries = await CVRHttp.GetUserPublicAvatars(userId);
+                break;
+            case PublicContentType.WORLDS:
+                entries = await CVRHttp.GetUserPublicWorlds(userId);
+                break;
+            case PublicContentType.PROPS:
+                entries = await CVRHttp.GetUserPublicSpawnables(userId);
+                break;
+        }
+
+        for (const entry of entries) {
+            if (entry?.imageUrl) {
+                await LoadImage(entry.imageUrl, entry);
+            }
+        }
+
+        return entries;
+
+        // const entries = [
+        //     {
+        //         id: '978f6939-f914-40c2-833b-eb94e7099a97',
+        //         name: "E-Bumpin'",
+        //         imageUrl: 'https://files.abidata.io/user_content/spawnables/978f6939-f914-40c2-833b-eb94e7099a97/978f6939-f914-40c2-833b-eb94e7099a97.png'
+        //     }
+        // ];
     }
 
     async UpdateUserStats() {

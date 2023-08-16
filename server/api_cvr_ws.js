@@ -5,7 +5,7 @@ const WebSocketAddress = 'wss://api.abinteractive.net/1/users/ws';
 const log = require('./logger').GetLogger('API_WS');
 
 const events = require('events');
-const utils = require('./utils');
+const Utils = require('./utils');
 
 // // Test websocket server start
 // if (process.env.TEST_WS_SERVER === 'true' && !require('electron').app.isPackaged) {
@@ -42,6 +42,70 @@ const RESPONSE_TYPE = Object.freeze({
 });
 exports.ResponseType = RESPONSE_TYPE;
 const GetResponseTypeName = (value) => Object.keys(RESPONSE_TYPE).find(key => RESPONSE_TYPE[key] === value);
+
+
+// API Entity Mappings
+function preProcessEntities(responseType, data) {
+    switch (responseType) {
+        case RESPONSE_TYPE.ONLINE_FRIENDS: return Utils.MapEntity(data, MAP_FRIEND);
+        case RESPONSE_TYPE.INVITES: return Utils.MapEntity(data, MAP_INVITE);
+        case RESPONSE_TYPE.REQUEST_INVITES: return Utils.MapEntity(data, MAP_REQUEST_INVITE);
+        case RESPONSE_TYPE.FRIEND_REQUESTS: return Utils.MapEntity(data, MAP_USER);
+    }
+    return data;
+}
+
+const MAP_INSTANCE = Object.freeze({
+    'Id': 'id',
+    'Name': 'name',
+    'Privacy': 'privacy',
+});
+
+const MAP_FRIEND = Object.freeze({
+    'Id': 'id',
+    'IsOnline': 'isOnline',
+    'IsConnected': 'isConnected',
+    'Instance': {
+        root: 'instance',
+        mapping: MAP_INSTANCE,
+    },
+});
+
+const MAP_USER = Object.freeze({
+    'Id': 'id',
+    'Name': 'name',
+    'ImageUrl': 'imageUrl',
+});
+
+const MAP_WORLD = Object.freeze({
+    'Id': 'id',
+    'Name': 'name',
+    'ImageUrl': 'imageUrl',
+});
+
+const MAP_INVITE = Object.freeze({
+        'Id': 'id',
+        'User': {
+            root: 'user',
+            mapping: MAP_USER,
+        },
+        'World': {
+            root: 'world',
+            mapping: MAP_WORLD,
+        },
+        'InstanceId': 'instanceId',
+        'InstanceName': 'instanceName',
+        'ReceiverId': 'receiverId',
+});
+
+const MAP_REQUEST_INVITE = Object.freeze({
+        'Id': 'id',
+        'Sender': {
+            root: 'sender',
+            mapping: MAP_USER,
+        },
+        'ReceiverId': 'receiverId',
+});
 
 
 const heartbeatInterval = 60 * 1000;
@@ -166,7 +230,7 @@ function ConnectWebsocket(username, accessKey) {
             headers: {
                 'Username': username,
                 'AccessKey': accessKey,
-                'User-Agent': utils.GetUserAgent(),
+                'User-Agent': Utils.GetUserAgent(),
                 'MatureContentDlc': 'true',
                 'Platform': 'pc_standalone',
                 'CompatibleVersions': '0,1,2',
@@ -226,10 +290,11 @@ function ConnectWebsocket(username, accessKey) {
 
             // Attempt to parse json
             try {
-                const { responseType, message, data } = JSON.parse(messageBuffer.toString());
+                const { ResponseType: responseType, Message: message, Data: data } = JSON.parse(messageBuffer.toString());
                 if (Object.values(RESPONSE_TYPE).includes(responseType)) {
-                    EventEmitter.emit(responseType, data, message);
-                    log.debug(`[ConnectWebsocket] [onMessage] {${socket.uniqueId}} Type: ${GetResponseTypeName(responseType)} (${responseType}), Msg: ${message}`, data);
+                    const processedData = preProcessEntities(responseType, data);
+                    EventEmitter.emit(responseType, processedData, message);
+                    log.debug(`[ConnectWebsocket] [onMessage] {${socket.uniqueId}} Type: ${GetResponseTypeName(responseType)} (${responseType}), Msg: ${message}`, data, processedData);
                 }
                 else {
                     log.warn(`[ConnectWebsocket] [onMessage] {${socket.uniqueId}} Response type ${responseType} is not mapped! Msg: ${message}`, data);

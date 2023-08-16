@@ -40,7 +40,13 @@ contextBridge.exposeInMainWorld('API', {
 
     onImageLoaded: (callback) => ipcRenderer.on('image-load', callback),
 
+    // Users
     getUserById: (userId) => ipcRenderer.invoke('get-user-by-id', userId),
+    getUserPublicAvatars: (userId) => ipcRenderer.invoke('get-user-public-avatars', userId),
+    getUserPublicProps: (userId) => ipcRenderer.invoke('get-user-public-props', userId),
+    getUserPublicWorlds: (userId) => ipcRenderer.invoke('get-user-public-worlds', userId),
+    setFriendNote: (userId, note) => ipcRenderer.invoke('set-friend-note', userId, note),
+
     getWorldById: (worldId) => ipcRenderer.invoke('get-world-by-id', worldId),
     getInstanceById: (instanceId) => ipcRenderer.invoke('get-instance-by-id', instanceId),
 
