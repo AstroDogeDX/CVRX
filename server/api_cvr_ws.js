@@ -294,7 +294,8 @@ function ConnectWebsocket(username, accessKey) {
                 if (Object.values(RESPONSE_TYPE).includes(responseType)) {
                     const processedData = preProcessEntities(responseType, data);
                     EventEmitter.emit(responseType, processedData, message);
-                    log.debug(`[ConnectWebsocket] [onMessage] {${socket.uniqueId}} Type: ${GetResponseTypeName(responseType)} (${responseType}), Msg: ${message}`, data, processedData);
+                    const logObj = { 'API Original Data': data, 'CVRX Processed Data': processedData };
+                    log.debug(`[ConnectWebsocket] [onMessage] {${socket.uniqueId}} Type: ${GetResponseTypeName(responseType)} (${responseType}), Msg: ${message}`, logObj);
                 }
                 else {
                     log.warn(`[ConnectWebsocket] [onMessage] {${socket.uniqueId}} Response type ${responseType} is not mapped! Msg: ${message}`, data);

@@ -41,7 +41,15 @@ exports.MapEntity = (entity, mapping) => {
             const ourKey = mapping[apiKey];
             // If the mapping is an object, it means it's a nested mapping
             if (typeof ourKey === 'object' && ourKey !== null) {
-                entityToMap[ourKey.root] = exports.MapEntity(entityToMap[apiKey], ourKey.mapping);
+                const entityValue = entityToMap[apiKey];
+                // If it's an object and not null or is an array, use the object/array mapping
+                if (typeof entityValue === 'object' && entityValue !== null || Array.isArray(entityValue)) {
+                    entityToMap[ourKey.root] = exports.MapEntity(entityValue, ourKey.mapping);
+                }
+                // If it's a primitive or null just set the value
+                else {
+                    entityToMap[ourKey.root] = entityValue;
+                }
             }
             // Otherwise let's just fix the key
             else {
