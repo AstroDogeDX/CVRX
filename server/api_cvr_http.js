@@ -28,7 +28,7 @@ async function Post(url, data, authenticated = true) {
     try {
         const response = await (authenticated ? CVRApi : UnauthenticatedCVRApi).post(url, data);
         log.debug(`[Post] [${response.status}] [${authenticated ? '' : 'Non-'}Auth] ${url}`, response.data);
-        return response.data.data;
+        return response.data;
     }
     catch (error) {
         log.error(`[Post] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack);
@@ -72,7 +72,7 @@ exports.AuthenticateViaPassword = async (email, password) => {
     return await Authenticate(AuthMethod.PASSWORD, email, password);
 };
 async function Authenticate(authType, credentialUser, credentialSecret) {
-    const authentication = await Post('/users/auth', { AuthType: authType, Username: credentialUser, Password: credentialSecret }, false);
+    const authentication = (await Post('/users/auth', { AuthType: authType, Username: credentialUser, Password: credentialSecret }, false)).data;
     CVRApi = axios.create({
         baseURL: APIBase,
         headers: {
@@ -96,6 +96,10 @@ exports.GetMyFriendRequests = async () => await Get('/friends/requests');
 
 // Users
 exports.GetUserById = async (userId) => await Get(`/users/${userId}`);
+exports.GetUserPublicAvatars = async (userId) => await Get(`/users/${userId}/avatars`);
+exports.GetUserPublicWorlds = async (userId) => await Get(`/users/${userId}/worlds`);
+exports.GetUserPublicSpawnables = async (userId) => await Get(`/users/${userId}/spawnables`);
+exports.SetFriendNote = async (userId, note) => await Post(`/users/${userId}/note`, { note: note });
 
 // Avatars
 exports.GetMyAvatars = async () => await Get('/avatars');
@@ -104,7 +108,7 @@ exports.GetAvatarById = async (avatarId) => await Get(`/avatars/${avatarId}`);
 // Categories
 exports.GetCategories = async () => await Get('/categories');
 async function SetAvatarCategories(type, id, categoryIds) {
-    return Post('/categories/assign', {Uuid: id, CategoryType: type, Categories: categoryIds});
+    return (await Post('/categories/assign', {Uuid: id, CategoryType: type, Categories: categoryIds})).data;
 }
 exports.SetAvatarCategories = async (avatarId, categoryIds) => await SetAvatarCategories(CATEGORY_TYPES.AVATARS, avatarId, categoryIds);
 exports.SetFriendCategories = async (userId, categoryIds) => await SetAvatarCategories(CATEGORY_TYPES.FRIENDS, userId, categoryIds);
