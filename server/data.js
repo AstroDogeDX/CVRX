@@ -650,7 +650,9 @@ class Core {
 
     async UpdateWorldsByCategory(categoryId) {
 
-        const worlds = await CVRHttp.GetWorldsByCategory(categoryId);
+        const result = await CVRHttp.GetWorldsByCategory(categoryId);
+        //const totalPages = result.totalPages;
+        const worlds = result.entries;
         for (const world of worlds) {
             if (world?.imageUrl) {
                 await LoadImage(world.imageUrl, world);
@@ -671,7 +673,9 @@ class Core {
     }
 
     async ActiveInstancesRefresh() {
-        const activeWorlds = await CVRHttp.GetWorldsByCategory(WorldCategories.ActiveInstances);
+        const activeWorldsResult = await CVRHttp.GetWorldsByCategory(WorldCategories.ActiveInstances);
+        const activeWorlds = activeWorldsResult.entries;
+        // activeWorldsTotalPages = activeWorldsResult.totalPages;
         const activeInstancesDetails = {};
         for (const activeWorld of activeWorlds) {
             const activeWorldDetails = await CVRHttp.GetWorldById(activeWorld.id);
