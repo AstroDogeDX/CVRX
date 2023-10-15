@@ -9,6 +9,8 @@ if (require('electron-squirrel-startup')) {
     return;
 }
 
+const { existsSync } = require('fs');
+
 // Prevent a second instance!
 if (!app.requestSingleInstanceLock()) {
     app.quit();
@@ -77,10 +79,19 @@ const CreateWindow = async () => {
 
 
 const BuildTray = async (mainWindow) => {
-    log.info('Building tray');
+
+    const trayIcon = app.isPackaged
+        ? path.join(process.resourcesPath, 'app/client/img/cvrx-ico.ico')
+        : './client/img/cvrx-ico.ico';
+
+    if (!existsSync(trayIcon)) {
+        log.error(`Icon file does not exist at path: ${trayIcon}. This WILL crash the app...`);
+    } else {
+        log.info(`Building tray. Using icon from: ${trayIcon}`);
+    }
 
     // Set the tray icon
-    let tray = new Tray('./client/img/cvrx-ico.ico');
+    const tray = new Tray(trayIcon);
 
     // Add tooltip to tray icon for clarity
     tray.setToolTip('CVRX');
@@ -156,6 +167,9 @@ app.whenReady().then(async () => {
 
     // Override default close event to close to taskbar instead
     mainWindow.on('close', (event) => {
+
+        log.info('Received a close event...');
+
         // Prevent default action
         event.preventDefault();
 
