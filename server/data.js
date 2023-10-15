@@ -218,6 +218,10 @@ class Core {
         ipcMain.handle('block-user', (_event, userId) => CVRWebsocket.BlockUser(userId));
         ipcMain.handle('unblock-user', (_event, userId) => CVRWebsocket.UnblockUser(userId));
 
+        // Config
+        ipcMain.handle('config-get', () => Config.GetConfig());
+        ipcMain.handle('config-update', (_event, newConfigSettings) => Config.UpdateConfig(newConfigSettings));
+
         // Socket Events
         CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.CONNECTED, () => this.recentActivityInitialFriends = true);
         CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.DEAD, () => this.SendToRenderer('socket-died'));
@@ -329,16 +333,16 @@ class Core {
             await Config.ClearActiveCredentials();
             this.app.quit();
         }
-            // const authentication = {
-            //     username: 'XXXXXXXXX',
-            //     accessKey: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-            //     userId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-            //     currentAvatar: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-            //     currentHomeWorld: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-            //     videoUrlResolverExecutable: 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe',
-            //     videoUrlResolverHashes: 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS',
-            //     blockedUsers: [],
-            // }
+        // const authentication = {
+        //     username: 'XXXXXXXXX',
+        //     accessKey: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+        //     userId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+        //     currentAvatar: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+        //     currentHomeWorld: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+        //     videoUrlResolverExecutable: 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe',
+        //     videoUrlResolverHashes: 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS',
+        //     blockedUsers: [],
+        // }
     }
 
     async SendToLoginPage() {
@@ -646,7 +650,9 @@ class Core {
 
     async UpdateWorldsByCategory(categoryId) {
 
-        const worlds = await CVRHttp.GetWorldsByCategory(categoryId);
+        const result = await CVRHttp.GetWorldsByCategory(categoryId);
+        //const totalPages = result.totalPages;
+        const worlds = result.entries;
         for (const world of worlds) {
             if (world?.imageUrl) {
                 await LoadImage(world.imageUrl, world);
@@ -667,7 +673,9 @@ class Core {
     }
 
     async ActiveInstancesRefresh() {
-        const activeWorlds = await CVRHttp.GetWorldsByCategory(WorldCategories.ActiveInstances);
+        const activeWorldsResult = await CVRHttp.GetWorldsByCategory(WorldCategories.ActiveInstances);
+        const activeWorlds = activeWorldsResult.entries;
+        // activeWorldsTotalPages = activeWorldsResult.totalPages;
         const activeInstancesDetails = {};
         for (const activeWorld of activeWorlds) {
             const activeWorldDetails = await CVRHttp.GetWorldById(activeWorld.id);

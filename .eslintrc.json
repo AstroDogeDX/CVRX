@@ -31,6 +31,7 @@
         "comma-dangle": ["error", "always-multiline"],
         "dot-notation": "error",
         "eqeqeq": "error",
-        "no-alert": "error"
+        "no-alert": "error",
+        "indent": ["error", 4, { "SwitchCase": 1 }]
     }
 }

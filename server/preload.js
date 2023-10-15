@@ -104,6 +104,10 @@ contextBridge.exposeInMainWorld('API', {
     getVersion: () => ipcRenderer.send('get-app-version'),
     receiveVersion: (callback) => ipcRenderer.on('app-version', (event, arg) => callback(arg)),
 
+    // Config
+    getConfig: () => ipcRenderer.invoke('config-get'),
+    updateConfig: (newConfigSettings) => ipcRenderer.invoke('config-update', newConfigSettings),
+
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),
 });
