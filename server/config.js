@@ -17,8 +17,8 @@ const CVRExecutableName = 'ChilloutVR.exe';
 const CVRDataFolderName = 'ChilloutVR_Data';
 
 const FileType = Object.freeze({
-   CONFIG: 'CONFIG',
-   CREDENTIALS: 'CREDENTIALS',
+    CONFIG: 'CONFIG',
+    CREDENTIALS: 'CREDENTIALS',
 });
 
 
@@ -59,6 +59,7 @@ exports.Load = async () => {
         ActiveUsername: null,
         ActiveUserID: null,
         CacheMaxSizeInMegabytes: 1000,
+        CloseToSystemTray: false,
         CVRExecutable: path.join(CVRExecutableDefaultFolderPath, CVRExecutableName),
         UpdaterIgnoreVersion: null,
     };
@@ -240,7 +241,45 @@ exports.ClearCredentials = async (username) => {
     await UpdateJsonFile(FileType.CREDENTIALS);
 };
 
+exports.UpdateConfig = async (newConfigSettings) => {
+
+    log.info('[UpdateConfig] Attempting to update the config', newConfigSettings);
+
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'CacheMaxSizeInMegabytes')) {
+        const cacheSize = newConfigSettings.CacheMaxSizeInMegabytes;
+
+        if (!Number.isInteger(cacheSize) || cacheSize < 500 || cacheSize > 2000) {
+            throw new Error('[UpdateConfig] CacheMaxSizeInMegabytes should be an integer between 500 and 2000.');
+        }
+
+        config.CacheMaxSizeInMegabytes = cacheSize;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'CloseToSystemTray')) {
+        const closeToTray = newConfigSettings.CloseToSystemTray;
+
+        if (typeof closeToTray !== 'boolean') {
+            throw new Error('[UpdateConfig] CloseToSystemTray should be a boolean value.');
+        }
+
+        config.CloseToSystemTray = closeToTray;
+    }
+
+    await UpdateJsonFile(FileType.CONFIG);
+
+    return exports.GetConfig();
+};
+
+
+exports.GetConfig = () => ({
+    CacheMaxSizeInMegabytes: config.CacheMaxSizeInMegabytes,
+    CloseToSystemTray: config.CloseToSystemTray,
+});
+
+
 exports.GetMaxCacheSize = () => config.CacheMaxSizeInMegabytes;
+
+exports.GetCloseToSystemTray = () => config.CloseToSystemTray;
 
 exports.GetUpdaterIgnoreVersion = () => config.UpdaterIgnoreVersion;
 exports.SetUpdaterIgnoreVersion = async (versionToIgnore) => {

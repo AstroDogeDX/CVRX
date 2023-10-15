@@ -84,27 +84,27 @@ const MAP_WORLD = Object.freeze({
 });
 
 const MAP_INVITE = Object.freeze({
-        'Id': 'id',
-        'User': {
-            root: 'user',
-            mapping: MAP_USER,
-        },
-        'World': {
-            root: 'world',
-            mapping: MAP_WORLD,
-        },
-        'InstanceId': 'instanceId',
-        'InstanceName': 'instanceName',
-        'ReceiverId': 'receiverId',
+    'Id': 'id',
+    'User': {
+        root: 'user',
+        mapping: MAP_USER,
+    },
+    'World': {
+        root: 'world',
+        mapping: MAP_WORLD,
+    },
+    'InstanceId': 'instanceId',
+    'InstanceName': 'instanceName',
+    'ReceiverId': 'receiverId',
 });
 
 const MAP_REQUEST_INVITE = Object.freeze({
-        'Id': 'id',
-        'Sender': {
-            root: 'sender',
-            mapping: MAP_USER,
-        },
-        'ReceiverId': 'receiverId',
+    'Id': 'id',
+    'Sender': {
+        root: 'sender',
+        mapping: MAP_USER,
+    },
+    'ReceiverId': 'receiverId',
 });
 
 
