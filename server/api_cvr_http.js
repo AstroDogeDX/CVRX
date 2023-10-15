@@ -4,16 +4,17 @@ const utils = require('./utils');
 const log = require('./logger').GetLogger('API_HTTP');
 
 const APIAddress = 'https://api.abinteractive.net';
-const APIVersion = '1';
-const APIBase = `${APIAddress}/${APIVersion}`;
+const APIBase = `${APIAddress}/1`;
+const APIBase2 = `${APIAddress}/2`;
 
 let CVRApi;
+let CVRApiV2;
 
 const UnauthenticatedCVRApi = axios.create({ baseURL: APIBase });
 
-async function Get(url, authenticated = true) {
+async function Get(url, authenticated = true, apiVersion = 1) {
     try {
-        const response = await (authenticated ? CVRApi : UnauthenticatedCVRApi).get(url);
+        const response = await (authenticated ? (apiVersion === 1 ? CVRApi : CVRApiV2) : UnauthenticatedCVRApi).get(url);
         log.debug(`[GET] [${response.status}] [${authenticated ? '' : 'Non-'}Auth] ${url}`, response.data);
         return response.data.data;
     }
@@ -24,9 +25,9 @@ async function Get(url, authenticated = true) {
 }
 
 
-async function Post(url, data, authenticated = true) {
+async function Post(url, data, authenticated = true, apiVersion = 1) {
     try {
-        const response = await (authenticated ? CVRApi : UnauthenticatedCVRApi).post(url, data);
+        const response = await (authenticated ? (apiVersion === 1 ? CVRApi : CVRApiV2) : UnauthenticatedCVRApi).post(url, data);
         log.debug(`[Post] [${response.status}] [${authenticated ? '' : 'Non-'}Auth] ${url}`, response.data);
         return response.data;
     }
@@ -84,6 +85,17 @@ async function Authenticate(authType, credentialUser, credentialSecret) {
             'CompatibleVersions': '0,1,2',
         },
     });
+    CVRApiV2 = axios.create({
+        baseURL: APIBase2,
+        headers: {
+            'Username': authentication.username,
+            'AccessKey': authentication.accessKey,
+            'User-Agent': utils.GetUserAgent(),
+            'MatureContentDlc': 'true',
+            'Platform': 'pc_standalone',
+            'CompatibleVersions': '0,1,2',
+        },
+    });
     return authentication;
 }
 
@@ -118,7 +130,7 @@ exports.SetWorldCategories = async (worldId, categoryIds) => await SetAvatarCate
 // Worlds
 exports.GetWorldById = async (worldId) => await Get(`/worlds/${worldId}`);
 exports.GetWorldMetaById = async (worldId) => await Get(`/worlds/${worldId}/meta`);
-exports.GetWorldsByCategory = async (worldCategoryId) => await Get(`/worlds/list/${worldCategoryId}`);
+exports.GetWorldsByCategory = async (worldCategoryId) => await Get(`/worlds/list/${worldCategoryId}?page=0&direction=0`, true, 2);
 exports.GetWorldPortalById = async (worldId) => await Get(`/portals/world/${worldId}`);
 exports.SetWorldAsHome = async (worldId) => await Get(`/worlds/${worldId}/sethome`);
 
