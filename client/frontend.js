@@ -84,7 +84,7 @@ function hideAllDisplayWrappers() {
 }
 
 function setPageTitle(page) {
-    document.title = 'CVRX - ' + page.charAt(0).toUpperCase() + page.slice(1);
+    document.title = page.charAt(0).toUpperCase() + page.slice(1) + ' - CVRX';
 }
 
 function setInputValueAndFocus(selector, value) {
