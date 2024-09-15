@@ -521,7 +521,8 @@ button {
     border-radius: 5px;
     padding: 5px;
     font-size: 32px;
-    color: black;
+    color: rgb(120, 120, 120);
+	background-color: #2b2929;
 }
 
 #display-search :is(input)::placeholder {
