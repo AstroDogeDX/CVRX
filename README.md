@@ -32,9 +32,30 @@ A standalone companion app for ChilloutVR that expands the user experience!
 4. `npm install`
 5. `npm run make`
 
-This should create the `CVRX-x.x.x Setup.exe` in the folder: `out/make/squirrel.windows/x64/CVRX-x.x.x Setup.exe`
+This should create the `CVRX-x.x.x Setup.exe` in the folder: `out/make/squirrel.windows/x64/`
 
-(Note: Mac OS & Linux - build instructions should be the same, but the output file will correspond to your target platform)
+### MacOS
+1. Ensure the electron pre-requisites are met: https://www.electronjs.org/docs/latest/development/build-instructions-macos#prerequisites
+2. `git clone https://github.com/AstroDogeDX/CVRX.git`
+3. `cd CVRX`
+4. `npm install`
+5. `npm run make-mac`
+
+This should create the `CVRX-x.x.x-universal.dmg` in the folder: `out/make/`
+
+### Others
+Other platform build instructions are probably the same with some variations, however they haven't been tested.
+
+## File Paths
+### Windows
+- Root: `%Appdata%/CVRX/`
+- Logs: `%Appdata%/CVRX/CVRLogs/`
+- Images Cache: `%Appdata%/CVRX/CVRCache/`
+
+### MacOS
+- Root: `~/Library/Application\ Support/CVRX/`
+- Logs: `~/Library/Application\ Support/CVRX/CVRLogs/`
+- Images Cache: `~/Library/Application\ Support/CVRX/CVRCache/`
 
 ## Disclaimer
 > ---
