@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-const { app, BrowserWindow, Menu, ipcMain, Tray, Notification } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, nativeImage, Tray, Notification } = require('electron');
 
 // Prevent app launching multiple times during the installation
 if (require('electron-squirrel-startup')) {
@@ -80,18 +80,42 @@ const CreateWindow = async () => {
 
 const BuildTray = async (mainWindow) => {
 
-    const trayIcon = app.isPackaged
-        ? path.join(process.resourcesPath, 'app/client/img/cvrx-ico.ico')
-        : './client/img/cvrx-ico.ico';
+    const isMac = process.platform === 'darwin';
+    const isWindows = process.platform === 'win32';
 
+    // Skip tray on non-tested OS since it might crash the app
+    if (!isWindows && !isMac)
+        return;
+
+    // Pick which icon to use
+    let iconRelativePath = 'client/img/cvrx-logo-1028.png';
+    if (isMac)
+        iconRelativePath = 'client/img/cvrx-tray-mac.png';
+
+    const trayIcon = app.isPackaged
+        ? path.join(process.resourcesPath, `app/${iconRelativePath}`)
+        : `./${iconRelativePath}`;
+
+    // Prevent app from crashing by not initializing the tray
     if (!existsSync(trayIcon)) {
-        log.error(`Icon file does not exist at path: ${trayIcon}. This WILL crash the app...`);
-    } else {
-        log.info(`Building tray. Using icon from: ${trayIcon}`);
+        log.error(`Icon file does not exist at path: ${trayIcon}. Skipping initializing tray icon`);
+        return;
     }
 
+    log.info(`Building tray. Using icon from: ${trayIcon}`);
+
+    const nativeIconImg = nativeImage.createFromPath(trayIcon);
+
+    // Pick the correct resolution for each platform
+    const resizeConfig = {width: 32, height: isMac ? 16 : 32};
+
+    const resizedTrayImg = nativeIconImg.resize(resizeConfig);
+
+    // Mark as template (on macOS makes it respect dark mode, requires white image)
+    resizedTrayImg.isMacTemplateImage = true;
+
     // Set the tray icon
-    const tray = new Tray(trayIcon);
+    const tray = new Tray(resizedTrayImg);
 
     // Add tooltip to tray icon for clarity
     tray.setToolTip('CVRX');
