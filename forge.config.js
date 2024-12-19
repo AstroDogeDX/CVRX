@@ -25,7 +25,7 @@ module.exports = {
             name: '@electron-forge/maker-deb',
             config: {
                 options: {
-                    maintainer: 'AstroDoge & Kafeijao',
+                    maintainer: 'CVRX',
                     homepage: 'https://github.com/AstroDogeDX/CVRX',
                     icon: 'icon/cvrx-logo.png',
                 },
