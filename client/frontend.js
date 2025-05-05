@@ -562,7 +562,13 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
 // returns .imageBase64, .imageHash, .imageUrl
 window.API.onImageLoaded((_event, image) => {
     document.querySelectorAll(`[data-hash="${image.imageHash}"]`).forEach((e) => {
-        e.src = image.imageBase64;
+        if (e.tagName === 'IMG') {
+            // For regular image tags
+            e.src = image.imageBase64;
+        } else if (e.classList.contains('thumbnail-container')) {
+            // For thumbnail containers using background images
+            e.style.backgroundImage = `url('${image.imageBase64}')`;
+        }
     });
 });
 
@@ -573,18 +579,35 @@ const searchBar = document.getElementById('search-bar');
 searchBar.addEventListener('keypress', async (event) => {
     const searchTerm = searchBar.value;
 
-    // Ignore if the search term is empty, or the key pressed was not ENTER - or if the search term is <3 characters
-    if (!searchTerm || searchTerm.length < 3 || event.key !== 'Enter') { return; }
+    // Ignore if the key pressed was not ENTER
+    if (event.key !== 'Enter') { return; }
+
     event.preventDefault();
+
+    if (!searchTerm || searchTerm.length < 3) {
+        document.querySelector('.search-status').classList.remove('hidden');
+        document.querySelector('.search-no-results').classList.add('hidden');
+        document.querySelector('.search-loading').classList.add('hidden');
+        hideAllSearchCategories();
+        return;
+    }
+
+    // Show loading state
+    document.querySelector('.search-status').classList.add('hidden');
+    document.querySelector('.search-no-results').classList.add('hidden');
+    document.querySelector('.search-loading').classList.remove('hidden');
+    hideAllSearchCategories();
 
     // Disable the search while we're fetching and populating the results
     searchBar.disabled = true;
-    pushToast('Searching...');
 
     // Fetch the search results
     const results = await window.API.search(searchTerm);
     log('Searched!');
     log(results);
+
+    // Hide loading state
+    document.querySelector('.search-loading').classList.add('hidden');
 
     // Types: avatar, prop, user, world
     //
@@ -608,13 +631,103 @@ searchBar.addEventListener('keypress', async (event) => {
 
     // Create the search result elements
     for (const result of results) {
+        let additionalInfo = '';
+        let badgeInfo = '';
+        let rankInfo = '';
+        let tagsList = '';
+        let creatorInfo = '';
+        
+        // Add type-specific content based on available data
+        switch (result.type) {
+            case 'user':
+                // Check if user has a featured badge (this would be available in detailed data)
+                if (result.featuredBadge && result.featuredBadge.name && result.featuredBadge.name !== 'No badge featured') {
+                    badgeInfo = `<div class="badge-indicator">
+                        <span class="material-symbols-outlined">workspace_premium</span>
+                        ${result.featuredBadge.name}
+                    </div>`;
+                }
+                
+                // Display rank if available
+                rankInfo = result.rank ? 
+                    `<p class="creator-info"><span class="material-symbols-outlined">military_tech</span>Rank: ${result.rank}</p>` : '';
+                
+                additionalInfo = `
+                    ${rankInfo}
+                    <div class="search-result-detail">
+                        <span class="material-symbols-outlined">account_circle</span>View Profile
+                    </div>`;
+                break;
+                
+            case 'world':
+                // For worlds, we could have tags, player counts or other metadata
+                if (result.tags && result.tags.length > 0) {
+                    const tagElements = result.tags.slice(0, 3).map(tag => 
+                        `<span class="world-tag">${tag}</span>`
+                    ).join('');
+                    
+                    tagsList = `<div class="world-tags">${tagElements}</div>`;
+                }
+                
+                // Show creator info if available
+                creatorInfo = result.author ? 
+                    `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${result.author.name}</p>` : '';
+                
+                additionalInfo = `
+                    ${creatorInfo}
+                    ${tagsList}
+                    <div class="search-result-detail">
+                        <span class="material-symbols-outlined">travel_explore</span>Explore
+                    </div>`;
+                break;
+                
+            case 'avatar':
+                // Show creator info if available
+                creatorInfo = result.author ? 
+                    `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${result.author.name}</p>` : '';
+                
+                additionalInfo = `
+                    ${creatorInfo}
+                    <div class="search-result-detail">
+                        <span class="material-symbols-outlined">person_outline</span>Avatar
+                    </div>`;
+                break;
+                
+            case 'prop':
+                // Show creator info if available
+                creatorInfo = result.author ? 
+                    `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${result.author.name}</p>` : '';
+                
+                additionalInfo = `
+                    ${creatorInfo}
+                    <div class="search-result-detail">
+                        <span class="material-symbols-outlined">category</span>Prop
+                    </div>`;
+                break;
+        }
+        
         let searchResult = createElement('div', {
             className: 'search-output--node',
-            innerHTML:
-                `<img src="img/ui/placeholder.png" data-hash="${result.imageHash}"/>
-                <p class="search-result-name">${result.name}</p>
-                <p class="search-result-type">${result.type}</p>`,
+            innerHTML: `
+                ${badgeInfo}
+                <div class="thumbnail-container">
+                    <img src="img/ui/placeholder.png" data-hash="${result.imageHash}" class="hidden"/>
+                </div>
+                <div class="search-result-content">
+                    <p class="search-result-name">${result.name}</p>
+                    <p class="search-result-type">${result.type}</p>
+                    ${additionalInfo}
+                </div>
+            `,
         });
+        
+        // Set placeholder background image
+        const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
+        thumbnailContainer.style.backgroundImage = `url('img/ui/placeholder.png')`;
+        
+        // Store the image hash for later loading
+        thumbnailContainer.dataset.hash = result.imageHash;
+        
         switch (result.type) {
             case 'user':
                 searchResult.onclick = () => ShowDetails(DetailsType.User, result.id);
@@ -640,11 +753,95 @@ searchBar.addEventListener('keypress', async (event) => {
     searchOutputAvatars.replaceChildren(...avatarResults);
     searchOutputProps.replaceChildren(...propsResults);
 
+    // Show/hide categories based on results and uncollapse them
+    toggleCategoryVisibility('.users-category', userResults.length > 0);
+    toggleCategoryVisibility('.worlds-category', worldsResults.length > 0);
+    toggleCategoryVisibility('.avatars-category', avatarResults.length > 0);
+    toggleCategoryVisibility('.props-category', propsResults.length > 0);
+
+    // Uncollapse all visible categories after search
+    document.querySelectorAll('.search-output-category:not(.empty)').forEach(category => {
+        category.classList.remove('collapsed');
+    });
+
+    // Add category counts to headers
+    updateCategoryCount('.users-category', userResults.length);
+    updateCategoryCount('.worlds-category', worldsResults.length);
+    updateCategoryCount('.avatars-category', avatarResults.length);
+    updateCategoryCount('.props-category', propsResults.length);
+
+    // Show "no results" message if no results found
+    const totalResults = userResults.length + worldsResults.length + avatarResults.length + propsResults.length;
+    if (totalResults === 0) {
+        document.querySelector('.search-no-results').classList.remove('hidden');
+    } else {
+        document.querySelector('.search-no-results').classList.add('hidden');
+    }
+
     // Re-enable the search
     searchBar.disabled = false;
-    pushToast('Search Complete!', 'confirm');
+    applyTooltips();
 });
 
+// Helper function to toggle category visibility
+function toggleCategoryVisibility(categorySelector, isVisible) {
+    const category = document.querySelector(categorySelector);
+    if (isVisible) {
+        category.classList.remove('empty');
+    } else {
+        category.classList.add('empty');
+        category.classList.remove('collapsed');
+    }
+}
+
+// Function to update category headers with result counts
+function updateCategoryCount(categorySelector, count) {
+    if (count > 0) {
+        const categoryTitle = document.querySelector(`${categorySelector} h3 .category-title`);
+        const existingCount = categoryTitle.querySelector('.category-count');
+
+        if (existingCount) {
+            existingCount.textContent = ` (${count})`;
+        } else {
+            const countSpan = document.createElement('span');
+            countSpan.className = 'category-count';
+            countSpan.textContent = ` (${count})`;
+            categoryTitle.appendChild(countSpan);
+        }
+    }
+}
+
+// Hide all search categories
+function hideAllSearchCategories() {
+    document.querySelectorAll('.search-output-category').forEach(category => {
+        category.classList.add('empty');
+        category.classList.remove('collapsed');
+
+        // Reset category counts
+        const countSpan = category.querySelector('.category-count');
+        if (countSpan) countSpan.remove();
+    });
+}
+
+// Add input event to handle search status message
+searchBar.addEventListener('input', () => {
+    if (searchBar.value.length === 0) {
+        document.querySelector('.search-status').classList.remove('hidden');
+        document.querySelector('.search-no-results').classList.add('hidden');
+        document.querySelector('.search-loading').classList.add('hidden');
+        hideAllSearchCategories();
+    }
+});
+
+// Set up category toggling
+document.querySelectorAll('.search-output-category h3').forEach(header => {
+    header.addEventListener('click', () => {
+        const category = header.closest('.search-output-category');
+        if (!category.classList.contains('empty')) {
+            category.classList.toggle('collapsed');
+        }
+    });
+});
 
 // Janky Active Instances
 // -----------------------------

@@ -519,13 +519,22 @@ button {
     position: sticky;
     top: 0px;
     border-radius: 5px;
-    padding: 5px;
+    padding: 5px 15px;
     font-size: 32px;
     color: black;
+    transition: box-shadow 0.2s ease;
+    background-color: #f0f0f0;
+    border: none;
+}
+
+#display-search :is(input):focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
 }
 
 #display-search :is(input)::placeholder {
     font-style: italic;
+    color: #666;
 }
 
 #display-search :is(img) {
@@ -533,43 +542,330 @@ button {
     height: var(--thumbnail-size-standard);
     border-radius: var(--border-radii);
     float: left;
-    margin-right: 5px;
+    margin-right: 10px;
+    transition: transform 0.2s ease;
 }
 
 .search-output {
     grid-area: search-output;
     overflow-y: auto;
     border-radius: 5px;
+    padding: 0 5px;
+}
+
+.search-output-category {
+    margin-bottom: 15px;
+    opacity: 1;
+    transition: opacity 0.3s ease, max-height 0.3s ease;
+    max-height: 2000px;
+    overflow: hidden;
+}
+
+.search-output-category.empty {
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
 }
 
 .search-output h3 {
-    border-bottom: thin solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 5px;
+    border-bottom: thin solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    justify-content: space-between;
+    user-select: none;
+}
+
+.search-output h3 .category-title {
+    display: flex;
+    align-items: center;
+}
+
+.search-output h3 .material-symbols-outlined {
+    margin-right: 5px;
+    font-size: 20px;
+}
+
+.search-output h3 .toggle-indicator {
+    font-size: 20px;
+    transition: transform 0.2s ease;
+    opacity: 0.7;
+}
+
+.search-output-category.collapsed h3 .toggle-indicator {
+    transform: rotate(-90deg);
+}
+
+.search-output-category.collapsed .search-output--users,
+.search-output-category.collapsed .search-output--worlds,
+.search-output-category.collapsed .search-output--avatars,
+.search-output-category.collapsed .search-output--props {
+    max-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+}
+
+.search-output--users,
+.search-output--worlds,
+.search-output--avatars,
+.search-output--props {
+    transition: max-height 0.3s ease, opacity 0.2s ease, margin 0.3s ease;
+    opacity: 1;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 10px 0 20px 0;
 }
 
 .search-output--node {
     min-height: 60px;
     border-radius: var(--border-radii);
-    padding: 5px;
+    padding: 0;
+    margin-bottom: 0;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    animation: searchResultsAppear 0.3s ease forwards;
+    overflow: hidden;
+    background-color: rgba(40, 40, 40, 0.7);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.search-output--node:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.search-output--node:nth-of-type(odd) {
+    background-color: rgba(50, 50, 50, 0.7);
+}
+
+.search-output--node .thumbnail-container {
+    width: 100%;
+    height: 160px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.2);
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.3s ease;
+}
+
+.search-output--node:hover .thumbnail-container {
+    transform: scale(1.05);
+}
+
+.search-output--node .thumbnail-container::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* We don't need these styles for img tags anymore */
+.search-output--node img.hidden {
+    display: none;
+}
+
+.search-result-content {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.search-result-name {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .search-result-type {
     font-size: small;
     color: rgba(255, 255, 255, 0.5);
     text-transform: capitalize;
+    margin-bottom: 10px;
 }
 
-.search-output--users>.search-output--node:hover,
-.search-output--users>.search-output--node:hover .search-result-name {
+.search-result-detail {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    padding: 5px 0;
+}
+
+.search-result-detail .material-symbols-outlined {
+    font-size: 14px;
+    margin-right: 6px;
+    opacity: 0.8;
+}
+
+.search-output--users .search-output--node {
     cursor: pointer;
 }
 
-.search-output--users>.search-output--node:hover .search-result-name {
+.search-output--users .search-output--node:hover .search-result-name {
     text-decoration: underline;
 }
 
-.search-output--node:nth-of-type(odd) {
-    background: var(--node-nth-color);
+/* World-specific styling */
+.search-output--worlds .search-output--node .search-result-detail {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Type-specific decorations */
+.search-output--node::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    font-family: 'Material Symbols Outlined';
+    font-size: 16px;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.search-output--users .search-output--node::before {
+    content: 'person';
+    background-color: rgba(64, 116, 191, 0.8);
+}
+
+.search-output--worlds .search-output--node::before {
+    content: 'language';
+    background-color: rgba(65, 154, 87, 0.8);
+}
+
+.search-output--avatars .search-output--node::before {
+    content: 'emoji_people';
+    background-color: rgba(154, 106, 57, 0.8);
+}
+
+.search-output--props .search-output--node::before {
+    content: 'view_in_ar';
+    background-color: rgba(147, 76, 175, 0.8);
+}
+
+.search-output--node .badge-indicator {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: #ffdd57;
+    display: flex;
+    align-items: center;
+    z-index: 2;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.search-output--node .creator-info {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+}
+
+.search-output--node .creator-info .material-symbols-outlined {
+    font-size: 12px;
+    margin-right: 4px;
+    opacity: 0.7;
+}
+
+.search-status {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-status.hidden {
+    display: none;
+}
+
+.search-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    gap: 10px;
+}
+
+.search-loading.hidden {
+    display: none;
+}
+
+.search-loading .spinner {
+    animation: rotate 1.5s linear infinite;
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.search-no-results {
+    text-align: center;
+    padding: 30px;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-no-results.hidden {
+    display: none;
+}
+
+@keyframes searchResultsAppear {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Friends Page */
@@ -1811,4 +2107,32 @@ button {
 
 #prompt-cancel {
     background: darkred;
+}
+
+.search-output h3 .category-count {
+    font-size: 14px;
+    opacity: 0.7;
+    font-weight: normal;
+}
+
+.search-output--worlds .world-tag {
+    display: inline-block;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 10px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.search-output--worlds .world-tags {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 5px;
+}
+
+.search-output--node .badge-indicator .material-symbols-outlined {
+    font-size: 12px;
+    margin-right: 3px;
 }

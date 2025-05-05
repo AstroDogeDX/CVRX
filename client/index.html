@@ -83,14 +83,44 @@
       <div class="display-wrapper" id="display-search">
         <input id="search-bar" type="text" placeholder="Type to Search">
         <div class="search-output">
-          <h3>Users</h3>
-          <div class="search-output--users"></div>
-          <h3>Worlds</h3>
-          <div class="search-output--worlds"></div>
-          <h3>Avatars</h3>
-          <div class="search-output--avatars"></div>
-          <h3>Props</h3>
-          <div class="search-output--props"></div>
+          <div class="search-status">Enter at least 3 characters to search</div>
+          <div class="search-loading hidden">
+            <span class="material-symbols-outlined spinner">refresh</span>
+            <span>Searching...</span>
+          </div>
+          <div class="search-no-results hidden">No search results found</div>
+          
+          <div class="search-output-category users-category">
+            <h3>
+              <div class="category-title"><span class="material-symbols-outlined">person</span>Users</div>
+              <span class="toggle-indicator material-symbols-outlined">expand_more</span>
+            </h3>
+            <div class="search-output--users"></div>
+          </div>
+          
+          <div class="search-output-category worlds-category">
+            <h3>
+              <div class="category-title"><span class="material-symbols-outlined">language</span>Worlds</div>
+              <span class="toggle-indicator material-symbols-outlined">expand_more</span>
+            </h3>
+            <div class="search-output--worlds"></div>
+          </div>
+          
+          <div class="search-output-category avatars-category">
+            <h3>
+              <div class="category-title"><span class="material-symbols-outlined">emoji_people</span>Avatars</div>
+              <span class="toggle-indicator material-symbols-outlined">expand_more</span>
+            </h3>
+            <div class="search-output--avatars"></div>
+          </div>
+          
+          <div class="search-output-category props-category">
+            <h3>
+              <div class="category-title"><span class="material-symbols-outlined">view_in_ar</span>Props</div>
+              <span class="toggle-indicator material-symbols-outlined">expand_more</span>
+            </h3>
+            <div class="search-output--props"></div>
+          </div>
         </div>
       </div>
       <!-- FRIENDS -->
