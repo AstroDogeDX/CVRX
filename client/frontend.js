@@ -636,7 +636,7 @@ searchBar.addEventListener('keypress', async (event) => {
         let rankInfo = '';
         let tagsList = '';
         let creatorInfo = '';
-        
+
         // Add type-specific content based on available data
         switch (result.type) {
             case 'user':
@@ -647,32 +647,32 @@ searchBar.addEventListener('keypress', async (event) => {
                         ${result.featuredBadge.name}
                     </div>`;
                 }
-                
+
                 // Display rank if available
-                rankInfo = result.rank ? 
+                rankInfo = result.rank ?
                     `<p class="creator-info"><span class="material-symbols-outlined">military_tech</span>Rank: ${result.rank}</p>` : '';
-                
+
                 additionalInfo = `
                     ${rankInfo}
                     <div class="search-result-detail">
                         <span class="material-symbols-outlined">account_circle</span>View Profile
                     </div>`;
                 break;
-                
+
             case 'world':
                 // For worlds, we could have tags, player counts or other metadata
                 if (result.tags && result.tags.length > 0) {
-                    const tagElements = result.tags.slice(0, 3).map(tag => 
-                        `<span class="world-tag">${tag}</span>`
+                    const tagElements = result.tags.slice(0, 3).map(tag =>
+                        `<span class="world-tag">${tag}</span>`,
                     ).join('');
-                    
+
                     tagsList = `<div class="world-tags">${tagElements}</div>`;
                 }
-                
+
                 // Show creator info if available
-                creatorInfo = result.author ? 
+                creatorInfo = result.author ?
                     `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${result.author.name}</p>` : '';
-                
+
                 additionalInfo = `
                     ${creatorInfo}
                     ${tagsList}
@@ -680,24 +680,24 @@ searchBar.addEventListener('keypress', async (event) => {
                         <span class="material-symbols-outlined">travel_explore</span>Explore
                     </div>`;
                 break;
-                
+
             case 'avatar':
                 // Show creator info if available
-                creatorInfo = result.author ? 
+                creatorInfo = result.author ?
                     `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${result.author.name}</p>` : '';
-                
+
                 additionalInfo = `
                     ${creatorInfo}
                     <div class="search-result-detail">
                         <span class="material-symbols-outlined">person_outline</span>Avatar
                     </div>`;
                 break;
-                
+
             case 'prop':
                 // Show creator info if available
-                creatorInfo = result.author ? 
+                creatorInfo = result.author ?
                     `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${result.author.name}</p>` : '';
-                
+
                 additionalInfo = `
                     ${creatorInfo}
                     <div class="search-result-detail">
@@ -705,7 +705,7 @@ searchBar.addEventListener('keypress', async (event) => {
                     </div>`;
                 break;
         }
-        
+
         let searchResult = createElement('div', {
             className: 'search-output--node',
             innerHTML: `
@@ -720,14 +720,14 @@ searchBar.addEventListener('keypress', async (event) => {
                 </div>
             `,
         });
-        
+
         // Set placeholder background image
         const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-        thumbnailContainer.style.backgroundImage = `url('img/ui/placeholder.png')`;
-        
+        thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+
         // Store the image hash for later loading
         thumbnailContainer.dataset.hash = result.imageHash;
-        
+
         switch (result.type) {
             case 'user':
                 searchResult.onclick = () => ShowDetails(DetailsType.User, result.id);

@@ -642,6 +642,7 @@ button {
 .search-output--node:hover {
     transform: translateY(-5px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    background-color: rgba(50, 50, 50, 0.85);
 }
 
 .search-output--node:nth-of-type(odd) {
@@ -688,6 +689,7 @@ button {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    min-height: 140px; /* Increased from 120px to accommodate two-line titles */
 }
 
 .search-result-name {
@@ -697,7 +699,22 @@ button {
     font-size: 16px;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.3;
+    color: rgba(255, 255, 255, 0.95);
+    max-height: 42px; /* Allow for 2 lines of text */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Modify hover effect to show more lines on hover if needed */
+.search-output--node:hover .search-result-name {
+    -webkit-line-clamp: 3; /* Show up to 3 lines on hover */
+    line-clamp: 3; /* Show up to 3 lines on hover */
+    max-height: 63px; /* 3 lines at 1.3 line height */
 }
 
 .search-result-type {
@@ -705,6 +722,7 @@ button {
     color: rgba(255, 255, 255, 0.5);
     text-transform: capitalize;
     margin-bottom: 10px;
+    font-weight: 400;
 }
 
 .search-result-detail {
@@ -714,6 +732,7 @@ button {
     display: flex;
     align-items: center;
     padding: 5px 0;
+    line-height: 1.2;
 }
 
 .search-result-detail .material-symbols-outlined {
@@ -734,6 +753,10 @@ button {
 .search-output--worlds .search-output--node .search-result-detail {
     display: flex;
     justify-content: space-between;
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin-top: 5px;
 }
 
 /* Type-specific decorations */
@@ -800,6 +823,7 @@ button {
     text-overflow: ellipsis;
     display: flex;
     align-items: center;
+    max-width: 100%;
 }
 
 .search-output--node .creator-info .material-symbols-outlined {
