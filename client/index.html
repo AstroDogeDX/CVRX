@@ -122,8 +122,41 @@
       </div>
       <!-- SETTINGS -->
       <div class="display-wrapper" id="display-settings">
-        <input id="check-updates-button" type="button" value="Check for Updates" />
-        <input id="logout-button" type="button" value="Logout" />
+        <div class="settings-tabs">
+          <button class="settings-tab active" data-tab="general">General</button>
+          <button class="settings-tab" data-tab="appearance">Appearance</button>
+          <button class="settings-tab" data-tab="advanced">Advanced</button>
+        </div>
+        <div class="settings-content">
+          <div class="settings-page active" id="settings-general">
+            <div class="settings-section">
+              <h3>Updates</h3>
+              <button id="check-updates-button" class="settings-button">
+                <span class="material-symbols-outlined">system_update</span>
+                Check for Updates
+              </button>
+            </div>
+            <div class="settings-section">
+              <h3>Account</h3>
+              <button id="logout-button" class="settings-button">
+                <span class="material-symbols-outlined">logout</span>
+                Logout
+              </button>
+            </div>
+          </div>
+          <div class="settings-page" id="settings-appearance">
+            <div class="settings-section">
+              <h3>Theme</h3>
+              <p>Appearance settings coming soon...</p>
+            </div>
+          </div>
+          <div class="settings-page" id="settings-advanced">
+            <div class="settings-section">
+              <h3>System</h3>
+              <p>Advanced settings coming soon...</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="friends-sidebar">
@@ -137,7 +170,17 @@
   <!-- OVERLAYS -->
   <div class="overlay">
     <!-- LOADING SPLASH -->
-    <div class="loading-shade"><span>CVRX is Loading</span></div>
+    <div class="loading-shade">
+      <div class="loading-container">
+        <div class="loading-logo">
+          <img src="img/cvrx-tray-mac.png" alt="CVRX Logo">
+        </div>
+        <div class="loading-progress">
+          <div class="loading-bar"></div>
+        </div>
+        <div class="loading-status">Loading...</div>
+      </div>
+    </div>
     <!-- OBJECT DETAILS CARDS -->
     <div class="details-shade">
       <div class="details-window">

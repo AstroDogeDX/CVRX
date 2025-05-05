@@ -1228,61 +1228,84 @@ button {
     flex-flow: row nowrap;
     align-items: center;
     justify-content: center;
-    font-size: 42px;
-    color: white;
-    font-weight: bold;
-    background: black;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2b2929 100%);
     width: 100%;
     height: 100%;
+    z-index: 9999;
 }
 
-.loading-shade :is(span) {
-    animation: loadingSwirly 1s linear infinite;
-    border-radius: 100%;
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 1rem;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.loading-logo {
     width: 200px;
     height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    overflow: hidden;
-    box-sizing: initial;
+    animation: pulse 2s infinite;
 }
 
-@keyframes loadingSwirly {
+.loading-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.loading-progress {
+    width: 300px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.loading-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #E43600 0%, #FFB380 100%);
+    animation: progress 2s ease-in-out infinite;
+}
+
+.loading-status {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+@keyframes pulse {
     0% {
-        border-top: 5px solid white;
-        border-right: 1px solid white;
-        border-bottom: 0px solid white;
-        border-left: 1px solid white;
+        transform: scale(1);
+        opacity: 1;
     }
-
-    25% {
-        border-top: 1px solid white;
-        border-right: 5px solid white;
-        border-bottom: 1px solid white;
-        border-left: 0px solid white;
-    }
-
     50% {
-        border-top: 0px solid white;
-        border-right: 1px solid white;
-        border-bottom: 5px solid white;
-        border-left: 1px solid white;
+        transform: scale(1.1);
+        opacity: 0.8;
     }
-
-    75% {
-        border-top: 1px solid white;
-        border-right: 0px solid white;
-        border-bottom: 1px solid white;
-        border-left: 5px solid white;
-    }
-
     100% {
-        border-top: 5px solid white;
-        border-right: 1px solid white;
-        border-bottom: 0px solid white;
-        border-left: 1px solid white;
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes progress {
+    0% {
+        width: 0%;
+        transform: translateX(-100%);
+    }
+    50% {
+        width: 100%;
+        transform: translateX(0%);
+    }
+    100% {
+        width: 0%;
+        transform: translateX(100%);
     }
 }
 
@@ -1428,26 +1451,101 @@ button {
 #display-settings {
     display: flex;
     flex-flow: column nowrap;
+    gap: 10px;
+    padding: 15px;
 }
 
-#logout-button {
-    font-size: 22px;
-    height: 30px;
-    width: 25%;
-    color: white;
-    background: red;
+.settings-tabs {
+    display: flex;
+    gap: 5px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 5px;
+}
+
+.settings-tab {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 8px 16px;
+    font-size: 16px;
     cursor: pointer;
     border-radius: var(--border-radii);
+    transition: all 0.2s ease;
+}
+
+.settings-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.settings-tab.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.settings-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.settings-page {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.settings-page.active {
+    display: flex;
+}
+
+.settings-section {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radii);
+    padding: 15px;
+}
+
+.settings-section h3 {
+    margin: 0 0 10px 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 18px;
+}
+
+.settings-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: var(--border-radii);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.settings-button:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 #check-updates-button {
-    font-size: 22px;
-    height: 30px;
-    width: 25%;
-    color: white;
     background: darkcyan;
-    cursor: pointer;
-    border-radius: var(--border-radii);
+}
+
+#check-updates-button:hover {
+    background: #008b8b;
+}
+
+#logout-button {
+    background: #8b0000;
+}
+
+#logout-button:hover {
+    background: #a00000;
+}
+
+.settings-button .material-symbols-outlined {
+    font-size: 18px;
 }
 
 /* NEW 3DS Instance Nodes Bros. U*/

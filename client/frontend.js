@@ -187,11 +187,42 @@ function promptReconnect() {
 // EVERYTHING ELSE
 // ===============
 
-// Pages handling
+// Loading screen functionality
+const loadingScreen = {
+    element: document.querySelector('.loading-shade'),
+    status: document.querySelector('.loading-status'),
+    progress: document.querySelector('.loading-bar'),
+    show: function() {
+        this.element.style.display = 'flex';
+        this.updateStatus('Loading...');
+    },
+    hide: function() {
+        this.element.style.display = 'none';
+    },
+    updateStatus: function(text) {
+        this.status.textContent = text;
+    },
+    updateProgress: function(percent) {
+        this.progress.style.width = `${percent}%`;
+    },
+};
+
+// Update loading screen visibility
 window.API.onLoadingPage((_event) => {
-    // Reveal the loading screen
-    document.querySelector('.loading-shade').style.display = 'flex';
+    loadingScreen.show();
 });
+
+// Update loading screen status during authentication
+window.API.onLoginPage((_event, _availableCredentials) => {
+    loadingScreen.updateStatus('Checking credentials...');
+});
+
+// Hide loading screen when main content is ready
+window.API.onHomePage((_event) => {
+    loadingScreen.hide();
+});
+
+// Pages handling
 window.API.onLoginPage((_event, availableCredentials) => {
     log('login page!');
 
@@ -1226,3 +1257,16 @@ window.API.receiveVersion((appVersion) => {
 window.API.onSocketDied((_event) => promptReconnect());
 
 applyTooltips();
+
+// Settings page tab switching
+document.querySelectorAll('.settings-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        // Remove active class from all tabs and pages
+        document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.settings-page').forEach(p => p.classList.remove('active'));
+        
+        // Add active class to clicked tab and corresponding page
+        tab.classList.add('active');
+        document.getElementById(`settings-${tab.dataset.tab}`).classList.add('active');
+    });
+});
