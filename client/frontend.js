@@ -1251,7 +1251,7 @@ window.addEventListener('focus', async () => {
 window.API.getVersion();
 
 window.API.receiveVersion((appVersion) => {
-  document.querySelector('.navbar-version').innerHTML = `v${appVersion}`;
+    document.querySelector('.navbar-version').innerHTML = `v${appVersion}`;
 });
 
 window.API.onSocketDied((_event) => promptReconnect());
@@ -1264,9 +1264,34 @@ document.querySelectorAll('.settings-tab').forEach(tab => {
         // Remove active class from all tabs and pages
         document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.settings-page').forEach(p => p.classList.remove('active'));
-        
+
         // Add active class to clicked tab and corresponding page
         tab.classList.add('active');
         document.getElementById(`settings-${tab.dataset.tab}`).classList.add('active');
     });
+});
+
+// Handle "Close to System Tray" setting
+const closeToTrayCheckbox = document.getElementById('setting-close-to-tray');
+
+// Load initial setting from config
+window.API.getConfig().then(config => {
+    if (config && config.CloseToSystemTray !== undefined) {
+        closeToTrayCheckbox.checked = config.CloseToSystemTray;
+    }
+});
+
+// Update config when setting is changed
+closeToTrayCheckbox.addEventListener('change', () => {
+    window.API.updateConfig({ CloseToSystemTray: closeToTrayCheckbox.checked })
+        .then(() => {
+            pushToast('Setting saved', 'confirm');
+        })
+        .catch(err => {
+            pushToast(`Error saving setting: ${err}`, 'error');
+            // Revert checkbox state if save failed
+            window.API.getConfig().then(config => {
+                closeToTrayCheckbox.checked = config.CloseToSystemTray;
+            });
+        });
 });
