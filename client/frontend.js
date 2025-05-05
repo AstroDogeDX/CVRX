@@ -9,6 +9,9 @@ import { applyTooltips } from './astrolib/tooltip.js';
 // GLOBAL VARS
 // ===========
 
+// Cache for friend images to prevent losing loaded images on refresh
+const friendImageCache = {};
+
 const DetailsType = Object.freeze({
     User: Symbol('user'),
     World: Symbol('world'),
@@ -444,13 +447,21 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     friendsBarNode.replaceChildren();
     friendsListNode.replaceChildren();
 
-    for (const friend of friends) {
+    // Array to collect all friend cards before adding to DOM
+    const friendCards = [];
 
+    for (const friend of friends) {
         const { name, type } = getFriendStatus(friend);
         const instanceTypeStr = type ? `${type}` : '';
         const onlineFriendInPrivateClass = friend.instance ? '' : 'friend-is-offline';
-        // Depending on whether it's a refresh or not the image might be already loaded
-        const friendImgSrc = friend.imageBase64 ?? 'img/ui/placeholder.png';
+
+        // Use cached image if available, otherwise use placeholder
+        if (friend.imageBase64) {
+            // If we received the image with this update, cache it
+            friendImageCache[friend.imageHash] = friend.imageBase64;
+        }
+        // Use cached image or fall back to placeholder
+        const friendImgSrc = friendImageCache[friend.imageHash] || 'img/ui/placeholder.png';
 
         // Setting up the HTMLElement used for the Online Friends panel.
         if (friend.isOnline) {
@@ -484,70 +495,55 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
 
         // Setting up the HTMLElement used for the Friends List page.
         const offlineFriendClass = friend.isOnline ? '' : 'friend-is-offline';
-        const imgOnlineClass = friend.isOnline ? 'class="icon-is-online"' : '';
-        let listFriendNode = createElement('div', {
+
+        // Status indicator
+        const statusIndicator = friend.isOnline
+            ? '<div class="status-indicator"><span class="material-symbols-outlined">circle</span>Online</div>'
+            : '<div class="status-indicator offline"><span class="material-symbols-outlined">circle</span>Offline</div>';
+
+        // Badge indicator (if present)
+        let badgeIndicator = '';
+        if (friend.featuredBadge && friend.featuredBadge.name && friend.featuredBadge.name !== 'No badge featured') {
+            badgeIndicator = `<div class="badge-indicator">
+                <span class="material-symbols-outlined">workspace_premium</span>
+                ${friend.featuredBadge.name}
+            </div>`;
+        }
+
+        // World/instance icon
+        const worldIcon = friend.isOnline
+            ? '<span class="material-symbols-outlined">public</span>'
+            : '<span class="material-symbols-outlined">public_off</span>';
+
+        // Create the friend card with the same structure as search results
+        let friendCard = createElement('div', {
             className: 'friend-list-node',
-            innerHTML:
-                `<img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
-                <p class="friend-name">${friend.name}</p>
-                <p class="${offlineFriendClass} friend-status-type">${instanceTypeStr}</p>
-                <p class="${offlineFriendClass} friend-status">${name}</p>`,
+            innerHTML: `
+                ${badgeIndicator}
+                <div class="thumbnail-container">
+                    <img src="${friendImgSrc}" data-hash="${friend.imageHash}" class="hidden"/>
+                    ${statusIndicator}
+                </div>
+                <div class="friend-content">
+                    <p class="friend-name">${friend.name}</p>
+                    <p class="${offlineFriendClass} friend-status-type">${instanceTypeStr}</p>
+                    <p class="${offlineFriendClass} friend-status">${worldIcon} ${name}</p>
+                </div>
+            `,
             onClick: () => ShowDetails(DetailsType.User, friend.id),
         });
-        friendsListNode.appendChild(listFriendNode);
+
+        // Set placeholder background image and data-hash directly on the container
+        const thumbnailContainer = friendCard.querySelector('.thumbnail-container');
+        thumbnailContainer.style.backgroundImage = `url('${friendImgSrc}')`;
+        thumbnailContainer.style.backgroundSize = 'cover';
+        thumbnailContainer.dataset.hash = friend.imageHash;
+
+        friendCards.push(friendCard);
     }
 
-    // Usually it will be an array with just those 4 elements.
-    //
-    // friends = [{
-    //     id: 'c4eee443-98a0-bab8-a583-f1d9fa10a7d7',
-    //     name: 'CVRX',
-    //     imageUrl: 'https://files.abidata.io/user_images/c4eee443-98a0-bab8-a583-f1d9fa10a7d7-63cfb4a4061d4.png',
-    //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    // }];
-
-    // As we have seen these updates can have the instance to null, or have the instance with different levels
-    // Of privacy:
-    // 0: Public
-    // 1: Friends of Friends
-    // 2: Friends Only (with a friend of mine)
-
-    // But in case the refresh is not the first one at app start, some other info might be included
-    // All the possible information is:
-    //
-    // friends = [
-    //     {
-    //         onlineState: false,
-    //         isConnected: false,
-    //         isFriend: false,
-    //         isBlocked: false,
-    //         instance: null, // ORRRR
-    //         //instance: { id: "i+51985e5559117d5f-951509-ff0a95-1a3dc443", "name": "The Purple Fox (#417388)", "privacy":1 }
-    //         categories: [],
-    //         rank: 'User',
-    //         featuredBadge: {
-    //             name: 'No badge featured',
-    //             image: 'https://files.abidata.io/static_web/NoHolderImage.png',
-    //             imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4',
-    //             badgeLevel: 0
-    //         },
-    //         featuredGroup: {
-    //             name: 'No group featured',
-    //             image: 'https://files.abidata.io/static_web/NoHolderImage.png',
-    //             imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    //         },
-    //         avatar: {
-    //             id: '5cde1f96-d62a-4231-bf53-a32693830fc2',
-    //             name: 'Demo Bot',
-    //             imageUrl: 'https://files.abidata.io/user_content/avatars/5cde1f96-d62a-4231-bf53-a32693830fc2/5cde1f96-d62a-4231-bf53-a32693830fc2.png',
-    //             imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    //         },
-    //         id: 'c4eee443-98a0-bab8-a583-f1d9fa10a7d7',
-    //         name: 'CVRX',
-    //         imageUrl: 'https://files.abidata.io/user_images/c4eee443-98a0-bab8-a583-f1d9fa10a7d7-63cfb4a4061d4.png',
-    //         imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    //     }
-    // ]
+    // Add all friend cards to the DOM at once
+    friendsListNode.append(...friendCards);
 
     // After getting all friends statuses, populate the Friends Sidebar in order of Categories
     for (const key in categories) {
@@ -565,6 +561,9 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
 
 // returns .imageBase64, .imageHash, .imageUrl
 window.API.onImageLoaded((_event, image) => {
+    // Cache the image when it's loaded
+    friendImageCache[image.imageHash] = image.imageBase64;
+
     document.querySelectorAll(`[data-hash="${image.imageHash}"]`).forEach((e) => {
         if (e.tagName === 'IMG') {
             // For regular image tags
@@ -572,6 +571,7 @@ window.API.onImageLoaded((_event, image) => {
         } else if (e.classList.contains('thumbnail-container')) {
             // For thumbnail containers using background images
             e.style.backgroundImage = `url('${image.imageBase64}')`;
+            e.style.backgroundSize = 'cover';
         }
     });
 });
@@ -728,6 +728,7 @@ searchBar.addEventListener('keypress', async (event) => {
         // Set placeholder background image
         const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
         thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+        thumbnailContainer.style.backgroundSize = 'cover';
 
         // Store the image hash for later loading
         thumbnailContainer.dataset.hash = result.imageHash;
@@ -1197,11 +1198,11 @@ function addFilterListener(inputSelector, itemSelector, itemNameSelector) {
 // Friends filtering :D
 addFilterListener('.friends-filter', '.friend-list-node', '.friend-name');
 // Avatars filtering :O
-addFilterListener('#avatars-filter', '.avatars-wrapper--avatars-node', '.avatars-node--name');
+addFilterListener('#avatars-filter', '.avatars-wrapper--avatars-node', '.card-name');
 // Worlds filtering :)
-addFilterListener('#worlds-filter', '.worlds-wrapper--worlds-node', '.worlds-node--name');
+addFilterListener('#worlds-filter', '.worlds-wrapper--worlds-node', '.card-name');
 // Props filtering :P
-addFilterListener('#props-filter', '.props-wrapper--props-node', '.props-node--name');
+addFilterListener('#props-filter', '.props-wrapper--props-node', '.card-name');
 
 
 window.API.onUserStats((_event, userStats) => {
@@ -1233,14 +1234,33 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
         // Ignore avatars that are not our own
         if (!ourAvatar.categories.includes(AvatarCategories.Mine)) continue;
 
-        const ourAvatarNode = createElement('div', {
-            className: 'avatars-wrapper--avatars-node',
-            innerHTML:
-                `<img src="img/ui/placeholder.png" data-hash="${ourAvatar.imageHash}"/>
-                <p class="avatars-node--name">${ourAvatar.name}</p>
-                <p class="avatars-node--description">${ourAvatar.description}</p>`,
+        // Use cached image or placeholder
+        const imgSrc = friendImageCache[ourAvatar.imageHash] || 'img/ui/placeholder.png';
+
+        // Create card similar to search and friends layout
+        const avatarNode = createElement('div', {
+            className: 'avatars-wrapper--avatars-node card-node',
+            innerHTML: `
+                <div class="thumbnail-container">
+                    <img src="${imgSrc}" data-hash="${ourAvatar.imageHash}" class="hidden"/>
+                </div>
+                <div class="card-content">
+                    <p class="card-name">${ourAvatar.name}</p>
+                    <p class="card-description">${ourAvatar.description || ''}</p>
+                    <div class="card-detail">
+                        <span class="material-symbols-outlined">emoji_people</span>Avatar
+                    </div>
+                </div>
+            `,
         });
-        docFragment.appendChild(ourAvatarNode);
+
+        // Set placeholder background image and data-hash directly on the container
+        const thumbnailContainer = avatarNode.querySelector('.thumbnail-container');
+        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
+        thumbnailContainer.style.backgroundSize = 'cover';
+        thumbnailContainer.dataset.hash = ourAvatar.imageHash;
+
+        docFragment.appendChild(avatarNode);
     }
 
     avatarDisplayNode.replaceChildren(docFragment);
@@ -1255,21 +1275,40 @@ window.API.onGetActiveUserProps((_event, ourProps) => {
     let docFragment = document.createDocumentFragment();
 
     // Create reload our props button
-    const reloadAvatarsButton = document.querySelector('#props-refresh');
-    reloadAvatarsButton.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
+    const reloadPropsButton = document.querySelector('#props-refresh');
+    reloadPropsButton.addEventListener('click', () => window.API.refreshGetActiveUserProps());
 
     for (const ourProp of ourProps) {
-        // Ignore avatars that are not our own
+        // Ignore props that are not our own
         if (!ourProp.categories.includes(PropCategories.Mine)) continue;
 
-        const ourPropNode = createElement('div', {
-            className: 'props-wrapper--props-node',
-            innerHTML:
-                `<img src="img/ui/placeholder.png" data-hash="${ourProp.imageHash}"/>
-                <p class="props-node--name">${ourProp.name}</p>
-                <p class="props-node--description">${ourProp.description}</p>`,
+        // Use cached image or placeholder
+        const imgSrc = friendImageCache[ourProp.imageHash] || 'img/ui/placeholder.png';
+
+        // Create card similar to search and friends layout
+        const propNode = createElement('div', {
+            className: 'props-wrapper--props-node card-node',
+            innerHTML: `
+                <div class="thumbnail-container">
+                    <img src="${imgSrc}" data-hash="${ourProp.imageHash}" class="hidden"/>
+                </div>
+                <div class="card-content">
+                    <p class="card-name">${ourProp.name}</p>
+                    <p class="card-description">${ourProp.description || ''}</p>
+                    <div class="card-detail">
+                        <span class="material-symbols-outlined">view_in_ar</span>Prop
+                    </div>
+                </div>
+            `,
         });
-        docFragment.appendChild(ourPropNode);
+
+        // Set placeholder background image and data-hash directly on the container
+        const thumbnailContainer = propNode.querySelector('.thumbnail-container');
+        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
+        thumbnailContainer.style.backgroundSize = 'cover';
+        thumbnailContainer.dataset.hash = ourProp.imageHash;
+
+        docFragment.appendChild(propNode);
     }
 
     propDisplayNode.replaceChildren(docFragment);
@@ -1284,18 +1323,43 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
     let docFragment = document.createDocumentFragment();
 
     // Create reload our worlds button
-    const reloadAvatarsButton = document.querySelector('#worlds-refresh');
-    reloadAvatarsButton.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
+    const reloadWorldsButton = document.querySelector('#worlds-refresh');
+    reloadWorldsButton.addEventListener('click', () => window.API.refreshGetActiveUserWorlds());
 
     for (const ourWorld of ourWorlds) {
-        const ourWorldNode = createElement('div', {
-            className: 'worlds-wrapper--worlds-node',
-            innerHTML:
-                `<img src="img/ui/placeholder.png" data-hash="${ourWorld.imageHash}"/>
-                <p class="worlds-node--name">${ourWorld.name}</p>
-                <p class="worlds-node--player-count">${ourWorld.playerCount}</p>`,
+        // Use cached image or placeholder
+        const imgSrc = friendImageCache[ourWorld.imageHash] || 'img/ui/placeholder.png';
+
+        // Player count indicator for worlds
+        const playerCount = ourWorld.playerCount?
+            `<div class="player-count-indicator">
+                <span class="material-symbols-outlined">group</span>${ourWorld.playerCount}
+            </div>` : '';
+
+        // Create card similar to search and friends layout
+        const worldNode = createElement('div', {
+            className: 'worlds-wrapper--worlds-node card-node',
+            innerHTML: `
+                ${playerCount}
+                <div class="thumbnail-container">
+                    <img src="${imgSrc}" data-hash="${ourWorld.imageHash}" class="hidden"/>
+                </div>
+                <div class="card-content">
+                    <p class="card-name">${ourWorld.name}</p>
+                    <div class="card-detail">
+                        <span class="material-symbols-outlined">language</span>World
+                    </div>
+                </div>
+            `,
         });
-        docFragment.appendChild(ourWorldNode);
+
+        // Set placeholder background image and data-hash directly on the container
+        const thumbnailContainer = worldNode.querySelector('.thumbnail-container');
+        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
+        thumbnailContainer.style.backgroundSize = 'cover';
+        thumbnailContainer.dataset.hash = ourWorld.imageHash;
+
+        docFragment.appendChild(worldNode);
     }
 
     worldDisplayNode.replaceChildren(docFragment);
