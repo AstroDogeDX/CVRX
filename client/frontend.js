@@ -117,6 +117,10 @@ function swapNavPages(page) {
     switch (page) {
         case 'search':
             setInputValueAndFocus('#search-bar', '');
+            hideAllSearchCategories();
+            document.querySelector('.search-status').classList.remove('hidden');
+            document.querySelector('.search-no-results').classList.add('hidden');
+            document.querySelector('.search-loading').classList.add('hidden');
             break;
         case 'friends':
             setInputValueAndFocus('.friends-filter', '');
@@ -801,11 +805,11 @@ function updateCategoryCount(categorySelector, count) {
         const existingCount = categoryTitle.querySelector('.category-count');
 
         if (existingCount) {
-            existingCount.textContent = ` (${count})`;
+            existingCount.textContent = `\u00A0\u00A0(${count})`;
         } else {
             const countSpan = document.createElement('span');
             countSpan.className = 'category-count';
-            countSpan.textContent = ` (${count})`;
+            countSpan.textContent = `\u00A0\u00A0(${count})`;
             categoryTitle.appendChild(countSpan);
         }
     }
