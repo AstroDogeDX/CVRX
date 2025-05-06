@@ -1982,10 +1982,11 @@ button {
 }
 
 .loading-bar {
-    width: 0%;
+    width: 30%;
     height: 100%;
     background: linear-gradient(90deg, #E43600 0%, #FFB380 100%);
-    animation: progress 2s ease-in-out infinite;
+    animation: progress 1.5s ease-in-out infinite;
+    border-radius: 2px;
 }
 
 .loading-status {
@@ -2012,16 +2013,10 @@ button {
 
 @keyframes progress {
     0% {
-        width: 0%;
         transform: translateX(-100%);
     }
-    50% {
-        width: 100%;
-        transform: translateX(0%);
-    }
     100% {
-        width: 0%;
-        transform: translateX(100%);
+        transform: translateX(350%);
     }
 }
 
