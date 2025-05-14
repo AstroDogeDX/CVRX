@@ -231,17 +231,53 @@
     <!-- LOGIN SCREEN -->
     <div class="login-shade">
       <div class="login-window">
-        <input id="login-import-game-credentials" type="button" value="Import Game Credentials" />
-        <div id="login-available-credentials-wrapper"></div>
-        <label for="login-use-access-key" id="login-use-access-key-label">Use Username/Access Key
-          <span id="login-access-key-helper"
-            data-tooltip="Your ABI Game Access Master Key can be found at hub.abinteractive.net in your Profile Settings">(?)</span></label>
-        <input id="login-use-access-key" type="checkbox" />
-        <input id="login-username" type="text" placeholder="CVR Email" />
-        <input id="login-password" type="password" placeholder="CVR Password" />
-        <input id="login-authenticate" type="button" value="Login" />
-        <label for="login-save-credentials" id="login-save-credentials-label">Save Credentials</label>
-        <input id="login-save-credentials" type="checkbox" checked />
+        <div class="login-left-panel">
+          <div class="login-logo">
+            <img src="img/cvrx-tray-mac.png" alt="CVRX Logo">
+          </div>
+          <h1 class="login-title">Welcome to CVRX</h1>
+          <p class="login-subtitle">Your gateway to ChilloutVR</p>
+        </div>
+        
+        <div class="login-right-panel">
+          <p class="login-saved-credentials-title">Saved accounts</p>
+          <div id="login-available-credentials-wrapper"></div>
+          
+          <div class="login-or-divider">OR</div>
+          
+          <button id="login-import-game-credentials">Import Game Credentials</button>
+          
+          <div class="login-or-divider">OR</div>
+          
+          <div class="login-form">
+            <div class="login-input-group">
+              <span class="material-symbols-outlined">person</span>
+              <input id="login-username" type="text" placeholder="CVR Email" />
+            </div>
+            
+            <div class="login-input-group">
+              <span class="material-symbols-outlined">lock</span>
+              <input id="login-password" type="password" placeholder="CVR Password" />
+            </div>
+            
+            <div class="login-options-row">
+              <div class="login-option">
+                <input id="login-save-credentials" type="checkbox" checked />
+                <label for="login-save-credentials">Save Credentials</label>
+              </div>
+              
+              <div class="login-option">
+                <input id="login-use-access-key" type="checkbox" />
+                <label for="login-use-access-key">Use Access Key
+                  <span id="login-access-key-helper"
+                    data-tooltip="Your ABI Game Access Master Key can be found at hub.abinteractive.net in your Profile Settings">(?)</span>
+                </label>
+              </div>
+            </div>
+            
+            <button id="login-authenticate">Login</button>
+          </div>
+        </div>
       </div>
     </div>
     <!-- PROMPT LAYER -->

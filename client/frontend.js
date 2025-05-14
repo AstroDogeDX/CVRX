@@ -241,7 +241,7 @@ window.API.onLoginPage((_event, availableCredentials) => {
             className: 'login-credential-node',
             innerHTML:
                 `<img src="img/ui/placeholder.png" data-hash="${availableCredential.imageHash}"/>
-                <p class="login-credential-node--name">${availableCredential.Username}</p>`,
+                <span class="login-credential-node--name">${availableCredential.Username}</span>`,
             onClick: async () => {
                 // Reveal the loading screen and hide the login page
                 document.querySelector('.login-shade').style.display = 'none';
@@ -251,7 +251,7 @@ window.API.onLoginPage((_event, availableCredentials) => {
         });
         const deleteCredentialButton = createElement('button', {
             className: 'login-credential-node--delete',
-            innerHTML: '✖',
+            innerHTML: '×',
             onClick: (event) => {
                 event.stopPropagation();
                 deleteCredentialButton.disabled = true;
