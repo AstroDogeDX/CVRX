@@ -81,27 +81,42 @@ button {
     font-size: 50px;
     cursor: pointer;
     opacity: 0.8;
+    border-radius: var(--border-radii); /* Added base border-radius */
+    transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease, border-radius 0.2s ease; /* Added border-radius to transition */
 }
 
 .navbar-button:hover {
     opacity: 1;
+    background-color: rgba(255, 255, 255, 0.08); /* Subtle background highlight */
+    transform: translateY(-1px); /* Slight lift effect */
+    border-radius: var(--border-radii); /* Ensured border-radius on hover */
 }
 
 .navbar-button :is(.navbar-tooltip) {
     position: relative;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(50, 50, 50, 0.95); /* Slightly adjusted background */
     border-radius: var(--border-radii);
-    padding: 5px;
-    font-size: 35%;
+    padding: 6px 10px; /* Slightly adjusted padding */
+    font-size: 35%; /* This seems quite small, might need review based on actual appearance */
     float: left;
     left: 60px;
     height: auto;
     top: -80%;
     pointer-events: none;
     user-select: none;
-    display: none;
+    /* display: none; */ /* Replaced by opacity/visibility for potential transitions if ever needed */
+    opacity: 0;
+    visibility: hidden;
     z-index: 100;
-    filter: drop-shadow(2.5px 2.5px 0px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(2.5px 2.5px 0px rgba(0, 0, 0, 0.5)); /* Existing shadow */
+    transition: opacity 0.15s ease, visibility 0.15s ease; /* Basic transition for navbar tooltips */
+}
+
+/* This rule might need to be in JS if navbar tooltips are shown/hidden by JS */
+/* For now, assuming they might become visible on .navbar-button:hover if display:none was the only thing hiding them */
+.navbar-button:hover :is(.navbar-tooltip) {
+    opacity: 1;
+    visibility: visible;
 }
 
 .navbar-version {
@@ -2658,16 +2673,21 @@ button {
 #tooltip {
     position: absolute;
     width: max-content;
-    max-width: 15vw;
-    background: rgba(0, 0, 0, 0.95);
+    max-width: 20vw; /* Increased max-width slightly for potentially longer tooltips */
+    background: rgba(45, 45, 45, 0.97); /* Cleaner, slightly lighter dark background */
     color: white;
-    filter: drop-shadow(5px 5px 0px rgba(0, 0, 0, 0.5));
-    padding: 5px;
-    border-radius: 5px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35); /* Softer, more modern shadow */
+    padding: 8px 12px; /* More spacious padding */
+    border-radius: var(--border-radii); /* Using existing variable */
     font-family: sans-serif;
-    display: none;
-    font-size: 16px;
+    /* display: none; -- Replaced by opacity/visibility for transitions */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(5px) scale(0.95); /* Initial state for transition */
+    font-size: 15px; /* Slightly adjusted font size */
     z-index: 101;
+    transition: opacity 0.15s ease-in-out, visibility 0.15s ease-in-out, transform 0.15s ease-in-out; /* Smooth transitions */
+    pointer-events: none; /* Ensure tooltip doesn't interfere with mouse events on elements below */
 }
 
 .tooltip-blocked {
