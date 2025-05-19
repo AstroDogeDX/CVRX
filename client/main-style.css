@@ -2896,46 +2896,68 @@ button {
     background: var(--color-background-darker);
     border: 1px solid var(--color-border);
     border-radius: 8px;
-    padding: 20px;
-    min-width: 300px;
-    max-width: 90%;
+    padding: 24px;
+    min-width: 320px;
+    max-width: 480px;
+    color: var(--color-text);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     pointer-events: auto;
 }
 
 .prompt-title {
     font-size: 18px;
-    font-weight: bold;
-    font-style: italic;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--color-text);
 }
 
 .prompt-text {
-    font-size: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 24px;
+    color: var(--color-text-muted);
 }
 
 .prompt-buttons {
     display: flex;
-    flex-flow: row nowrap;
-    justify-content: center;
-    gap: 5px;
+    gap: 12px;
+    justify-content: flex-end;
 }
 
 .prompt-buttons button {
-    font-size: 16px;
-    border-radius: var(--border-radii);
-    padding: 5px;
-    background: darkslategrey;
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 100px;
 }
 
 .prompt-buttons button:hover {
-    filter: brightness(1.25)
+    transform: translateY(-1px);
 }
 
 #prompt-confirm {
-    background: green;
+    background: var(--color-error);
+    border: 1px solid var(--color-error);
+    color: var(--color-background);
+}
+
+#prompt-confirm:hover {
+    background: var(--color-error-hover);
+    border-color: var(--color-error-hover);
 }
 
 #prompt-cancel {
-    background: darkred;
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
+#prompt-cancel:hover {
+    background: var(--color-background-lighter);
+    border-color: var(--color-border-hover);
 }
 
 .search-output h3 .category-count {
