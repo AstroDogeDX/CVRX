@@ -1772,7 +1772,7 @@ button {
     display: none;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: 900;
     pointer-events: auto;
 }
 
@@ -1800,6 +1800,59 @@ button {
     flex-direction: column;
     gap: 15px;
     border: 1px solid var(--color-border);
+}
+
+.user-details-friend-action {
+    padding: 8px 20px;
+    background: var(--color-background-darker);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--color-text);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 160px;
+    justify-content: center;
+}
+
+.user-details-friend-action:hover {
+    background: var(--color-background-lighter);
+    border-color: var(--color-border-hover);
+}
+
+.user-details-friend-action.is-friend {
+    background: var(--color-background-darker);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+.user-details-friend-action.is-friend:hover {
+    background: var(--color-error);
+    border-color: var(--color-error);
+    color: var(--color-background);
+}
+
+.user-details-friend-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--color-background-darker);
+    border-color: var(--color-border);
+}
+
+.user-details-friend-action::before {
+    font-family: 'Material Symbols Outlined';
+    font-size: 18px;
+}
+
+.user-details-friend-action:not(.is-friend)::before {
+    content: 'person_add';
+}
+
+.user-details-friend-action.is-friend::before {
+    content: 'person_remove';
 }
 
 .user-details-content {
@@ -2826,32 +2879,27 @@ button {
 /* PROMPT STYLINGS */
 
 .prompt-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    position: fixed;
-    left: 0;
-    top: 0;
     background: rgba(0, 0, 0, 0.5);
-    pointer-events: initial;
-    flex-flow: row nowrap;
+    display: none;
     justify-content: center;
     align-items: center;
-    display: none;
+    z-index: 1000;
+    pointer-events: auto;
 }
 
 .prompt {
-    background: black;
-    border-radius: var(--border-radii);
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: max-content max-content max-content;
-    grid-template-areas:
-        "grid-title"
-        "grid-text"
-        "grid-buttons";
-    gap: 10px;
-    padding: 5px;
-    max-width: 50vw;
+    background: var(--color-background-darker);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 20px;
+    min-width: 300px;
+    max-width: 90%;
+    pointer-events: auto;
 }
 
 .prompt-title {

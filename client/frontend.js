@@ -362,6 +362,81 @@ async function ShowDetails(entityType, entityId) {
                 }
             };
 
+            // Add friend management button
+            const detailsHeader = document.querySelector('.user-details-header');
+            // Remove any existing friend action button
+            const existingButton = detailsHeader.querySelector('.user-details-friend-action');
+            if (existingButton) {
+                existingButton.remove();
+            }
+
+            const friendActionButton = createElement('button', {
+                className: 'user-details-friend-action',
+                tooltip: entityInfo.isFriend ? 'Remove Friend' : 'Send Friend Request',
+                onClick: async () => {
+                    if (entityInfo.isFriend) {
+                        // Show confirmation dialog
+                        const confirmShade = document.querySelector('.prompt-layer');
+                        const confirmPrompt = createElement('div', { className: 'prompt' });
+                        const confirmTitle = createElement('div', { className: 'prompt-title', textContent: 'Remove Friend' });
+                        const confirmText = createElement('div', { 
+                            className: 'prompt-text', 
+                            textContent: `Are you sure you want to remove ${entityInfo.name} from your friends list?` 
+                        });
+                        const confirmButtons = createElement('div', { className: 'prompt-buttons' });
+                        
+                        const confirmButton = createElement('button', {
+                            id: 'prompt-confirm',
+                            textContent: 'Remove Friend',
+                            onClick: async () => {
+                                try {
+                                    await window.API.unfriend(entityId);
+                                    pushToast(`Removed ${entityInfo.name} from friends`, 'confirm');
+                                    confirmPrompt.remove();
+                                    confirmShade.style.display = 'none';
+                                    // Remove the button since they are no longer friends
+                                    friendActionButton.remove();
+                                } catch (error) {
+                                    pushToast('Failed to remove friend', 'error');
+                                }
+                            },
+                        });
+
+                        const cancelButton = createElement('button', {
+                            id: 'prompt-cancel',
+                            textContent: 'Cancel',
+                            onClick: () => {
+                                confirmPrompt.remove();
+                                confirmShade.style.display = 'none';
+                            },
+                        });
+
+                        confirmButtons.append(confirmButton, cancelButton);
+                        confirmPrompt.append(confirmTitle, confirmText, confirmButtons);
+                        confirmShade.append(confirmPrompt);
+                        confirmShade.style.display = 'flex';
+                    } else {
+                        try {
+                            await window.API.sendFriendRequest(entityId);
+                            pushToast(`Friend request sent to ${entityInfo.name}`, 'confirm');
+                            // Remove the button since the request is sent
+                            friendActionButton.remove();
+                        } catch (error) {
+                            pushToast('Failed to send friend request', 'error');
+                        }
+                    }
+                },
+            });
+
+            // Set initial button state
+            friendActionButton.textContent = entityInfo.isFriend ? 'Remove Friend' : 'Send Friend Request';
+            if (entityInfo.isFriend) {
+                friendActionButton.classList.add('is-friend');
+            }
+
+            // Add the button to the header
+            detailsHeader.appendChild(friendActionButton);
+
             // Set up tab switching
             const tabs = document.querySelectorAll('.user-details-tab');
             const tabPanes = document.querySelectorAll('.user-details-tab-pane');
