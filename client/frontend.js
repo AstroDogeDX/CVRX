@@ -571,7 +571,19 @@ async function ShowDetails(entityType, entityId) {
                 });
             });
 
-            // Load initial tab content
+            // Reset all tabs to inactive state
+            document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+
+            // Set Avatars tab as active
+            const avatarsTab = document.querySelector('.user-details-tab[data-tab="avatars"]');
+            const avatarsPane = document.getElementById('avatars-tab');
+            if (avatarsTab && avatarsPane) {
+                avatarsTab.classList.add('active');
+                avatarsPane.classList.add('active');
+            }
+
+            // Load initial tab content (always Avatars)
             loadTabContent('avatars', entityId);
             break;
     }
