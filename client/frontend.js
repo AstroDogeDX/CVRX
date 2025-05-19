@@ -189,6 +189,114 @@ function promptReconnect() {
     promptShade.style.display = 'flex';
 }
 
+// Simple markdown parser for changelog formatting
+function parseMarkdown(text) {
+    if (!text) return '';
+    
+    // Replace headers (h1-h6)
+    text = text.replace(/^#{1,6}\s+(.+)$/gm, '<h$&>');
+    text = text.replace(/^#{1,6}\s+(.+)$/gm, (match, content) => {
+        const level = match.split('#').length - 1;
+        return `<h${level}>${content}</h${level}>`;
+    });
+
+    // Replace bold and italic
+    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+    // Replace links
+    text = text.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+    // Replace code blocks
+    text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Replace lists
+    text = text.replace(/^\s*[-*+]\s+(.+)$/gm, '<li>$1</li>');
+    text = text.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+
+    // Replace paragraphs
+    text = text.replace(/^(?!<[a-z])(.+)$/gm, '<p>$1</p>');
+
+    // Clean up empty paragraphs and fix nested lists
+    text = text.replace(/<p><\/p>/g, '');
+    text = text.replace(/<\/ul>\s*<ul>/g, '');
+
+    return text;
+}
+
+// Update prompt using the new modal system
+function promptUpdate(updateInfo) {
+    const promptShade = document.querySelector('.prompt-layer');
+    const newPrompt = createElement('div', { className: 'prompt' });
+    const promptTitle = createElement('div', { className: 'prompt-title', textContent: 'Update Available' });
+    const promptText = createElement('div', { 
+        className: 'prompt-text',
+        innerHTML: `A new version (${updateInfo.tagName}) of CVRX is available!<br><br>Here are the changes:<br><br>${parseMarkdown(updateInfo.changeLogs)}`
+    });
+    const promptButtons = createElement('div', { className: 'prompt-buttons' });
+    
+    const downloadButton = createElement('button', {
+        id: 'prompt-confirm',
+        textContent: 'Download and Install',
+        onClick: async () => {
+            try {
+                await window.API.updateAction('download', updateInfo);
+                newPrompt.remove();
+                promptShade.style.display = 'none';
+            } catch (error) {
+                pushToast('Failed to download update', 'error');
+            }
+        },
+    });
+
+    const askLaterButton = createElement('button', {
+        id: 'prompt-cancel',
+        textContent: 'Ask Again Later',
+        onClick: async () => {
+            try {
+                await window.API.updateAction('askLater', updateInfo);
+                newPrompt.remove();
+                promptShade.style.display = 'none';
+            } catch (error) {
+                pushToast('Failed to set update reminder', 'error');
+            }
+        },
+    });
+
+    const ignoreButton = createElement('button', {
+        id: 'prompt-cancel',
+        textContent: 'Ignore Until Restart',
+        onClick: async () => {
+            try {
+                await window.API.updateAction('ignore', updateInfo);
+                newPrompt.remove();
+                promptShade.style.display = 'none';
+            } catch (error) {
+                pushToast('Failed to ignore update', 'error');
+            }
+        },
+    });
+
+    const skipButton = createElement('button', {
+        id: 'prompt-cancel',
+        textContent: 'Skip This Version',
+        onClick: async () => {
+            try {
+                await window.API.updateAction('skip', updateInfo);
+                newPrompt.remove();
+                promptShade.style.display = 'none';
+            } catch (error) {
+                pushToast('Failed to skip version', 'error');
+            }
+        },
+    });
+
+    promptButtons.append(downloadButton, askLaterButton, ignoreButton, skipButton);
+    newPrompt.append(promptTitle, promptText, promptButtons);
+    promptShade.append(newPrompt);
+    promptShade.style.display = 'flex';
+}
 
 // ===============
 // EVERYTHING ELSE
@@ -1550,8 +1658,16 @@ document.querySelector('#logout-button').addEventListener('click', async _event 
 
 document.querySelector('#check-updates-button').addEventListener('click', async _event => {
     _event.target.disabled = true;
-    const { hasUpdates, msg } = await window.API.checkForUpdates();
-    pushToast(msg, hasUpdates ? '' : 'confirm');
+    try {
+        const { hasUpdates, msg, updateInfo } = await window.API.checkForUpdates();
+        if (hasUpdates && updateInfo) {
+            promptUpdate(updateInfo);
+        } else {
+            pushToast(msg, 'confirm');
+        }
+    } catch (error) {
+        pushToast(error.message || 'Failed to check for updates', 'error');
+    }
     _event.target.disabled = false;
 });
 

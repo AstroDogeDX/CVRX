@@ -156,6 +156,15 @@ class Core {
         });
         ipcMain.handle('is-dev-tools-opened', (_event) => this.mainWindow.webContents.isDevToolsOpened());
         ipcMain.handle('check-for-updates', (_event) => Updater.CheckLatestRelease(this.mainWindow, true));
+        ipcMain.handle('update-action', async (_event, action, updateInfo) => {
+            try {
+                await Updater.HandleUpdateAction(action, updateInfo);
+                return { success: true };
+            } catch (error) {
+                log.error(`[update-action] Failed to handle update action: ${error}`);
+                throw error;
+            }
+        });
 
         // Setup on events for IPC
         ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());

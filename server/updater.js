@@ -64,7 +64,6 @@ exports.CheckLatestRelease = async (mainWindow, bypassIgnores = false) => {
     }
 
     try {
-
         log.info('[CheckLatestRelease] Checking for updates...');
 
         const {data} = await axios.get(latestRelease);
@@ -97,47 +96,21 @@ exports.CheckLatestRelease = async (mainWindow, bypassIgnores = false) => {
             if (path.extname(asset.name) !== '.exe') continue;
 
             const changeLogs = data.body;
-
-            const updateMessage = `A new version (${tagName}) of CVRX is available!\nHere are the changes:\n\n${changeLogs}`;
-
-            const options = {
-                type: 'question',
-                buttons: ['Download and Install', `Ask again in ${checkUpdatesIntervalMinutes} min`, 'Ignore until Restart', 'Skip this version'],
-                defaultId: 0,
-                title: 'Update Available',
-                message: updateMessage,
-                detail: 'Choose an option:',
-                cancelId: 1,
-                noLink: true,
-                normalizeAccessKeys: true,
+            const updateInfo = {
+                tagName,
+                changeLogs,
+                downloadUrl: asset.browser_download_url,
+                fileName: asset.name
             };
 
-
-            dialogOpened = true;
-            const dialogResponse = await dialog.showMessageBox(mainWindow, options);
-            if (dialogResponse.response === 0) {
-                await DownloadFile(asset.browser_download_url, asset.name);
-            }
-            if (dialogResponse.response === 1) {
-                // Clear ignore version setting
-                await Config.SetUpdaterIgnoreVersion(null);
-            } else if (dialogResponse.response === 2) {
-                // Mark as ignored, we won't bother the user again until next launch
-                ignoredForNow = true;
-                // Clear ignore version setting
-                await Config.SetUpdaterIgnoreVersion(null);
-            } else if (dialogResponse.response === 3) {
-                // Mark to skip this version
-                await Config.SetUpdaterIgnoreVersion(tagName);
-            }
-            dialogOpened = false;
-
-            const msg = `You chose the option ${options.buttons[dialogResponse.response]}!`;
-            log.info(`[CheckLatestRelease] ${msg}`);
-            return { hasUpdates: true, msg: msg };
+            return { 
+                hasUpdates: true, 
+                msg: `A new version (${tagName}) is available!`,
+                updateInfo
+            };
         }
 
-        log.error('[CheckLatestRelease] Filed to find a file ending in .exe in the Github Latest Releases!');
+        log.error('[CheckLatestRelease] Failed to find a file ending in .exe in the Github Latest Releases!');
     } catch (error) {
         dialogOpened = false;
         log.error(`[CheckLatestRelease] [Error] ${latestRelease}`, error.toString());
@@ -145,6 +118,30 @@ exports.CheckLatestRelease = async (mainWindow, bypassIgnores = false) => {
     }
 };
 
+// Handle update actions from the frontend
+exports.HandleUpdateAction = async (action, updateInfo) => {
+    switch (action) {
+        case 'download':
+            await DownloadFile(updateInfo.downloadUrl, updateInfo.fileName);
+            break;
+        case 'askLater':
+            // Clear ignore version setting
+            await Config.SetUpdaterIgnoreVersion(null);
+            break;
+        case 'ignore':
+            // Mark as ignored, we won't bother the user again until next launch
+            ignoredForNow = true;
+            // Clear ignore version setting
+            await Config.SetUpdaterIgnoreVersion(null);
+            break;
+        case 'skip':
+            // Mark to skip this version
+            await Config.SetUpdaterIgnoreVersion(updateInfo.tagName);
+            break;
+        default:
+            throw new Error(`Unknown update action: ${action}`);
+    }
+};
 
 async function DownloadFile(assetUrl, assetName) {
 
