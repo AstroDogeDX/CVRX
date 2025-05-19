@@ -273,6 +273,8 @@ window.API.onHomePage((_event) => swapNavPages('home'));
 // Navbar Control Logic
 document.querySelectorAll('.navbar-button').forEach((e) => {
     e.addEventListener('click', () => {
+        // Skip the profile button since it has its own click handler
+        if (e.classList.contains('profile-navbar-button')) return;
         swapNavPages(e.dataset.page);
     });
 });
@@ -331,7 +333,6 @@ function getFriendStatus(friend) {
 }
 
 async function ShowDetails(entityType, entityId) {
-
     let detailsName = document.querySelector('.user-details-window--name');
     let detailsImg = document.querySelector('.user-details-window--img');
     let detailsAvatar = document.querySelector('.user-details-window--avatar');
@@ -349,9 +350,141 @@ async function ShowDetails(entityType, entityId) {
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.avatar.imageHash}">${entityInfo.avatar.name}`;
             detailsBadge.innerHTML = `<img data-hash="${entityInfo.featuredBadge.imageHash}">${entityInfo.featuredBadge.name}`;
             detailsRank.innerHTML = `<img src="img/ui/rank.png">${entityInfo.rank}`;
-            document.querySelector('.details-shade').style.display = 'flex';
-            document.querySelector('.details-shade').onclick = () => document.querySelector('.details-shade').style.display = 'none';
+            
+            // Show the details window
+            const detailsShade = document.querySelector('.details-shade');
+            detailsShade.style.display = 'flex';
+            
+            // Handle clicking outside to close
+            detailsShade.onclick = (event) => {
+                if (event.target === detailsShade) {
+                    detailsShade.style.display = 'none';
+                }
+            };
+
+            // Set up tab switching
+            const tabs = document.querySelectorAll('.user-details-tab');
+            const tabPanes = document.querySelectorAll('.user-details-tab-pane');
+            
+            // Remove any existing click handlers
+            tabs.forEach(tab => {
+                const newTab = tab.cloneNode(true);
+                tab.parentNode.replaceChild(newTab, tab);
+            });
+
+            // Add click handlers to new tabs
+            document.querySelectorAll('.user-details-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs and panes
+                    document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding pane
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+                    
+                    // Load content for the selected tab
+                    loadTabContent(tab.dataset.tab, entityId);
+                });
+            });
+
+            // Load initial tab content
+            loadTabContent('avatars', entityId);
             break;
+    }
+}
+
+// Function to load content for each tab
+async function loadTabContent(tab, userId) {
+    const grid = document.querySelector(`#${tab}-tab .user-details-grid`);
+    if (!grid) return;
+    
+    grid.innerHTML = '<div class="loading-indicator">Loading...</div>';
+
+    try {
+        let items = [];
+        switch (tab) {
+            case 'avatars':
+                items = await window.API.getUserPublicAvatars(userId);
+                break;
+            case 'props':
+                items = await window.API.getUserPublicProps(userId);
+                break;
+            case 'worlds':
+                items = await window.API.getUserPublicWorlds(userId);
+                break;
+        }
+
+        // Clear loading indicator
+        grid.innerHTML = '';
+
+        // If no items, show message
+        if (items.length === 0) {
+            grid.innerHTML = `<div class="no-items-message">No ${tab} found</div>`;
+            return;
+        }
+
+        // Create and append items to grid
+        items.forEach(item => {
+            // Add type-specific content
+            let additionalInfo = '';
+            let icon = '';
+            
+            switch (tab) {
+                case 'avatars':
+                    icon = 'emoji_people';
+                    additionalInfo = `
+                        <div class="card-detail">
+                            <span class="material-symbols-outlined">${icon}</span>Avatar
+                        </div>`;
+                    break;
+                case 'props':
+                    icon = 'view_in_ar';
+                    additionalInfo = `
+                        <div class="card-detail">
+                            <span class="material-symbols-outlined">${icon}</span>Prop
+                        </div>`;
+                    break;
+                case 'worlds':
+                    icon = 'language';
+                    // Add player count if available
+                    const playerCount = item.playerCount ? 
+                        `<div class="player-count-indicator">
+                            <span class="material-symbols-outlined">group</span>${item.playerCount}
+                        </div>` : '';
+                    additionalInfo = `
+                        ${playerCount}
+                        <div class="card-detail">
+                            <span class="material-symbols-outlined">${icon}</span>World
+                        </div>`;
+                    break;
+            }
+
+            const itemNode = createElement('div', {
+                className: 'card-node',
+                innerHTML: `
+                    <div class="thumbnail-container">
+                        <img src="img/ui/placeholder.png" data-hash="${item.imageHash}" class="hidden"/>
+                    </div>
+                    <div class="card-content">
+                        <p class="card-name">${item.name}</p>
+                        <p class="card-description">${item.description || ''}</p>
+                        ${additionalInfo}
+                    </div>
+                `
+            });
+
+            // Set placeholder background image
+            const thumbnailContainer = itemNode.querySelector('.thumbnail-container');
+            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            thumbnailContainer.style.backgroundSize = 'cover';
+            thumbnailContainer.dataset.hash = item.imageHash;
+
+            grid.appendChild(itemNode);
+        });
+    } catch (error) {
+        grid.innerHTML = `<div class="error-message">Error loading ${tab}</div>`;
+        console.error(`Error loading ${tab}:`, error);
     }
 }
 

@@ -15,7 +15,7 @@
   <div class="cvrx-main">
     <div class="cvrx-navbar">
       <div class="navbar-seg">
-        <div data-tooltip="My Profile" data-page="profile" class="navbar-button profile-navbar-button">
+        <div data-tooltip="My Profile" class="navbar-button profile-navbar-button">
           &nbsp;
         </div>
         <div data-tooltip="Home" data-page="home" class="navbar-button material-symbols-outlined">
@@ -207,11 +207,48 @@
     <!-- OBJECT DETAILS CARDS -->
     <div class="details-shade">
       <div class="user-details-window">
-        <div class="user-details-window--name">USER NAME</div>
-        <img class="user-details-window--img" src="./img/ui/placeholder.png"></img>
-        <div class="user-details-window--avatar"><img src="./img/ui/placeholder.png">AVATAR</div>
-        <div class="user-details-window--badge"><img src="./img/ui/placeholder.png">BADGE</div>
-        <div class="user-details-window--rank"><img src="./img/ui/rank.png">RANK</div>
+        <div class="user-details-header">
+          <div class="user-details-profile">
+            <div class="user-details-profile-image">
+              <img class="user-details-window--img" src="./img/ui/placeholder.png">
+            </div>
+            <div class="user-details-profile-info">
+              <div class="user-details-window--name">USER NAME</div>
+              <div class="user-details-window--rank"><img src="./img/ui/rank.png">RANK</div>
+              <div class="user-details-window--badge"><img src="./img/ui/placeholder.png">BADGE</div>
+            </div>
+          </div>
+          <div class="user-details-avatar">
+            <div class="user-details-window--avatar"><img src="./img/ui/placeholder.png">AVATAR</div>
+          </div>
+        </div>
+        <div class="user-details-content">
+          <div class="user-details-tabs">
+            <button class="user-details-tab active" data-tab="avatars">
+              <span class="material-symbols-outlined">emoji_people</span>
+              Avatars
+            </button>
+            <button class="user-details-tab" data-tab="props">
+              <span class="material-symbols-outlined">view_in_ar</span>
+              Props
+            </button>
+            <button class="user-details-tab" data-tab="worlds">
+              <span class="material-symbols-outlined">public</span>
+              Worlds
+            </button>
+          </div>
+          <div class="user-details-tab-content">
+            <div class="user-details-tab-pane active" id="avatars-tab">
+              <div class="user-details-grid"></div>
+            </div>
+            <div class="user-details-tab-pane" id="props-tab">
+              <div class="user-details-grid"></div>
+            </div>
+            <div class="user-details-tab-pane" id="worlds-tab">
+              <div class="user-details-grid"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <!-- LOGIN SCREEN -->

@@ -22,6 +22,12 @@ button {
     --button-reject-color: darkred;
     --border-radii: 5px;
     --thumbnail-size-standard: 50px;
+    --color-background-dark: rgba(33, 33, 33, 0.95);
+    --color-background-darker: rgba(25, 25, 25, 0.98);
+    --color-background-light: rgba(45, 45, 45, 0.95);
+    --color-border: rgba(255, 255, 255, 0.1);
+    --color-accent: rgba(64, 116, 191, 0.8);
+    --color-text: white;
 }
 
 /* Scrollbar Styling */
@@ -1758,91 +1764,249 @@ button {
 
 .details-shade {
     position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     display: none;
-    flex-flow: row nowrap;
     justify-content: center;
     align-items: center;
-    pointer-events: initial;
+    z-index: 1000;
+    pointer-events: auto;
 }
 
-.details-window {
-    width: 250px;
-    height: auto;
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr 250px 60px 40px 40px;
-    grid-template-areas:
-        "details-window--name"
-        "details-window--img"
-        "details-window--avatar"
-        "details-window--badge"
-        "details-window--rank";
-    gap: 5px;
-    filter: drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.5));
-}
-
-.details-window :where(img):not(.details-window--img) {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--border-radii);
-}
-
-.details-window :where(.details-window--avatar img):not(.details-window--img) {
-    width: 60px;
-    height: 60px;
-    border-radius: var(--border-radii);
-}
-
-.details-window--name {
-    grid-area: details-window--name;
-    text-align: center;
-    font-size: 20px;
+.user-details-window {
+    position: relative;
+    width: 90%;
+    height: 90%;
+    background: var(--color-background-dark);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: flex;
-    flex-flow: row nowrap;
-    justify-content: center;
-    align-items: center;
-    border-radius: var(--border-radii);
+    flex-direction: row;
+    gap: 20px;
+    padding: 20px;
+    animation: fadeIn 0.2s ease-out;
+    pointer-events: auto;
+}
+
+.user-details-header {
+    width: 300px;
+    background: var(--color-background-darker);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    border: 1px solid var(--color-border);
+}
+
+.user-details-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: var(--color-background-darker);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
     overflow: hidden;
-    background: var(--display-node-bg);
-    padding: 5px;
+}
+
+.user-details-tabs {
+    display: flex;
+    gap: 10px;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 10px;
+}
+
+.user-details-tab {
+    padding: 8px 16px;
+    background: var(--color-background-dark);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-text);
+    pointer-events: auto;
+}
+
+.user-details-tab:hover {
+    background: var(--color-background-light);
+}
+
+.user-details-tab.active {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.user-details-tab .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.user-details-tab-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-details-tab-pane {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.user-details-tab-pane.active {
+    display: block;
+}
+
+.user-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 10px;
+    pointer-events: auto;
+}
+
+.user-details-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-details-profile-image {
+    width: 150px;
+    height: 150px;
+    position: relative;
+    overflow: hidden;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.user-details-profile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-details-profile-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.user-details-window--name {
+    font-size: 24px;
     font-weight: bold;
 }
 
-.details-window--img {
-    grid-area: details-window--img;
-    width: 250px;
-    height: 250px;
-    border-radius: var(--border-radii);
-    overflow: hidden;
-    background: var(--display-node-bg);
-}
-
-.details-window--avatar,
-.details-window--badge,
-.details-window--rank {
+.user-details-window--rank,
+.user-details-window--badge,
+.user-details-window--avatar {
     display: flex;
-    flex-flow: row nowrap;
     align-items: center;
+    gap: 8px;
     font-size: 14px;
-    gap: 5px;
-    border-radius: var(--border-radii);
+}
+
+.user-details-window--rank img,
+.user-details-window--badge img {
+    width: 20px;
+    height: 20px;
+}
+
+.user-details-avatar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: var(--color-background-dark);
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
+}
+
+.user-details-avatar img {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+}
+
+.user-details-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
     overflow: hidden;
-    background: var(--display-node-bg);
 }
 
-.details-window--avatar {
-    grid-area: details-window--avatar;
+.user-details-tabs {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.details-window--badge {
-    grid-area: details-window--badge;
+.user-details-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: none;
+    color: var(--color-text);
+    opacity: 0.6;
+    font-size: 0.9rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.details-window--rank {
-    grid-area: details-window--rank;
+.user-details-tab:hover {
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.user-details-tab.active {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.user-details-tab .material-symbols-outlined {
+    font-size: 1.1rem;
+}
+
+.user-details-tab-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.user-details-tab-pane {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 1.5rem;
+    display: none;
+    overflow-y: auto;
+}
+
+.user-details-tab-pane.active {
+    display: block;
+}
+
+.user-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 0.5rem;
 }
 
 /* Toast Notifications */
@@ -2752,79 +2916,4 @@ button {
 .search-output--node .badge-indicator .material-symbols-outlined {
     font-size: 12px;
     margin-right: 3px;
-}
-
-.user-details-window {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
-    grid-template-areas:
-        "user-details-window--name"
-        "user-details-window--img"
-        "user-details-window--avatar"
-        "user-details-window--badge"
-        "user-details-window--rank";
-    gap: 1rem;
-    padding: 1rem;
-    background-color: var(--color-background);
-    border-radius: 0.5rem;
-    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.5);
-    max-width: 20rem;
-    width: 100%;
-}
-
-.user-details-window :where(img):not(.user-details-window--img) {
-    width: 1.5rem;
-    height: 1.5rem;
-    border-radius: 0.25rem;
-    margin-right: 0.5rem;
-    vertical-align: middle;
-}
-
-.user-details-window :where(.user-details-window--avatar img):not(.user-details-window--img) {
-    width: 2rem;
-    height: 2rem;
-    border-radius: 0.25rem;
-    margin-right: 0.5rem;
-    vertical-align: middle;
-}
-
-.user-details-window--name {
-    grid-area: user-details-window--name;
-    font-size: 1.5rem;
-    font-weight: bold;
-    text-align: center;
-    color: var(--color-text);
-}
-
-.user-details-window--img {
-    grid-area: user-details-window--img;
-    width: 100%;
-    height: auto;
-    border-radius: 0.5rem;
-    margin: 0 auto;
-}
-
-.user-details-window--avatar,
-.user-details-window--badge,
-.user-details-window--rank {
-    display: flex;
-    align-items: center;
-    font-size: 1rem;
-    color: var(--color-text);
-    padding: 0.5rem;
-    background-color: var(--color-background-alt);
-    border-radius: 0.25rem;
-}
-
-.user-details-window--avatar {
-    grid-area: user-details-window--avatar;
-}
-
-.user-details-window--badge {
-    grid-area: user-details-window--badge;
-}
-
-.user-details-window--rank {
-    grid-area: user-details-window--rank;
 }
