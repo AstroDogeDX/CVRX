@@ -193,36 +193,175 @@ function promptReconnect() {
 function parseMarkdown(text) {
     if (!text) return '';
     
-    // Replace headers (h1-h6)
-    text = text.replace(/^#{1,6}\s+(.+)$/gm, '<h$&>');
-    text = text.replace(/^#{1,6}\s+(.+)$/gm, (match, content) => {
-        const level = match.split('#').length - 1;
-        return `<h${level}>${content}</h${level}>`;
-    });
+    // Helper function to escape HTML
+    const escapeHtml = (unsafe) => {
+        return unsafe
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    };
 
-    // Replace bold and italic
-    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // Helper function to process inline formatting
+    const processInlineFormatting = (content) => {
+        // First escape any raw HTML in the content
+        let processed = escapeHtml(content);
+        
+        // Then apply markdown formatting
+        return processed
+            // Bold
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/__(.+?)__/g, '<strong>$1</strong>')
+            // Italic
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/_(.+?)_/g, '<em>$1</em>')
+            // Strikethrough
+            .replace(/~~(.+?)~~/g, '<del>$1</del>')
+            // Inline code
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            // Links - we need to unescape the URL part
+            .replace(/\[(.+?)\]\((.+?)\)/g, (match, text, url) => {
+                const unescapedUrl = url
+                    .replace(/&amp;/g, '&')
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#039;/g, "'");
+                return `<a href="${unescapedUrl}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+            });
+    };
 
-    // Replace links
-    text = text.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
+    // Split into lines for processing
+    const lines = text.split('\n');
+    let output = [];
+    let inCodeBlock = false;
+    let inList = false;
+    let listType = '';
+    let listIndent = 0;
+    let inBlockquote = false;
+    let blockquoteContent = [];
+    let lastWasHeader = false;
 
-    // Replace code blocks
-    text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        const trimmedLine = line.trim();
 
-    // Replace lists
-    text = text.replace(/^\s*[-*+]\s+(.+)$/gm, '<li>$1</li>');
-    text = text.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+        // Handle code blocks
+        if (trimmedLine.startsWith('```')) {
+            if (!inCodeBlock) {
+                inCodeBlock = true;
+                // Get language if specified
+                const language = trimmedLine.slice(3).trim();
+                output.push(`<pre><code class="language-${language}">`);
+            } else {
+                inCodeBlock = false;
+                output.push('</code></pre>');
+            }
+            lastWasHeader = false;
+            continue;
+        }
 
-    // Replace paragraphs
-    text = text.replace(/^(?!<[a-z])(.+)$/gm, '<p>$1</p>');
+        if (inCodeBlock) {
+            output.push(escapeHtml(line));
+            continue;
+        }
+
+        // Handle blockquotes
+        if (trimmedLine.startsWith('>')) {
+            if (!inBlockquote) {
+                inBlockquote = true;
+                blockquoteContent = [];
+            }
+            blockquoteContent.push(trimmedLine.slice(1).trim());
+            lastWasHeader = false;
+            continue;
+        } else if (inBlockquote) {
+            inBlockquote = false;
+            output.push(`<blockquote>${processInlineFormatting(blockquoteContent.join('\n'))}</blockquote>`);
+        }
+
+        // Handle headers
+        const headerMatch = trimmedLine.match(/^(#{1,6})\s+(.+)$/);
+        if (headerMatch) {
+            const level = headerMatch[1].length;
+            const content = headerMatch[2];
+            // Add margin-top only if the previous element wasn't a header
+            const marginTop = lastWasHeader ? '0' : '0.75em';
+            output.push(`<h${level} style="margin-top: ${marginTop}; margin-bottom: 0.15em;">${processInlineFormatting(content)}</h${level}>`);
+            lastWasHeader = true;
+            continue;
+        }
+        lastWasHeader = false;
+
+        // Handle horizontal rules
+        if (/^[-*_]{3,}$/.test(trimmedLine)) {
+            output.push('<hr>');
+            continue;
+        }
+
+        // Handle lists
+        const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s+(.+)$/);
+        if (listMatch) {
+            const [, indent, marker, content] = listMatch;
+            const currentIndent = indent.length;
+            const isOrdered = /^\d+\.$/.test(marker);
+
+            if (!inList || currentIndent !== listIndent) {
+                if (inList) {
+                    output.push(`</${listType}>`);
+                }
+                inList = true;
+                listType = isOrdered ? 'ol' : 'ul';
+                listIndent = currentIndent;
+                output.push(`<${listType}>`);
+            }
+
+            const processedContent = processInlineFormatting(content);
+            output.push(`<li>${processedContent}</li>`);
+            continue;
+        } else if (inList) {
+            inList = false;
+            output.push(`</${listType}>`);
+        }
+
+        // Handle task lists
+        if (trimmedLine.match(/^[-*+]\s+\[([ x])\]\s+(.+)$/i)) {
+            const [, checked, content] = trimmedLine.match(/^[-*+]\s+\[([ x])\]\s+(.+)$/i);
+            const processedContent = processInlineFormatting(content);
+            output.push(`<div class="task-list-item"><input type="checkbox" ${checked === 'x' ? 'checked' : ''} disabled> ${processedContent}</div>`);
+            continue;
+        }
+
+        // Handle paragraphs
+        if (trimmedLine) {
+            output.push(`<p style="margin: 0.25em 0;">${processInlineFormatting(trimmedLine)}</p>`);
+        } else {
+            output.push('<br>');
+        }
+    }
+
+    // Close any open blocks
+    if (inList) {
+        output.push(`</${listType}>`);
+    }
+    if (inBlockquote) {
+        output.push(`<blockquote>${processInlineFormatting(blockquoteContent.join('\n'))}</blockquote>`);
+    }
+    if (inCodeBlock) {
+        output.push('</code></pre>');
+    }
 
     // Clean up empty paragraphs and fix nested lists
-    text = text.replace(/<p><\/p>/g, '');
-    text = text.replace(/<\/ul>\s*<ul>/g, '');
+    let result = output.join('\n')
+        .replace(/<p><\/p>/g, '')
+        .replace(/<\/ul>\s*<ul>/g, '')
+        .replace(/<\/ol>\s*<ol>/g, '')
+        .replace(/<br>\n{2,}/g, '<br>\n')
+        .replace(/\n{2,}<br>/g, '\n<br>')
+        .replace(/\n{3,}/g, '\n\n');
 
-    return text;
+    return result;
 }
 
 // Update prompt using the new modal system
@@ -238,6 +377,7 @@ function promptUpdate(updateInfo) {
     
     const downloadButton = createElement('button', {
         id: 'prompt-confirm',
+        className: 'update-primary-action',
         textContent: 'Download and Install',
         onClick: async () => {
             try {
@@ -722,6 +862,9 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     // Clear all children (this event sends all friends, we so can empty our previous state)
     friendsBarNode.replaceChildren();
     friendsListNode.replaceChildren();
+
+    // Sort friends alphabetically regardless of case
+    friends.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
     // Array to collect all friend cards before adding to DOM
     const friendCards = [];
@@ -1386,6 +1529,37 @@ function addFilterListener(inputSelector, itemSelector, itemNameSelector) {
 
 // Friends filtering :D
 addFilterListener('.friends-filter', '.friend-list-node', '.friend-name');
+
+// Add friends filter controls
+let currentFilter = 'all';
+const filterButtons = document.querySelectorAll('.filter-button');
+filterButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        // Update active state
+        filterButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        
+        // Update current filter
+        currentFilter = button.dataset.filter;
+        
+        // Apply filter
+        const friendsList = document.querySelector('.friends-wrapper');
+        const friendNodes = friendsList.querySelectorAll('.friend-list-node');
+        
+        // Filter based on online status
+        friendNodes.forEach(friend => {
+            const isOnline = !friend.querySelector('.status-indicator').classList.contains('offline');
+            switch (currentFilter) {
+                case 'online':
+                    friend.style.display = isOnline ? '' : 'none';
+                    break;
+                default:
+                    friend.style.display = '';
+            }
+        });
+    });
+});
+
 // Avatars filtering :O
 addFilterListener('#avatars-filter', '.avatars-wrapper--avatars-node', '.card-name');
 // Worlds filtering :)
