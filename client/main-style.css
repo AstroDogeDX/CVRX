@@ -173,80 +173,11 @@ button {
     height: 100%;
     width: 100%;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 150px 1fr;
+    grid-template-rows: 1fr 150px;
     grid-template-areas:
-        "home-user home-requests"
-        "home-activity home-history";
+        "home-activity home-history"
+        "home-requests home-history";
 }
-
-.home-user {
-    display: grid;
-    gap: 5px;
-    grid-area: home-user;
-    grid-template-columns: 150px 1fr;
-    grid-template-rows: 45px 1fr;
-    grid-template-areas:
-        "home-user--user-icon home-user--user-name"
-        "home-user--user-icon home-user--user-extra";
-}
-
-.home-user--user-icon {
-    grid-area: home-user--user-icon;
-    border-radius: var(--border-radii);
-    height: 150px;
-    width: 150px;
-}
-
-.home-user--user-name {
-    display: block;
-    overflow: hidden;
-    align-items: center;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    grid-area: home-user--user-name;
-    font-size: 24px;
-    line-height: 36px;
-    padding: 5px;
-    max-width: 100%;
-    background: rgba(0, 0, 0, 0.25);
-    border-radius: var(--border-radii);
-    font-weight: bold;
-}
-
-.home-user--user-extra {
-    display: grid;
-    grid-area: home-user--user-extra;
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr 1fr 1fr;
-    gap: 5px;
-}
-
-.home-user--user-extra img {
-    min-width: 30px;
-    min-height: 30px;
-    max-width: 30px;
-    max-height: 30px;
-    float: left;
-    margin-right: 5px;
-    border-radius: var(--border-radii);
-}
-
-.user-extra--user-avatar,
-.user-extra--user-badge,
-.user-extra--user-rank {
-    display: flex;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: var(--border-radii);
-    overflow: hidden;
-    /* This cringe won't work because this display is flex.  */
-    white-space: nowrap;
-    /* TODO: change these to grid based nodes like everything else. */
-    text-overflow: ellipsis;
-    /* It at least stops the cringe badges from being cringer */
-}
-
-/* Pending Requests on Home */
 
 .home-requests {
     grid-area: home-requests;

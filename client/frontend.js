@@ -295,58 +295,14 @@ document.querySelectorAll('.navbar-button').forEach((e) => {
 window.API.onGetActiveUser((_event, activeUser) => {
     log('Active User!');
     log(activeUser);
-    const userIcon = document.querySelector('.home-user--user-icon');
-    userIcon.setAttribute('data-hash', activeUser.imageHash);
-    userIcon.onclick = () => ShowDetails(DetailsType.User, activeUser.id);
-    const userName = document.querySelector('.home-user--user-name');
-    userName.innerHTML = activeUser.name;
-    userName.onclick = () => ShowDetails(DetailsType.User, activeUser.id);
     
     // Set profile picture for profile navbar button
     const profileButton = document.querySelector('.profile-navbar-button');
     if (profileButton) {
         profileButton.setAttribute('data-hash', activeUser.imageHash);
-        profileButton.style.backgroundImage = `url(img/ui/placeholder.png)`;
+        profileButton.style.backgroundImage = 'url(img/ui/placeholder.png)';
         profileButton.onclick = () => ShowDetails(DetailsType.User, activeUser.id);
     }
-    
-    document.querySelector('.user-extra--user-avatar').innerHTML =
-        `<img data-hash="${activeUser.avatar.imageHash}">${activeUser.avatar.name}`;
-    document.querySelector('.user-extra--user-badge').innerHTML =
-        `<img data-hash="${activeUser.featuredBadge.imageHash}">${activeUser.featuredBadge.name}`;
-    document.querySelector('.user-extra--user-rank').innerHTML =
-        `<img src="img/ui/rank.png">${activeUser.rank}`;
-    // document.querySelector("#user-greeting").innerHTML = activeUser.name;
-    // activeUser = {
-    //     onlineState: false,
-    //     isConnected: false,
-    //     isFriend: false,
-    //     isBlocked: false,
-    //     instance: null, // If we're online this might have our instance info
-    //     categories: [],
-    //     rank: 'User',
-    //     featuredBadge: {
-    //         name: 'No badge featured',
-    //         image: 'https://files.abidata.io/static_web/NoHolderImage.png',
-    //         imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4',
-    //         badgeLevel: 0
-    //     },
-    //     featuredGroup: {
-    //         name: 'No group featured',
-    //         image: 'https://files.abidata.io/static_web/NoHolderImage.png',
-    //         imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    //     },
-    //     avatar: {
-    //         id: '5cde1f96-d62a-4231-bf53-a32693830fc2',
-    //         name: 'Demo Bot',
-    //         imageUrl: 'https://files.abidata.io/user_content/avatars/5cde1f96-d62a-4231-bf53-a32693830fc2/5cde1f96-d62a-4231-bf53-a32693830fc2.png',
-    //         imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    //     },
-    //     id: 'c4eee443-98a0-bab8-a583-f1d9fa10a7d7',
-    //     name: 'CVRX',
-    //     imageUrl: 'https://files.abidata.io/user_images/c4eee443-98a0-bab8-a583-f1d9fa10a7d7-63cfb4a4061d4.png',
-    //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    // }
 });
 
 // Add image loading handler
@@ -633,9 +589,6 @@ searchBar.addEventListener('keypress', async (event) => {
     log('Searched!');
     log(results);
 
-    // Hide loading state
-    document.querySelector('.search-loading').classList.add('hidden');
-
     // Types: avatar, prop, user, world
     //
     // results = [{
@@ -874,94 +827,11 @@ document.querySelectorAll('.search-output-category h3').forEach(header => {
 // Janky Active Instances
 // -----------------------------
 window.API.onActiveInstancesUpdate((_event, activeInstances) => {
-
     const homeActivity = document.querySelector('.home-activity--activity-wrapper');
-
-    log('Active instances updated!');
-    log(activeInstances);
-
-    // Disable spinner
-    document.querySelector('#instances-refresh').classList.toggle('spinner', false);
-
-    // const activeInstances = [{
-    //     "instanceSettingPrivacy": "Public",
-    //     "privacy": "Public",
-    //     "author": {
-    //         "id": "6a30fba5-8195-2451-f1bc-7c530b2e99ae",
-    //         "name": "LensError",
-    //         "imageUrl": "https://files.abidata.io/user_images/6a30fba5-8195-2451-f1bc-7c530b2e99ae-63518c5b746af.png",
-    //     },
-    //     "owner": {
-    //         "rank": "User",
-    //         "featuredBadge": {
-    //             "name": "Christmas 2022",
-    //             "image": "https://files.abidata.io/static_web/Badges/abi-christmas2022.png",
-    //             "badgeLevel": 24,
-    //         },
-    //         "featuredGroup": {
-    //             "name": "No group featured",
-    //             "image": "https://files.abidata.io/static_web/NoHolderImage.png",
-    //         },
-    //         "avatar": {
-    //             "id": "c68a25d5-6c27-4d2c-8699-803f7a63cc43",
-    //             "name": "Mewmo But Updated",
-    //             "imageUrl": "https://files.abidata.io/user_content/avatars/c68a25d5-6c27-4d2c-8699-803f7a63cc43/c68a25d5-6c27-4d2c-8699-803f7a63cc43.png",
-    //         },
-    //         "id": "7452ea11-86ab-86e8-42bd-1d4d24ed7da6",
-    //         "name": "Momofier",
-    //         "imageUrl": "https://files.abidata.io/user_images/7452ea11-86ab-86e8-42bd-1d4d24ed7da6-61f16a339b94a.png",
-    //     },
-    //     "id": "i+fd3cee3acf65c238-336300-9a9014-1aea3a14",
-    //     "name": "The Purple Fox (#418632)",
-    //     "gameModeId": "",
-    //     "gameModeName": "ABI.SocialVR",
-    //     "region": "eu",
-    //     "world": {
-    //         "tags": [
-    //             "flashingcolors",
-    //             "flashinglights",
-    //         ],
-    //         "id": "406acf24-99b1-4119-8883-4fcda4250743",
-    //         "name": "The Purple Fox",
-    //         "imageUrl": "https://files.abidata.io/user_content/worlds/406acf24-99b1-4119-8883-4fcda4250743/406acf24-99b1-4119-8883-4fcda4250743.png",
-    //     },
-    //     "maxPlayer": 100,
-    //     "currentPlayerCount": 6,
-    //     "members": [
-    //         {
-    //             "id": "7452ea11-86ab-86e8-42bd-1d4d24ed7da6",
-    //             "name": "FriendlyFriend",
-    //             "imageUrl": "https://files.abidata.io/user_images/7452ea11-86ab-86e8-42bd-1d4d24ed7da6-61f16a339b94a.png",
-    //             "isFriend": true, // This property will only exist for friends
-    //             // ALSO!!!!: friends will have every other info that is present in the usual friends entity
-    //             "isBlocked": true, // This property will only exist for blocked people
-    //         },
-    //         {
-    //             "id": "86ce8e72-9204-359d-1ca0-678ec6783a90",
-    //             "name": "GhostRobot",
-    //             "imageUrl": "https://files.abidata.io/user_images/86ce8e72-9204-359d-1ca0-678ec6783a90-63c6e5b3be27d.png",
-    //         },
-    //     ],
-    // }];
-
-    activeInstances.sort((a, b) => {
-        // Count the number of members in each instance who have isFriend=true
-        const aFriendCount = a.members.filter(member => member.isFriend).length;
-        const bFriendCount = b.members.filter(member => member.isFriend).length;
-
-        // Sort by friend count first
-        if (bFriendCount - aFriendCount !== 0) {
-            return bFriendCount - aFriendCount;
-        }
-
-        // If friend count is the same, sort by currentPlayerCount
-        return b.currentPlayerCount - a.currentPlayerCount;
-    });
-
+    
     // Create the search result elements
     const elementsOfResults = [];
     for (const result of activeInstances) {
-
         const elementsOfMembers = [];
         const elementsOfBlocked = [];
 
@@ -985,12 +855,6 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
                 userIcon.classList.add('icon-is-online');
                 friendCount++;
                 elementsOfMembers.push(userIcon);
-                continue;
-            }
-            if (member.name === document.querySelector('.home-user--user-name').textContent) {
-                userIcon.classList.add('icon-is-you');
-                userIcon.dataset.tooltip = `<span>${userIcon.dataset.tooltip} <small>(You)</small></span>`;
-                elementsOfMembers.unshift(userIcon);
                 continue;
             }
             elementsOfMembers.push(userIcon);
