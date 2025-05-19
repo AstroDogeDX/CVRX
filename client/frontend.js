@@ -332,42 +332,11 @@ function getFriendStatus(friend) {
 
 async function ShowDetails(entityType, entityId) {
 
-    let detailsName = document.querySelector('.details-window--name');
-    let detailsImg = document.querySelector('.details-window--img');
-    let detailsAvatar = document.querySelector('.details-window--avatar');
-    let detailsBadge = document.querySelector('.details-window--badge');
-    let detailsRank = document.querySelector('.details-window--rank');
-
-    // activeUser = {
-    //     onlineState: false,
-    //     isConnected: false,
-    //     isFriend: false,
-    //     isBlocked: false,
-    //     instance: null, // If we're online this might have our instance info
-    //     categories: [],
-    //     rank: 'User',
-    //     featuredBadge: {
-    //         name: 'No badge featured',
-    //         image: 'https://files.abidata.io/static_web/NoHolderImage.png',
-    //         imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4',
-    //         badgeLevel: 0
-    //     },
-    //     featuredGroup: {
-    //         name: 'No group featured',
-    //         image: 'https://files.abidata.io/static_web/NoHolderImage.png',
-    //         imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    //     },
-    //     avatar: {
-    //         id: '5cde1f96-d62a-4231-bf53-a32693830fc2',
-    //         name: 'Demo Bot',
-    //         imageUrl: 'https://files.abidata.io/user_content/avatars/5cde1f96-d62a-4231-bf53-a32693830fc2/5cde1f96-d62a-4231-bf53-a32693830fc2.png',
-    //         imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    //     },
-    //     id: 'c4eee443-98a0-bab8-a583-f1d9fa10a7d7',
-    //     name: 'CVRX',
-    //     imageUrl: 'https://files.abidata.io/user_images/c4eee443-98a0-bab8-a583-f1d9fa10a7d7-63cfb4a4061d4.png',
-    //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    // }
+    let detailsName = document.querySelector('.user-details-window--name');
+    let detailsImg = document.querySelector('.user-details-window--img');
+    let detailsAvatar = document.querySelector('.user-details-window--avatar');
+    let detailsBadge = document.querySelector('.user-details-window--badge');
+    let detailsRank = document.querySelector('.user-details-window--rank');
 
     let entityInfo;
 

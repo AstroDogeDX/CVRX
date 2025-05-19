@@ -2753,3 +2753,78 @@ button {
     font-size: 12px;
     margin-right: 3px;
 }
+
+.user-details-window {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    grid-template-areas:
+        "user-details-window--name"
+        "user-details-window--img"
+        "user-details-window--avatar"
+        "user-details-window--badge"
+        "user-details-window--rank";
+    gap: 1rem;
+    padding: 1rem;
+    background-color: var(--color-background);
+    border-radius: 0.5rem;
+    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.5);
+    max-width: 20rem;
+    width: 100%;
+}
+
+.user-details-window :where(img):not(.user-details-window--img) {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 0.25rem;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+.user-details-window :where(.user-details-window--avatar img):not(.user-details-window--img) {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.25rem;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+.user-details-window--name {
+    grid-area: user-details-window--name;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    color: var(--color-text);
+}
+
+.user-details-window--img {
+    grid-area: user-details-window--img;
+    width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    margin: 0 auto;
+}
+
+.user-details-window--avatar,
+.user-details-window--badge,
+.user-details-window--rank {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    color: var(--color-text);
+    padding: 0.5rem;
+    background-color: var(--color-background-alt);
+    border-radius: 0.25rem;
+}
+
+.user-details-window--avatar {
+    grid-area: user-details-window--avatar;
+}
+
+.user-details-window--badge {
+    grid-area: user-details-window--badge;
+}
+
+.user-details-window--rank {
+    grid-area: user-details-window--rank;
+}
