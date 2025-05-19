@@ -869,184 +869,189 @@ searchBar.addEventListener('keypress', async (event) => {
     // Disable the search while we're fetching and populating the results
     searchBar.disabled = true;
 
-    // Fetch the search results
-    const results = await window.API.search(searchTerm);
-    log('Searched!');
-    log(results);
+    try {
+        // Fetch the search results
+        const results = await window.API.search(searchTerm);
+        log('Searched!');
+        log(results);
 
-    // Types: avatar, prop, user, world
-    //
-    // results = [{
-    //     type: 'prop',
-    //     id: '5cb59af7-2d39-4ad4-9650-437d38ebd09d',
-    //     name: 'Staff Of Cheese 1/3 Size (Free Grip)',
-    //     imageUrl: 'https://files.abidata.io/user_content/spawnables/5cb59af7-2d39-4ad4-9650-437d38ebd09d/5cb59af7-2d39-4ad4-9650-437d38ebd09d.png',
-    //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    // }];
+        // Types: avatar, prop, user, world
+        //
+        // results = [{
+        //     type: 'prop',
+        //     id: '5cb59af7-2d39-4ad4-9650-437d38ebd09d',
+        //     name: 'Staff Of Cheese 1/3 Size (Free Grip)',
+        //     imageUrl: 'https://files.abidata.io/user_content/spawnables/5cb59af7-2d39-4ad4-9650-437d38ebd09d/5cb59af7-2d39-4ad4-9650-437d38ebd09d.png',
+        //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
+        // }];
 
-    const searchOutputUsers = document.querySelector('.search-output--users');
-    const searchOutputWorlds = document.querySelector('.search-output--worlds');
-    const searchOutputAvatars = document.querySelector('.search-output--avatars');
-    const searchOutputProps = document.querySelector('.search-output--props');
+        const searchOutputUsers = document.querySelector('.search-output--users');
+        const searchOutputWorlds = document.querySelector('.search-output--worlds');
+        const searchOutputAvatars = document.querySelector('.search-output--avatars');
+        const searchOutputProps = document.querySelector('.search-output--props');
 
-    const userResults = [];
-    const worldsResults = [];
-    const avatarResults = [];
-    const propsResults = [];
+        const userResults = [];
+        const worldsResults = [];
+        const avatarResults = [];
+        const propsResults = [];
 
-    // Create the search result elements
-    for (const result of results) {
-        let additionalInfo = '';
-        let badgeInfo = '';
-        let rankInfo = '';
-        let tagsList = '';
-        let creatorInfo = '';
+        // Create the search result elements
+        for (const result of results) {
+            let additionalInfo = '';
+            let badgeInfo = '';
+            let rankInfo = '';
+            let tagsList = '';
+            let creatorInfo = '';
 
-        // Add type-specific content based on available data
-        switch (result.type) {
-            case 'user':
-                // Check if user has a featured badge (this would be available in detailed data)
-                if (result.featuredBadge && result.featuredBadge.name && result.featuredBadge.name !== 'No badge featured') {
-                    badgeInfo = `<div class="badge-indicator">
-                        <span class="material-symbols-outlined">workspace_premium</span>
-                        ${result.featuredBadge.name}
-                    </div>`;
-                }
+            // Add type-specific content based on available data
+            switch (result.type) {
+                case 'user':
+                    // Check if user has a featured badge (this would be available in detailed data)
+                    if (result.featuredBadge && result.featuredBadge.name && result.featuredBadge.name !== 'No badge featured') {
+                        badgeInfo = `<div class="badge-indicator">
+                            <span class="material-symbols-outlined">workspace_premium</span>
+                            ${result.featuredBadge.name}
+                        </div>`;
+                    }
 
-                // Display rank if available
-                rankInfo = result.rank ?
-                    `<p class="creator-info"><span class="material-symbols-outlined">military_tech</span>Rank: ${result.rank}</p>` : '';
+                    // Display rank if available
+                    rankInfo = result.rank ?
+                        `<p class="creator-info"><span class="material-symbols-outlined">military_tech</span>Rank: ${result.rank}</p>` : '';
 
-                additionalInfo = `
-                    ${rankInfo}
-                    <div class="search-result-detail">
-                        <span class="material-symbols-outlined">account_circle</span>View Profile
-                    </div>`;
-                break;
+                    additionalInfo = `
+                        ${rankInfo}
+                        <div class="search-result-detail">
+                            <span class="material-symbols-outlined">account_circle</span>View Profile
+                        </div>`;
+                    break;
 
-            case 'world':
-                // For worlds, we could have tags, player counts or other metadata
-                if (result.tags && result.tags.length > 0) {
-                    const tagElements = result.tags.slice(0, 3).map(tag =>
-                        `<span class="world-tag">${tag}</span>`,
-                    ).join('');
+                case 'world':
+                    // For worlds, we could have tags, player counts or other metadata
+                    if (result.tags && result.tags.length > 0) {
+                        const tagElements = result.tags.slice(0, 3).map(tag =>
+                            `<span class="world-tag">${tag}</span>`,
+                        ).join('');
 
-                    tagsList = `<div class="world-tags">${tagElements}</div>`;
-                }
+                        tagsList = `<div class="world-tags">${tagElements}</div>`;
+                    }
 
-                // Show creator info if available
-                creatorInfo = result.author ?
-                    `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${result.author.name}</p>` : '';
+                    // Show creator info if available
+                    creatorInfo = result.author ?
+                        `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${result.author.name}</p>` : '';
 
-                additionalInfo = `
-                    ${creatorInfo}
-                    ${tagsList}
-                    <div class="search-result-detail">
-                        <span class="material-symbols-outlined">travel_explore</span>Explore
-                    </div>`;
-                break;
+                    additionalInfo = `
+                        ${creatorInfo}
+                        ${tagsList}
+                        <div class="search-result-detail">
+                            <span class="material-symbols-outlined">travel_explore</span>Explore
+                        </div>`;
+                    break;
 
-            case 'avatar':
-                // Show creator info if available
-                creatorInfo = result.author ?
-                    `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${result.author.name}</p>` : '';
+                case 'avatar':
+                    // Show creator info if available
+                    creatorInfo = result.author ?
+                        `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${result.author.name}</p>` : '';
 
-                additionalInfo = `
-                    ${creatorInfo}
-                    <div class="search-result-detail">
-                        <span class="material-symbols-outlined">person_outline</span>Avatar
-                    </div>`;
-                break;
+                    additionalInfo = `
+                        ${creatorInfo}
+                        <div class="search-result-detail">
+                            <span class="material-symbols-outlined">person_outline</span>Avatar
+                        </div>`;
+                    break;
 
-            case 'prop':
-                // Show creator info if available
-                creatorInfo = result.author ?
-                    `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${result.author.name}</p>` : '';
+                case 'prop':
+                    // Show creator info if available
+                    creatorInfo = result.author ?
+                        `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${result.author.name}</p>` : '';
 
-                additionalInfo = `
-                    ${creatorInfo}
-                    <div class="search-result-detail">
-                        <span class="material-symbols-outlined">category</span>Prop
-                    </div>`;
-                break;
+                    additionalInfo = `
+                        ${creatorInfo}
+                        <div class="search-result-detail">
+                            <span class="material-symbols-outlined">category</span>Prop
+                        </div>`;
+                    break;
+            }
+
+            let searchResult = createElement('div', {
+                className: 'search-output--node',
+                innerHTML: `
+                    ${badgeInfo}
+                    <div class="thumbnail-container">
+                        <img src="img/ui/placeholder.png" data-hash="${result.imageHash}" class="hidden"/>
+                    </div>
+                    <div class="search-result-content">
+                        <p class="search-result-name">${result.name}</p>
+                        <p class="search-result-type">${result.type}</p>
+                        ${additionalInfo}
+                    </div>
+                `,
+            });
+
+            // Set placeholder background image
+            const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
+            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            thumbnailContainer.style.backgroundSize = 'cover';
+
+            // Store the image hash for later loading
+            thumbnailContainer.dataset.hash = result.imageHash;
+
+            switch (result.type) {
+                case 'user':
+                    searchResult.onclick = () => ShowDetails(DetailsType.User, result.id);
+                    userResults.push(searchResult);
+                    break;
+                case 'world':
+                    worldsResults.push(searchResult);
+                    break;
+                case 'avatar':
+                    avatarResults.push(searchResult);
+                    break;
+                case 'prop':
+                    propsResults.push(searchResult);
+                    break;
+                default:
+                    pushToast('Found a result with invalid type!', 'error');
+            }
         }
 
-        let searchResult = createElement('div', {
-            className: 'search-output--node',
-            innerHTML: `
-                ${badgeInfo}
-                <div class="thumbnail-container">
-                    <img src="img/ui/placeholder.png" data-hash="${result.imageHash}" class="hidden"/>
-                </div>
-                <div class="search-result-content">
-                    <p class="search-result-name">${result.name}</p>
-                    <p class="search-result-type">${result.type}</p>
-                    ${additionalInfo}
-                </div>
-            `,
+        // Replace previous search results with the new ones
+        searchOutputUsers.replaceChildren(...userResults);
+        searchOutputWorlds.replaceChildren(...worldsResults);
+        searchOutputAvatars.replaceChildren(...avatarResults);
+        searchOutputProps.replaceChildren(...propsResults);
+
+        // Show/hide categories based on results and uncollapse them
+        toggleCategoryVisibility('.users-category', userResults.length > 0);
+        toggleCategoryVisibility('.worlds-category', worldsResults.length > 0);
+        toggleCategoryVisibility('.avatars-category', avatarResults.length > 0);
+        toggleCategoryVisibility('.props-category', propsResults.length > 0);
+
+        // Uncollapse all visible categories after search
+        document.querySelectorAll('.search-output-category:not(.empty)').forEach(category => {
+            category.classList.remove('collapsed');
         });
 
-        // Set placeholder background image
-        const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-        thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
-        thumbnailContainer.style.backgroundSize = 'cover';
+        // Add category counts to headers
+        updateCategoryCount('.users-category', userResults.length);
+        updateCategoryCount('.worlds-category', worldsResults.length);
+        updateCategoryCount('.avatars-category', avatarResults.length);
+        updateCategoryCount('.props-category', propsResults.length);
 
-        // Store the image hash for later loading
-        thumbnailContainer.dataset.hash = result.imageHash;
-
-        switch (result.type) {
-            case 'user':
-                searchResult.onclick = () => ShowDetails(DetailsType.User, result.id);
-                userResults.push(searchResult);
-                break;
-            case 'world':
-                worldsResults.push(searchResult);
-                break;
-            case 'avatar':
-                avatarResults.push(searchResult);
-                break;
-            case 'prop':
-                propsResults.push(searchResult);
-                break;
-            default:
-                pushToast('Found a result with invalid type!', 'error');
+        // Show "no results" message if no results found
+        const totalResults = userResults.length + worldsResults.length + avatarResults.length + propsResults.length;
+        if (totalResults === 0) {
+            document.querySelector('.search-no-results').classList.remove('hidden');
+        } else {
+            document.querySelector('.search-no-results').classList.add('hidden');
         }
+    } catch (error) {
+        pushToast('Error performing search', 'error');
+    } finally {
+        // Hide loading state and re-enable search regardless of success/failure
+        document.querySelector('.search-loading').classList.add('hidden');
+        searchBar.disabled = false;
+        applyTooltips();
     }
-
-    // Replace previous search results with the new ones
-    searchOutputUsers.replaceChildren(...userResults);
-    searchOutputWorlds.replaceChildren(...worldsResults);
-    searchOutputAvatars.replaceChildren(...avatarResults);
-    searchOutputProps.replaceChildren(...propsResults);
-
-    // Show/hide categories based on results and uncollapse them
-    toggleCategoryVisibility('.users-category', userResults.length > 0);
-    toggleCategoryVisibility('.worlds-category', worldsResults.length > 0);
-    toggleCategoryVisibility('.avatars-category', avatarResults.length > 0);
-    toggleCategoryVisibility('.props-category', propsResults.length > 0);
-
-    // Uncollapse all visible categories after search
-    document.querySelectorAll('.search-output-category:not(.empty)').forEach(category => {
-        category.classList.remove('collapsed');
-    });
-
-    // Add category counts to headers
-    updateCategoryCount('.users-category', userResults.length);
-    updateCategoryCount('.worlds-category', worldsResults.length);
-    updateCategoryCount('.avatars-category', avatarResults.length);
-    updateCategoryCount('.props-category', propsResults.length);
-
-    // Show "no results" message if no results found
-    const totalResults = userResults.length + worldsResults.length + avatarResults.length + propsResults.length;
-    if (totalResults === 0) {
-        document.querySelector('.search-no-results').classList.remove('hidden');
-    } else {
-        document.querySelector('.search-no-results').classList.add('hidden');
-    }
-
-    // Re-enable the search
-    searchBar.disabled = false;
-    applyTooltips();
 });
 
 // Helper function to toggle category visibility
