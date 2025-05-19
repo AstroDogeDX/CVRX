@@ -188,7 +188,7 @@ button {
     height: 100%;
     width: 100%;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 150px;
+    grid-template-rows: 1fr 200px;
     grid-template-areas:
         "home-activity home-history"
         "home-requests home-history";
