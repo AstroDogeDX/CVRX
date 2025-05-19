@@ -126,6 +126,25 @@ button {
     text-align: center;
 }
 
+.profile-navbar-button {
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    opacity: 0.8;
+    border-radius: var(--border-radii);
+    transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease, border-radius 0.2s ease;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.profile-navbar-button:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+    border-radius: var(--border-radii);
+}
+
 /* Main Display Area */
 
 .cvrx-display {

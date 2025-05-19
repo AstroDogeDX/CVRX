@@ -301,6 +301,15 @@ window.API.onGetActiveUser((_event, activeUser) => {
     const userName = document.querySelector('.home-user--user-name');
     userName.innerHTML = activeUser.name;
     userName.onclick = () => ShowDetails(DetailsType.User, activeUser.id);
+    
+    // Set profile picture for profile navbar button
+    const profileButton = document.querySelector('.profile-navbar-button');
+    if (profileButton) {
+        profileButton.setAttribute('data-hash', activeUser.imageHash);
+        profileButton.style.backgroundImage = `url(img/ui/placeholder.png)`;
+        profileButton.onclick = () => ShowDetails(DetailsType.User, activeUser.id);
+    }
+    
     document.querySelector('.user-extra--user-avatar').innerHTML =
         `<img data-hash="${activeUser.avatar.imageHash}">${activeUser.avatar.name}`;
     document.querySelector('.user-extra--user-badge').innerHTML =
@@ -338,6 +347,20 @@ window.API.onGetActiveUser((_event, activeUser) => {
     //     imageUrl: 'https://files.abidata.io/user_images/c4eee443-98a0-bab8-a583-f1d9fa10a7d7-63cfb4a4061d4.png',
     //     imageHash: '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
     // }
+});
+
+// Add image loading handler
+window.API.onImageLoaded((_event, imageData) => {
+    const { imageHash, imageBase64 } = imageData;
+    
+    // Update all elements with matching data-hash
+    document.querySelectorAll(`[data-hash="${imageHash}"]`).forEach(element => {
+        if (element.classList.contains('profile-navbar-button')) {
+            element.style.backgroundImage = `url(${imageBase64})`;
+        } else if (element.tagName === 'IMG') {
+            element.src = imageBase64;
+        }
+    });
 });
 
 function getFriendStatus(friend) {
