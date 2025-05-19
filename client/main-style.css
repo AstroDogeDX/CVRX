@@ -1972,11 +1972,11 @@ button {
 }
 
 .user-details-profile-image {
-    width: 150px;
-    height: 150px;
+    width: 160px;
+    height: 140px;
     position: relative;
     overflow: hidden;
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
 }
 
 .user-details-profile-image img {
