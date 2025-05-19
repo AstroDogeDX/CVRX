@@ -192,7 +192,7 @@ function promptReconnect() {
 // Simple markdown parser for changelog formatting
 function parseMarkdown(text) {
     if (!text) return '';
-    
+
     // Helper function to escape HTML
     const escapeHtml = (unsafe) => {
         return unsafe
@@ -207,7 +207,7 @@ function parseMarkdown(text) {
     const processInlineFormatting = (content) => {
         // First escape any raw HTML in the content
         let processed = escapeHtml(content);
-        
+
         // Then apply markdown formatting
         return processed
             // Bold
@@ -227,7 +227,7 @@ function parseMarkdown(text) {
                     .replace(/&lt;/g, '<')
                     .replace(/&gt;/g, '>')
                     .replace(/&quot;/g, '"')
-                    .replace(/&#039;/g, "'");
+                    .replace(/&#039;/g, '\'');
                 return `<a href="${unescapedUrl}" target="_blank" rel="noopener noreferrer">${text}</a>`;
             });
     };
@@ -369,12 +369,12 @@ function promptUpdate(updateInfo) {
     const promptShade = document.querySelector('.prompt-layer');
     const newPrompt = createElement('div', { className: 'prompt' });
     const promptTitle = createElement('div', { className: 'prompt-title', textContent: 'Update Available' });
-    const promptText = createElement('div', { 
+    const promptText = createElement('div', {
         className: 'prompt-text',
-        innerHTML: `A new version (${updateInfo.tagName}) of CVRX is available!<br><br>Here are the changes:<br><br>${parseMarkdown(updateInfo.changeLogs)}`
+        innerHTML: `A new version (${updateInfo.tagName}) of CVRX is available!<br><br>Here are the changes:<br><br>${parseMarkdown(updateInfo.changeLogs)}`,
     });
     const promptButtons = createElement('div', { className: 'prompt-buttons' });
-    
+
     const downloadButton = createElement('button', {
         id: 'prompt-confirm',
         className: 'update-primary-action',
@@ -545,7 +545,7 @@ document.querySelectorAll('.navbar-button').forEach((e) => {
 window.API.onGetActiveUser((_event, activeUser) => {
     log('Active User!');
     log(activeUser);
-    
+
     // Set profile picture for profile navbar button
     const profileButton = document.querySelector('.profile-navbar-button');
     if (profileButton) {
@@ -558,7 +558,7 @@ window.API.onGetActiveUser((_event, activeUser) => {
 // Add image loading handler
 window.API.onImageLoaded((_event, imageData) => {
     const { imageHash, imageBase64 } = imageData;
-    
+
     // Update all elements with matching data-hash
     document.querySelectorAll(`[data-hash="${imageHash}"]`).forEach(element => {
         if (element.classList.contains('profile-navbar-button')) {
@@ -590,7 +590,7 @@ async function ShowDetails(entityType, entityId) {
     let entityInfo;
 
     switch (entityType) {
-        case DetailsType.User:
+        case DetailsType.User: {
             entityInfo = await window.API.getUserById(entityId);
             detailsName.innerHTML = `${entityInfo.name}`;
             detailsImg.src = 'img/ui/placeholder.png';
@@ -598,11 +598,11 @@ async function ShowDetails(entityType, entityId) {
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.avatar.imageHash}">${entityInfo.avatar.name}`;
             detailsBadge.innerHTML = `<img data-hash="${entityInfo.featuredBadge.imageHash}">${entityInfo.featuredBadge.name}`;
             detailsRank.innerHTML = `<img src="img/ui/rank.png">${entityInfo.rank}`;
-            
+
             // Show the details window
             const detailsShade = document.querySelector('.details-shade');
             detailsShade.style.display = 'flex';
-            
+
             // Handle clicking outside to close
             detailsShade.onclick = (event) => {
                 if (event.target === detailsShade) {
@@ -627,12 +627,12 @@ async function ShowDetails(entityType, entityId) {
                         const confirmShade = document.querySelector('.prompt-layer');
                         const confirmPrompt = createElement('div', { className: 'prompt' });
                         const confirmTitle = createElement('div', { className: 'prompt-title', textContent: 'Remove Friend' });
-                        const confirmText = createElement('div', { 
-                            className: 'prompt-text', 
-                            textContent: `Are you sure you want to remove ${entityInfo.name} from your friends list?` 
+                        const confirmText = createElement('div', {
+                            className: 'prompt-text',
+                            textContent: `Are you sure you want to remove ${entityInfo.name} from your friends list?`,
                         });
                         const confirmButtons = createElement('div', { className: 'prompt-buttons' });
-                        
+
                         const confirmButton = createElement('button', {
                             id: 'prompt-confirm',
                             textContent: 'Remove Friend',
@@ -687,8 +687,7 @@ async function ShowDetails(entityType, entityId) {
 
             // Set up tab switching
             const tabs = document.querySelectorAll('.user-details-tab');
-            const tabPanes = document.querySelectorAll('.user-details-tab-pane');
-            
+
             // Remove any existing click handlers
             tabs.forEach(tab => {
                 const newTab = tab.cloneNode(true);
@@ -701,11 +700,11 @@ async function ShowDetails(entityType, entityId) {
                     // Remove active class from all tabs and panes
                     document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
                     document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
-                    
+
                     // Add active class to clicked tab and corresponding pane
                     tab.classList.add('active');
                     document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
-                    
+
                     // Load content for the selected tab
                     loadTabContent(tab.dataset.tab, entityId);
                 });
@@ -726,6 +725,7 @@ async function ShowDetails(entityType, entityId) {
             // Load initial tab content (always Avatars)
             loadTabContent('avatars', entityId);
             break;
+        }
     }
 }
 
@@ -733,7 +733,7 @@ async function ShowDetails(entityType, entityId) {
 async function loadTabContent(tab, userId) {
     const grid = document.querySelector(`#${tab}-tab .user-details-grid`);
     if (!grid) return;
-    
+
     grid.innerHTML = '<div class="loading-indicator">Loading...</div>';
 
     try {
@@ -764,7 +764,7 @@ async function loadTabContent(tab, userId) {
             // Add type-specific content
             let additionalInfo = '';
             let icon = '';
-            
+
             switch (tab) {
                 case 'avatars':
                     icon = 'emoji_people';
@@ -780,10 +780,10 @@ async function loadTabContent(tab, userId) {
                             <span class="material-symbols-outlined">${icon}</span>Prop
                         </div>`;
                     break;
-                case 'worlds':
+                case 'worlds': {
                     icon = 'language';
                     // Add player count if available
-                    const playerCount = item.playerCount ? 
+                    const playerCount = item.playerCount ?
                         `<div class="player-count-indicator">
                             <span class="material-symbols-outlined">group</span>${item.playerCount}
                         </div>` : '';
@@ -793,6 +793,7 @@ async function loadTabContent(tab, userId) {
                             <span class="material-symbols-outlined">${icon}</span>World
                         </div>`;
                     break;
+                }
             }
 
             const itemNode = createElement('div', {
@@ -806,7 +807,7 @@ async function loadTabContent(tab, userId) {
                         <p class="card-description">${item.description || ''}</p>
                         ${additionalInfo}
                     </div>
-                `
+                `,
             });
 
             // Set placeholder background image
@@ -1273,7 +1274,7 @@ document.querySelectorAll('.search-output-category h3').forEach(header => {
 // -----------------------------
 window.API.onActiveInstancesUpdate((_event, activeInstances) => {
     const homeActivity = document.querySelector('.home-activity--activity-wrapper');
-    
+
     // Create the search result elements
     const elementsOfResults = [];
     for (const result of activeInstances) {
@@ -1538,14 +1539,14 @@ filterButtons.forEach(button => {
         // Update active state
         filterButtons.forEach(btn => btn.classList.remove('active'));
         button.classList.add('active');
-        
+
         // Update current filter
         currentFilter = button.dataset.filter;
-        
+
         // Apply filter
         const friendsList = document.querySelector('.friends-wrapper');
         const friendNodes = friendsList.querySelectorAll('.friend-list-node');
-        
+
         // Filter based on online status
         friendNodes.forEach(friend => {
             const isOnline = !friend.querySelector('.status-indicator').classList.contains('offline');
