@@ -24,6 +24,7 @@ const PrivacyLevel = Object.freeze({
     Group: 3,
     EveryoneCanInvite: 4,
     OwnerMustInvite: 5,
+    GroupsPlus: 6,
 });
 
 const GetPrivacyLevelName = (privacyLevel) => {
@@ -32,6 +33,7 @@ const GetPrivacyLevelName = (privacyLevel) => {
         case PrivacyLevel.FriendsOfFriends: return 'Friends of Friends';
         case PrivacyLevel.Friends: return 'Friends Only';
         case PrivacyLevel.Group: return 'Group';
+        case PrivacyLevel.GroupsPlus: return 'Friends of Group';
         case PrivacyLevel.EveryoneCanInvite: return 'Everyone Can Invite';
         case PrivacyLevel.OwnerMustInvite: return 'Owner Must Invite';
         default: return 'Unknown';

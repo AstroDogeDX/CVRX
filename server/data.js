@@ -120,6 +120,12 @@ class Core {
         this.#ResetCachingObjects();
 
         this.#SetupHandlers();
+
+        // Expose core and api on globals for debugging
+        if (!app.isPackaged){
+            global.Core = this;
+            global.CVRHttp = CVRHttp;
+        }
     }
 
     #ResetCachingObjects() {
@@ -194,6 +200,21 @@ class Core {
         ipcMain.handle('get-world-by-id', async (_event, worldId) => EscapeHtml(await this.GetWorldById(worldId)));
         ipcMain.handle('get-instance-by-id', async (_event, instanceId) => EscapeHtml(await this.GetInstanceById(instanceId)));
         ipcMain.handle('search', async (_event, term) => EscapeHtml(await this.Search(term)));
+
+        // Get Random Content
+        ipcMain.handle('get-random-avatars', async (_event, count) => EscapeHtml(await this.GetRandomContent(PublicContentType.AVATARS, count)));
+        ipcMain.handle('get-random-worlds', async (_event, count) => EscapeHtml(await this.GetRandomContent(PublicContentType.WORLDS, count)));
+        ipcMain.handle('get-random-props', async (_event, count) => EscapeHtml(await this.GetRandomContent(PublicContentType.PROPS, count)));
+
+        // Content Shares (Get)
+        ipcMain.handle('get-avatar-shares', async (_event, avatarId) => EscapeHtml(await this.GetContentShares(PublicContentType.AVATARS, avatarId)));
+        ipcMain.handle('get-prop-shares', async (_event, propId) => EscapeHtml(await this.GetContentShares(PublicContentType.PROPS, propId)));
+        // Content Shares (Add)
+        ipcMain.handle('add-avatar-share', async (_event, avatarId, userId) => EscapeHtml(await this.AddContentShares(PublicContentType.AVATARS, avatarId, userId)));
+        ipcMain.handle('add-prop-share', async (_event, propId, userId) => EscapeHtml(await this.AddContentShares(PublicContentType.PROPS, propId, userId)));
+        // Content Shares (Remove)
+        ipcMain.handle('remove-avatar-share', async (_event, avatarId, userId) => EscapeHtml(await this.RemoveContentShares(PublicContentType.AVATARS, avatarId, userId)));
+        ipcMain.handle('remove-prop-share', async (_event, propId, userId) => EscapeHtml(await this.RemoveContentShares(PublicContentType.PROPS, propId, userId)));
 
         // Friendship
         ipcMain.handle('friend-request-send', (_event, userId) => CVRWebsocket.SendFriendRequest(userId));
@@ -971,6 +992,92 @@ class Core {
         this.SendToRenderer('friend-requests', Object.values(this.friendRequests));
     }
 
+    async GetContentShares(contentType, contentId) {
+
+        let entries;
+
+        switch (contentType) {
+            case PublicContentType.AVATARS:
+                entries = await CVRHttp.GetAvatarShares(contentId);
+                break;
+            case PublicContentType.PROPS:
+                entries = await CVRHttp.GetPropShares(contentId);
+                break;
+            default:
+                log.error(`[GetContentShares] ${contentType} content type is not supported at the moment.`);
+                break;
+        }
+
+        for (const entry of entries) {
+            if (entry?.image) {
+                await LoadImage(entry.image, entry);
+            }
+        }
+
+        return entries;
+    }
+
+    async AddContentShares(contentType, contentId, userId) {
+        switch (contentType) {
+            case PublicContentType.AVATARS:
+                await CVRHttp.AddAvatarShare(contentId, userId);
+                break;
+            case PublicContentType.PROPS:
+                await CVRHttp.AddPropShare(contentId, userId);
+                break;
+            default:
+                log.error(`[AddContentShares] ${contentType} content type is not supported at the moment.`);
+                break;
+        }
+    }
+
+    async RemoveContentShares(contentType, contentId, userId) {
+        switch (contentType) {
+            case PublicContentType.AVATARS:
+                await CVRHttp.RemoveAvatarShare(contentId, userId);
+                break;
+            case PublicContentType.PROPS:
+                await CVRHttp.RemovePropShare(contentId, userId);
+                break;
+            default:
+                log.error(`[RemoveContentShares] ${contentType} content type is not supported at the moment.`);
+                break;
+        }
+    }
+
+    async GetRandomContent(contentType, count) {
+        let entries;
+        switch (contentType) {
+            case PublicContentType.AVATARS:
+                entries = await CVRHttp.GetRandomAvatars(count);
+                break;
+            case PublicContentType.WORLDS:
+                entries = await CVRHttp.GetRandomWorlds(count);
+                break;
+            case PublicContentType.PROPS:
+                entries = await CVRHttp.GetRandomProps(count);
+                break;
+        }
+        for (const entry of entries) {
+            if (entry?.image) {
+                await LoadImage(entry.image, entry);
+            }
+        }
+        // Example:
+        // [
+        //     {
+        //         "platforms": [
+        //             "Pc_Standalone"
+        //         ],
+        //         "public": true,
+        //         "description": "A realistic club in the middle of the ocean, have fun\nVersion: 1.0",
+        //         "image": "https://files.abidata.io/user_content/worlds/f33fbbf6-5a42-4a0a-a817-e914b21fe929/f33fbbf6-5a42-4a0a-a817-e914b21fe929.png",
+        //         "id": "f33fbbf6-5a42-4a0a-a817-e914b21fe929",
+        //         "name": "Lost Ocean Club"
+        //     }
+        // ]
+        return entries;
+    }
 }
 
 module.exports = {

@@ -52,6 +52,24 @@ contextBridge.exposeInMainWorld('API', {
 
     search: (term) => ipcRenderer.invoke('search', term),
 
+
+    // Get Random Content
+    getRandomAvatars: (count) => ipcRenderer.invoke('get-random-avatars', count),
+    getRandomWorlds: (count) => ipcRenderer.invoke('get-random-worlds', count),
+    getRandomProps: (count) => ipcRenderer.invoke('get-random-props', count),
+
+
+    // Content Shares (Get)
+    getAvatarShares: (avatarId) => ipcRenderer.invoke('get-avatar-shares', avatarId),
+    getPropShares: (propId) => ipcRenderer.invoke('get-prop-shares', propId),
+    // Content Shares (Add)
+    addAvatarShares: (avatarId, userId) => ipcRenderer.invoke('add-avatar-share', avatarId, userId),
+    addPropShares: (propId, userId) => ipcRenderer.invoke('add-prop-share', propId, userId),
+    // Content Shares (Remove)
+    removeAvatarShares: (avatarId, userId) => ipcRenderer.invoke('remove-avatar-share', avatarId, userId),
+    removePropShares: (propId, userId) => ipcRenderer.invoke('remove-prop-share', propId, userId),
+
+
     onInvites: (callback) => ipcRenderer.on('invites', callback),
     onInviteRequests: (callback) => ipcRenderer.on('invite-requests', callback),
 
