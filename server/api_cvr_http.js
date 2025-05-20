@@ -37,6 +37,17 @@ async function Post(url, data, authenticated = true, apiVersion = 1) {
     }
 }
 
+async function Delete(url, authenticated = true, apiVersion = 1) {
+    try {
+        const response = await (authenticated ? (apiVersion === 1 ? CVRApi : CVRApiV2) : UnauthenticatedCVRApi).delete(url);
+        log.debug(`[DELETE] [${response.status}] [${authenticated ? '' : 'Non-'}Auth] ${url}`, response.data);
+        return response.data.data;
+    }
+    catch (error) {
+        log.error(`[DELETE] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack);
+        throw new Error(`Error:\n${error.stack}\n${error.toString()}`);
+    }
+}
 
 // API Constants
 
@@ -59,6 +70,7 @@ const PrivacyLevel = Object.freeze({
     Group: 3,
     EveryoneCanInvite: 4,
     OwnerMustInvite: 5,
+    GroupsPlus: 6,
 });
 exports.PrivacyLevel = PrivacyLevel;
 
@@ -116,6 +128,9 @@ exports.SetFriendNote = async (userId, note) => await Post(`/users/${userId}/not
 // Avatars
 exports.GetMyAvatars = async () => await Get('/avatars');
 exports.GetAvatarById = async (avatarId) => await Get(`/avatars/${avatarId}`);
+exports.GetAvatarShares = async (avatarId) => await Get(`/avatars/${avatarId}/shares`);
+exports.AddAvatarShare = async (avatarId, userId) => await Post(`/avatars/${avatarId}/shares/${userId}`, null);
+exports.RemoveAvatarShare = async (avatarId, userId) => await Delete(`/avatars/${avatarId}/shares/${userId}`);
 
 // Categories
 exports.GetCategories = async () => await Get('/categories');
@@ -137,6 +152,9 @@ exports.SetWorldAsHome = async (worldId) => await Get(`/worlds/${worldId}/sethom
 // Spawnables
 exports.GetProps = async () => await Get('/spawnables');
 exports.GetPropById = async (propId) => await Get(`/spawnables/${propId}`);
+exports.GetPropShares = async (propId) => await Get(`/spawnables/${propId}/shares`);
+exports.AddPropShare = async (propId, userId) => await Post(`/spawnables/${propId}/shares/${userId}`, null);
+exports.RemovePropShare = async (propId, userId) => await Delete(`/spawnables/${propId}/shares/${userId}`);
 
 // Instances
 exports.GetInstanceById = async (instanceId) => await Get(`/instances/${instanceId}`);
@@ -146,3 +164,11 @@ exports.GetInstancePortalById = async (instanceId) => await Get(`/portals/instan
 // Search
 exports.Search = async (term) => await Get(`/search/${term}`);
 exports.SearchVideoPlayer = async (term) => await Get(`/videoplayer/search/${term}?result=20&order=Title`);
+
+// Discover
+exports.GetRandomAvatars = async (count = 20) => await Get(`/avatars/lists/random?count=${count}`, true, 2);
+exports.GetRandomProps = async (count = 20) => await Get(`/spawnables/lists/random?count=${count}`, true, 2);
+exports.GetRandomWorlds = async (count = 20) => await Get(`/worlds/lists/random?count=${count}`, true, 2);
+
+// Groups
+exports.GetGroups = async () => await Get('/groups');
