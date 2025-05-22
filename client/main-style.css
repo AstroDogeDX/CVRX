@@ -3106,3 +3106,18 @@ button {
     font-size: 18px;
     line-height: 1;
 }
+
+.user-details-avatar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: var(--color-background-dark);
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+}
+
+.user-details-avatar.hidden {
+    display: none;
+}

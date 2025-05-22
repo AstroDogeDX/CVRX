@@ -619,7 +619,9 @@ async function ShowDetails(entityType, entityId) {
             detailsImg.src = 'img/ui/placeholder.png';
             detailsImg.dataset.hash = entityInfo.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.avatar.imageHash}">${entityInfo.avatar.name}`;
-            detailsAvatar.onclick = () => ShowDetails(DetailsType.Avatar, entityInfo.avatar.id);
+            const userDetailsAvatar = document.querySelector('.user-details-avatar');
+            userDetailsAvatar.classList.remove('hidden');
+            userDetailsAvatar.onclick = () => ShowDetails(DetailsType.Avatar, entityInfo.avatar.id);
             detailsBadge.innerHTML = `<img data-hash="${entityInfo.featuredBadge.imageHash}">${entityInfo.featuredBadge.name}`;
             detailsRank.innerHTML = `<img src="img/ui/rank.png">${entityInfo.rank}`;
             detailsGroup.innerHTML = `<img data-hash="${entityInfo.featuredGroup.imageHash}">${entityInfo.featuredGroup.name}`;
@@ -835,8 +837,10 @@ async function ShowDetails(entityType, entityId) {
             detailsImg.src = 'img/ui/placeholder.png';
             detailsImg.dataset.hash = entityInfo.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Avatar`;
+            document.querySelector('.user-details-avatar').classList.add('hidden');
             detailsBadge.innerHTML = '';
             detailsRank.innerHTML = '';
+            detailsGroup.innerHTML = '';
             // Remove any existing button container
             const detailsHeader = document.querySelector('.details-header');
             const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
@@ -851,8 +855,10 @@ async function ShowDetails(entityType, entityId) {
             detailsImg.src = 'img/ui/placeholder.png';
             detailsImg.dataset.hash = entityInfo.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Prop`;
+            document.querySelector('.user-details-avatar').classList.add('hidden');
             detailsBadge.innerHTML = '';
             detailsRank.innerHTML = '';
+            detailsGroup.innerHTML = '';
             // Remove any existing button container
             const detailsHeader = document.querySelector('.details-header');
             const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
@@ -867,8 +873,10 @@ async function ShowDetails(entityType, entityId) {
             detailsImg.src = 'img/ui/placeholder.png';
             detailsImg.dataset.hash = entityInfo.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">World`;
+            document.querySelector('.user-details-avatar').classList.add('hidden');
             detailsBadge.innerHTML = '';
             detailsRank.innerHTML = '';
+            detailsGroup.innerHTML = '';
             // Remove any existing button container
             const detailsHeader = document.querySelector('.details-header');
             const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
@@ -883,8 +891,10 @@ async function ShowDetails(entityType, entityId) {
             detailsImg.src = 'img/ui/placeholder.png';
             detailsImg.dataset.hash = entityInfo.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Instance`;
+            document.querySelector('.user-details-avatar').classList.add('hidden');
             detailsBadge.innerHTML = '';
             detailsRank.innerHTML = '';
+            detailsGroup.innerHTML = '';
             // Remove any existing button container
             const detailsHeader = document.querySelector('.details-header');
             const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
