@@ -641,6 +641,7 @@ async function ShowDetails(entityType, entityId) {
             // Friend action button
             const friendActionButton = createElement('button', {
                 className: 'user-details-action-button',
+                innerHTML: `<span class="material-symbols-outlined">${entityInfo.isFriend ? 'person_remove' : 'person_add'}</span>${entityInfo.isFriend ? 'Remove Friend' : 'Send Friend Request'}`,
                 tooltip: entityInfo.isFriend ? 'Remove Friend' : 'Send Friend Request',
                 onClick: async () => {
                     if (entityInfo.isFriend) {
@@ -688,8 +689,11 @@ async function ShowDetails(entityType, entityId) {
                         try {
                             await window.API.sendFriendRequest(entityId);
                             pushToast(`Friend request sent to ${entityInfo.name}`, 'confirm');
-                            // Remove the button since the request is sent
-                            friendActionButton.remove();
+                            // Update button state to show request sent
+                            friendActionButton.innerHTML = `<span class="material-symbols-outlined">hourglass_empty</span>Request Sent`;
+                            friendActionButton.tooltip = 'Friend Request Sent';
+                            friendActionButton.disabled = true;
+                            friendActionButton.classList.add('disabled');
                         } catch (error) {
                             pushToast('Failed to send friend request', 'error');
                         }
@@ -700,7 +704,7 @@ async function ShowDetails(entityType, entityId) {
             // Categories button
             const categoriesButton = createElement('button', {
                 className: 'user-details-action-button',
-                textContent: 'Categories',
+                innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
                 tooltip: 'View User Categories',
                 onClick: () => {
                     // TODO: Implement categories view
@@ -711,15 +715,16 @@ async function ShowDetails(entityType, entityId) {
             // Block/Unblock button
             const blockButton = createElement('button', {
                 className: 'user-details-action-button',
-                textContent: entityInfo.isBlocked ? 'Unblock User' : 'Block User',
+                innerHTML: `<span class="material-symbols-outlined">${entityInfo.isBlocked ? 'block' : 'no_accounts'}</span>${entityInfo.isBlocked ? 'Unblock User' : 'Block User'}`,
                 tooltip: entityInfo.isBlocked ? 'Unblock User' : 'Block User',
                 onClick: async () => {
                     if (entityInfo.isBlocked) {
                         try {
                             await window.API.unblockUser(entityId);
                             pushToast(`Unblocked ${entityInfo.name}`, 'confirm');
-                            blockButton.textContent = 'Block User';
+                            blockButton.innerHTML = `<span class="material-symbols-outlined">no_accounts</span>Block User`;
                             blockButton.tooltip = 'Block User';
+                            entityInfo.isBlocked = false;
                         } catch (error) {
                             pushToast('Failed to unblock user', 'error');
                         }
@@ -741,8 +746,9 @@ async function ShowDetails(entityType, entityId) {
                                 try {
                                     await window.API.blockUser(entityId);
                                     pushToast(`Blocked ${entityInfo.name}`, 'confirm');
-                                    blockButton.textContent = 'Unblock User';
+                                    blockButton.innerHTML = `<span class="material-symbols-outlined">block</span>Unblock User`;
                                     blockButton.tooltip = 'Unblock User';
+                                    entityInfo.isBlocked = true;
                                     confirmPrompt.remove();
                                     confirmShade.style.display = 'none';
                                 } catch (error) {
@@ -769,7 +775,6 @@ async function ShowDetails(entityType, entityId) {
             });
 
             // Set initial button state
-            friendActionButton.textContent = entityInfo.isFriend ? 'Remove Friend' : 'Send Friend Request';
             if (entityInfo.isFriend) {
                 friendActionButton.classList.add('is-friend');
             }

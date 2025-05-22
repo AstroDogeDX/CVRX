@@ -3083,3 +3083,20 @@ button {
     background: var(--button-reject-color);
     opacity: 0.9;
 }
+
+.user-details-action-button.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--color-background-darker);
+    border-color: var(--color-border);
+}
+
+.user-details-action-button.disabled:hover {
+    background: var(--color-background-darker);
+    border-color: var(--color-border);
+}
+
+.user-details-action-button .material-symbols-outlined {
+    font-size: 18px;
+    line-height: 1;
+}
