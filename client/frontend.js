@@ -908,6 +908,88 @@ async function ShowDetails(entityType, entityId) {
 
 // Function to load content for each tab
 async function loadTabContent(tab, userId) {
+    if (tab === 'notes') {
+        const notesContainer = document.querySelector('#notes-tab .notes-container');
+        if (!notesContainer) return;
+
+        notesContainer.innerHTML = '<div class="loading-indicator">Loading...</div>';
+
+        try {
+            // Get user info to access the note
+            const userInfo = await window.API.getUserById(userId);
+            const noteContent = userInfo.note || '';
+            
+            // Create notes container
+            notesContainer.innerHTML = `
+                <div class="notes-content">
+                    ${noteContent ? 
+                        `<p class="note-text">${noteContent}</p>` :
+                        `<p class="note-placeholder">No note added</p>`
+                    }
+                </div>
+                <button class="edit-note-button">
+                    <span class="material-symbols-outlined">edit</span>
+                    ${noteContent ? 'Edit Note' : 'Add Note'}
+                </button>
+            `;
+
+            // Add click handler for edit button
+            const editButton = notesContainer.querySelector('.edit-note-button');
+            editButton.onclick = () => {
+                // Create edit form
+                const editForm = createElement('div', {
+                    className: 'note-edit-form',
+                    innerHTML: `
+                        <textarea class="note-textarea" placeholder="Enter your note here...">${noteContent}</textarea>
+                        <div class="note-edit-buttons">
+                            <button class="save-note-button">
+                                <span class="material-symbols-outlined">save</span>
+                                Save
+                            </button>
+                            <button class="cancel-note-button">
+                                <span class="material-symbols-outlined">close</span>
+                                Cancel
+                            </button>
+                        </div>
+                    `
+                });
+
+                // Replace the entire notes container content with the edit form
+                notesContainer.innerHTML = '';
+                notesContainer.appendChild(editForm);
+
+                // Focus the textarea
+                const textarea = editForm.querySelector('.note-textarea');
+                textarea.focus();
+
+                // Add save handler
+                const saveButton = editForm.querySelector('.save-note-button');
+                saveButton.onclick = async () => {
+                    const newNote = textarea.value.trim();
+                    try {
+                        await window.API.setFriendNote(userId, newNote);
+                        // Reload the tab content to show updated note
+                        loadTabContent('notes', userId);
+                        pushToast('Note saved successfully', 'confirm');
+                    } catch (error) {
+                        pushToast('Failed to save note', 'error');
+                    }
+                };
+
+                // Add cancel handler
+                const cancelButton = editForm.querySelector('.cancel-note-button');
+                cancelButton.onclick = () => {
+                    // Reload the tab content to revert changes
+                    loadTabContent('notes', userId);
+                };
+            };
+        } catch (error) {
+            notesContainer.innerHTML = `<div class="error-message">Error loading note</div>`;
+            console.error('Error loading note:', error);
+        }
+        return;
+    }
+
     const grid = document.querySelector(`#${tab}-tab .user-details-grid`);
     if (!grid) return;
 
@@ -925,6 +1007,10 @@ async function loadTabContent(tab, userId) {
             case 'worlds':
                 items = await window.API.getUserPublicWorlds(userId);
                 break;
+            case 'stats':
+                // Stats tab is disabled, but we'll keep this case for future implementation
+                grid.innerHTML = '<div class="no-items-message">Stats feature coming soon!</div>';
+                return;
         }
 
         // Clear loading indicator

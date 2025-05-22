@@ -236,18 +236,30 @@
         </div>
         <div class="details-content user-details-content">
           <div class="details-tabs user-details-tabs">
-            <button class="details-tab user-details-tab active" data-tab="avatars">
-              <span class="material-symbols-outlined">emoji_people</span>
-              Avatars
-            </button>
-            <button class="details-tab user-details-tab" data-tab="props">
-              <span class="material-symbols-outlined">view_in_ar</span>
-              Props
-            </button>
-            <button class="details-tab user-details-tab" data-tab="worlds">
-              <span class="material-symbols-outlined">public</span>
-              Worlds
-            </button>
+            <div class="details-tabs-left">
+              <button class="details-tab user-details-tab active" data-tab="avatars">
+                <span class="material-symbols-outlined">emoji_people</span>
+                Avatars
+              </button>
+              <button class="details-tab user-details-tab" data-tab="props">
+                <span class="material-symbols-outlined">view_in_ar</span>
+                Props
+              </button>
+              <button class="details-tab user-details-tab" data-tab="worlds">
+                <span class="material-symbols-outlined">public</span>
+                Worlds
+              </button>
+            </div>
+            <div class="details-tabs-right">
+              <button class="details-tab user-details-tab" data-tab="notes">
+                <span class="material-symbols-outlined">note</span>
+                Notes
+              </button>
+              <button class="details-tab user-details-tab disabled" data-tab="stats">
+                <span class="material-symbols-outlined">bar_chart</span>
+                Stats
+              </button>
+            </div>
           </div>
           <div class="details-tab-content user-details-tab-content">
             <div class="details-tab-pane user-details-tab-pane active" id="avatars-tab">
@@ -258,6 +270,14 @@
             </div>
             <div class="details-tab-pane user-details-tab-pane" id="worlds-tab">
               <div class="details-grid user-details-grid"></div>
+            </div>
+            <div class="details-tab-pane user-details-tab-pane" id="notes-tab">
+              <div class="notes-container"></div>
+            </div>
+            <div class="details-tab-pane user-details-tab-pane" id="stats-tab">
+              <div class="details-grid user-details-grid">
+                <div class="no-items-message">Stats feature coming soon!</div>
+              </div>
             </div>
           </div>
         </div>

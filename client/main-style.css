@@ -1853,9 +1853,16 @@ button {
 
 .details-tabs {
     display: flex;
+    justify-content: space-between;
     gap: 10px;
     border-bottom: 1px solid var(--color-border);
     padding-bottom: 10px;
+}
+
+.details-tabs-left,
+.details-tabs-right {
+    display: flex;
+    gap: 10px;
 }
 
 .details-tab {
@@ -1872,7 +1879,13 @@ button {
     pointer-events: auto;
 }
 
-.details-tab:hover {
+.details-tab.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.details-tab:hover:not(.disabled) {
     background: var(--color-background-light);
 }
 
@@ -3120,4 +3133,119 @@ button {
 
 .user-details-avatar.hidden {
     display: none;
+}
+
+.notes-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.notes-content {
+    background: var(--color-background-secondary);
+    border-radius: 8px;
+    padding: 15px;
+    min-height: 100px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.note-text {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.note-placeholder {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+.edit-note-button {
+    align-self: flex-end;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    background: var(--color-background-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.edit-note-button:hover {
+    background: var(--color-background-tertiary);
+}
+
+.note-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.note-textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 12px;
+    background: var(--color-background-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.note-textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.note-edit-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.save-note-button,
+.cancel-note-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.save-note-button {
+    background: var(--color-accent);
+    border: 1px solid var(--color-accent);
+    color: white;
+}
+
+.save-note-button:hover {
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+}
+
+.cancel-note-button {
+    background: var(--color-background-secondary);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
+.cancel-note-button:hover {
+    background: var(--color-background-tertiary);
 }
