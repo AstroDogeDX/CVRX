@@ -198,9 +198,15 @@ class Core {
         ipcMain.handle('set-friend-note', async (_event, userId, note) => await CVRHttp.SetFriendNote(userId, note));
 
         ipcMain.handle('get-world-by-id', async (_event, worldId) => EscapeHtml(await this.GetWorldById(worldId)));
+        ipcMain.handle('get-world-meta-by-id', async (_event, worldId) => EscapeHtml(await CVRHttp.GetWorldMetaById(worldId)));
+        ipcMain.handle('get-world-portal-by-id', async (_event, worldId) => EscapeHtml(await CVRHttp.GetWorldPortalById(worldId)));
+        ipcMain.handle('set-world-as-home', async (_event, worldId) => EscapeHtml(await CVRHttp.SetWorldAsHome(worldId)));
         ipcMain.handle('get-instance-by-id', async (_event, instanceId) => EscapeHtml(await this.GetInstanceById(instanceId)));
+        ipcMain.handle('get-instance-portal-by-id', async (_event, instanceId) => EscapeHtml(await CVRHttp.GetInstancePortalById(instanceId)));
+        ipcMain.handle('join-instance', async (_event, instanceId) => EscapeHtml(await CVRHttp.JoinInstance(instanceId)));
         ipcMain.handle('get-avatar-by-id', async (_event, avatarId) => EscapeHtml(await this.GetAvatarById(avatarId)));
         ipcMain.handle('get-prop-by-id', async (_event, propId) => EscapeHtml(await this.GetPropById(propId)));
+        ipcMain.handle('get-props', async (_event) => EscapeHtml(await CVRHttp.GetProps()));
         ipcMain.handle('search', async (_event, term) => EscapeHtml(await this.Search(term)));
 
         // Get Random Content

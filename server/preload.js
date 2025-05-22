@@ -48,9 +48,15 @@ contextBridge.exposeInMainWorld('API', {
     setFriendNote: (userId, note) => ipcRenderer.invoke('set-friend-note', userId, note),
 
     getWorldById: (worldId) => ipcRenderer.invoke('get-world-by-id', worldId),
+    getWorldMetaById: (worldId) => ipcRenderer.invoke('get-world-meta-by-id', worldId),
+    getWorldPortalById: (worldId) => ipcRenderer.invoke('get-world-portal-by-id', worldId),
+    setWorldAsHome: (worldId) => ipcRenderer.invoke('set-world-as-home', worldId),
     getInstanceById: (instanceId) => ipcRenderer.invoke('get-instance-by-id', instanceId),
+    getInstancePortalById: (instanceId) => ipcRenderer.invoke('get-instance-portal-by-id', instanceId),
+    joinInstance: (instanceId) => ipcRenderer.invoke('join-instance', instanceId),
     getAvatarById: (avatarId) => ipcRenderer.invoke('get-avatar-by-id', avatarId),
     getPropById: (propId) => ipcRenderer.invoke('get-prop-by-id', propId),
+    getProps: () => ipcRenderer.invoke('get-props'),
 
     search: (term) => ipcRenderer.invoke('search', term),
 
