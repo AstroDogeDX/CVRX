@@ -619,6 +619,7 @@ async function ShowDetails(entityType, entityId) {
             detailsImg.src = 'img/ui/placeholder.png';
             detailsImg.dataset.hash = entityInfo.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.avatar.imageHash}">${entityInfo.avatar.name}`;
+            detailsAvatar.onclick = () => ShowDetails(DetailsType.Avatar, entityInfo.avatar.id);
             detailsBadge.innerHTML = `<img data-hash="${entityInfo.featuredBadge.imageHash}">${entityInfo.featuredBadge.name}`;
             detailsRank.innerHTML = `<img src="img/ui/rank.png">${entityInfo.rank}`;
             detailsGroup.innerHTML = `<img data-hash="${entityInfo.featuredGroup.imageHash}">${entityInfo.featuredGroup.name}`;
