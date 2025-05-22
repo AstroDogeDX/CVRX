@@ -1938,7 +1938,7 @@ button {
     text-align: center;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 2px;
 }
 
 .details-window--name {
