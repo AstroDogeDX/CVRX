@@ -1946,6 +1946,7 @@ button {
 
 .details-window--rank,
 .details-window--badge,
+.details-window--group,
 .details-window--avatar {
     display: flex;
     align-items: center;
@@ -1954,7 +1955,8 @@ button {
 }
 
 .details-window--rank img,
-.details-window--badge img {
+.details-window--badge img,
+.details-window--group img {
     width: 20px;
     height: 20px;
 }
@@ -1990,6 +1992,7 @@ button {
 .user-details-window--name { @extend .details-window--name; }
 .user-details-window--rank { @extend .details-window--rank; }
 .user-details-window--badge { @extend .details-window--badge; }
+.user-details-window--group { @extend .details-window--group; }
 .user-details-window--avatar { @extend .details-window--avatar; }
 .user-details-avatar { @extend .details-avatar; }
 

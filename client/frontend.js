@@ -593,6 +593,7 @@ async function ShowDetails(entityType, entityId) {
     let detailsRank = document.querySelector('.details-window--rank');
     let detailsTabs = document.querySelector('.details-tabs');
     let detailsContent = document.querySelector('.details-content');
+    let detailsGroup = document.querySelector('.details-window--group');
 
     let entityInfo;
 
@@ -620,6 +621,7 @@ async function ShowDetails(entityType, entityId) {
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.avatar.imageHash}">${entityInfo.avatar.name}`;
             detailsBadge.innerHTML = `<img data-hash="${entityInfo.featuredBadge.imageHash}">${entityInfo.featuredBadge.name}`;
             detailsRank.innerHTML = `<img src="img/ui/rank.png">${entityInfo.rank}`;
+            detailsGroup.innerHTML = `<img data-hash="${entityInfo.featuredGroup.imageHash}">${entityInfo.featuredGroup.name}`;
 
             // Show tabs and content for user details
             detailsTabs.style.display = 'flex';
