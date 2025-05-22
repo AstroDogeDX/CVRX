@@ -630,11 +630,19 @@ async function ShowDetails(entityType, entityId) {
             detailsTabs.style.display = 'flex';
             detailsContent.style.display = 'block';
 
-            // Hide Notes tab if user is not a friend
-            const notesTab = document.querySelector('.user-details-tab[data-tab="notes"]');
-            if (notesTab) {
-                notesTab.style.display = entityInfo.isFriend ? 'flex' : 'none';
-            }
+            // Show all tabs for User Details
+            document.querySelectorAll('.user-details-tab').forEach(tab => {
+                if (tab.dataset.tab === 'users') {
+                    // Hide Users tab for User Details
+                    tab.style.display = 'none';
+                } else if (tab.dataset.tab === 'notes') {
+                    // Show Notes tab only if user is a friend
+                    tab.style.display = entityInfo.isFriend ? 'flex' : 'none';
+                } else {
+                    // Show all other tabs
+                    tab.style.display = 'flex';
+                }
+            });
 
             // Add friend management button
             const detailsHeader = document.querySelector('.details-header');
@@ -895,25 +903,79 @@ async function ShowDetails(entityType, entityId) {
             entityInfo = await window.API.getInstanceById(entityId);
             detailsName.innerHTML = `${entityInfo.name}`;
             detailsImg.src = 'img/ui/placeholder.png';
-            detailsImg.dataset.hash = entityInfo.imageHash;
-            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Instance`;
+            detailsImg.dataset.hash = entityInfo.world.imageHash;
+            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.world.imageHash}">Instance`;
             document.querySelector('.user-details-avatar').classList.add('hidden');
             detailsBadge.innerHTML = '';
             detailsRank.innerHTML = '';
             detailsGroup.innerHTML = '';
+
+            // Show tabs and content for instance details
+            detailsTabs.style.display = 'flex';
+            detailsContent.style.display = 'block';
+
             // Remove any existing button container
             const detailsHeader = document.querySelector('.details-header');
             const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
             if (existingButtonContainer) {
                 existingButtonContainer.remove();
             }
+
+            // Show only Users tab for Instance Details
+            document.querySelectorAll('.user-details-tab').forEach(tab => {
+                if (tab.dataset.tab === 'users') {
+                    tab.style.display = 'flex';
+                } else {
+                    tab.style.display = 'none';
+                }
+            });
+
+            // Set up tab switching
+            const tabs = document.querySelectorAll('.details-tab');
+
+            // Remove any existing click handlers
+            tabs.forEach(tab => {
+                const newTab = tab.cloneNode(true);
+                tab.parentNode.replaceChild(newTab, tab);
+            });
+
+            // Add click handlers to new tabs
+            document.querySelectorAll('.user-details-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs and panes
+                    document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+
+                    // Add active class to clicked tab and corresponding pane
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+
+                    // Load content for the selected tab
+                    loadTabContent(tab.dataset.tab, entityId);
+                });
+            });
+
+            // Reset all tabs to inactive state
+            document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+
+            // Set Users tab as active
+            const usersTab = document.querySelector('.user-details-tab[data-tab="users"]');
+            const usersPane = document.getElementById('users-tab');
+            if (usersTab && usersPane) {
+                usersTab.classList.add('active');
+                usersPane.classList.add('active');
+            }
+
+            // Load initial tab content (Users)
+            loadTabContent('users', entityId);
             break;
         }
     }
 }
 
 // Function to load content for each tab
-async function loadTabContent(tab, userId) {
+async function loadTabContent(tab, entityId) {
     if (tab === 'notes') {
         const notesContainer = document.querySelector('#notes-tab .notes-container');
         if (!notesContainer) return;
@@ -922,7 +984,7 @@ async function loadTabContent(tab, userId) {
 
         try {
             // Get user info to access the note
-            const userInfo = await window.API.getUserById(userId);
+            const userInfo = await window.API.getUserById(entityId);
             const noteContent = userInfo.note || '';
             
             // Create notes container
@@ -973,9 +1035,9 @@ async function loadTabContent(tab, userId) {
                 saveButton.onclick = async () => {
                     const newNote = textarea.value.trim();
                     try {
-                        await window.API.setFriendNote(userId, newNote);
+                        await window.API.setFriendNote(entityId, newNote);
                         // Reload the tab content to show updated note
-                        loadTabContent('notes', userId);
+                        loadTabContent('notes', entityId);
                         pushToast('Note saved successfully', 'confirm');
                     } catch (error) {
                         pushToast('Failed to save note', 'error');
@@ -986,7 +1048,7 @@ async function loadTabContent(tab, userId) {
                 const cancelButton = editForm.querySelector('.cancel-note-button');
                 cancelButton.onclick = () => {
                     // Reload the tab content to revert changes
-                    loadTabContent('notes', userId);
+                    loadTabContent('notes', entityId);
                 };
             };
         } catch (error) {
@@ -1005,13 +1067,18 @@ async function loadTabContent(tab, userId) {
         let items = [];
         switch (tab) {
             case 'avatars':
-                items = await window.API.getUserPublicAvatars(userId);
+                items = await window.API.getUserPublicAvatars(entityId);
                 break;
             case 'props':
-                items = await window.API.getUserPublicProps(userId);
+                items = await window.API.getUserPublicProps(entityId);
                 break;
             case 'worlds':
-                items = await window.API.getUserPublicWorlds(userId);
+                items = await window.API.getUserPublicWorlds(entityId);
+                break;
+            case 'users':
+                // Get instance info to access the members
+                const instanceInfo = await window.API.getInstanceById(entityId);
+                items = instanceInfo.members || [];
                 break;
             case 'stats':
                 // Stats tab is disabled, but we'll keep this case for future implementation
@@ -1063,6 +1130,26 @@ async function loadTabContent(tab, userId) {
                         </div>`;
                     break;
                 }
+                case 'users': {
+                    icon = 'person';
+                    // Add friend indicator if applicable
+                    const friendIndicator = item.isFriend ?
+                        `<div class="friend-indicator">
+                            <span class="material-symbols-outlined">group</span>Friend
+                        </div>` : '';
+                    // Add blocked indicator if applicable
+                    const blockedIndicator = item.isBlocked ?
+                        `<div class="blocked-indicator">
+                            <span class="material-symbols-outlined">block</span>Blocked
+                        </div>` : '';
+                    additionalInfo = `
+                        ${friendIndicator}
+                        ${blockedIndicator}
+                        <div class="card-detail">
+                            <span class="material-symbols-outlined">${icon}</span>User
+                        </div>`;
+                    break;
+                }
             }
 
             const itemNode = createElement('div', {
@@ -1087,6 +1174,9 @@ async function loadTabContent(tab, userId) {
                             break;
                         case 'worlds':
                             ShowDetails(DetailsType.World, item.id);
+                            break;
+                        case 'users':
+                            ShowDetails(DetailsType.User, item.id);
                             break;
                     }
                 },
@@ -1662,6 +1752,16 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
                 <p class="active-instance-node--friends" data-tooltip="Friends In Instance">${friendDisplay}</p>`,
         });
         activeWorldNode.append(activeWorldUserIconWrapper);
+
+        // Add click handlers for instance name and thumbnail
+        const instanceNameElement = activeWorldNode.querySelector('.active-instance-node--name');
+        const instanceIconElement = activeWorldNode.querySelector('.active-instance-node--icon');
+        
+        instanceNameElement.style.cursor = 'pointer';
+        instanceIconElement.style.cursor = 'pointer';
+        
+        instanceNameElement.onclick = () => ShowDetails(DetailsType.Instance, result.id);
+        instanceIconElement.onclick = () => ShowDetails(DetailsType.Instance, result.id);
 
         /* friendCount ? elementsOfResults.unshift(activeWorldNode) : elementsOfResults.push(activeWorldNode); */
         elementsOfResults.push(activeWorldNode);
