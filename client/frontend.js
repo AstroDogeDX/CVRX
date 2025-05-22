@@ -627,14 +627,20 @@ async function ShowDetails(entityType, entityId) {
 
             // Add friend management button
             const detailsHeader = document.querySelector('.details-header');
-            // Remove any existing friend action button
-            const existingButton = detailsHeader.querySelector('.user-details-friend-action');
-            if (existingButton) {
-                existingButton.remove();
+            // Remove any existing button container
+            const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
+            if (existingButtonContainer) {
+                existingButtonContainer.remove();
             }
 
+            // Create button container
+            const buttonContainer = createElement('div', {
+                className: 'user-details-button-container',
+            });
+
+            // Friend action button
             const friendActionButton = createElement('button', {
-                className: 'user-details-friend-action',
+                className: 'user-details-action-button',
                 tooltip: entityInfo.isFriend ? 'Remove Friend' : 'Send Friend Request',
                 onClick: async () => {
                     if (entityInfo.isFriend) {
@@ -691,14 +697,88 @@ async function ShowDetails(entityType, entityId) {
                 },
             });
 
+            // Categories button
+            const categoriesButton = createElement('button', {
+                className: 'user-details-action-button',
+                textContent: 'Categories',
+                tooltip: 'View User Categories',
+                onClick: () => {
+                    // TODO: Implement categories view
+                    pushToast('Categories feature coming soon!', 'info');
+                },
+            });
+
+            // Block/Unblock button
+            const blockButton = createElement('button', {
+                className: 'user-details-action-button',
+                textContent: entityInfo.isBlocked ? 'Unblock User' : 'Block User',
+                tooltip: entityInfo.isBlocked ? 'Unblock User' : 'Block User',
+                onClick: async () => {
+                    if (entityInfo.isBlocked) {
+                        try {
+                            await window.API.unblockUser(entityId);
+                            pushToast(`Unblocked ${entityInfo.name}`, 'confirm');
+                            blockButton.textContent = 'Block User';
+                            blockButton.tooltip = 'Block User';
+                        } catch (error) {
+                            pushToast('Failed to unblock user', 'error');
+                        }
+                    } else {
+                        // Show confirmation dialog
+                        const confirmShade = document.querySelector('.prompt-layer');
+                        const confirmPrompt = createElement('div', { className: 'prompt' });
+                        const confirmTitle = createElement('div', { className: 'prompt-title', textContent: 'Block User' });
+                        const confirmText = createElement('div', {
+                            className: 'prompt-text',
+                            textContent: `Are you sure you want to block ${entityInfo.name}?`,
+                        });
+                        const confirmButtons = createElement('div', { className: 'prompt-buttons' });
+
+                        const confirmButton = createElement('button', {
+                            id: 'prompt-confirm',
+                            textContent: 'Block User',
+                            onClick: async () => {
+                                try {
+                                    await window.API.blockUser(entityId);
+                                    pushToast(`Blocked ${entityInfo.name}`, 'confirm');
+                                    blockButton.textContent = 'Unblock User';
+                                    blockButton.tooltip = 'Unblock User';
+                                    confirmPrompt.remove();
+                                    confirmShade.style.display = 'none';
+                                } catch (error) {
+                                    pushToast('Failed to block user', 'error');
+                                }
+                            },
+                        });
+
+                        const cancelButton = createElement('button', {
+                            id: 'prompt-cancel',
+                            textContent: 'Cancel',
+                            onClick: () => {
+                                confirmPrompt.remove();
+                                confirmShade.style.display = 'none';
+                            },
+                        });
+
+                        confirmButtons.append(confirmButton, cancelButton);
+                        confirmPrompt.append(confirmTitle, confirmText, confirmButtons);
+                        confirmShade.append(confirmPrompt);
+                        confirmShade.style.display = 'flex';
+                    }
+                },
+            });
+
             // Set initial button state
             friendActionButton.textContent = entityInfo.isFriend ? 'Remove Friend' : 'Send Friend Request';
             if (entityInfo.isFriend) {
                 friendActionButton.classList.add('is-friend');
             }
 
-            // Add the button to the header
-            detailsHeader.appendChild(friendActionButton);
+            // Add buttons to container
+            buttonContainer.append(friendActionButton, categoriesButton, blockButton);
+
+            // Add the button container to the header
+            detailsHeader.appendChild(buttonContainer);
 
             // Set up tab switching
             const tabs = document.querySelectorAll('.details-tab');
@@ -749,6 +829,12 @@ async function ShowDetails(entityType, entityId) {
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Avatar`;
             detailsBadge.innerHTML = '';
             detailsRank.innerHTML = '';
+            // Remove any existing button container
+            const detailsHeader = document.querySelector('.details-header');
+            const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
+            if (existingButtonContainer) {
+                existingButtonContainer.remove();
+            }
             break;
         }
         case DetailsType.Prop: {
@@ -759,6 +845,12 @@ async function ShowDetails(entityType, entityId) {
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Prop`;
             detailsBadge.innerHTML = '';
             detailsRank.innerHTML = '';
+            // Remove any existing button container
+            const detailsHeader = document.querySelector('.details-header');
+            const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
+            if (existingButtonContainer) {
+                existingButtonContainer.remove();
+            }
             break;
         }
         case DetailsType.World: {
@@ -769,6 +861,12 @@ async function ShowDetails(entityType, entityId) {
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">World`;
             detailsBadge.innerHTML = '';
             detailsRank.innerHTML = '';
+            // Remove any existing button container
+            const detailsHeader = document.querySelector('.details-header');
+            const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
+            if (existingButtonContainer) {
+                existingButtonContainer.remove();
+            }
             break;
         }
         case DetailsType.Instance: {
@@ -779,6 +877,12 @@ async function ShowDetails(entityType, entityId) {
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Instance`;
             detailsBadge.innerHTML = '';
             detailsRank.innerHTML = '';
+            // Remove any existing button container
+            const detailsHeader = document.querySelector('.details-header');
+            const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
+            if (existingButtonContainer) {
+                existingButtonContainer.remove();
+            }
             break;
         }
     }
