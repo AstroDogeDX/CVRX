@@ -49,6 +49,8 @@ contextBridge.exposeInMainWorld('API', {
 
     getWorldById: (worldId) => ipcRenderer.invoke('get-world-by-id', worldId),
     getInstanceById: (instanceId) => ipcRenderer.invoke('get-instance-by-id', instanceId),
+    getAvatarById: (avatarId) => ipcRenderer.invoke('get-avatar-by-id', avatarId),
+    getPropById: (propId) => ipcRenderer.invoke('get-prop-by-id', propId),
 
     search: (term) => ipcRenderer.invoke('search', term),
 

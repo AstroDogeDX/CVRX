@@ -1813,7 +1813,7 @@ button {
     pointer-events: auto;
 }
 
-.user-details-window {
+.details-window {
     position: relative;
     width: 90%;
     height: 90%;
@@ -1828,7 +1828,7 @@ button {
     pointer-events: auto;
 }
 
-.user-details-header {
+.details-header {
     width: 300px;
     background: var(--color-background-darker);
     border-radius: 8px;
@@ -1839,60 +1839,7 @@ button {
     border: 1px solid var(--color-border);
 }
 
-.user-details-friend-action {
-    padding: 8px 20px;
-    background: var(--color-background-darker);
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: var(--color-text);
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 160px;
-    justify-content: center;
-}
-
-.user-details-friend-action:hover {
-    background: var(--color-background-lighter);
-    border-color: var(--color-border-hover);
-}
-
-.user-details-friend-action.is-friend {
-    background: var(--color-background-darker);
-    border-color: var(--color-border);
-    color: var(--color-text);
-}
-
-.user-details-friend-action.is-friend:hover {
-    background: var(--color-error);
-    border-color: var(--color-error);
-    color: var(--color-background);
-}
-
-.user-details-friend-action:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: var(--color-background-darker);
-    border-color: var(--color-border);
-}
-
-.user-details-friend-action::before {
-    font-family: 'Material Symbols Outlined';
-    font-size: 18px;
-}
-
-.user-details-friend-action:not(.is-friend)::before {
-    content: 'person_add';
-}
-
-.user-details-friend-action.is-friend::before {
-    content: 'person_remove';
-}
-
-.user-details-content {
+.details-content {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -1904,14 +1851,14 @@ button {
     overflow: hidden;
 }
 
-.user-details-tabs {
+.details-tabs {
     display: flex;
     gap: 10px;
     border-bottom: 1px solid var(--color-border);
     padding-bottom: 10px;
 }
 
-.user-details-tab {
+.details-tab {
     padding: 8px 16px;
     background: var(--color-background-dark);
     border: 1px solid var(--color-border);
@@ -1925,38 +1872,38 @@ button {
     pointer-events: auto;
 }
 
-.user-details-tab:hover {
+.details-tab:hover {
     background: var(--color-background-light);
 }
 
-.user-details-tab.active {
+.details-tab.active {
     background: var(--color-accent);
     border-color: var(--color-accent);
 }
 
-.user-details-tab .material-symbols-outlined {
+.details-tab .material-symbols-outlined {
     font-size: 18px;
 }
 
-.user-details-tab-content {
+.details-tab-content {
     flex: 1;
     overflow: hidden;
     display: flex;
     flex-direction: column;
 }
 
-.user-details-tab-pane {
+.details-tab-pane {
     display: none;
     flex: 1;
     overflow-y: auto;
     padding: 10px;
 }
 
-.user-details-tab-pane.active {
+.details-tab-pane.active {
     display: block;
 }
 
-.user-details-grid {
+.details-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 15px;
@@ -1964,14 +1911,14 @@ button {
     pointer-events: auto;
 }
 
-.user-details-profile {
+.details-profile {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 15px;
 }
 
-.user-details-profile-image {
+.details-profile-image {
     width: 160px;
     height: 140px;
     position: relative;
@@ -1979,40 +1926,40 @@ button {
     clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
 }
 
-.user-details-profile-image img {
+.details-profile-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.user-details-profile-info {
+.details-profile-info {
     text-align: center;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.user-details-window--name {
+.details-window--name {
     font-size: 24px;
     font-weight: bold;
 }
 
-.user-details-window--rank,
-.user-details-window--badge,
-.user-details-window--avatar {
+.details-window--rank,
+.details-window--badge,
+.details-window--avatar {
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 14px;
 }
 
-.user-details-window--rank img,
-.user-details-window--badge img {
+.details-window--rank img,
+.details-window--badge img {
     width: 20px;
     height: 20px;
 }
 
-.user-details-avatar {
+.details-avatar {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -2022,84 +1969,29 @@ button {
     border: 1px solid var(--color-border);
 }
 
-.user-details-avatar img {
+.details-avatar img {
     width: 32px;
     height: 32px;
     border-radius: 4px;
 }
 
-.user-details-content {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-}
-
-.user-details-tabs {
-    display: flex;
-    gap: 0.5rem;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.user-details-tab {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border: none;
-    background: none;
-    color: var(--color-text);
-    opacity: 0.6;
-    font-size: 0.9rem;
-    border-radius: 0.25rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.user-details-tab:hover {
-    opacity: 0.8;
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.user-details-tab.active {
-    opacity: 1;
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.user-details-tab .material-symbols-outlined {
-    font-size: 1.1rem;
-}
-
-.user-details-tab-content {
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-}
-
-.user-details-tab-pane {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    padding: 1.5rem;
-    display: none;
-    overflow-y: auto;
-}
-
-.user-details-tab-pane.active {
-    display: block;
-}
-
-.user-details-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
-    padding: 0.5rem;
-}
-
-/* Toast Notifications */
+/* Keep the user-specific classes for backward compatibility */
+.user-details-window { @extend .details-window; }
+.user-details-header { @extend .details-header; }
+.user-details-content { @extend .details-content; }
+.user-details-tabs { @extend .details-tabs; }
+.user-details-tab { @extend .details-tab; }
+.user-details-tab-content { @extend .details-tab-content; }
+.user-details-tab-pane { @extend .details-tab-pane; }
+.user-details-grid { @extend .details-grid; }
+.user-details-profile { @extend .details-profile; }
+.user-details-profile-image { @extend .details-profile-image; }
+.user-details-profile-info { @extend .details-profile-info; }
+.user-details-window--name { @extend .details-window--name; }
+.user-details-window--rank { @extend .details-window--rank; }
+.user-details-window--badge { @extend .details-window--badge; }
+.user-details-window--avatar { @extend .details-window--avatar; }
+.user-details-avatar { @extend .details-avatar; }
 
 .toast-notification {
     position: fixed;

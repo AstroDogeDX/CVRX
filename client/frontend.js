@@ -14,7 +14,10 @@ const friendImageCache = {};
 
 const DetailsType = Object.freeze({
     User: Symbol('user'),
+    Avatar: Symbol('avatar'),
+    Prop: Symbol('prop'),
     World: Symbol('world'),
+    Instance: Symbol('instance'),
 });
 
 const PrivacyLevel = Object.freeze({
@@ -583,13 +586,30 @@ function getFriendStatus(friend) {
 }
 
 async function ShowDetails(entityType, entityId) {
-    let detailsName = document.querySelector('.user-details-window--name');
-    let detailsImg = document.querySelector('.user-details-window--img');
-    let detailsAvatar = document.querySelector('.user-details-window--avatar');
-    let detailsBadge = document.querySelector('.user-details-window--badge');
-    let detailsRank = document.querySelector('.user-details-window--rank');
+    let detailsName = document.querySelector('.details-window--name');
+    let detailsImg = document.querySelector('.details-window--img');
+    let detailsAvatar = document.querySelector('.details-window--avatar');
+    let detailsBadge = document.querySelector('.details-window--badge');
+    let detailsRank = document.querySelector('.details-window--rank');
+    let detailsTabs = document.querySelector('.details-tabs');
+    let detailsContent = document.querySelector('.details-content');
 
     let entityInfo;
+
+    // Show the details window
+    const detailsShade = document.querySelector('.details-shade');
+    detailsShade.style.display = 'flex';
+
+    // Handle clicking outside to close
+    detailsShade.onclick = (event) => {
+        if (event.target === detailsShade) {
+            detailsShade.style.display = 'none';
+        }
+    };
+
+    // Hide tabs and content by default
+    detailsTabs.style.display = 'none';
+    detailsContent.style.display = 'none';
 
     switch (entityType) {
         case DetailsType.User: {
@@ -601,19 +621,12 @@ async function ShowDetails(entityType, entityId) {
             detailsBadge.innerHTML = `<img data-hash="${entityInfo.featuredBadge.imageHash}">${entityInfo.featuredBadge.name}`;
             detailsRank.innerHTML = `<img src="img/ui/rank.png">${entityInfo.rank}`;
 
-            // Show the details window
-            const detailsShade = document.querySelector('.details-shade');
-            detailsShade.style.display = 'flex';
-
-            // Handle clicking outside to close
-            detailsShade.onclick = (event) => {
-                if (event.target === detailsShade) {
-                    detailsShade.style.display = 'none';
-                }
-            };
+            // Show tabs and content for user details
+            detailsTabs.style.display = 'flex';
+            detailsContent.style.display = 'block';
 
             // Add friend management button
-            const detailsHeader = document.querySelector('.user-details-header');
+            const detailsHeader = document.querySelector('.details-header');
             // Remove any existing friend action button
             const existingButton = detailsHeader.querySelector('.user-details-friend-action');
             if (existingButton) {
@@ -688,7 +701,7 @@ async function ShowDetails(entityType, entityId) {
             detailsHeader.appendChild(friendActionButton);
 
             // Set up tab switching
-            const tabs = document.querySelectorAll('.user-details-tab');
+            const tabs = document.querySelectorAll('.details-tab');
 
             // Remove any existing click handlers
             tabs.forEach(tab => {
@@ -726,6 +739,46 @@ async function ShowDetails(entityType, entityId) {
 
             // Load initial tab content (always Avatars)
             loadTabContent('avatars', entityId);
+            break;
+        }
+        case DetailsType.Avatar: {
+            entityInfo = await window.API.getAvatarById(entityId);
+            detailsName.innerHTML = `${entityInfo.name}`;
+            detailsImg.src = 'img/ui/placeholder.png';
+            detailsImg.dataset.hash = entityInfo.imageHash;
+            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Avatar`;
+            detailsBadge.innerHTML = '';
+            detailsRank.innerHTML = '';
+            break;
+        }
+        case DetailsType.Prop: {
+            entityInfo = await window.API.getPropById(entityId);
+            detailsName.innerHTML = `${entityInfo.name}`;
+            detailsImg.src = 'img/ui/placeholder.png';
+            detailsImg.dataset.hash = entityInfo.imageHash;
+            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Prop`;
+            detailsBadge.innerHTML = '';
+            detailsRank.innerHTML = '';
+            break;
+        }
+        case DetailsType.World: {
+            entityInfo = await window.API.getWorldById(entityId);
+            detailsName.innerHTML = `${entityInfo.name}`;
+            detailsImg.src = 'img/ui/placeholder.png';
+            detailsImg.dataset.hash = entityInfo.imageHash;
+            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">World`;
+            detailsBadge.innerHTML = '';
+            detailsRank.innerHTML = '';
+            break;
+        }
+        case DetailsType.Instance: {
+            entityInfo = await window.API.getInstanceById(entityId);
+            detailsName.innerHTML = `${entityInfo.name}`;
+            detailsImg.src = 'img/ui/placeholder.png';
+            detailsImg.dataset.hash = entityInfo.imageHash;
+            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Instance`;
+            detailsBadge.innerHTML = '';
+            detailsRank.innerHTML = '';
             break;
         }
     }
@@ -810,6 +863,19 @@ async function loadTabContent(tab, userId) {
                         ${additionalInfo}
                     </div>
                 `,
+                onClick: () => {
+                    switch (tab) {
+                        case 'avatars':
+                            ShowDetails(DetailsType.Avatar, item.id);
+                            break;
+                        case 'props':
+                            ShowDetails(DetailsType.Prop, item.id);
+                            break;
+                        case 'worlds':
+                            ShowDetails(DetailsType.World, item.id);
+                            break;
+                    }
+                },
             });
 
             // Set placeholder background image
@@ -1159,12 +1225,15 @@ searchBar.addEventListener('keypress', async (event) => {
                     userResults.push(searchResult);
                     break;
                 case 'world':
+                    searchResult.onclick = () => ShowDetails(DetailsType.World, result.id);
                     worldsResults.push(searchResult);
                     break;
                 case 'avatar':
+                    searchResult.onclick = () => ShowDetails(DetailsType.Avatar, result.id);
                     avatarResults.push(searchResult);
                     break;
                 case 'prop':
+                    searchResult.onclick = () => ShowDetails(DetailsType.Prop, result.id);
                     propsResults.push(searchResult);
                     break;
                 default:
@@ -1618,6 +1687,7 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
                     </div>
                 </div>
             `,
+            onClick: () => ShowDetails(DetailsType.Avatar, ourAvatar.id),
         });
 
         // Set placeholder background image and data-hash directly on the container
@@ -1666,6 +1736,7 @@ window.API.onGetActiveUserProps((_event, ourProps) => {
                     </div>
                 </div>
             `,
+            onClick: () => ShowDetails(DetailsType.Prop, ourProp.id),
         });
 
         // Set placeholder background image and data-hash directly on the container
@@ -1717,6 +1788,7 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
                     </div>
                 </div>
             `,
+            onClick: () => ShowDetails(DetailsType.World, ourWorld.id),
         });
 
         // Set placeholder background image and data-hash directly on the container
