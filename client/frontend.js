@@ -630,6 +630,12 @@ async function ShowDetails(entityType, entityId) {
             detailsTabs.style.display = 'flex';
             detailsContent.style.display = 'block';
 
+            // Hide Notes tab if user is not a friend
+            const notesTab = document.querySelector('.user-details-tab[data-tab="notes"]');
+            if (notesTab) {
+                notesTab.style.display = entityInfo.isFriend ? 'flex' : 'none';
+            }
+
             // Add friend management button
             const detailsHeader = document.querySelector('.details-header');
             // Remove any existing button container
