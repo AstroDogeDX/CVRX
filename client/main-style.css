@@ -882,6 +882,7 @@ button {
     grid-template-rows: 50px 1fr;
     grid-template-areas:
         "friends-filter"
+        "friends-filter-controls"
         "friends-list";
 }
 
@@ -904,7 +905,7 @@ button {
     padding: 10px 5px;
     background-color: rgba(40, 40, 40, 0.7);
     border-radius: var(--border-radii);
-    margin: 5px 0;
+    grid-area: friends-filter-controls;
 }
 
 .filter-button {
@@ -949,7 +950,7 @@ button {
     grid-area: friends-list;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 10px 5px;
+    padding: 0 5px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 15px;

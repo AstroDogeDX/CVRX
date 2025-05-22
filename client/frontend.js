@@ -1290,6 +1290,48 @@ searchBar.addEventListener('keypress', async (event) => {
 
     event.preventDefault();
 
+    // Check for special GUID prefixes
+    const guidPrefixes = {
+        'a+': DetailsType.Avatar,
+        'p+': DetailsType.Prop,
+        'i+': DetailsType.Instance,
+        'u+': DetailsType.User
+    };
+
+    for (const [prefix, type] of Object.entries(guidPrefixes)) {
+        if (searchTerm.startsWith(prefix)) {
+            const guid = searchTerm.slice(prefix.length);
+            // Basic GUID format validation (8-4-4-4-12 format)
+            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(guid)) {
+                pushToast('Invalid GUID format', 'error');
+                return;
+            }
+
+            try {
+                // Show loading state
+                document.querySelector('.search-status').classList.add('hidden');
+                document.querySelector('.search-no-results').classList.add('hidden');
+                document.querySelector('.search-loading').classList.remove('hidden');
+                hideAllSearchCategories();
+
+                // Attempt to show details for the GUID
+                await ShowDetails(type, guid);
+                
+                // Clear the search bar after successful search
+                searchBar.value = '';
+                
+                // Hide loading state
+                document.querySelector('.search-loading').classList.add('hidden');
+                return;
+            } catch (error) {
+                pushToast('Failed to load details for the specified GUID', 'error');
+                document.querySelector('.search-loading').classList.add('hidden');
+                // Don't clear the search bar on error so user can fix their input
+                return;
+            }
+        }
+    }
+
     if (!searchTerm || searchTerm.length < 3) {
         document.querySelector('.search-status').classList.remove('hidden');
         document.querySelector('.search-no-results').classList.add('hidden');
