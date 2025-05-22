@@ -1890,6 +1890,8 @@ button {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    height: calc(100% - 8px);
+    padding-bottom: 20px;
 }
 
 .details-tab-pane {
