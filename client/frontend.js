@@ -1732,6 +1732,24 @@ document.querySelectorAll('.search-output-category h3').forEach(header => {
 window.API.onActiveInstancesUpdate((_event, activeInstances) => {
     const homeActivity = document.querySelector('.home-activity--activity-wrapper');
 
+    // Sort instances: friends first (by friend count desc), then by total player count desc
+    activeInstances.sort((a, b) => {
+        const aFriendCount = a.members.filter(member => member.isFriend).length;
+        const bFriendCount = b.members.filter(member => member.isFriend).length;
+        
+        // If one has friends and the other doesn't, prioritize the one with friends
+        if (aFriendCount > 0 && bFriendCount === 0) return -1;
+        if (bFriendCount > 0 && aFriendCount === 0) return 1;
+        
+        // If both have friends, sort by friend count (descending)
+        if (aFriendCount > 0 && bFriendCount > 0) {
+            return bFriendCount - aFriendCount;
+        }
+        
+        // If neither has friends, sort by total player count (descending)
+        return b.currentPlayerCount - a.currentPlayerCount;
+    });
+
     // Create the search result elements
     const elementsOfResults = [];
     for (const result of activeInstances) {
@@ -1767,9 +1785,9 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
         let instanceID = result.name.slice(-9);
 
         if (result.privacy === 'Public') {
-            instanceName = `<span class="instance-privacy-type material-symbols-outlined" data-tooltip="Public Instance">Public</span> ${instanceName}`;
+            instanceName = `<span class="instance-privacy-type material-symbols-outlined" data-tooltip="Public Instance">public</span> ${instanceName}`;
         } else {
-            instanceName = `<span class="instance-privacy-type material-symbols-outlined" data-tooltip="Friends Instance">Group</span> ${instanceName}`;
+            instanceName = `<span class="instance-privacy-type material-symbols-outlined" data-tooltip="Friends Instance">group</span> ${instanceName}`;
         }
 
         // Depending on whether it's a refresh or not the image might be already loaded
@@ -1803,13 +1821,46 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
         instanceNameElement.onclick = () => ShowDetails(DetailsType.Instance, result.id);
         instanceIconElement.onclick = () => ShowDetails(DetailsType.Instance, result.id);
 
-        /* friendCount ? elementsOfResults.unshift(activeWorldNode) : elementsOfResults.push(activeWorldNode); */
         elementsOfResults.push(activeWorldNode);
     }
 
     // Replace previous search results with the new ones
     homeActivity.replaceChildren(...elementsOfResults);
     applyTooltips();
+});
+
+// User Stats Handler for the user count display
+window.API.onUserStats((_event, userStats) => {
+    const userCountElement = document.querySelector('.home-activity--user-count');
+    if (userCountElement && userStats) {
+        // Update the text content with the total count
+        userCountElement.textContent = `${userStats.usersOnline.overall} Online`;
+        
+        // Create detailed tooltip with breakdown
+        const tooltip = `
+            <div class="user-stats-tooltip">
+                <div class="user-stats-total">Total Online: ${userStats.usersOnline.overall}</div>
+                <div class="user-stats-breakdown">
+                    <div class="user-stats-item">
+                        <span class="material-symbols-outlined">public</span>
+                        Public: ${userStats.usersOnline.public}
+                    </div>
+                    <div class="user-stats-item">
+                        <span class="material-symbols-outlined">group</span>
+                        Private: ${userStats.usersOnline.other}
+                    </div>
+                    <div class="user-stats-item">
+                        <span class="material-symbols-outlined">visibility_off</span>
+                        Offline Instance: ${userStats.usersOnline.notConnected}
+                    </div>
+                </div>
+            </div>
+        `;
+        userCountElement.dataset.tooltip = tooltip;
+        
+        // Reapply tooltips to update the new tooltip
+        applyTooltips();
+    }
 });
 
 // Janky invite listener
@@ -2195,7 +2246,11 @@ setInterval(() => {
 // Refresh active instances
 document.querySelector('#instances-refresh').addEventListener('click', async _event => {
     const refreshButton = _event.target;
-    if (refreshButton.classList.contains('refreshing')) return; // Prevent multiple clicks
+    if (refreshButton.classList.contains('refreshing')) {
+        // Show toast notification explaining the cooldown
+        pushToast('Please wait for the current refresh to complete before requesting another.', 'info');
+        return;
+    }
     
     refreshButton.classList.add('refreshing');
     refreshButton.classList.remove('refresh-complete');
