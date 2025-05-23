@@ -252,7 +252,7 @@ button {
 .home-activity {
     background: var(--color-background-dark);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    border-radius: 6px;
     padding: 8px;
     flex: 1;
     min-height: 0;
@@ -435,7 +435,7 @@ button {
 .home-requests {
     background: var(--color-background-dark);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    border-radius: 6px;
     padding: 8px;
     flex: 1;
     min-height: 0;
@@ -475,7 +475,7 @@ button {
 .home-history {
     background: var(--color-background-dark);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    border-radius: 6px;
     padding: 8px;
     flex: 1;
     min-height: 0;
@@ -557,7 +557,6 @@ button {
 }
 
 .home-requests-wrapper :is(div):not(.request-node--button-wrapper, .requests-placeholder) {
-    border-radius: 12px;
     transition: all 0.3s ease;
     border: 1px solid transparent;
 }
@@ -568,7 +567,6 @@ button {
 }
 
 .home-activity--activity-wrapper .active-instance-node {
-    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     transition: all 0.3s ease;
 }
@@ -579,7 +577,6 @@ button {
 }
 
 .home-history--history-wrapper .friend-history-node {
-    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     transition: all 0.3s ease;
     margin-bottom: 4px;
