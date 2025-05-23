@@ -594,8 +594,10 @@ async function ShowDetails(entityType, entityId) {
     let detailsTabs = document.querySelector('.details-tabs');
     let detailsContent = document.querySelector('.details-content');
     let detailsGroup = document.querySelector('.details-window--group');
+    let detailsHeader = document.querySelector('.details-header');
 
     let entityInfo;
+    let existingButtonContainer;
 
     // Show the details window
     const detailsShade = document.querySelector('.details-shade');
@@ -645,9 +647,8 @@ async function ShowDetails(entityType, entityId) {
             });
 
             // Add friend management button
-            const detailsHeader = document.querySelector('.details-header');
             // Remove any existing button container
-            const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
+            existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
             if (existingButtonContainer) {
                 existingButtonContainer.remove();
             }
@@ -856,8 +857,7 @@ async function ShowDetails(entityType, entityId) {
             detailsRank.innerHTML = '';
             detailsGroup.innerHTML = '';
             // Remove any existing button container
-            const detailsHeader = document.querySelector('.details-header');
-            const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
+            existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
             if (existingButtonContainer) {
                 existingButtonContainer.remove();
             }
@@ -874,8 +874,7 @@ async function ShowDetails(entityType, entityId) {
             detailsRank.innerHTML = '';
             detailsGroup.innerHTML = '';
             // Remove any existing button container
-            const detailsHeader = document.querySelector('.details-header');
-            const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
+            existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
             if (existingButtonContainer) {
                 existingButtonContainer.remove();
             }
@@ -892,8 +891,7 @@ async function ShowDetails(entityType, entityId) {
             detailsRank.innerHTML = '';
             detailsGroup.innerHTML = '';
             // Remove any existing button container
-            const detailsHeader = document.querySelector('.details-header');
-            const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
+            existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
             if (existingButtonContainer) {
                 existingButtonContainer.remove();
             }
@@ -901,25 +899,65 @@ async function ShowDetails(entityType, entityId) {
         }
         case DetailsType.Instance: {
             entityInfo = await window.API.getInstanceById(entityId);
-            detailsName.innerHTML = `${entityInfo.name}`;
+            // Include player count in the instance name
+            detailsName.innerHTML = `${entityInfo.name} <span class="instance-player-count">(${entityInfo.currentPlayerCount || 0}/${entityInfo.maxPlayer || '?'})</span>`;
             detailsImg.src = 'img/ui/placeholder.png';
             detailsImg.dataset.hash = entityInfo.world.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.world.imageHash}">Instance`;
             document.querySelector('.user-details-avatar').classList.add('hidden');
-            detailsBadge.innerHTML = '';
-            detailsRank.innerHTML = '';
-            detailsGroup.innerHTML = '';
+            
+            // Badge: Privacy Level
+            detailsBadge.innerHTML = `<span class="material-symbols-outlined">
+                ${entityInfo.instanceSettingPrivacy === 'Public' ? 'public' : 'group'}
+            </span>${entityInfo.instanceSettingPrivacy || 'Unknown'}`;
+            
+            // Rank: Region
+            detailsRank.innerHTML = `<span class="material-symbols-outlined">location_on</span>${(entityInfo.region || 'unknown').toUpperCase()}`;
+            
+            // Group: Instance Owner
+            detailsGroup.innerHTML = `<img data-hash="${entityInfo.owner?.imageHash || ''}">Owner: ${entityInfo.owner?.name || 'Unknown'}`;
+
+            // Make the owner's info clickable to view their profile (only if owner exists)
+            if (entityInfo.owner?.id) {
+                detailsGroup.style.cursor = 'pointer';
+                detailsGroup.onclick = () => ShowDetails(DetailsType.User, entityInfo.owner.id);
+            } else {
+                detailsGroup.style.cursor = 'default';
+                detailsGroup.onclick = null;
+            }
+
+            // Add instance action buttons
+            // Remove any existing button container
+            existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
+            if (existingButtonContainer) {
+                existingButtonContainer.remove();
+            }
+
+            // Create button container
+            const buttonContainer = createElement('div', {
+                className: 'user-details-button-container',
+            });
+
+            // Join Instance button
+            const joinInstanceButton = createElement('button', {
+                className: 'user-details-action-button',
+                innerHTML: '<span class="material-symbols-outlined">login</span>Join Instance',
+                tooltip: 'Join This Instance',
+                onClick: () => {
+                    // TODO: Implement join instance logic
+                    pushToast('Join Instance feature coming soon!', 'info');
+                },
+            });
+
+            // Add button to container
+            buttonContainer.append(joinInstanceButton);
+
+            // Add the button container to the header
+            detailsHeader.appendChild(buttonContainer);
 
             // Show tabs and content for instance details
             detailsTabs.style.display = 'flex';
             detailsContent.style.display = 'block';
-
-            // Remove any existing button container
-            const detailsHeader = document.querySelector('.details-header');
-            const existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
-            if (existingButtonContainer) {
-                existingButtonContainer.remove();
-            }
 
             // Show only Users tab for Instance Details
             document.querySelectorAll('.user-details-tab').forEach(tab => {
