@@ -386,6 +386,8 @@ function promptUpdate(updateInfo) {
         textContent: 'Download and Install',
         onClick: async () => {
             try {
+                // Show toast notification to inform user about the download process
+                pushToast('Downloading update... The app will restart automatically once installation begins.', 'info');
                 await window.API.updateAction('download', updateInfo);
                 newPrompt.remove();
                 promptShade.style.display = 'none';
@@ -1980,6 +1982,13 @@ window.API.onNotification((_event, msg, type) => {
     log('Notification!!!');
     log(msg);
     pushToast(msg, type);
+});
+
+// Auto-update modal listener
+window.API.onUpdateAvailable((_event, updateInfo) => {
+    log('Update Available!!!');
+    log(updateInfo);
+    promptUpdate(updateInfo);
 });
 
 // Cleaner Search Box Filtering!

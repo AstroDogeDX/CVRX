@@ -36,6 +36,15 @@ exports.Setup = async (mainWindow) => {
         await fs.promises.unlink(filePath);
     }
 
+    // Run initial update check on startup
+    log.info('[Setup] Running initial update check on startup...');
+    try {
+        await exports.CheckLatestRelease(mainWindow, false);
+    } catch (error) {
+        log.error('[Setup] Initial update check failed:', error.toString());
+    }
+
+    // Set up recurring update checks every 15 minutes
     setInterval(exports.CheckLatestRelease, checkUpdatesIntervalMinutes * 60 * 1000, mainWindow);
 };
 
@@ -85,7 +94,9 @@ exports.CheckLatestRelease = async (mainWindow, bypassIgnores = false) => {
             return { hasUpdates: true, msg: msg };
         }
 
-        if (!bypassIgnores && tagName === Config.GetUpdaterIgnoreVersion()) {
+        const ignoredVersion = Config.GetUpdaterIgnoreVersion();
+        log.debug(`[CheckLatestRelease] Current version: ${currentVersion}, Latest version: ${tagName}, Ignored version: ${ignoredVersion}`);
+        if (!bypassIgnores && ignoredVersion && tagName === ignoredVersion) {
             const msg = `Ignoring ${tagName} because you chose to skip it...`;
             log.info(`[CheckLatestRelease] ${msg}`);
             return { hasUpdates: true, msg: msg };
@@ -102,6 +113,13 @@ exports.CheckLatestRelease = async (mainWindow, bypassIgnores = false) => {
                 downloadUrl: asset.browser_download_url,
                 fileName: asset.name
             };
+
+            // Automatically show the update modal when not bypassing ignores (i.e., during automatic checks)
+            if (!bypassIgnores && mainWindow && mainWindow.webContents) {
+                dialogOpened = true;
+                log.info(`[CheckLatestRelease] Automatically showing update modal for version ${tagName}`);
+                mainWindow.webContents.send('update-available', updateInfo);
+            }
 
             return { 
                 hasUpdates: true, 
@@ -120,26 +138,31 @@ exports.CheckLatestRelease = async (mainWindow, bypassIgnores = false) => {
 
 // Handle update actions from the frontend
 exports.HandleUpdateAction = async (action, updateInfo) => {
-    switch (action) {
-        case 'download':
-            await DownloadFile(updateInfo.downloadUrl, updateInfo.fileName);
-            break;
-        case 'askLater':
-            // Clear ignore version setting
-            await Config.SetUpdaterIgnoreVersion(null);
-            break;
-        case 'ignore':
-            // Mark as ignored, we won't bother the user again until next launch
-            ignoredForNow = true;
-            // Clear ignore version setting
-            await Config.SetUpdaterIgnoreVersion(null);
-            break;
-        case 'skip':
-            // Mark to skip this version
-            await Config.SetUpdaterIgnoreVersion(updateInfo.tagName);
-            break;
-        default:
-            throw new Error(`Unknown update action: ${action}`);
+    try {
+        switch (action) {
+            case 'download':
+                await DownloadFile(updateInfo.downloadUrl, updateInfo.fileName);
+                break;
+            case 'askLater':
+                // Clear ignore version setting
+                await Config.SetUpdaterIgnoreVersion(null);
+                break;
+            case 'ignore':
+                // Mark as ignored, we won't bother the user again until next launch
+                ignoredForNow = true;
+                // Clear ignore version setting
+                await Config.SetUpdaterIgnoreVersion(null);
+                break;
+            case 'skip':
+                // Mark to skip this version
+                await Config.SetUpdaterIgnoreVersion(updateInfo.tagName);
+                break;
+            default:
+                throw new Error(`Unknown update action: ${action}`);
+        }
+    } finally {
+        // Reset dialog opened flag so future checks can show the modal
+        dialogOpened = false;
     }
 };
 

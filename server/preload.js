@@ -120,7 +120,7 @@ contextBridge.exposeInMainWorld('API', {
     // Updater
     checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
     onUpdateAvailable: (callback) => ipcRenderer.on('update-available', callback),
-    updateAction: (updateAction) => ipcRenderer.send('update-action', updateAction),
+    updateAction: (action, updateInfo) => ipcRenderer.invoke('update-action', action, updateInfo),
 
     // Websocket
     reconnectWebSocket: () => ipcRenderer.send('reconnect-web-socket'),
