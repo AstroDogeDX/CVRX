@@ -2101,6 +2101,96 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
     worldDisplayNode.replaceChildren(docFragment);
 });
 
+// Janky active user avatars
+window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
+    log('[On] GetActiveUserAvatars');
+    log(ourAvatars);
+
+    const avatarDisplayNode = document.querySelector('.avatars-wrapper');
+    let docFragment = document.createDocumentFragment();
+
+    // Create reload our avatars button
+    const reloadAvatarsButton = document.querySelector('#avatars-refresh');
+    reloadAvatarsButton.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
+
+    for (const ourAvatar of ourAvatars) {
+        // Use cached image or placeholder
+        const imgSrc = friendImageCache[ourAvatar.imageHash] || 'img/ui/placeholder.png';
+
+        // Create card similar to search and friends layout
+        const avatarNode = createElement('div', {
+            className: 'avatars-wrapper--avatars-node card-node',
+            innerHTML: `
+                <div class="thumbnail-container">
+                    <img src="${imgSrc}" data-hash="${ourAvatar.imageHash}" class="hidden"/>
+                </div>
+                <div class="card-content">
+                    <p class="card-name">${ourAvatar.name}</p>
+                    <div class="card-detail">
+                        <span class="material-symbols-outlined">emoji_people</span>Avatar
+                    </div>
+                </div>
+            `,
+            onClick: () => ShowDetails(DetailsType.Avatar, ourAvatar.id),
+        });
+
+        // Set placeholder background image and data-hash directly on the container
+        const thumbnailContainer = avatarNode.querySelector('.thumbnail-container');
+        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
+        thumbnailContainer.style.backgroundSize = 'cover';
+        thumbnailContainer.dataset.hash = ourAvatar.imageHash;
+
+        docFragment.appendChild(avatarNode);
+    }
+
+    avatarDisplayNode.replaceChildren(docFragment);
+});
+
+// Janky active user props
+window.API.onGetActiveUserProps((_event, ourProps) => {
+    log('[On] GetActiveUserProps');
+    log(ourProps);
+
+    const propDisplayNode = document.querySelector('.props-wrapper');
+    let docFragment = document.createDocumentFragment();
+
+    // Create reload our props button
+    const reloadPropsButton = document.querySelector('#props-refresh');
+    reloadPropsButton.addEventListener('click', () => window.API.refreshGetActiveUserProps());
+
+    for (const ourProp of ourProps) {
+        // Use cached image or placeholder
+        const imgSrc = friendImageCache[ourProp.imageHash] || 'img/ui/placeholder.png';
+
+        // Create card similar to search and friends layout
+        const propNode = createElement('div', {
+            className: 'props-wrapper--props-node card-node',
+            innerHTML: `
+                <div class="thumbnail-container">
+                    <img src="${imgSrc}" data-hash="${ourProp.imageHash}" class="hidden"/>
+                </div>
+                <div class="card-content">
+                    <p class="card-name">${ourProp.name}</p>
+                    <div class="card-detail">
+                        <span class="material-symbols-outlined">view_in_ar</span>Prop
+                    </div>
+                </div>
+            `,
+            onClick: () => ShowDetails(DetailsType.Prop, ourProp.id),
+        });
+
+        // Set placeholder background image and data-hash directly on the container
+        const thumbnailContainer = propNode.querySelector('.thumbnail-container');
+        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
+        thumbnailContainer.style.backgroundSize = 'cover';
+        thumbnailContainer.dataset.hash = ourProp.imageHash;
+
+        docFragment.appendChild(propNode);
+    }
+
+    propDisplayNode.replaceChildren(docFragment);
+});
+
 // Janky recent activity
 window.API.onRecentActivityUpdate((_event, recentActivities) => {
     log('[On] Recent Activity Update');

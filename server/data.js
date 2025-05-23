@@ -319,8 +319,8 @@ class Core {
             // Call more events to update the initial state
             await Promise.allSettled([
                 this.GetOurUserInfo(authentication.userId),
-                // this.GetOurUserAvatars(),
-                // this.GetOurUserProps(),
+                this.GetOurUserAvatars(),
+                this.GetOurUserProps(),
                 // this.GetOurUserWorlds(),
                 this.FriendsUpdate(true),
                 this.UpdateUserStats(),
