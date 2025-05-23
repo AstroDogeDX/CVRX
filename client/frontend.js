@@ -1816,342 +1816,186 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
 window.API.onInvites((_event, invites) => {
     log('Invites Received!');
     log(invites);
-    // invites = [{
-    //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3:yghREqSG",
-    //     "user": {
-    //         "id": "b3005d19-e487-bafc-70ac-76d2190d5a29",
-    //         "name": "NotAKid",
-    //         "imageUrl": "https://files.abidata.io/user_images/b3005d19-e487-bafc-70ac-76d2190d5a29.png",
-    //         "imageHash": '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    //     },
-    //     "world": {
-    //         "id": "95c9f8c9-ba9b-40f5-a957-3254ce2d2e91",
-    //         "name": "Sakura Hotsprings",
-    //         "imageUrl": "https://files.abidata.io/user_content/worlds/95c9f8c9-ba9b-40f5-a957-3254ce2d2e91/95c9f8c9-ba9b-40f5-a957-3254ce2d2e91.png",
-    //         "imageHash": '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    //     },
-    //     "instanceId": "i+a08c7c940906f17d-829305-fd561f-171faa79",
-    //     "instanceName": "Sakura Hotsprings (#811786)",
-    //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
-    // }]
 
     const homeRequests = document.querySelector('.home-requests-wrapper');
 
     // Remove previous invites
-    document.querySelectorAll('.home-requests--invite-node').forEach(el => el.remove());
+    document.querySelectorAll('.notification-invite').forEach(el => el.remove());
 
-    // Create the search result elements
+    // Create the invite notification elements
     for (const invite of invites) {
-
         const userImageNode = createElement('img', {
-            className: 'home-requests--invite--user-img',
+            className: 'notification-avatar',
             src: 'img/ui/placeholder.png',
             onClick: () => ShowDetails(DetailsType.User, invite.user.id),
         });
         userImageNode.dataset.hash = invite.user.imageHash;
 
-        const userNameNode = createElement('p', {
-            className: 'home-requests--invite--user-name',
-            innerHTML: `<strong>${invite.user.name}</strong>`,
-            onClick: () => ShowDetails(DetailsType.User, invite.user.id),
+        const worldImageNode = createElement('img', {
+            className: 'notification-world-thumbnail',
+            src: 'img/ui/placeholder.png',
         });
+        worldImageNode.dataset.hash = invite.world.imageHash;
 
         const inviteNode = createElement('div', {
-            className: 'home-requests--invite-node',
-            innerHTML:
-                `<small>has invited you to...</p></small>
-                <img class="home-requests--invite--world-img" src="img/ui/placeholder.png" data-hash="${invite.world.imageHash}"/>
-                <p class="home-requests--invite--instance-name"><strong>${invite.instanceName}</strong></p>
-                <p class="home-requests--invite--label"><small class="friend-is-offline">Accept In Game</small></p>`,
+            className: 'notification-item notification-invite',
+            innerHTML: `
+                <div class="notification-content">
+                    <div class="notification-main">
+                        <div class="notification-text">
+                            <span class="notification-sender" data-user-id="${invite.user.id}">${invite.user.name}</span>
+                            <span class="notification-message">invited you to join</span>
+                        </div>
+                        <div class="notification-target">
+                            <div class="notification-world-info">
+                                <span class="notification-world-name">${invite.instanceName}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notification-action">
+                        <span class="notification-action-text">
+                            <span class="material-symbols-outlined">videogame_asset</span>
+                            Accept In Game
+                        </span>
+                    </div>
+                </div>
+            `,
         });
-        inviteNode.prepend(userImageNode, userNameNode);
+
+        // Add click handler for sender name
+        const senderElement = inviteNode.querySelector('.notification-sender');
+        senderElement.addEventListener('click', () => ShowDetails(DetailsType.User, invite.user.id));
+
+        // Prepend the images
+        const notificationContent = inviteNode.querySelector('.notification-content');
+        notificationContent.insertBefore(userImageNode, notificationContent.firstChild);
+        
+        const worldInfo = inviteNode.querySelector('.notification-world-info');
+        worldInfo.insertBefore(worldImageNode, worldInfo.firstChild);
+
         homeRequests.prepend(inviteNode);
     }
 });
+
 // Janky invite request listener
 window.API.onInviteRequests((_event, requestInvites) => {
     log('Requests to Invite Received!');
     log(requestInvites);
 
-    // requestInvites = [{
-    //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3:E5nx5n7N",
-    //     "sender": {
-    //         "id": "b3005d19-e487-bafc-70ac-76d2190d5a29",
-    //         "name": "NotAKid",
-    //         "imageUrl": "https://files.abidata.io/user_images/b3005d19-e487-bafc-70ac-76d2190d5a29.png",
-    //         "imageHash": '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    //     },
-    //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
-    // }]
-
     const homeRequests = document.querySelector('.home-requests-wrapper');
 
-    // Remove previous invites
-    document.querySelectorAll('.home-requests--invite-request-node').forEach(el => el.remove());
+    // Remove previous invite requests
+    document.querySelectorAll('.notification-invite-request').forEach(el => el.remove());
 
-    // Create the search result elements
+    // Create the invite request notification elements
     for (const requestInvite of requestInvites) {
-
         const userImageNode = createElement('img', {
-            className: 'home-requests--invite-request--user-img',
+            className: 'notification-avatar',
             src: 'img/ui/placeholder.png',
             onClick: () => ShowDetails(DetailsType.User, requestInvite.sender.id),
         });
         userImageNode.dataset.hash = requestInvite.sender.imageHash;
 
-        let requestInviteNode = createElement('div', {
-            className: 'home-requests--invite-request-node',
-            innerHTML:
-                `<p class="home-requests--invite-request--user-name"><strong>${requestInvite.sender.name}</strong><small>wants to join you.</small></p>
-                <p class="home-requests--invite-request--label"><small class="friend-is-offline">Accept In Game</small></p>`,
+        const requestInviteNode = createElement('div', {
+            className: 'notification-item notification-invite-request',
+            innerHTML: `
+                <div class="notification-content">
+                    <div class="notification-main">
+                        <div class="notification-text">
+                            <span class="notification-sender" data-user-id="${requestInvite.sender.id}">${requestInvite.sender.name}</span>
+                            <span class="notification-message">wants to join you</span>
+                        </div>
+                    </div>
+                    <div class="notification-action">
+                        <span class="notification-action-text">
+                            <span class="material-symbols-outlined">videogame_asset</span>
+                            Accept In Game
+                        </span>
+                    </div>
+                </div>
+            `,
         });
-        requestInviteNode.prepend(userImageNode);
+
+        // Add click handler for sender name
+        const senderElement = requestInviteNode.querySelector('.notification-sender');
+        senderElement.addEventListener('click', () => ShowDetails(DetailsType.User, requestInvite.sender.id));
+
+        // Prepend the user image
+        const notificationContent = requestInviteNode.querySelector('.notification-content');
+        notificationContent.insertBefore(userImageNode, notificationContent.firstChild);
+
         homeRequests.prepend(requestInviteNode);
     }
 });
+
 // Janky friend request listener
 window.API.onFriendRequests((_event, friendRequests) => {
     log('On Friend Requests received!');
     log(friendRequests);
 
-    // friendRequests = [{
-    //     "receiverId": "c4eee443-98a0-bab8-a583-f1d9fa10a7d7",
-    //     "id": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3",
-    //     "name": "Kafeijao",
-    //     "imageUrl": "https://files.abidata.io/user_images/4a1661f1-2eeb-426e-92ec-1b2f08e609b3.png",
-    //     "imageHash": '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
-    // }]
-
     const homeRequests = document.querySelector('.home-requests-wrapper');
 
-    // Remove previous invites
-    document.querySelectorAll('.home-requests--friend-request-node').forEach(el => el.remove());
+    // Remove previous friend requests
+    document.querySelectorAll('.notification-friend-request').forEach(el => el.remove());
 
-    // Create the search result elements
+    // Create the friend request notification elements
     for (const friendRequest of friendRequests) {
-
-        // Create friendRequest Node element
-        let friendRequestNode = createElement('div', { className: 'home-requests--friend-request-node' });
-
         const userImageNode = createElement('img', {
-            className: 'home-requests--friend-request--user-img',
+            className: 'notification-avatar',
             src: 'img/ui/placeholder.png',
             onClick: () => ShowDetails(DetailsType.User, friendRequest.id),
         });
         userImageNode.dataset.hash = friendRequest.imageHash;
 
-        const userNameNode = createElement('p', {
-            className: 'home-requests--friend-request--user-name',
-            textContent: friendRequest.name,
-            onClick: () => ShowDetails(DetailsType.User, friendRequest.id),
-        });
-
-        const friendRequestTypeNode = createElement('p', {
-            className: 'home-requests--friend-request--request-type',
-            textContent: 'Friend Request',
-        });
-
-        // Create buttons (can't do it with template strings because won't let me inline the function call)
+        // Create buttons
         const acceptButton = createElement('button', {
-            className: 'request-node--button-accept',
-            textContent: '✔',
+            className: 'notification-action-button notification-accept',
+            innerHTML: '<span class="material-symbols-outlined">check</span>',
             tooltip: 'Accept Friend Request',
             onClick: () => window.API.acceptFriendRequest(friendRequest.id),
         });
 
         const declineButton = createElement('button', {
-            className: 'request-node--button-reject',
-            textContent: '✖',
-            tooltip: 'Reject Friend Request',
+            className: 'notification-action-button notification-decline',
+            innerHTML: '<span class="material-symbols-outlined">close</span>',
+            tooltip: 'Decline Friend Request',
             onClick: () => window.API.declineFriendRequest(friendRequest.id),
         });
 
-        const buttonWrapper = createElement('div', { className: 'request-node--button-wrapper' });
-        buttonWrapper.append(acceptButton, declineButton);
+        const friendRequestNode = createElement('div', {
+            className: 'notification-item notification-friend-request',
+            innerHTML: `
+                <div class="notification-content">
+                    <div class="notification-main">
+                        <div class="notification-text">
+                            <span class="notification-sender" data-user-id="${friendRequest.id}">${friendRequest.name}</span>
+                            <span class="notification-message">sent you a friend request</span>
+                        </div>
+                    </div>
+                    <div class="notification-action">
+                        <div class="notification-action-buttons">
+                        </div>
+                    </div>
+                </div>
+            `,
+        });
 
-        friendRequestNode.append(userImageNode, userNameNode, friendRequestTypeNode, buttonWrapper);
+        // Add click handler for sender name
+        const senderElement = friendRequestNode.querySelector('.notification-sender');
+        senderElement.addEventListener('click', () => ShowDetails(DetailsType.User, friendRequest.id));
 
-        // Append friendRequest Node element at the beginning
+        // Add the buttons to the action area
+        const actionButtons = friendRequestNode.querySelector('.notification-action-buttons');
+        actionButtons.append(acceptButton, declineButton);
+
+        // Prepend the user image
+        const notificationContent = friendRequestNode.querySelector('.notification-content');
+        notificationContent.insertBefore(userImageNode, notificationContent.firstChild);
+
+        // Append friend request node at the beginning
         homeRequests.prepend(friendRequestNode);
         applyTooltips();
     }
-});
-
-// Janky Toast Messages (sometimes the serve sends messages, for example when declining a friend req (the popup msg))
-window.API.onNotification((_event, msg, type) => {
-    log('Notification!!!');
-    log(msg);
-    pushToast(msg, type);
-});
-
-// Auto-update modal listener
-window.API.onUpdateAvailable((_event, updateInfo) => {
-    log('Update Available!!!');
-    log(updateInfo);
-    promptUpdate(updateInfo);
-});
-
-// Cleaner Search Box Filtering!
-function addFilterListener(inputSelector, itemSelector, itemNameSelector) {
-    document.querySelector(inputSelector).addEventListener('keyup', () => {
-        const filterQuery = document.querySelector(inputSelector).value.toLowerCase();
-        document.querySelectorAll(itemSelector).forEach((e) => {
-            const matched = e.querySelector(itemNameSelector).textContent.toLowerCase().includes(filterQuery);
-            e.classList.toggle('filtered-item', !matched);
-        });
-    });
-}
-
-// Friends filtering :D
-addFilterListener('.friends-filter', '.friend-list-node', '.friend-name');
-
-// Add friends filter controls
-let currentFilter = 'all';
-const filterButtons = document.querySelectorAll('.filter-button');
-filterButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        // Update active state
-        filterButtons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-
-        // Update current filter
-        currentFilter = button.dataset.filter;
-
-        // Apply filter
-        const friendsList = document.querySelector('.friends-wrapper');
-        const friendNodes = friendsList.querySelectorAll('.friend-list-node');
-
-        // Filter based on online status
-        friendNodes.forEach(friend => {
-            const isOnline = !friend.querySelector('.status-indicator').classList.contains('offline');
-            switch (currentFilter) {
-                case 'online':
-                    friend.style.display = isOnline ? '' : 'none';
-                    break;
-                default:
-                    friend.style.display = '';
-            }
-        });
-    });
-});
-
-// Avatars filtering :O
-addFilterListener('#avatars-filter', '.avatars-wrapper--avatars-node', '.card-name');
-// Worlds filtering :)
-addFilterListener('#worlds-filter', '.worlds-wrapper--worlds-node', '.card-name');
-// Props filtering :P
-addFilterListener('#props-filter', '.props-wrapper--props-node', '.card-name');
-
-
-window.API.onUserStats((_event, userStats) => {
-    const userCountNode = document.querySelector('.home-activity--user-count');
-    // usersOnline: { overall: 47, public: 14, notConnected: 9, other: 24 }
-    const usersOnline = userStats.usersOnline;
-    userCountNode.textContent = `Online Users: ${usersOnline.overall}`;
-    userCountNode.addEventListener('mouseenter', () => {
-        userCountNode.textContent = `Public: ${usersOnline.public} | Private: ${usersOnline.other} | Offline Instance: ${usersOnline.notConnected}`;
-    });
-    userCountNode.addEventListener('mouseleave', () => {
-        userCountNode.textContent = `Online Users: ${usersOnline.overall}`;
-    });
-});
-
-// Janky active user avatars
-window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
-    log('[On] GetActiveUserAvatars');
-    log(ourAvatars);
-
-    const avatarDisplayNode = document.querySelector('.avatars-wrapper');
-    let docFragment = document.createDocumentFragment();
-
-    // Create reload our avatars button
-    const reloadAvatarsButton = document.querySelector('#avatars-refresh');
-    reloadAvatarsButton.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
-
-    for (const ourAvatar of ourAvatars) {
-        // Ignore avatars that are not our own
-        if (!ourAvatar.categories.includes(AvatarCategories.Mine)) continue;
-
-        // Use cached image or placeholder
-        const imgSrc = friendImageCache[ourAvatar.imageHash] || 'img/ui/placeholder.png';
-
-        // Create card similar to search and friends layout
-        const avatarNode = createElement('div', {
-            className: 'avatars-wrapper--avatars-node card-node',
-            innerHTML: `
-                <div class="thumbnail-container">
-                    <img src="${imgSrc}" data-hash="${ourAvatar.imageHash}" class="hidden"/>
-                </div>
-                <div class="card-content">
-                    <p class="card-name">${ourAvatar.name}</p>
-                    <p class="card-description">${ourAvatar.description || ''}</p>
-                    <div class="card-detail">
-                        <span class="material-symbols-outlined">emoji_people</span>Avatar
-                    </div>
-                </div>
-            `,
-            onClick: () => ShowDetails(DetailsType.Avatar, ourAvatar.id),
-        });
-
-        // Set placeholder background image and data-hash directly on the container
-        const thumbnailContainer = avatarNode.querySelector('.thumbnail-container');
-        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
-        thumbnailContainer.style.backgroundSize = 'cover';
-        thumbnailContainer.dataset.hash = ourAvatar.imageHash;
-
-        docFragment.appendChild(avatarNode);
-    }
-
-    avatarDisplayNode.replaceChildren(docFragment);
-});
-
-// Janky active user props
-window.API.onGetActiveUserProps((_event, ourProps) => {
-    log('[On] GetActiveUserProps');
-    log(ourProps);
-
-    const propDisplayNode = document.querySelector('.props-wrapper');
-    let docFragment = document.createDocumentFragment();
-
-    // Create reload our props button
-    const reloadPropsButton = document.querySelector('#props-refresh');
-    reloadPropsButton.addEventListener('click', () => window.API.refreshGetActiveUserProps());
-
-    for (const ourProp of ourProps) {
-        // Ignore props that are not our own
-        if (!ourProp.categories.includes(PropCategories.Mine)) continue;
-
-        // Use cached image or placeholder
-        const imgSrc = friendImageCache[ourProp.imageHash] || 'img/ui/placeholder.png';
-
-        // Create card similar to search and friends layout
-        const propNode = createElement('div', {
-            className: 'props-wrapper--props-node card-node',
-            innerHTML: `
-                <div class="thumbnail-container">
-                    <img src="${imgSrc}" data-hash="${ourProp.imageHash}" class="hidden"/>
-                </div>
-                <div class="card-content">
-                    <p class="card-name">${ourProp.name}</p>
-                    <p class="card-description">${ourProp.description || ''}</p>
-                    <div class="card-detail">
-                        <span class="material-symbols-outlined">view_in_ar</span>Prop
-                    </div>
-                </div>
-            `,
-            onClick: () => ShowDetails(DetailsType.Prop, ourProp.id),
-        });
-
-        // Set placeholder background image and data-hash directly on the container
-        const thumbnailContainer = propNode.querySelector('.thumbnail-container');
-        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
-        thumbnailContainer.style.backgroundSize = 'cover';
-        thumbnailContainer.dataset.hash = ourProp.imageHash;
-
-        docFragment.appendChild(propNode);
-    }
-
-    propDisplayNode.replaceChildren(docFragment);
 });
 
 // Janky active user worlds

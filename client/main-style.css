@@ -103,7 +103,6 @@ button {
 .navbar-button:hover {
     opacity: 1;
     background-color: rgba(255, 255, 255, 0.08); /* Subtle background highlight */
-    transform: translateY(-1px); /* Slight lift effect */
     border-radius: var(--border-radii); /* Ensured border-radius on hover */
 }
 
@@ -156,7 +155,6 @@ button {
 .profile-navbar-button:hover {
     opacity: 1;
     background-color: rgba(255, 255, 255, 0.08);
-    transform: translateY(-1px);
     border-radius: var(--border-radii);
 }
 
@@ -450,7 +448,7 @@ button {
 }
 
 /* Request and Activity Nodes Improvements */
-.home-requests-wrapper :where(img) {
+.home-requests-wrapper :where(img):not(.notification-avatar):not(.notification-world-thumbnail) {
     height: var(--thumbnail-size-standard);
     width: var(--thumbnail-size-standard);
     border-radius: 12px;
@@ -458,7 +456,7 @@ button {
     transition: all 0.3s ease;
 }
 
-.home-requests-wrapper :is(div):not(.request-node--button-wrapper, .requests-placeholder):nth-of-type(odd) {
+.home-requests-wrapper :is(div):not(.request-node--button-wrapper, .requests-placeholder, .notification-item, .notification-content, .notification-main, .notification-action, .notification-action-buttons):nth-of-type(odd) {
     background: rgba(255, 255, 255, 0.05);
 }
 
@@ -471,7 +469,6 @@ button {
 .home-requests-wrapper :is(div):not(.request-node--button-wrapper, .requests-placeholder):hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(0, 140, 255, 0.3);
-    transform: translateY(-1px);
 }
 
 .home-activity--activity-wrapper .active-instance-node {
@@ -482,7 +479,6 @@ button {
 
 .home-activity--activity-wrapper .active-instance-node:hover {
     border-color: rgba(0, 140, 255, 0.3);
-    transform: translateY(-1px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
@@ -495,7 +491,6 @@ button {
 
 .home-history--history-wrapper .friend-history-node:hover {
     border-color: rgba(0, 200, 100, 0.3);
-    transform: translateY(-1px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
@@ -639,7 +634,6 @@ button {
 }
 
 .search-output--node:hover {
-    transform: translateY(-5px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     background-color: rgba(50, 50, 50, 0.85);
 }
@@ -996,7 +990,6 @@ button {
 }
 
 .friend-list-node:hover, .card-node:hover {
-    transform: translateY(-5px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     background-color: rgba(50, 50, 50, 0.85);
 }
@@ -1529,7 +1522,6 @@ button {
 }
 
 .card-node:hover {
-    transform: translateY(-5px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     background-color: rgba(50, 50, 50, 0.85);
 }
@@ -2341,7 +2333,6 @@ button {
 }
 
 .login-credential-node:hover {
-    transform: translateY(-2px);
     background-color: rgba(50, 50, 50, 0.85);
 }
 
@@ -3017,7 +3008,6 @@ button {
 .update-primary-action:hover {
     background: #27ae60 !important;
     border-color: #219a52 !important;
-    transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -3297,7 +3287,6 @@ button {
 .home-requests--friend-request-node:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(0, 140, 255, 0.3);
-    transform: translateY(-1px);
 }
 
 .home-requests--friend-request--user-img {
@@ -3400,7 +3389,6 @@ button {
 .home-requests--invite-node:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 165, 0, 0.3);
-    transform: translateY(-1px);
 }
 
 .home-requests--invite--user-img {
@@ -3477,7 +3465,6 @@ button {
 .home-requests--invite-request-node:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(0, 200, 100, 0.3);
-    transform: translateY(-1px);
 }
 
 .home-requests--invite-request--user-img {
@@ -3514,4 +3501,299 @@ button {
     font-size: 0.85rem;
     font-style: italic;
     color: rgba(255, 255, 255, 0.6);
+}
+
+/* Notification Items - Modern Design */
+.notification-item {
+    display: flex;
+    align-items: center;
+    min-height: 72px;
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background: var(--color-background-dark);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.notification-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.notification-item:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.notification-item:nth-child(odd):hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+/* Notification Type Indicators */
+.notification-friend-request::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #4CAF50, #2E7D32);
+    border-radius: 0 2px 2px 0;
+}
+
+.notification-invite::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #FF9800, #F57C00);
+    border-radius: 0 2px 2px 0;
+}
+
+.notification-invite-request::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #2196F3, #1565C0);
+    border-radius: 0 2px 2px 0;
+}
+
+/* Notification Content */
+.notification-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 12px;
+}
+
+.notification-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    flex-shrink: 0;
+    object-fit: cover;
+}
+
+.notification-avatar:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.notification-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.notification-text {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.notification-sender {
+    font-weight: 600;
+    color: #ffffff;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    text-decoration: none;
+}
+
+.notification-sender:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
+.notification-message {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 400;
+}
+
+.notification-target {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.notification-world-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 4px 8px;
+}
+
+.notification-world-thumbnail {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.notification-world-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+/* Notification Actions */
+.notification-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.notification-action-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.notification-action-text .material-symbols-outlined {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.notification-action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.notification-action-button {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.notification-action-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+}
+
+.notification-action-button:hover::before {
+    opacity: 1;
+}
+
+.notification-accept {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.8), rgba(56, 142, 60, 0.6));
+    border: 1px solid rgba(76, 175, 80, 0.4);
+    color: white;
+}
+
+.notification-accept:hover {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(56, 142, 60, 0.7));
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+}
+
+.notification-decline {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.8), rgba(198, 40, 40, 0.6));
+    border: 1px solid rgba(244, 67, 54, 0.4);
+    color: white;
+}
+
+.notification-decline:hover {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(198, 40, 40, 0.7));
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(244, 67, 54, 0.3);
+}
+
+.notification-action-button .material-symbols-outlined {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .notification-item {
+        padding: 10px 12px;
+        min-height: 64px;
+    }
+    
+    .notification-avatar {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .notification-text {
+        font-size: 13px;
+    }
+    
+    .notification-world-name {
+        max-width: 150px;
+    }
+    
+    .notification-action-button {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+/* Animation for new notifications */
+@keyframes notificationSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.notification-item {
+    animation: notificationSlideIn 0.4s ease-out;
 }
