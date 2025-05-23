@@ -197,7 +197,7 @@ button {
 .home-content {
     grid-area: home-content;
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 2fr 1.25fr;
     gap: 6px;
     height: 100%;
     min-height: 0;
