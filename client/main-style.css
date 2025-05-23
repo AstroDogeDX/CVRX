@@ -3606,7 +3606,7 @@ button {
     margin-bottom: 4px;
     background: var(--color-background-dark);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
+    border-radius: var(--border-radii);
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
