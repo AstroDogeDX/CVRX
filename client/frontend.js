@@ -484,6 +484,13 @@ window.API.onHomePage((_event) => {
     loadingScreen.hide();
 });
 
+// Handle automatic update notifications from backend
+window.API.onUpdateAvailable((_event, updateInfo) => {
+    log('Update available notification received from backend');
+    log(updateInfo);
+    promptUpdate(updateInfo);
+});
+
 // Pages handling
 window.API.onLoginPage((_event, availableCredentials) => {
     log('login page!');

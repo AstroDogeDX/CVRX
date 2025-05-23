@@ -28,6 +28,10 @@ exports.Setup = async (mainWindow) => {
     // Ensure we have the directory created
     await fs.promises.mkdir(UpdaterPath, {recursive: true});
 
+    // Reset dialog state on startup to ensure clean state
+    dialogOpened = false;
+    ignoredForNow = false;
+
     // Clear installer filers
     for (const fileName of await fs.promises.readdir(UpdaterPath)) {
         if (!fileName.endsWith('.exe')) continue;
@@ -118,7 +122,12 @@ exports.CheckLatestRelease = async (mainWindow, bypassIgnores = false) => {
             if (!bypassIgnores && mainWindow && mainWindow.webContents) {
                 dialogOpened = true;
                 log.info(`[CheckLatestRelease] Automatically showing update modal for version ${tagName}`);
-                mainWindow.webContents.send('update-available', updateInfo);
+                try {
+                    mainWindow.webContents.send('update-available', updateInfo);
+                } catch (sendError) {
+                    log.error(`[CheckLatestRelease] Failed to send update-available event: ${sendError}`);
+                    dialogOpened = false; // Reset flag if sending fails
+                }
             }
 
             return { 
