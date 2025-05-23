@@ -251,7 +251,7 @@ button {
     background: var(--color-background-dark);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 16px;
+    padding: 8px;
     flex: 1;
     min-height: 0;
     display: flex;
@@ -336,7 +336,7 @@ button {
     background: var(--color-background-dark);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 16px;
+    padding: 8px;
     flex: 1;
     min-height: 0;
     max-height: 40%;
@@ -355,10 +355,8 @@ button {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 6px;
     min-height: 0;
     margin-top: 8px;
-    padding: 4px;
 }
 
 .home-requests-wrapper:empty {
@@ -378,7 +376,7 @@ button {
     background: var(--color-background-dark);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 16px;
+    padding: 8px;
     flex: 1;
     min-height: 0;
     display: flex;
@@ -396,10 +394,8 @@ button {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 6px;
     min-height: 0;
     margin-top: 8px;
-    padding: 4px;
 }
 
 .home-history--history-wrapper:empty {
@@ -3509,8 +3505,8 @@ button {
     align-items: center;
     min-height: 72px;
     width: 100%;
-    padding: 12px 16px;
-    margin-bottom: 8px;
+    padding: 8px;
+    margin-bottom: 4px;
     background: var(--color-background-dark);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
@@ -3533,6 +3529,23 @@ button {
 
 .notification-item:nth-child(odd):hover {
     background: rgba(255, 255, 255, 0.07);
+}
+
+/* Prevent inheritance of notification-item hover effects on child elements */
+.notification-item * {
+    transition: inherit;
+}
+
+.notification-item .notification-content,
+.notification-item .notification-main,
+.notification-item .notification-text,
+.notification-item .notification-target,
+.notification-item .notification-world-info,
+.notification-item .notification-action,
+.notification-item .notification-action-text {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 /* Notification Type Indicators */
@@ -3575,6 +3588,7 @@ button {
     align-items: center;
     width: 100%;
     gap: 12px;
+    background: transparent;
 }
 
 .notification-avatar {
@@ -3582,7 +3596,7 @@ button {
     height: 48px;
     border-radius: 12px;
     border: 2px solid rgba(255, 255, 255, 0.15);
-    transition: all 0.3s ease;
+    transition: border-color 0.3s ease, transform 0.3s ease;
     cursor: pointer;
     flex-shrink: 0;
     object-fit: cover;
@@ -3599,6 +3613,7 @@ button {
     flex-direction: column;
     gap: 4px;
     min-width: 0;
+    background: transparent;
 }
 
 .notification-text {
@@ -3608,13 +3623,14 @@ button {
     gap: 4px;
     font-size: 14px;
     line-height: 1.4;
+    background: transparent;
 }
 
 .notification-sender {
     font-weight: 600;
     color: #ffffff;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, text-decoration 0.2s ease;
     text-decoration: none;
 }
 
@@ -3633,6 +3649,7 @@ button {
     align-items: center;
     gap: 8px;
     margin-top: 4px;
+    background: transparent;
 }
 
 .notification-world-info {
@@ -3642,6 +3659,7 @@ button {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
     padding: 4px 8px;
+    transition: none; /* Prevent inheriting parent transitions */
 }
 
 .notification-world-thumbnail {
@@ -3669,6 +3687,7 @@ button {
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
+    background: transparent;
 }
 
 .notification-action-text {
@@ -3682,6 +3701,7 @@ button {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: none; /* Prevent inheriting parent transitions */
 }
 
 .notification-action-text .material-symbols-outlined {
@@ -3693,6 +3713,7 @@ button {
     display: flex;
     gap: 8px;
     align-items: center;
+    background: transparent;
 }
 
 .notification-action-button {
@@ -3796,4 +3817,38 @@ button {
 
 .notification-item {
     animation: notificationSlideIn 0.4s ease-out;
+}
+
+/* Ensure text elements don't inherit hover effects */
+.notification-item .notification-message,
+.notification-item .notification-world-name,
+.notification-item .material-symbols-outlined {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    transform: none !important;
+}
+
+/* Override any inherited transform from parent hover for specific elements */
+.notification-item:hover .notification-message,
+.notification-item:hover .notification-world-name,
+.notification-item:hover .notification-action-text,
+.notification-item:hover .notification-world-info {
+    transform: none !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Override any inherited transform from parent hover for specific elements */
+.notification-item:hover .notification-message,
+.notification-item:hover .notification-world-name {
+    transform: none !important;
+    background: transparent !important;
+}
+
+.notification-item:hover .notification-action-text {
+    transform: none !important;
+}
+
+.notification-item:hover .notification-world-info {
+    transform: none !important;
 }
