@@ -989,7 +989,7 @@ button {
     height: 100%;
     gap: 5px;
     grid-template-columns: 1fr;
-    grid-template-rows: 50px 1fr;
+    grid-template-rows: 50px 50px 1fr;
     grid-template-areas:
         "friends-filter"
         "friends-filter-controls"
