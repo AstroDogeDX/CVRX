@@ -38,10 +38,10 @@ const CreateWindow = async () => {
 
     // Create the browser window.
     const mainWindow = new BrowserWindow({
-        minWidth: 800,
-        minHeight: 600,
-        width: 1280,
-        height: 720,
+        minWidth: 1320,
+        minHeight: 780,
+        width: 1460,
+        height: 800,
         icon: './client/img/cvrx-ico.ico',
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
