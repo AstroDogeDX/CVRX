@@ -12,6 +12,9 @@ import { applyTooltips } from './astrolib/tooltip.js';
 // Cache for friend images to prevent losing loaded images on refresh
 const friendImageCache = {};
 
+// Store the current active user for filtering purposes
+let currentActiveUser = null;
+
 const DetailsType = Object.freeze({
     User: Symbol('user'),
     Avatar: Symbol('avatar'),
@@ -104,6 +107,7 @@ function setInputValueAndFocus(selector, value) {
 function removeFilteredItemClass(selector) {
     document.querySelectorAll(selector).forEach((e) => {
         e.classList.remove('filtered-item');
+        e.style.display = ''; // Reset display style to make items visible again
     });
 }
 
@@ -569,6 +573,9 @@ document.querySelectorAll('.navbar-button').forEach((e) => {
 window.API.onGetActiveUser((_event, activeUser) => {
     log('Active User!');
     log(activeUser);
+
+    // Store the current active user for filtering purposes
+    currentActiveUser = activeUser;
 
     // Set profile picture for profile navbar button
     const profileButton = document.querySelector('.profile-navbar-button');
@@ -2137,10 +2144,6 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
     const worldDisplayNode = document.querySelector('.worlds-wrapper');
     let docFragment = document.createDocumentFragment();
 
-    // Create reload our worlds button
-    const reloadWorldsButton = document.querySelector('#worlds-refresh');
-    reloadWorldsButton.addEventListener('click', () => window.API.refreshGetActiveUserWorlds());
-
     for (const ourWorld of ourWorlds) {
         // Use cached image or placeholder
         const imgSrc = friendImageCache[ourWorld.imageHash] || 'img/ui/placeholder.png';
@@ -2186,12 +2189,20 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
     log('[On] GetActiveUserAvatars');
     log(ourAvatars);
 
+    // Filter avatars to only show those owned by the current user
+    if (currentActiveUser) {
+        ourAvatars = ourAvatars.filter(avatar => 
+            avatar.authorGuid === currentActiveUser.id || 
+            (avatar.categories && avatar.categories.includes(AvatarCategories.Mine))
+        );
+    }
+
     const avatarDisplayNode = document.querySelector('.avatars-wrapper');
     let docFragment = document.createDocumentFragment();
 
-    // Create reload our avatars button
-    const reloadAvatarsButton = document.querySelector('#avatars-refresh');
-    reloadAvatarsButton.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
+    // Event listener setup moved to initialization to prevent stacking
+    // const reloadAvatarsButton = document.querySelector('#avatars-refresh');
+    // reloadAvatarsButton.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
 
     for (const ourAvatar of ourAvatars) {
         // Use cached image or placeholder
@@ -2231,12 +2242,20 @@ window.API.onGetActiveUserProps((_event, ourProps) => {
     log('[On] GetActiveUserProps');
     log(ourProps);
 
+    // Filter props to only show those owned by the current user
+    if (currentActiveUser) {
+        ourProps = ourProps.filter(prop => 
+            prop.authorGuid === currentActiveUser.id || 
+            (prop.categories && prop.categories.includes(PropCategories.Mine))
+        );
+    }
+
     const propDisplayNode = document.querySelector('.props-wrapper');
     let docFragment = document.createDocumentFragment();
 
-    // Create reload our props button
-    const reloadPropsButton = document.querySelector('#props-refresh');
-    reloadPropsButton.addEventListener('click', () => window.API.refreshGetActiveUserProps());
+    // Event listener setup moved to initialization to prevent stacking
+    // const reloadPropsButton = document.querySelector('#props-refresh');
+    // reloadPropsButton.addEventListener('click', () => window.API.refreshGetActiveUserProps());
 
     for (const ourProp of ourProps) {
         // Use cached image or placeholder
@@ -2539,4 +2558,64 @@ closeToTrayCheckbox.addEventListener('change', () => {
                 closeToTrayCheckbox.checked = config.CloseToSystemTray;
             });
         });
+});
+
+// Set up refresh button event listeners (only once to prevent stacking)
+document.querySelector('#worlds-refresh')?.addEventListener('click', () => window.API.refreshGetActiveUserWorlds());
+document.querySelector('#avatars-refresh')?.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
+document.querySelector('#props-refresh')?.addEventListener('click', () => window.API.refreshGetActiveUserProps());
+
+// Set up filter input event listeners for avatars, worlds, and props
+document.querySelector('#avatars-filter')?.addEventListener('input', (event) => {
+    const filterText = event.target.value.toLowerCase();
+    const avatarCards = document.querySelectorAll('.avatars-wrapper--avatars-node');
+    
+    avatarCards.forEach(card => {
+        const avatarName = card.querySelector('.card-name').textContent.toLowerCase();
+        const matchesText = filterText === '' || avatarName.includes(filterText);
+        
+        if (matchesText) {
+            card.style.display = '';
+            card.classList.remove('filtered-item');
+        } else {
+            card.style.display = 'none';
+            card.classList.add('filtered-item');
+        }
+    });
+});
+
+document.querySelector('#worlds-filter')?.addEventListener('input', (event) => {
+    const filterText = event.target.value.toLowerCase();
+    const worldCards = document.querySelectorAll('.worlds-wrapper--worlds-node');
+    
+    worldCards.forEach(card => {
+        const worldName = card.querySelector('.card-name').textContent.toLowerCase();
+        const matchesText = filterText === '' || worldName.includes(filterText);
+        
+        if (matchesText) {
+            card.style.display = '';
+            card.classList.remove('filtered-item');
+        } else {
+            card.style.display = 'none';
+            card.classList.add('filtered-item');
+        }
+    });
+});
+
+document.querySelector('#props-filter')?.addEventListener('input', (event) => {
+    const filterText = event.target.value.toLowerCase();
+    const propCards = document.querySelectorAll('.props-wrapper--props-node');
+    
+    propCards.forEach(card => {
+        const propName = card.querySelector('.card-name').textContent.toLowerCase();
+        const matchesText = filterText === '' || propName.includes(filterText);
+        
+        if (matchesText) {
+            card.style.display = '';
+            card.classList.remove('filtered-item');
+        } else {
+            card.style.display = 'none';
+            card.classList.add('filtered-item');
+        }
+    });
 });
