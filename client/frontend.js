@@ -1835,7 +1835,7 @@ window.API.onInvites((_event, invites) => {
     //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
     // }]
 
-    const homeRequests = document.querySelector('.home-requests');
+    const homeRequests = document.querySelector('.home-requests-wrapper');
 
     // Remove previous invites
     document.querySelectorAll('.home-requests--invite-node').forEach(el => el.remove());
@@ -1884,7 +1884,7 @@ window.API.onInviteRequests((_event, requestInvites) => {
     //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
     // }]
 
-    const homeRequests = document.querySelector('.home-requests');
+    const homeRequests = document.querySelector('.home-requests-wrapper');
 
     // Remove previous invites
     document.querySelectorAll('.home-requests--invite-request-node').forEach(el => el.remove());
@@ -1922,7 +1922,7 @@ window.API.onFriendRequests((_event, friendRequests) => {
     //     "imageHash": '0ad531a3b6934292ecb5da1762b3f54ce09cc1b4'
     // }]
 
-    const homeRequests = document.querySelector('.home-requests');
+    const homeRequests = document.querySelector('.home-requests-wrapper');
 
     // Remove previous invites
     document.querySelectorAll('.home-requests--friend-request-node').forEach(el => el.remove());
@@ -2350,16 +2350,57 @@ setInterval(() => {
 
 // Refresh active instances
 document.querySelector('#instances-refresh').addEventListener('click', async _event => {
-    _event.target.classList.toggle('spinner', true);
-    const requestInitialized = await window.API.refreshInstances(true);
-    if (!requestInitialized) _event.target.classList.toggle('spinner', false);
+    const refreshButton = _event.target;
+    if (refreshButton.classList.contains('refreshing')) return; // Prevent multiple clicks
+    
+    refreshButton.classList.add('refreshing');
+    refreshButton.classList.remove('refresh-complete');
+    
+    try {
+        const requestInitialized = await window.API.refreshInstances(true);
+        if (requestInitialized) {
+            // Show completion state briefly
+            refreshButton.classList.remove('refreshing');
+            refreshButton.classList.add('refresh-complete');
+            
+            // Remove completion state after a short delay
+            setTimeout(() => {
+                refreshButton.classList.remove('refresh-complete');
+            }, 1500);
+        } else {
+            refreshButton.classList.remove('refreshing');
+        }
+    } catch (error) {
+        refreshButton.classList.remove('refreshing');
+        console.error('Refresh failed:', error);
+    }
 });
 
 window.addEventListener('focus', async () => {
     const refreshButton = document.querySelector('#instances-refresh');
-    refreshButton.classList.toggle('spinner', true);
-    const requestInitialized = await window.API.refreshInstances(false);
-    if (!requestInitialized) refreshButton.classList.toggle('spinner', false);
+    if (refreshButton.classList.contains('refreshing')) return; // Prevent multiple refreshes
+    
+    refreshButton.classList.add('refreshing');
+    refreshButton.classList.remove('refresh-complete');
+    
+    try {
+        const requestInitialized = await window.API.refreshInstances(false);
+        if (requestInitialized) {
+            // Show completion state briefly for auto-refresh
+            refreshButton.classList.remove('refreshing');
+            refreshButton.classList.add('refresh-complete');
+            
+            // Remove completion state after a short delay
+            setTimeout(() => {
+                refreshButton.classList.remove('refresh-complete');
+            }, 1000);
+        } else {
+            refreshButton.classList.remove('refreshing');
+        }
+    } catch (error) {
+        refreshButton.classList.remove('refreshing');
+        console.error('Auto-refresh failed:', error);
+    }
 });
 
 window.API.getVersion();
@@ -2384,6 +2425,27 @@ document.querySelectorAll('.settings-tab').forEach(tab => {
         document.getElementById(`settings-${tab.dataset.tab}`).classList.add('active');
     });
 });
+
+// Home page quick action buttons
+// document.querySelector('#quick-find-friends')?.addEventListener('click', () => {
+//     swapNavPages('search');
+//     // Focus on search bar and add hint for finding friends
+//     const searchBar = document.getElementById('search-bar');
+//     if (searchBar) {
+//         searchBar.focus();
+//         searchBar.placeholder = 'Search for friends, users...';
+//     }
+// });
+
+// document.querySelector('#quick-browse-worlds')?.addEventListener('click', () => {
+//     swapNavPages('search');
+//     // Focus on search bar and add hint for finding worlds
+//     const searchBar = document.getElementById('search-bar');
+//     if (searchBar) {
+//         searchBar.focus();
+//         searchBar.placeholder = 'Search for worlds, experiences...';
+//     }
+// });
 
 // Handle "Close to System Tray" setting
 const closeToTrayCheckbox = document.getElementById('setting-close-to-tray');

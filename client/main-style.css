@@ -184,299 +184,319 @@ button {
 
 #display-home {
     display: grid;
-    gap: 5px;
+    gap: 12px;
     height: 100%;
     width: 100%;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 200px;
-    grid-template-areas:
-        "home-activity home-history"
-        "home-requests home-history";
-}
-
-.home-requests {
-    grid-area: home-requests;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: var(--border-radii);
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-.home-requests:empty {
-    display: flex;
-    flex-flow: row nowrap;
-    color: rgba(255, 255, 255, 0.2);
-    justify-content: center;
-    align-items: center;
-    font-size: small;
-    font-style: italic;
-}
-
-.home-requests:empty:before {
-    content: 'No Pending Notifications';
-}
-
-.home-requests :where(img) {
-    height: var(--thumbnail-size-standard);
-    width: var(--thumbnail-size-standard);
-    border-radius: var(--border-radii);
-}
-
-.home-requests :is(div):not(.request-node--button-wrapper, .requests-placeholder):nth-of-type(odd) {
-    background: var(--node-nth-color);
-}
-
-/* -- Friend Request */
-
-.home-requests--friend-request-node {
-    display: grid;
-    min-height: 60px;
-    width: 100%;
-    gap: 5px;
-    padding: 5px;
-    grid-template-columns: 50px 1fr 1fr 90px;
     grid-template-rows: 1fr;
     grid-template-areas:
-        "friend-request-img friend-request-name friend-request-label friend-request-buttons";
-    border-radius: var(--border-radii);
-}
-
-.home-requests--friend-request--user-img {
-    grid-area: friend-request-img;
-}
-
-.home-requests--friend-request--user-name {
-    grid-area: friend-request-name;
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
-    justify-content: flex-start;
-    font-size: large;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+        "home-content";
+    padding: 8px;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
     overflow: hidden;
-    font-weight: bold;
-    cursor: pointer;
 }
 
-.home-requests--friend-request--request-type {
-    grid-area: friend-request-label;
-    font-size: small;
-    font-style: italic;
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
-    justify-content: flex-start;
-}
-
-.request-node--button-wrapper {
-    grid-area: friend-request-buttons;
-    float: right;
-    min-width: 90px;
-    margin-top: 2.5px;
-}
-
-.request-node--button-wrapper button {
-    width: 35px;
-    height: 35px;
-    font-size: 20px;
-    color: white;
-    border-radius: var(--border-radii);
-    margin: 5px;
-    cursor: pointer;
-    border: none;
-    line-height: 20px;
-}
-
-.request-node--button-accept {
-    background: green;
-}
-
-.request-node--button-reject {
-    background: darkred;
-}
-
-.request-node--button-accept:hover,
-.request-node--button-reject:hover {
-    filter: brightness(1.5);
-}
-
-/* -- Invite (You To Join) */
-
-.home-requests--invite-node {
+.home-content {
+    grid-area: home-content;
     display: grid;
-    min-height: 60px;
-    width: 100%;
-    gap: 5px;
-    padding: 5px;
-    grid-template-columns: 50px 1fr 50px 1fr 1fr;
-    grid-template-rows: 1fr;
-    grid-template-areas:
-        "invite-user-img invite-user-name invite-world-img invite-world-name invite-world-notice";
-    border-radius: var(--border-radii);
+    grid-template-columns: 2fr 1fr;
+    gap: 6px;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
 }
 
-.home-requests--invite--user-img {
-    grid-area: invite-user-img;
-}
-
-.home-requests--invite--user-name {
-    grid-area: invite-user-name;
-    width: 100%;
+.home-main-section {
     display: flex;
-    flex-flow: column nowrap;
-    align-items: flex-start;
-    align-content: flex-start;
-    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
 }
 
-.home-requests--invite--world-img {
-    grid-area: invite-world-img;
-}
-
-.home-requests--invite--instance-name {
-    grid-area: invite-world-name;
-    width: 100%;
+.home-sidebar-section {
     display: flex;
-    flex-flow: row nowrap;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+}
+
+.home-section-header {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: flex-start;
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 4px;
 }
 
-.home-requests--invite--label {
-    grid-area: invite-world-notice;
-    width: 100%;
+.home-section-header h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text);
     display: flex;
-    flex-flow: row nowrap;
-    justify-content: flex-end;
     align-items: center;
-    text-align: center;
+    gap: 8px;
+    margin: 0;
 }
 
-/* -- Invite Request (Join To You) */
-
-.home-requests--invite-request-node {
-    display: grid;
-    min-height: 60px;
-    width: 100%;
-    gap: 5px;
-    padding: 5px;
-    grid-template-columns: 50px 1fr 1fr;
-    grid-template-rows: 1fr;
-    grid-template-areas:
-        "invite-request-user-img invite-request-user-name invite-request-notice";
-    border-radius: var(--border-radii);
+.home-section-header h2 .material-symbols-outlined {
+    font-size: 1.2rem;
+    color: var(--color-accent);
 }
 
-.home-requests--invite-request--user-img {
-    grid-area: invite-request-user-img;
-}
-
-.home-requests--invite-request--user-name {
-    grid-area: invite-request-user-name;
-    width: 100%;
+.home-section-controls {
     display: flex;
-    flex-flow: column nowrap;
-    align-items: flex-start;
-    align-content: flex-start;
-    justify-content: center;
-}
-
-.home-requests--invite-request--label {
-    grid-area: invite-request-notice;
-    display: flex;
-    flex-flow: row nowrap;
-    justify-content: flex-end;
     align-items: center;
-    text-align: center;
+    gap: 12px;
 }
-
-/* CVR World/Instance Activity on Home */
 
 .home-activity {
-    display: grid;
-    grid-area: home-activity;
-    grid-template-rows: auto 1fr;
-    overflow: hidden;
+    background: var(--color-background-dark);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
-.home-activity h2 {
-    display: flex;
-    margin-bottom: 5px;
-    align-items: center;
-    justify-content: space-between;
-    margin-left: 5px;
-    margin-right: 5px;
+.home-activity:hover {
+    /* No hover effect on panel itself */
 }
 
 .home-activity--refresh {
-    margin-right: auto;
-    margin-left: 5px;
-    background-color: transparent;
-    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--color-text);
+    font-size: 1.1rem;
+    position: relative;
 }
 
-.home-activity--refresh:hover {
-    color: darkgrey;
+.home-activity--refresh:hover:not(.refreshing) {
+    background: var(--color-accent);
+    transform: scale(1.05);
+}
+
+.home-activity--refresh.refreshing {
+    background: rgba(255, 255, 255, 0.15);
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.home-activity--refresh.refreshing .material-symbols-outlined {
+    animation: smoothSpin 1s linear infinite;
+}
+
+.home-activity--refresh.refresh-complete {
+    background: rgba(0, 200, 100, 0.2);
+    border-color: rgba(0, 200, 100, 0.4);
+    transition: all 0.5s ease;
+}
+
+@keyframes smoothSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .home-activity--user-count {
-    float: right;
-    font-size: small;
-    cursor: help;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.home-activity--user-count:hover {
+    background: rgba(0, 0, 0, 0.4);
+    color: var(--color-text);
 }
 
 .home-activity--activity-wrapper {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: var(--border-radii);
+    flex: 1;
     overflow-y: auto;
-    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+    margin-top: 8px;
+    padding: 4px;
 }
 
-.home-activity--activity-node {
-    height: 60px;
-    padding: 5px;
-    border-radius: var(--border-radii);
+.home-requests {
+    background: var(--color-background-dark);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    flex: 1;
+    min-height: 0;
+    max-height: 40%;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
-.home-activity--activity-node:nth-of-type(odd) {
-    background: var(--node-nth-color);
+.home-requests:hover {
+    /* No hover effect on panel itself */
 }
 
-/* Friend History on Home */
+.home-requests-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+    margin-top: 8px;
+    padding: 4px;
+}
+
+.home-requests-wrapper:empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.home-requests-wrapper:empty:before {
+    content: "No notifications";
+}
 
 .home-history {
-    display: grid;
-    grid-area: home-history;
-    grid-template-rows: auto 1fr;
-    overflow: hidden;
+    background: var(--color-background-dark);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
-.home-history h2 {
-    margin-bottom: 5px;
-    margin-left: 5px;
-    margin-right: 5px;
+.home-history:hover {
+    /* No hover effect on panel itself */
 }
 
 .home-history--history-wrapper {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: var(--border-radii);
+    flex: 1;
     overflow-y: auto;
-    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+    margin-top: 8px;
+    padding: 4px;
 }
 
 .home-history--history-wrapper:empty {
     display: flex;
-    flex-flow: row nowrap;
-    color: rgba(255, 255, 255, 0.2);
-    justify-content: center;
     align-items: center;
-    font-size: small;
+    justify-content: center;
+    opacity: 0.6;
     font-style: italic;
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .home-history--history-wrapper:empty:before {
-    content: 'No Friend History';
+    content: "No recent activity";
+}
+
+@media (max-width: 1200px) {
+    .home-content {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+    }
+    
+    .home-main-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .home-requests {
+        order: 2;
+    }
+}
+
+@media (max-width: 768px) {
+    #display-home {
+        padding: 6px;
+        gap: 8px;
+    }
+    
+    .home-content {
+        gap: 8px;
+    }
+    
+    .home-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}
+
+/* Request and Activity Nodes Improvements */
+.home-requests-wrapper :where(img) {
+    height: var(--thumbnail-size-standard);
+    width: var(--thumbnail-size-standard);
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.home-requests-wrapper :is(div):not(.request-node--button-wrapper, .requests-placeholder):nth-of-type(odd) {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.home-requests-wrapper :is(div):not(.request-node--button-wrapper, .requests-placeholder) {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.home-requests-wrapper :is(div):not(.request-node--button-wrapper, .requests-placeholder):hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(0, 140, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.home-activity--activity-wrapper .active-instance-node {
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.3s ease;
+}
+
+.home-activity--activity-wrapper .active-instance-node:hover {
+    border-color: rgba(0, 140, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.home-history--history-wrapper .friend-history-node {
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.3s ease;
+    margin-bottom: 4px;
+}
+
+.home-history--history-wrapper .friend-history-node:hover {
+    border-color: rgba(0, 200, 100, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 /* Search Stuff */
@@ -3254,4 +3274,244 @@ button {
     padding: 4px;
     margin: -4px;
     transition: background-color 0.2s ease;
+}
+
+/* Request Node Styles - Kept for functionality */
+
+/* -- Friend Request */
+.home-requests--friend-request-node {
+    display: grid;
+    min-height: 60px;
+    width: 100%;
+    gap: 5px;
+    padding: 12px;
+    grid-template-columns: 50px 1fr 1fr 90px;
+    grid-template-rows: 1fr;
+    grid-template-areas:
+        "friend-request-img friend-request-name friend-request-label friend-request-buttons";
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.home-requests--friend-request-node:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(0, 140, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.home-requests--friend-request--user-img {
+    grid-area: friend-request-img;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.home-requests--friend-request--user-name {
+    grid-area: friend-request-name;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    cursor: pointer;
+    color: #ffffff;
+    transition: color 0.3s ease;
+}
+
+.home-requests--friend-request--user-name:hover {
+    color: rgba(0, 140, 255, 0.9);
+}
+
+.home-requests--friend-request--request-type {
+    grid-area: friend-request-label;
+    font-size: 0.9rem;
+    font-style: italic;
+    font-weight: 300;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.request-node--button-wrapper {
+    grid-area: friend-request-buttons;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    align-items: center;
+}
+
+.request-node--button-wrapper button {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.request-node--button-accept {
+    background: linear-gradient(135deg, rgba(0, 150, 0, 0.8), rgba(0, 200, 0, 0.6));
+    border: 1px solid rgba(0, 255, 0, 0.3);
+}
+
+.request-node--button-reject {
+    background: linear-gradient(135deg, rgba(150, 0, 0, 0.8), rgba(200, 0, 0, 0.6));
+    border: 1px solid rgba(255, 0, 0, 0.3);
+}
+
+.request-node--button-accept:hover {
+    background: linear-gradient(135deg, rgba(0, 180, 0, 0.9), rgba(0, 220, 0, 0.7));
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 150, 0, 0.3);
+}
+
+.request-node--button-reject:hover {
+    background: linear-gradient(135deg, rgba(180, 0, 0, 0.9), rgba(220, 0, 0, 0.7));
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(150, 0, 0, 0.3);
+}
+
+/* -- Invite (You To Join) */
+.home-requests--invite-node {
+    display: grid;
+    min-height: 60px;
+    width: 100%;
+    gap: 8px;
+    padding: 12px;
+    grid-template-columns: 50px 1fr 50px 1fr 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas:
+        "invite-user-img invite-user-name invite-world-img invite-world-name invite-world-notice";
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.home-requests--invite-node:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 165, 0, 0.3);
+    transform: translateY(-1px);
+}
+
+.home-requests--invite--user-img {
+    grid-area: invite-user-img;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.home-requests--invite--user-name {
+    grid-area: invite-user-name;
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: center;
+    color: #ffffff;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.home-requests--invite--user-name:hover {
+    color: rgba(255, 165, 0, 0.9);
+}
+
+.home-requests--invite--world-img {
+    grid-area: invite-world-img;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.home-requests--invite--instance-name {
+    grid-area: invite-world-name;
+    width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.home-requests--invite--label {
+    grid-area: invite-world-notice;
+    width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: center;
+    font-size: 0.85rem;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* -- Invite Request (Join To You) */
+.home-requests--invite-request-node {
+    display: grid;
+    min-height: 60px;
+    width: 100%;
+    gap: 8px;
+    padding: 12px;
+    grid-template-columns: 50px 1fr 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas:
+        "invite-request-user-img invite-request-user-name invite-request-notice";
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.home-requests--invite-request-node:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(0, 200, 100, 0.3);
+    transform: translateY(-1px);
+}
+
+.home-requests--invite-request--user-img {
+    grid-area: invite-request-user-img;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.home-requests--invite-request--user-name {
+    grid-area: invite-request-user-name;
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: center;
+    color: #ffffff;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.home-requests--invite-request--user-name:hover {
+    color: rgba(0, 200, 100, 0.9);
+}
+
+.home-requests--invite-request--label {
+    grid-area: invite-request-notice;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: center;
+    font-size: 0.85rem;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.6);
 }

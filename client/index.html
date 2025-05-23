@@ -53,19 +53,47 @@
     <div class="cvrx-display">
       <!-- HOME -->
       <div class="display-wrapper" id="display-home">
-        <div class="home-requests"></div>
-        <div class="home-activity">
-          <h2>Instances
-            <button id="instances-refresh" class="home-activity--refresh material-symbols-outlined"
-              data-tooltip="Refresh Instances">refresh</button>
-            <span class="home-activity--user-count">User Count</span>
-          </h2>
-          <div class="home-activity--activity-wrapper">
+        <div class="home-content">
+          <div class="home-main-section">
+            <div class="home-activity">
+              <div class="home-section-header">
+                <h2>
+                  <span class="material-symbols-outlined">public</span>
+                  Active Instances
+                </h2>
+                <div class="home-section-controls">
+                  <button id="instances-refresh" class="home-activity--refresh material-symbols-outlined"
+                    data-tooltip="Refresh Instances">refresh</button>
+                  <span class="home-activity--user-count">User Count</span>
+                </div>
+              </div>
+              <div class="home-activity--activity-wrapper">
+              </div>
+            </div>
+            
+            <div class="home-requests">
+              <div class="home-section-header">
+                <h2>
+                  <span class="material-symbols-outlined">notifications</span>
+                  Notifications
+                </h2>
+              </div>
+              <div class="home-requests-wrapper">
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="home-history">
-          <h2>Friend History</h2>
-          <div class="home-history--history-wrapper"></div>
+          
+          <div class="home-sidebar-section">
+            <div class="home-history">
+              <div class="home-section-header">
+                <h2>
+                  <span class="material-symbols-outlined">history</span>
+                  Friend Activity
+                </h2>
+              </div>
+              <div class="home-history--history-wrapper"></div>
+            </div>
+          </div>
         </div>
       </div>
       <!-- SEARCH -->
