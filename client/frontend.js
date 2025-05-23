@@ -133,6 +133,16 @@ function swapNavPages(page) {
         case 'friends':
             setInputValueAndFocus('.friends-filter', '');
             removeFilteredItemClass('.friend-list-node');
+            // Reset filter controls to "All" and ensure all friends are visible
+            document.querySelectorAll('.friends-filter-controls .filter-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector('.friends-filter-controls .filter-button[data-filter="all"]').classList.add('active');
+            // Make sure all friend cards are visible
+            document.querySelectorAll('.friend-list-node').forEach(card => {
+                card.style.display = '';
+                card.classList.remove('filtered-item');
+            });
             break;
         case 'avatars':
             loadAndFilterPageContent('avatars', '#display-avatars', window.API.refreshGetActiveUserAvatars, '#avatars-filter');
@@ -1396,6 +1406,69 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
 
     // Update the Total Friend Counter :)
     document.querySelector('#friend-count').textContent = totalFriends;
+});
+
+// Friends Filter Controls - Handle All/Online button filtering
+document.querySelectorAll('.friends-filter-controls .filter-button').forEach(button => {
+    button.addEventListener('click', () => {
+        // Remove active class from all filter buttons
+        document.querySelectorAll('.friends-filter-controls .filter-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Add active class to clicked button
+        button.classList.add('active');
+        
+        // Get filter type and current text filter
+        const filterType = button.dataset.filter;
+        const filterText = document.querySelector('.friends-filter').value.toLowerCase();
+        
+        // Get all friend cards
+        const friendCards = document.querySelectorAll('.friend-list-node');
+        
+        friendCards.forEach(card => {
+            const isOnline = card.querySelector('.status-indicator:not(.offline)');
+            const friendName = card.querySelector('.friend-name').textContent.toLowerCase();
+            const matchesText = filterText === '' || friendName.includes(filterText);
+            
+            // Check if friend matches button filter
+            const matchesButtonFilter = filterType === 'all' || (filterType === 'online' && isOnline);
+            
+            // Show card only if it matches both text and button filters
+            if (matchesText && matchesButtonFilter) {
+                card.style.display = '';
+                card.classList.remove('filtered-item');
+            } else {
+                card.style.display = 'none';
+                card.classList.add('filtered-item');
+            }
+        });
+    });
+});
+
+// Friends text filter functionality
+document.querySelector('.friends-filter').addEventListener('input', (event) => {
+    const filterText = event.target.value.toLowerCase();
+    const friendCards = document.querySelectorAll('.friend-list-node');
+    const activeButtonFilter = document.querySelector('.friends-filter-controls .filter-button.active').dataset.filter;
+    
+    friendCards.forEach(card => {
+        const friendName = card.querySelector('.friend-name').textContent.toLowerCase();
+        const matchesText = filterText === '' || friendName.includes(filterText);
+        
+        // Check if friend matches button filter
+        const isOnline = card.querySelector('.status-indicator:not(.offline)');
+        const matchesButtonFilter = activeButtonFilter === 'all' || (activeButtonFilter === 'online' && isOnline);
+        
+        // Show card only if it matches both text and button filters
+        if (matchesText && matchesButtonFilter) {
+            card.style.display = '';
+            card.classList.remove('filtered-item');
+        } else {
+            card.style.display = 'none';
+            card.classList.add('filtered-item');
+        }
+    });
 });
 
 // returns .imageBase64, .imageHash, .imageUrl
