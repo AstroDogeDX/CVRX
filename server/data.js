@@ -1092,6 +1092,10 @@ class Core {
         if (avatar?.imageUrl) {
             await LoadImage(avatar.imageUrl, avatar);
         }
+        // Load the creator/user images
+        if (avatar?.user) {
+            await LoadUserImages(avatar.user);
+        }
         return avatar;
     }
 
@@ -1099,6 +1103,10 @@ class Core {
         const prop = await CVRHttp.GetPropById(propId);
         if (prop?.imageUrl) {
             await LoadImage(prop.imageUrl, prop);
+        }
+        // Load the creator/author images
+        if (prop?.author) {
+            await LoadUserImages(prop.author);
         }
         return prop;
     }

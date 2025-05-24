@@ -611,6 +611,22 @@ function getFriendStatus(friend) {
     return { name: 'Unknown', type: null };
 }
 
+// Helper function to determine current entity type from the details window
+function getCurrentEntityType(entityId) {
+    // Check the current details window content to determine entity type
+    const avatarElement = document.querySelector('.details-window--avatar');
+    if (avatarElement && avatarElement.textContent.includes('Avatar')) {
+        return 'avatar';
+    } else if (avatarElement && avatarElement.textContent.includes('Prop')) {
+        return 'prop';
+    } else if (avatarElement && avatarElement.textContent.includes('World')) {
+        return 'world';
+    } else if (avatarElement && avatarElement.textContent.includes('Instance')) {
+        return 'instance';
+    }
+    return 'user'; // Default fallback
+}
+
 async function ShowDetails(entityType, entityId) {
     let detailsName = document.querySelector('.details-window--name');
     let detailsImg = document.querySelector('.details-window--img');
@@ -650,7 +666,7 @@ async function ShowDetails(entityType, entityId) {
             const userDetailsAvatar = document.querySelector('.user-details-avatar');
             userDetailsAvatar.classList.remove('hidden');
             userDetailsAvatar.onclick = () => ShowDetails(DetailsType.Avatar, entityInfo.avatar.id);
-            detailsBadge.innerHTML = `<img data-hash="${entityInfo.featuredBadge.imageHash}">${entityInfo.featuredBadge.name}`;
+            detailsBadge.innerHTML = `<img src="img/ui/placeholder.png" data-hash="${entityInfo.user?.imageHash || ''}">By: ${entityInfo.user?.name || 'Unknown'}`;
             detailsRank.innerHTML = `<img src="img/ui/rank.png">${entityInfo.rank}`;
             detailsGroup.innerHTML = `<img data-hash="${entityInfo.featuredGroup.imageHash}">${entityInfo.featuredGroup.name}`;
 
@@ -879,14 +895,127 @@ async function ShowDetails(entityType, entityId) {
             detailsImg.dataset.hash = entityInfo.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Avatar`;
             document.querySelector('.user-details-avatar').classList.add('hidden');
-            detailsBadge.innerHTML = '';
-            detailsRank.innerHTML = '';
-            detailsGroup.innerHTML = '';
+            
+            // Rank: Creator info (using 'user' field for avatars) - moved above dates
+            detailsRank.innerHTML = `<img src="img/ui/placeholder.png" data-hash="${entityInfo.user?.imageHash || ''}">By: ${entityInfo.user?.name || 'Unknown'}`;
+            
+            // Badge: Upload/Update dates - moved below creator
+            const uploadDate = entityInfo.uploadedAt ? new Date(entityInfo.uploadedAt).toLocaleDateString() : 'Unknown';
+            const updateDate = entityInfo.updatedAt ? new Date(entityInfo.updatedAt).toLocaleDateString() : 'Unknown';
+            detailsBadge.innerHTML = `
+                <div class="detail-section">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <div class="detail-content">
+                        <div>Uploaded: ${uploadDate}</div>
+                        <div>Updated: ${updateDate}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Group: File size, publication status, and sharing status
+            const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
+            const publicationStatus = entityInfo.isPublished ? 'Public' : 'Private';
+            const sharingStatus = entityInfo.isSharedWithMe ? 'Shared with me' : 'Not shared';
+            detailsGroup.innerHTML = `
+                <div class="detail-section">
+                    <span class="material-symbols-outlined">info</span>
+                    <div class="detail-content">
+                        <div><span class="material-symbols-outlined">storage</span> Size: ${fileSize}</div>
+                        <div><span class="material-symbols-outlined">${entityInfo.isPublished ? 'public' : 'lock'}</span> Status: ${publicationStatus}</div>
+                        <div><span class="material-symbols-outlined">${entityInfo.isSharedWithMe ? 'share' : 'person'}</span> ${sharingStatus}</div>
+                    </div>
+                </div>
+            `;
+
+            // Make the creator clickable to view their profile (only if user exists)
+            if (entityInfo.user?.id) {
+                detailsRank.style.cursor = 'pointer';
+                detailsRank.onclick = () => ShowDetails(DetailsType.User, entityInfo.user.id);
+            } else {
+                detailsRank.style.cursor = 'default';
+                detailsRank.onclick = null;
+            }
+
             // Remove any existing button container
             existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
             if (existingButtonContainer) {
                 existingButtonContainer.remove();
             }
+
+            // Create button container
+            const buttonContainer = createElement('div', {
+                className: 'user-details-button-container',
+            });
+
+            // Categories button
+            const categoriesButton = createElement('button', {
+                className: 'user-details-action-button',
+                innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
+                tooltip: 'View Avatar Categories',
+                onClick: () => {
+                    // TODO: Implement categories view
+                    pushToast('Categories feature coming soon!', 'info');
+                },
+            });
+
+            // Add button to container
+            buttonContainer.append(categoriesButton);
+
+            // Add the button container to the header
+            detailsHeader.appendChild(buttonContainer);
+
+            // Show tabs and content for avatar details
+            detailsTabs.style.display = 'flex';
+            detailsContent.style.display = 'block';
+
+            // Show only Description and Shares tabs for Avatar Details
+            document.querySelectorAll('.user-details-tab').forEach(tab => {
+                if (tab.dataset.tab === 'description' || tab.dataset.tab === 'shares') {
+                    tab.style.display = 'flex';
+                } else {
+                    tab.style.display = 'none';
+                }
+            });
+
+            // Set up tab switching
+            const tabs = document.querySelectorAll('.details-tab');
+
+            // Remove any existing click handlers
+            tabs.forEach(tab => {
+                const newTab = tab.cloneNode(true);
+                tab.parentNode.replaceChild(newTab, tab);
+            });
+
+            // Add click handlers to new tabs
+            document.querySelectorAll('.user-details-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs and panes
+                    document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+
+                    // Add active class to clicked tab and corresponding pane
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+
+                    // Load content for the selected tab
+                    loadTabContent(tab.dataset.tab, entityId);
+                });
+            });
+
+            // Reset all tabs to inactive state
+            document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+
+            // Set Description tab as active
+            const descriptionTab = document.querySelector('.user-details-tab[data-tab="description"]');
+            const descriptionPane = document.getElementById('description-tab');
+            if (descriptionTab && descriptionPane) {
+                descriptionTab.classList.add('active');
+                descriptionPane.classList.add('active');
+            }
+
+            // Load initial tab content (Description)
+            loadTabContent('description', entityId);
             break;
         }
         case DetailsType.Prop: {
@@ -896,14 +1025,127 @@ async function ShowDetails(entityType, entityId) {
             detailsImg.dataset.hash = entityInfo.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Prop`;
             document.querySelector('.user-details-avatar').classList.add('hidden');
-            detailsBadge.innerHTML = '';
-            detailsRank.innerHTML = '';
-            detailsGroup.innerHTML = '';
+            
+            // Rank: Creator info (using 'author' field for props) - moved above dates
+            detailsRank.innerHTML = `<img src="img/ui/placeholder.png" data-hash="${entityInfo.author?.imageHash || ''}">By: ${entityInfo.author?.name || 'Unknown'}`;
+            
+            // Badge: Upload/Update dates - moved below creator
+            const uploadDate = entityInfo.uploadedAt ? new Date(entityInfo.uploadedAt).toLocaleDateString() : 'Unknown';
+            const updateDate = entityInfo.updatedAt ? new Date(entityInfo.updatedAt).toLocaleDateString() : 'Unknown';
+            detailsBadge.innerHTML = `
+                <div class="detail-section">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <div class="detail-content">
+                        <div>Uploaded: ${uploadDate}</div>
+                        <div>Updated: ${updateDate}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Group: File size, publication status, and sharing status
+            const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
+            const publicationStatus = entityInfo.isPublished ? 'Public' : 'Private';
+            const sharingStatus = entityInfo.isSharedWithMe ? 'Shared with me' : 'Not shared';
+            detailsGroup.innerHTML = `
+                <div class="detail-section">
+                    <span class="material-symbols-outlined">info</span>
+                    <div class="detail-content">
+                        <div><span class="material-symbols-outlined">storage</span> Size: ${fileSize}</div>
+                        <div><span class="material-symbols-outlined">${entityInfo.isPublished ? 'public' : 'lock'}</span> Status: ${publicationStatus}</div>
+                        <div><span class="material-symbols-outlined">${entityInfo.isSharedWithMe ? 'share' : 'person'}</span> ${sharingStatus}</div>
+                    </div>
+                </div>
+            `;
+
+            // Make the creator clickable to view their profile (only if author exists)
+            if (entityInfo.author?.id) {
+                detailsRank.style.cursor = 'pointer';
+                detailsRank.onclick = () => ShowDetails(DetailsType.User, entityInfo.author.id);
+            } else {
+                detailsRank.style.cursor = 'default';
+                detailsRank.onclick = null;
+            }
+
             // Remove any existing button container
             existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
             if (existingButtonContainer) {
                 existingButtonContainer.remove();
             }
+
+            // Create button container
+            const buttonContainer = createElement('div', {
+                className: 'user-details-button-container',
+            });
+
+            // Categories button
+            const categoriesButton = createElement('button', {
+                className: 'user-details-action-button',
+                innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
+                tooltip: 'View Prop Categories',
+                onClick: () => {
+                    // TODO: Implement categories view
+                    pushToast('Categories feature coming soon!', 'info');
+                },
+            });
+
+            // Add button to container
+            buttonContainer.append(categoriesButton);
+
+            // Add the button container to the header
+            detailsHeader.appendChild(buttonContainer);
+
+            // Show tabs and content for prop details
+            detailsTabs.style.display = 'flex';
+            detailsContent.style.display = 'block';
+
+            // Show only Description and Shares tabs for Prop Details
+            document.querySelectorAll('.user-details-tab').forEach(tab => {
+                if (tab.dataset.tab === 'description' || tab.dataset.tab === 'shares') {
+                    tab.style.display = 'flex';
+                } else {
+                    tab.style.display = 'none';
+                }
+            });
+
+            // Set up tab switching
+            const tabs = document.querySelectorAll('.details-tab');
+
+            // Remove any existing click handlers
+            tabs.forEach(tab => {
+                const newTab = tab.cloneNode(true);
+                tab.parentNode.replaceChild(newTab, tab);
+            });
+
+            // Add click handlers to new tabs
+            document.querySelectorAll('.user-details-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs and panes
+                    document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+
+                    // Add active class to clicked tab and corresponding pane
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+
+                    // Load content for the selected tab
+                    loadTabContent(tab.dataset.tab, entityId);
+                });
+            });
+
+            // Reset all tabs to inactive state
+            document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+
+            // Set Description tab as active
+            const descriptionTab = document.querySelector('.user-details-tab[data-tab="description"]');
+            const descriptionPane = document.getElementById('description-tab');
+            if (descriptionTab && descriptionPane) {
+                descriptionTab.classList.add('active');
+                descriptionPane.classList.add('active');
+            }
+
+            // Load initial tab content (Description)
+            loadTabContent('description', entityId);
             break;
         }
         case DetailsType.World: {
@@ -1040,6 +1282,78 @@ async function ShowDetails(entityType, entityId) {
 
 // Function to load content for each tab
 async function loadTabContent(tab, entityId) {
+    if (tab === 'description') {
+        const descriptionContainer = document.querySelector('#description-tab .description-container');
+        if (!descriptionContainer) return;
+
+        descriptionContainer.innerHTML = '<div class="loading-indicator">Loading...</div>';
+
+        try {
+            // Determine entity type and get appropriate data
+            let entityInfo;
+            const currentEntityType = getCurrentEntityType(entityId);
+            
+            if (currentEntityType === 'avatar') {
+                entityInfo = await window.API.getAvatarById(entityId);
+            } else if (currentEntityType === 'prop') {
+                entityInfo = await window.API.getPropById(entityId);
+            }
+
+            const description = entityInfo?.description || '';
+            const tags = entityInfo?.tags || [];
+            
+            // Create tags HTML if tags exist
+            let tagsHtml = '';
+            if (tags.length > 0) {
+                const tagElements = tags.map(tag => 
+                    `<span class="content-tag">${tag}</span>`
+                ).join('');
+                tagsHtml = `
+                    <div class="tags-section">
+                        <h4>Tags</h4>
+                        <div class="tags-container">${tagElements}</div>
+                    </div>
+                `;
+            }
+            
+            // Create description content
+            descriptionContainer.innerHTML = `
+                <div class="description-content">
+                    ${description ? 
+                        `<div class="description-text">${description}</div>` :
+                        `<div class="description-placeholder">No description available</div>`
+                    }
+                    ${tagsHtml}
+                </div>
+            `;
+        } catch (error) {
+            descriptionContainer.innerHTML = `<div class="error-message">Error loading description</div>`;
+            console.error('Error loading description:', error);
+        }
+        return;
+    }
+
+    if (tab === 'shares') {
+        const sharesContainer = document.querySelector('#shares-tab .shares-container');
+        if (!sharesContainer) return;
+
+        // Placeholder content for shares tab
+        sharesContainer.innerHTML = `
+            <div class="shares-content">
+                <div class="shares-placeholder">
+                    <div class="placeholder-icon">
+                        <span class="material-symbols-outlined">share</span>
+                    </div>
+                    <div class="placeholder-text">
+                        <h3>Shares Feature Coming Soon</h3>
+                        <p>This section will show users who have shared this content with you and allow you to share it with others.</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
     if (tab === 'notes') {
         const notesContainer = document.querySelector('#notes-tab .notes-container');
         if (!notesContainer) return;
