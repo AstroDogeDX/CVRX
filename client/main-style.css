@@ -3598,7 +3598,6 @@ button {
     width: 100%;
     box-sizing: border-box;
     min-height: 100px;
-    padding: 1rem;
     background: var(--color-background-secondary);
     border-radius: 0.5rem;
     margin-bottom: 1rem;
@@ -4303,7 +4302,6 @@ button {
 /* Description and Shares container styles */
 .description-container,
 .shares-container {
-    padding: 20px;
     height: 100%;
     overflow-y: auto;
 }
