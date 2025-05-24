@@ -2004,7 +2004,12 @@ button {
     gap: 10px;
 }
 
-.details-tab {
+/* Entity-specific Tab Classes - Consolidated */
+.user-details-tab,
+.avatar-details-tab,
+.prop-details-tab,
+.world-details-tab,
+.instance-details-tab {
     padding: 8px 16px;
     background: var(--color-background-dark);
     border: 1px solid var(--color-border);
@@ -2018,51 +2023,102 @@ button {
     pointer-events: auto;
 }
 
-.details-tab.disabled {
+.user-details-tab.disabled,
+.avatar-details-tab.disabled,
+.prop-details-tab.disabled,
+.world-details-tab.disabled,
+.instance-details-tab.disabled {
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
 }
 
-.details-tab:hover:not(.disabled) {
+.user-details-tab:hover:not(.disabled),
+.avatar-details-tab:hover:not(.disabled),
+.prop-details-tab:hover:not(.disabled),
+.world-details-tab:hover:not(.disabled),
+.instance-details-tab:hover:not(.disabled) {
     background: var(--color-background-light);
 }
 
-.details-tab.active {
+.user-details-tab.active,
+.avatar-details-tab.active,
+.prop-details-tab.active,
+.world-details-tab.active,
+.instance-details-tab.active {
     background: var(--color-accent);
     border-color: var(--color-accent);
 }
 
-.details-tab .material-symbols-outlined {
+.user-details-tab .material-symbols-outlined,
+.avatar-details-tab .material-symbols-outlined,
+.prop-details-tab .material-symbols-outlined,
+.world-details-tab .material-symbols-outlined,
+.instance-details-tab .material-symbols-outlined {
     font-size: 18px;
 }
 
-.details-tab-content {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    height: calc(100% - 8px);
-    padding-bottom: 20px;
-}
-
-.details-tab-pane {
+/* Entity-specific Tab Pane Classes - Consolidated */
+.user-details-tab-pane,
+.avatar-details-tab-pane,
+.prop-details-tab-pane,
+.world-details-tab-pane,
+.instance-details-tab-pane {
     display: none;
     flex: 1;
     overflow-y: auto;
     padding: 10px;
 }
 
-.details-tab-pane.active {
+.user-details-tab-pane.active,
+.avatar-details-tab-pane.active,
+.prop-details-tab-pane.active,
+.world-details-tab-pane.active,
+.instance-details-tab-pane.active {
     display: block;
 }
 
-.details-grid {
+/* Entity-specific Grid Classes - Consolidated */
+.user-details-grid,
+.avatar-details-grid,
+.prop-details-grid,
+.world-details-grid,
+.instance-details-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 15px;
     padding: 10px;
     pointer-events: auto;
+}
+
+/* Entity-specific Container Classes - Consolidated (placeholders for future customization) */
+.user-details-window,
+.avatar-details-window,
+.prop-details-window,
+.world-details-window,
+.instance-details-window,
+.user-details-header,
+.avatar-details-header,
+.prop-details-header,
+.world-details-header,
+.instance-details-header,
+.user-details-content,
+.avatar-details-content,
+.prop-details-content,
+.world-details-content,
+.instance-details-content,
+.user-details-tabs,
+.avatar-details-tabs,
+.prop-details-tabs,
+.world-details-tabs,
+.instance-details-tabs,
+.user-details-tab-content,
+.avatar-details-tab-content,
+.prop-details-tab-content,
+.world-details-tab-content,
+.instance-details-tab-content {
+    /* These classes inherit from their base classes (.details-window, .details-header, etc.) */
+    /* Add entity-specific styling here when needed, without overriding base layout */
 }
 
 .details-profile {
@@ -4388,141 +4444,4 @@ button {
 
 .instance-details-avatar.hidden {
     display: none;
-}
-
-/* Entity-specific Tab Classes */
-.user-details-tab,
-.avatar-details-tab,
-.prop-details-tab,
-.world-details-tab,
-.instance-details-tab {
-    padding: 8px 16px;
-    background: var(--color-background-dark);
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--color-text);
-    pointer-events: auto;
-}
-
-.user-details-tab.disabled,
-.avatar-details-tab.disabled,
-.prop-details-tab.disabled,
-.world-details-tab.disabled,
-.instance-details-tab.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-.user-details-tab:hover:not(.disabled),
-.avatar-details-tab:hover:not(.disabled),
-.prop-details-tab:hover:not(.disabled),
-.world-details-tab:hover:not(.disabled),
-.instance-details-tab:hover:not(.disabled) {
-    background: var(--color-background-light);
-}
-
-.user-details-tab.active,
-.avatar-details-tab.active,
-.prop-details-tab.active,
-.world-details-tab.active,
-.instance-details-tab.active {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
-}
-
-.user-details-tab .material-symbols-outlined,
-.avatar-details-tab .material-symbols-outlined,
-.prop-details-tab .material-symbols-outlined,
-.world-details-tab .material-symbols-outlined,
-.instance-details-tab .material-symbols-outlined {
-    font-size: 18px;
-}
-
-/* Entity-specific Tab Pane Classes */
-.user-details-tab-pane,
-.avatar-details-tab-pane,
-.prop-details-tab-pane,
-.world-details-tab-pane,
-.instance-details-tab-pane {
-    display: none;
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-}
-
-.user-details-tab-pane.active,
-.avatar-details-tab-pane.active,
-.prop-details-tab-pane.active,
-.world-details-tab-pane.active,
-.instance-details-tab-pane.active {
-    display: block;
-}
-
-/* Entity-specific Grid Classes */
-.user-details-grid,
-.avatar-details-grid,
-.prop-details-grid,
-.world-details-grid,
-.instance-details-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
-    padding: 10px;
-    pointer-events: auto;
-}
-
-/* Entity-specific Window Classes */
-.user-details-window,
-.avatar-details-window,
-.prop-details-window,
-.world-details-window,
-.instance-details-window {
-    /* Only add entity-specific styling here, don't override base layout */
-    /* The base .details-window class handles the core layout */
-}
-
-/* Entity-specific Header Classes */
-.user-details-header,
-.avatar-details-header,
-.prop-details-header,
-.world-details-header,
-.instance-details-header {
-    /* Only add entity-specific styling here, don't override base layout */
-    /* The base .details-header class handles the core layout */
-}
-
-/* Entity-specific Content Classes */
-.user-details-content,
-.avatar-details-content,
-.prop-details-content,
-.world-details-content,
-.instance-details-content {
-    /* Only add entity-specific styling here, don't override base layout */
-    /* The base .details-content class handles the core layout */
-}
-
-/* Entity-specific Tabs Container Classes */
-.user-details-tabs,
-.avatar-details-tabs,
-.prop-details-tabs,
-.world-details-tabs,
-.instance-details-tabs {
-    /* Only add entity-specific styling here, don't override base layout */
-    /* The base .details-tabs class handles the core layout */
-}
-
-/* Entity-specific Tab Content Classes */
-.user-details-tab-content,
-.avatar-details-tab-content,
-.prop-details-tab-content,
-.world-details-tab-content,
-.instance-details-tab-content {
-    /* Only add entity-specific styling here, don't override base layout */
-    /* The base .details-tab-content class handles the core layout */
 }
