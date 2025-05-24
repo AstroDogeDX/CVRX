@@ -1988,6 +1988,8 @@ button {
     padding: 20px;
     border: 1px solid var(--color-border);
     overflow: hidden;
+    min-height: 0;
+    height: 100%;
 }
 
 .details-tabs {
@@ -1996,12 +1998,22 @@ button {
     gap: 10px;
     border-bottom: 1px solid var(--color-border);
     padding-bottom: 10px;
+    flex-shrink: 0;
 }
 
 .details-tabs-left,
 .details-tabs-right {
     display: flex;
     gap: 10px;
+}
+
+.details-tab-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    height: calc(100% - 30px);
 }
 
 /* Entity-specific Tab Classes - Consolidated */
@@ -2068,6 +2080,8 @@ button {
     flex: 1;
     overflow-y: auto;
     padding: 10px;
+    min-height: 0;
+    height: 100%;
 }
 
 .user-details-tab-pane.active,
@@ -2075,7 +2089,9 @@ button {
 .prop-details-tab-pane.active,
 .world-details-tab-pane.active,
 .instance-details-tab-pane.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 /* Entity-specific Grid Classes - Consolidated */
