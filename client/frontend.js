@@ -891,6 +891,137 @@ function addEntityTabs(entityType, entityInfo, entityId) {
     applyTooltips();
 }
 
+// Create user-specific header structure using universal details-segment system
+function createUserDetailsHeader(entityInfo) {
+    const detailsHeader = document.querySelector('.details-header');
+    
+    // Clear existing content
+    detailsHeader.innerHTML = '';
+    
+    // Create main container
+    const headerContent = createElement('div', {
+        className: 'details-header-content user-details-header-layout'
+    });
+    
+    // Create main info section with user image and name
+    const mainInfo = createElement('div', {
+        className: 'details-main-info'
+    });
+    
+    // Create thumbnail container using existing clip-path class
+    const thumbnailContainer = createElement('div', {
+        className: 'details-thumbnail-container'
+    });
+    
+    // Create thumbnail image using existing details-thumbnail class
+    const thumbnail = createElement('img', {
+        className: 'details-thumbnail',
+        src: 'img/ui/placeholder.png'
+    });
+    thumbnail.dataset.hash = entityInfo.imageHash;
+    thumbnailContainer.appendChild(thumbnail);
+    
+    // Create entity name
+    const entityName = createElement('h1', {
+        className: 'details-entity-name',
+        textContent: entityInfo.name || 'Unknown User'
+    });
+    
+    // Add thumbnail and name to main info
+    mainInfo.appendChild(thumbnailContainer);
+    mainInfo.appendChild(entityName);
+    
+    // Create segments container
+    const segmentsContainer = createElement('div', {
+        className: 'details-segments-container user-details-segments'
+    });
+    
+    // Create rank segment using universal details-segment
+    const rankSegment = createDetailsSegment({
+        icon: 'military_tech',
+        text: entityInfo.rank || 'Unknown Rank'
+    });
+    rankSegment.classList.add('user-details-rank-segment');
+    
+    // Create badge segment (only if user has a featured badge and it's not the default)
+    let badgeSegment = null;
+    if (entityInfo.featuredBadge && entityInfo.featuredBadge.name && entityInfo.featuredBadge.name !== 'No badge featured') {
+        badgeSegment = createDetailsSegment({
+            iconType: 'image',
+            iconHash: entityInfo.featuredBadge.imageHash,
+            text: entityInfo.featuredBadge.name
+        });
+        badgeSegment.classList.add('user-details-badge-segment');
+    }
+    
+    // Create group segment (only if user has a featured group and it's not the default)
+    let groupSegment = null;
+    if (entityInfo.featuredGroup && entityInfo.featuredGroup.name && entityInfo.featuredGroup.name !== 'No group featured') {
+        groupSegment = createDetailsSegment({
+            iconType: 'image',
+            iconHash: entityInfo.featuredGroup.imageHash,
+            text: entityInfo.featuredGroup.name
+        });
+        groupSegment.classList.add('user-details-group-segment');
+    }
+    
+    // Create separator div
+    const separator = createElement('div', {
+        className: 'user-details-separator-line'
+    });
+    
+    // Create avatar segment using universal details-segment
+    const avatarSegment = createDetailsSegment({
+        iconType: 'image',
+        iconHash: entityInfo.avatar?.imageHash,
+        text: entityInfo.avatar?.name || 'No Avatar',
+        clickable: entityInfo.avatar?.id ? true : false,
+        onClick: entityInfo.avatar?.id ? () => ShowDetails(DetailsType.Avatar, entityInfo.avatar.id) : null
+    });
+    avatarSegment.classList.add('user-details-avatar-segment');
+    
+    // Create instance segment (only if user is online and connected)
+    let instanceSegment = null;
+    if (entityInfo.onlineState && entityInfo.isConnected && entityInfo.instance) {
+        instanceSegment = createDetailsSegment({
+            iconType: 'image',
+            iconHash: entityInfo.instance.world?.imageHash,
+            text: entityInfo.instance.world?.name || entityInfo.instance.name || 'Unknown Instance',
+            clickable: entityInfo.instance.id ? true : false,
+            onClick: entityInfo.instance.id ? () => ShowDetails(DetailsType.Instance, entityInfo.instance.id) : null
+        });
+        instanceSegment.classList.add('user-details-instance-segment');
+    }
+    
+    // Add all segments to container in the requested order
+    segmentsContainer.appendChild(rankSegment);
+    if (badgeSegment) {
+        segmentsContainer.appendChild(badgeSegment);
+    }
+    if (groupSegment) {
+        segmentsContainer.appendChild(groupSegment);
+    }
+    segmentsContainer.appendChild(separator);
+    segmentsContainer.appendChild(avatarSegment);
+    if (instanceSegment) {
+        segmentsContainer.appendChild(instanceSegment);
+    }
+    
+    // Add main info and segments to header content
+    headerContent.appendChild(mainInfo);
+    headerContent.appendChild(segmentsContainer);
+    
+    // Add header content to details header
+    detailsHeader.appendChild(headerContent);
+    
+    return {
+        detailsHeader,
+        headerContent,
+        thumbnail,
+        entityName
+    };
+}
+
 async function ShowDetails(entityType, entityId) {
     // Get container elements (we'll create the header content dynamically)
     let detailsTabs = document.querySelector('.details-tabs');
@@ -924,44 +1055,8 @@ async function ShowDetails(entityType, entityId) {
         case DetailsType.User: {
             entityInfo = await window.API.getUserById(entityId);
             
-            // Create the universal header structure
-            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
-            
-            // Update the thumbnail for the user's profile image
-            headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
-            
-            // Create user-specific segments
-            const creatorSegment = createDetailsSegment({
-                icon: 'person',
-                text: `By: ${entityInfo.user?.name || 'Unknown'}`,
-                clickable: entityInfo.user?.id ? true : false,
-                onClick: entityInfo.user?.id ? () => ShowDetails(DetailsType.User, entityInfo.user.id) : null
-            });
-            
-            const rankSegment = createDetailsSegment({
-                icon: 'star',
-                text: entityInfo.rank || 'Unknown Rank'
-            });
-            
-            const avatarSegment = createDetailsSegment({
-                iconType: 'image',
-                iconHash: entityInfo.avatar?.imageHash,
-                text: entityInfo.avatar?.name || 'No Avatar',
-                clickable: entityInfo.avatar?.id ? true : false,
-                onClick: entityInfo.avatar?.id ? () => ShowDetails(DetailsType.Avatar, entityInfo.avatar.id) : null
-            });
-            
-            const groupSegment = createDetailsSegment({
-                iconType: 'image',
-                iconHash: entityInfo.featuredGroup?.imageHash,
-                text: entityInfo.featuredGroup?.name || 'No Group'
-            });
-            
-            // Add segments to container
-            headerElements.segmentsContainer.appendChild(creatorSegment);
-            headerElements.segmentsContainer.appendChild(rankSegment);
-            headerElements.segmentsContainer.appendChild(avatarSegment);
-            headerElements.segmentsContainer.appendChild(groupSegment);
+            // Create the custom user header structure
+            const headerElements = createUserDetailsHeader(entityInfo);
 
             // Show tabs and content for user details
             detailsTabs.style.display = 'flex';
@@ -1741,7 +1836,7 @@ async function loadTabContent(tab, entityId) {
                 // Create user icons for instance members
                 let userIconsHtml = '';
                 if (item.members && item.members.length > 0) {
-                    const maxVisibleIcons = 25;
+                    const maxVisibleIcons = 24;
                     const visibleMembers = item.members.slice(0, maxVisibleIcons);
                     const remainingCount = item.members.length - maxVisibleIcons;
                     
@@ -3281,13 +3376,13 @@ function createDetailsSegment(options = {}) {
         className: `details-segment${clickable ? ' clickable' : ''}`
     });
     
-    // Add icon if provided
-    if (icon) {
+    // Add icon if provided (either material icon or image)
+    if (icon || iconType === 'image') {
         if (iconType === 'image') {
             const iconImg = createElement('img', {
-                src: 'img/ui/placeholder.png',
-                dataset: { hash: iconHash || '' }
+                src: 'img/ui/placeholder.png'
             });
+            iconImg.dataset.hash = iconHash || '';
             segment.appendChild(iconImg);
         } else {
             const iconElement = createElement('span', {

@@ -4567,11 +4567,10 @@ button {
 }
 
 .instance-user-icon {
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
+    width: 27px;
+    height: 27px;
+    border-radius: 5px;
     border: 2px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     object-fit: cover;
     flex-shrink: 0;
     cursor: pointer;
@@ -4681,7 +4680,6 @@ button {
 .details-header-content {
     display: flex;
     flex-direction: column;
-    gap: 15px;
     width: 100%;
 }
 
@@ -4727,23 +4725,21 @@ button {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 0;
     font-size: 14px;
     line-height: 1.4;
     color: var(--color-text);
-    min-height: 32px;
 }
 
 .details-segment img {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
     border-radius: 4px;
     flex-shrink: 0;
     object-fit: cover;
 }
 
 .details-segment .material-symbols-outlined {
-    font-size: 18px;
+    font-size: 30px;
     color: var(--color-text-secondary);
     flex-shrink: 0;
 }
@@ -4753,7 +4749,6 @@ button {
     transition: var(--transition-fast);
     border-radius: 4px;
     padding: 6px 8px;
-    margin: -6px -8px;
 }
 
 .details-segment.clickable:hover {
@@ -4767,5 +4762,234 @@ button {
     margin-top: 8px;
 }
 
-/* Legacy compatibility - keep existing styles but mark as deprecated */
-/* TODO: Remove these once all references are updated */
+/* User Details Header Styles */
+.user-details-header-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+}
+
+.user-details-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.user-details-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--color-bg-secondary);
+    transition: var(--transition-standard);
+}
+
+.user-details-image:hover {
+    border-color: var(--color-accent);
+    transform: scale(1.05);
+}
+
+.user-details-username {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+    text-align: center;
+}
+
+.user-details-separator {
+    width: 80%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--color-bg-secondary), transparent);
+    margin: 0.5rem 0;
+}
+
+.user-details-info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-standard);
+    background: var(--color-bg-tertiary);
+    min-width: 200px;
+    transition: var(--transition-standard);
+}
+
+.user-details-info-item.clickable {
+    cursor: pointer;
+}
+
+.user-details-info-item.clickable:hover {
+    background: var(--color-bg-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.user-details-info-item .material-symbols-outlined {
+    font-size: 1.5rem;
+    color: var(--color-accent);
+    flex-shrink: 0;
+}
+
+.user-details-info-item img {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-standard);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.user-details-info-item span {
+    color: var(--color-text-primary);
+    font-weight: 500;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.user-details-badge-image,
+.user-details-group-image {
+    border: 2px solid var(--color-bg-secondary);
+    transition: var(--transition-standard);
+}
+
+.user-details-info-item:hover .user-details-badge-image,
+.user-details-info-item:hover .user-details-group-image {
+    border-color: var(--color-accent);
+}
+
+.user-details-avatar-image {
+    border-radius: 50%;
+    border: 2px solid var(--color-bg-secondary);
+    transition: var(--transition-standard);
+}
+
+.user-details-avatar-item:hover .user-details-avatar-image {
+    border-color: var(--color-accent);
+}
+
+.user-details-world-image {
+    border: 2px solid var(--color-bg-secondary);
+    transition: var(--transition-standard);
+}
+
+.user-details-instance-item:hover .user-details-world-image {
+    border-color: var(--color-accent);
+}
+
+/* Responsive adjustments for user details header */
+@media (max-width: 768px) {
+    .user-details-header-content {
+        padding: 1rem;
+        gap: 0.75rem;
+    }
+    
+    .user-details-image {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .user-details-username {
+        font-size: 1.5rem;
+    }
+    
+    .user-details-info-item {
+        min-width: auto;
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+/* User Details Header Layout - Secondary styling for details-segment system */
+.user-details-header-layout {
+    /* Use existing details-header-content base */
+}
+
+.user-details-segments {
+    /* Additional styling for user-specific segment layout */
+}
+
+.user-details-separator-line {
+    width: 80%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--color-border), transparent);
+    margin: 8px auto;
+    align-self: center;
+}
+
+/* User-specific segment styling - builds on existing details-segment */
+.user-details-avatar-segment,
+.user-details-instance-segment {
+    /* Inherits all styles from .details-segment */
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    transition: var(--transition-standard);
+}
+
+.user-details-avatar-segment:hover,
+.user-details-instance-segment:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--color-accent);
+}
+
+/* Specific styling for rank segment icon */
+.user-details-rank-segment .material-symbols-outlined {
+    color: var(--color-accent);
+}
+
+/* Avatar and instance segments get additional styling since they're clickable */
+.user-details-avatar-segment.clickable,
+.user-details-instance-segment.clickable {
+    cursor: pointer;
+}
+
+/* Special styling for avatar images in segments */
+.user-details-avatar-segment img {
+    border: 1px solid var(--color-border);
+    transition: var(--transition-standard);
+    width: 32px;
+    height: 32px;
+}
+
+.user-details-avatar-segment:hover img {
+    border-color: var(--color-accent);
+}
+
+/* Badge and group images get rounded corners */
+.user-details-badge-segment img,
+.user-details-group-segment img {
+    transition: var(--transition-standard);
+    width: 30px;
+    height: 30px;
+}
+
+/* World/instance images in segments */
+.user-details-instance-segment img {
+    border: 1px solid var(--color-border);
+    transition: var(--transition-standard);
+    width: 32px;
+    height: 32px;
+}
+
+.user-details-instance-segment:hover img {
+    border-color: var(--color-accent);
+}
+
+/* Responsive adjustments for user details header */
+@media (max-width: 768px) {
+    .user-details-segments {
+        gap: 6px;
+    }
+    
+    .user-details-rank-segment,
+    .user-details-badge-segment,
+    .user-details-group-segment,
+    .user-details-avatar-segment,
+    .user-details-instance-segment {
+        padding: 6px 10px;
+    }
+}
