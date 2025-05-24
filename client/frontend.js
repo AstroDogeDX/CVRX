@@ -1121,7 +1121,7 @@ async function ShowDetails(entityType, entityId) {
             buttonContainer.append(friendActionButton, categoriesButton, blockButton);
 
             // Add the button container to the header
-            headerElements.headerContent.appendChild(buttonContainer);
+            headerElements.detailsHeader.appendChild(buttonContainer);
 
             // Add tabs dynamically
             addEntityTabs(entityType, entityInfo, entityId);
@@ -1190,7 +1190,7 @@ async function ShowDetails(entityType, entityId) {
             buttonContainer.append(categoriesButton);
 
             // Add the button container to the header
-            headerElements.headerContent.appendChild(buttonContainer);
+            headerElements.detailsHeader.appendChild(buttonContainer);
 
             // Show tabs and content for avatar details
             detailsTabs.style.display = 'flex';
@@ -1263,7 +1263,7 @@ async function ShowDetails(entityType, entityId) {
             buttonContainer.append(categoriesButton);
 
             // Add the button container to the header
-            headerElements.headerContent.appendChild(buttonContainer);
+            headerElements.detailsHeader.appendChild(buttonContainer);
 
             // Show tabs and content for prop details
             detailsTabs.style.display = 'flex';
@@ -1334,7 +1334,7 @@ async function ShowDetails(entityType, entityId) {
             buttonContainer.append(createInstanceButton);
 
             // Add the button container to the header
-            headerElements.headerContent.appendChild(buttonContainer);
+            headerElements.detailsHeader.appendChild(buttonContainer);
 
             // Show tabs and content for world details
             detailsTabs.style.display = 'flex';
@@ -1404,7 +1404,7 @@ async function ShowDetails(entityType, entityId) {
             buttonContainer.append(joinInstanceButton);
 
             // Add the button container to the header
-            headerElements.headerContent.appendChild(buttonContainer);
+            headerElements.detailsHeader.appendChild(buttonContainer);
 
             // Show tabs and content for instance details
             detailsTabs.style.display = 'flex';
