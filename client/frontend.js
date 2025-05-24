@@ -616,17 +616,21 @@ function getFriendStatus(friend) {
 
 // Helper function to determine current entity type from the details window
 function getCurrentEntityType(entityId) {
-    // Check the current details window content to determine entity type
-    const avatarElement = document.querySelector('.details-window--avatar');
-    if (avatarElement && avatarElement.textContent.includes('Avatar')) {
+    // Check the details window classes to determine entity type
+    const detailsWindow = document.querySelector('.details-window');
+    if (!detailsWindow) return 'user'; // Default fallback
+    
+    // Check for entity-specific classes
+    if (detailsWindow.classList.contains('avatar-details-window')) {
         return 'avatar';
-    } else if (avatarElement && avatarElement.textContent.includes('Prop')) {
+    } else if (detailsWindow.classList.contains('prop-details-window')) {
         return 'prop';
-    } else if (avatarElement && avatarElement.textContent.includes('World')) {
+    } else if (detailsWindow.classList.contains('world-details-window')) {
         return 'world';
-    } else if (avatarElement && avatarElement.textContent.includes('Instance')) {
+    } else if (detailsWindow.classList.contains('instance-details-window')) {
         return 'instance';
     }
+    
     return 'user'; // Default fallback
 }
 
@@ -888,14 +892,9 @@ function addEntityTabs(entityType, entityInfo, entityId) {
 }
 
 async function ShowDetails(entityType, entityId) {
-    let detailsName = document.querySelector('.details-window--name');
-    let detailsImg = document.querySelector('.details-window--img');
-    let detailsAvatar = document.querySelector('.details-window--avatar');
-    let detailsBadge = document.querySelector('.details-window--badge');
-    let detailsRank = document.querySelector('.details-window--rank');
+    // Get container elements (we'll create the header content dynamically)
     let detailsTabs = document.querySelector('.details-tabs');
     let detailsContent = document.querySelector('.details-content');
-    let detailsGroup = document.querySelector('.details-window--group');
     let detailsHeader = document.querySelector('.details-header');
 
     let entityInfo;
@@ -924,16 +923,45 @@ async function ShowDetails(entityType, entityId) {
     switch (entityType) {
         case DetailsType.User: {
             entityInfo = await window.API.getUserById(entityId);
-            detailsName.innerHTML = `${entityInfo.name}`;
-            detailsImg.src = 'img/ui/placeholder.png';
-            detailsImg.dataset.hash = entityInfo.imageHash;
-            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.avatar.imageHash}">${entityInfo.avatar.name}`;
-            const userDetailsAvatar = document.querySelector('.user-details-avatar');
-            userDetailsAvatar.classList.remove('hidden');
-            userDetailsAvatar.onclick = () => ShowDetails(DetailsType.Avatar, entityInfo.avatar.id);
-            detailsBadge.innerHTML = `<img src="img/ui/placeholder.png" data-hash="${entityInfo.user?.imageHash || ''}">By: ${entityInfo.user?.name || 'Unknown'}`;
-            detailsRank.innerHTML = `<img src="img/ui/rank.png">${entityInfo.rank}`;
-            detailsGroup.innerHTML = `<img data-hash="${entityInfo.featuredGroup.imageHash}">${entityInfo.featuredGroup.name}`;
+            
+            // Create the universal header structure
+            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
+            
+            // Update the thumbnail for the user's profile image
+            headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
+            
+            // Create user-specific segments
+            const creatorSegment = createDetailsSegment({
+                icon: 'person',
+                text: `By: ${entityInfo.user?.name || 'Unknown'}`,
+                clickable: entityInfo.user?.id ? true : false,
+                onClick: entityInfo.user?.id ? () => ShowDetails(DetailsType.User, entityInfo.user.id) : null
+            });
+            
+            const rankSegment = createDetailsSegment({
+                icon: 'star',
+                text: entityInfo.rank || 'Unknown Rank'
+            });
+            
+            const avatarSegment = createDetailsSegment({
+                iconType: 'image',
+                iconHash: entityInfo.avatar?.imageHash,
+                text: entityInfo.avatar?.name || 'No Avatar',
+                clickable: entityInfo.avatar?.id ? true : false,
+                onClick: entityInfo.avatar?.id ? () => ShowDetails(DetailsType.Avatar, entityInfo.avatar.id) : null
+            });
+            
+            const groupSegment = createDetailsSegment({
+                iconType: 'image',
+                iconHash: entityInfo.featuredGroup?.imageHash,
+                text: entityInfo.featuredGroup?.name || 'No Group'
+            });
+            
+            // Add segments to container
+            headerElements.segmentsContainer.appendChild(creatorSegment);
+            headerElements.segmentsContainer.appendChild(rankSegment);
+            headerElements.segmentsContainer.appendChild(avatarSegment);
+            headerElements.segmentsContainer.appendChild(groupSegment);
 
             // Show tabs and content for user details
             detailsTabs.style.display = 'flex';
@@ -1093,7 +1121,7 @@ async function ShowDetails(entityType, entityId) {
             buttonContainer.append(friendActionButton, categoriesButton, blockButton);
 
             // Add the button container to the header
-            detailsHeader.appendChild(buttonContainer);
+            headerElements.headerContent.appendChild(buttonContainer);
 
             // Add tabs dynamically
             addEntityTabs(entityType, entityInfo, entityId);
@@ -1101,51 +1129,43 @@ async function ShowDetails(entityType, entityId) {
         }
         case DetailsType.Avatar: {
             entityInfo = await window.API.getAvatarById(entityId);
-            detailsName.innerHTML = `${entityInfo.name}`;
-            detailsImg.src = 'img/ui/placeholder.png';
-            detailsImg.dataset.hash = entityInfo.imageHash;
-            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Avatar`;
-            document.querySelector('.avatar-details-avatar').classList.add('hidden');
             
-            // Rank: Creator info (using 'user' field for avatars) - moved above dates
-            detailsRank.innerHTML = `<img src="img/ui/placeholder.png" data-hash="${entityInfo.user?.imageHash || ''}">By: ${entityInfo.user?.name || 'Unknown'}`;
+            // Create the universal header structure
+            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
             
-            // Badge: Upload/Update dates - moved below creator
+            // Update the thumbnail for the avatar image
+            headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
+            
+            // Create avatar-specific segments
+            const creatorSegment = createDetailsSegment({
+                iconType: 'image',
+                iconHash: entityInfo.user?.imageHash,
+                text: `By: ${entityInfo.user?.name || 'Unknown'}`,
+                clickable: entityInfo.user?.id ? true : false,
+                onClick: entityInfo.user?.id ? () => ShowDetails(DetailsType.User, entityInfo.user.id) : null
+            });
+            
+            // Upload/Update dates segment
             const uploadDate = entityInfo.uploadedAt ? new Date(entityInfo.uploadedAt).toLocaleDateString() : 'Unknown';
             const updateDate = entityInfo.updatedAt ? new Date(entityInfo.updatedAt).toLocaleDateString() : 'Unknown';
-            detailsBadge.innerHTML = `
-                <div class="detail-section">
-                    <span class="material-symbols-outlined">schedule</span>
-                    <div class="detail-content">
-                        <div>Uploaded: ${uploadDate}</div>
-                        <div>Updated: ${updateDate}</div>
-                    </div>
-                </div>
-            `;
+            const datesSegment = createDetailsSegment({
+                icon: 'schedule',
+                text: `Uploaded: ${uploadDate}<br>Updated: ${updateDate}`
+            });
             
-            // Group: File size, publication status, and sharing status
+            // File info segment
             const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
             const publicationStatus = entityInfo.isPublished ? 'Public' : 'Private';
             const sharingStatus = entityInfo.isSharedWithMe ? 'Shared with me' : 'Not shared';
-            detailsGroup.innerHTML = `
-                <div class="detail-section">
-                    <span class="material-symbols-outlined">info</span>
-                    <div class="detail-content">
-                        <div><span class="material-symbols-outlined">storage</span> Size: ${fileSize}</div>
-                        <div><span class="material-symbols-outlined">${entityInfo.isPublished ? 'public' : 'lock'}</span> Status: ${publicationStatus}</div>
-                        <div><span class="material-symbols-outlined">${entityInfo.isSharedWithMe ? 'share' : 'person'}</span> ${sharingStatus}</div>
-                    </div>
-                </div>
-            `;
-
-            // Make the creator clickable to view their profile (only if user exists)
-            if (entityInfo.user?.id) {
-                detailsRank.style.cursor = 'pointer';
-                detailsRank.onclick = () => ShowDetails(DetailsType.User, entityInfo.user.id);
-            } else {
-                detailsRank.style.cursor = 'default';
-                detailsRank.onclick = null;
-            }
+            const infoSegment = createDetailsSegment({
+                icon: 'info',
+                text: `Size: ${fileSize}<br>Status: ${publicationStatus}<br>${sharingStatus}`
+            });
+            
+            // Add segments to container
+            headerElements.segmentsContainer.appendChild(creatorSegment);
+            headerElements.segmentsContainer.appendChild(datesSegment);
+            headerElements.segmentsContainer.appendChild(infoSegment);
 
             // Remove any existing button container
             removeAllButtonContainers(detailsHeader);
@@ -1170,7 +1190,7 @@ async function ShowDetails(entityType, entityId) {
             buttonContainer.append(categoriesButton);
 
             // Add the button container to the header
-            detailsHeader.appendChild(buttonContainer);
+            headerElements.headerContent.appendChild(buttonContainer);
 
             // Show tabs and content for avatar details
             detailsTabs.style.display = 'flex';
@@ -1182,51 +1202,43 @@ async function ShowDetails(entityType, entityId) {
         }
         case DetailsType.Prop: {
             entityInfo = await window.API.getPropById(entityId);
-            detailsName.innerHTML = `${entityInfo.name}`;
-            detailsImg.src = 'img/ui/placeholder.png';
-            detailsImg.dataset.hash = entityInfo.imageHash;
-            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Prop`;
-            document.querySelector('.prop-details-avatar').classList.add('hidden');
             
-            // Rank: Creator info (using 'author' field for props) - moved above dates
-            detailsRank.innerHTML = `<img src="img/ui/placeholder.png" data-hash="${entityInfo.author?.imageHash || ''}">By: ${entityInfo.author?.name || 'Unknown'}`;
+            // Create the universal header structure
+            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
             
-            // Badge: Upload/Update dates - moved below creator
+            // Update the thumbnail for the prop image
+            headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
+            
+            // Create prop-specific segments
+            const creatorSegment = createDetailsSegment({
+                iconType: 'image',
+                iconHash: entityInfo.author?.imageHash,
+                text: `By: ${entityInfo.author?.name || 'Unknown'}`,
+                clickable: entityInfo.author?.id ? true : false,
+                onClick: entityInfo.author?.id ? () => ShowDetails(DetailsType.User, entityInfo.author.id) : null
+            });
+            
+            // Upload/Update dates segment
             const uploadDate = entityInfo.uploadedAt ? new Date(entityInfo.uploadedAt).toLocaleDateString() : 'Unknown';
             const updateDate = entityInfo.updatedAt ? new Date(entityInfo.updatedAt).toLocaleDateString() : 'Unknown';
-            detailsBadge.innerHTML = `
-                <div class="detail-section">
-                    <span class="material-symbols-outlined">schedule</span>
-                    <div class="detail-content">
-                        <div>Uploaded: ${uploadDate}</div>
-                        <div>Updated: ${updateDate}</div>
-                    </div>
-                </div>
-            `;
+            const datesSegment = createDetailsSegment({
+                icon: 'schedule',
+                text: `Uploaded: ${uploadDate}<br>Updated: ${updateDate}`
+            });
             
-            // Group: File size, publication status, and sharing status
+            // File info segment
             const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
             const publicationStatus = entityInfo.isPublished ? 'Public' : 'Private';
             const sharingStatus = entityInfo.isSharedWithMe ? 'Shared with me' : 'Not shared';
-            detailsGroup.innerHTML = `
-                <div class="detail-section">
-                    <span class="material-symbols-outlined">info</span>
-                    <div class="detail-content">
-                        <div><span class="material-symbols-outlined">storage</span> Size: ${fileSize}</div>
-                        <div><span class="material-symbols-outlined">${entityInfo.isPublished ? 'public' : 'lock'}</span> Status: ${publicationStatus}</div>
-                        <div><span class="material-symbols-outlined">${entityInfo.isSharedWithMe ? 'share' : 'person'}</span> ${sharingStatus}</div>
-                    </div>
-                </div>
-            `;
-
-            // Make the creator clickable to view their profile (only if author exists)
-            if (entityInfo.author?.id) {
-                detailsRank.style.cursor = 'pointer';
-                detailsRank.onclick = () => ShowDetails(DetailsType.User, entityInfo.author.id);
-            } else {
-                detailsRank.style.cursor = 'default';
-                detailsRank.onclick = null;
-            }
+            const infoSegment = createDetailsSegment({
+                icon: 'info',
+                text: `Size: ${fileSize}<br>Status: ${publicationStatus}<br>${sharingStatus}`
+            });
+            
+            // Add segments to container
+            headerElements.segmentsContainer.appendChild(creatorSegment);
+            headerElements.segmentsContainer.appendChild(datesSegment);
+            headerElements.segmentsContainer.appendChild(infoSegment);
 
             // Remove any existing button container
             removeAllButtonContainers(detailsHeader);
@@ -1251,7 +1263,7 @@ async function ShowDetails(entityType, entityId) {
             buttonContainer.append(categoriesButton);
 
             // Add the button container to the header
-            detailsHeader.appendChild(buttonContainer);
+            headerElements.headerContent.appendChild(buttonContainer);
 
             // Show tabs and content for prop details
             detailsTabs.style.display = 'flex';
@@ -1263,47 +1275,41 @@ async function ShowDetails(entityType, entityId) {
         }
         case DetailsType.World: {
             entityInfo = await window.API.getWorldById(entityId);
-            detailsName.innerHTML = `${entityInfo.name}`;
-            detailsImg.src = 'img/ui/placeholder.png';
-            detailsImg.dataset.hash = entityInfo.imageHash;
-            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">World`;
-            document.querySelector('.world-details-avatar').classList.add('hidden');
             
-            // Rank: Creator info (using 'author' field for worlds)
-            detailsRank.innerHTML = `<img src="img/ui/placeholder.png" data-hash="${entityInfo.author?.imageHash || ''}">By: ${entityInfo.author?.name || 'Unknown'}`;
+            // Create the universal header structure
+            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
             
-            // Badge: Upload/Update dates
+            // Update the thumbnail for the world image
+            headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
+            
+            // Create world-specific segments
+            const creatorSegment = createDetailsSegment({
+                iconType: 'image',
+                iconHash: entityInfo.author?.imageHash,
+                text: `By: ${entityInfo.author?.name || 'Unknown'}`,
+                clickable: entityInfo.author?.id ? true : false,
+                onClick: entityInfo.author?.id ? () => ShowDetails(DetailsType.User, entityInfo.author.id) : null
+            });
+            
+            // Upload/Update dates segment
             const uploadDate = entityInfo.uploadedAt ? new Date(entityInfo.uploadedAt).toLocaleDateString() : 'Unknown';
             const updateDate = entityInfo.updatedAt ? new Date(entityInfo.updatedAt).toLocaleDateString() : 'Unknown';
-            detailsBadge.innerHTML = `
-                <div class="detail-section">
-                    <span class="material-symbols-outlined">schedule</span>
-                    <div class="detail-content">
-                        <div>Uploaded: ${uploadDate}</div>
-                        <div>Updated: ${updateDate}</div>
-                    </div>
-                </div>
-            `;
+            const datesSegment = createDetailsSegment({
+                icon: 'schedule',
+                text: `Uploaded: ${uploadDate}<br>Updated: ${updateDate}`
+            });
             
-            // Group: File size
+            // File size segment
             const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
-            detailsGroup.innerHTML = `
-                <div class="detail-section">
-                    <span class="material-symbols-outlined">storage</span>
-                    <div class="detail-content">
-                        <div>Size: ${fileSize}</div>
-                    </div>
-                </div>
-            `;
-
-            // Make the creator clickable to view their profile (only if author exists)
-            if (entityInfo.author?.id) {
-                detailsRank.style.cursor = 'pointer';
-                detailsRank.onclick = () => ShowDetails(DetailsType.User, entityInfo.author.id);
-            } else {
-                detailsRank.style.cursor = 'default';
-                detailsRank.onclick = null;
-            }
+            const sizeSegment = createDetailsSegment({
+                icon: 'storage',
+                text: `Size: ${fileSize}`
+            });
+            
+            // Add segments to container
+            headerElements.segmentsContainer.appendChild(creatorSegment);
+            headerElements.segmentsContainer.appendChild(datesSegment);
+            headerElements.segmentsContainer.appendChild(sizeSegment);
 
             // Remove any existing button container
             removeAllButtonContainers(detailsHeader);
@@ -1328,7 +1334,7 @@ async function ShowDetails(entityType, entityId) {
             buttonContainer.append(createInstanceButton);
 
             // Add the button container to the header
-            detailsHeader.appendChild(buttonContainer);
+            headerElements.headerContent.appendChild(buttonContainer);
 
             // Show tabs and content for world details
             detailsTabs.style.display = 'flex';
@@ -1340,32 +1346,39 @@ async function ShowDetails(entityType, entityId) {
         }
         case DetailsType.Instance: {
             entityInfo = await window.API.getInstanceById(entityId);
-            // Include player count in the instance name
-            detailsName.innerHTML = `${entityInfo.name} <span class="instance-player-count">(${entityInfo.currentPlayerCount || 0}/${entityInfo.maxPlayer || '?'})</span>`;
-            detailsImg.src = 'img/ui/placeholder.png';
-            detailsImg.dataset.hash = entityInfo.world.imageHash;
-            detailsAvatar.innerHTML = `<img data-hash="${entityInfo.world.imageHash}">Instance`;
-            document.querySelector('.instance-details-avatar').classList.add('hidden');
             
-            // Badge: Privacy Level
-            detailsBadge.innerHTML = `<span class="material-symbols-outlined">
-                ${entityInfo.instanceSettingPrivacy === 'Public' ? 'public' : 'group'}
-            </span>${entityInfo.instanceSettingPrivacy || 'Unknown'}`;
+            // Create the universal header structure
+            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
             
-            // Rank: Region
-            detailsRank.innerHTML = `<span class="material-symbols-outlined">location_on</span>${(entityInfo.region || 'unknown').toUpperCase()}`;
+            // Update the entity name to include player count
+            headerElements.entityName.innerHTML = `${entityInfo.name} <span class="instance-player-count">(${entityInfo.currentPlayerCount || 0}/${entityInfo.maxPlayer || '?'})</span>`;
             
-            // Group: Instance Owner
-            detailsGroup.innerHTML = `<img data-hash="${entityInfo.owner?.imageHash || ''}">Owner: ${entityInfo.owner?.name || 'Unknown'}`;
-
-            // Make the owner's info clickable to view their profile (only if owner exists)
-            if (entityInfo.owner?.id) {
-                detailsGroup.style.cursor = 'pointer';
-                detailsGroup.onclick = () => ShowDetails(DetailsType.User, entityInfo.owner.id);
-            } else {
-                detailsGroup.style.cursor = 'default';
-                detailsGroup.onclick = null;
-            }
+            // Update the thumbnail for the world image
+            headerElements.thumbnail.dataset.hash = entityInfo.world?.imageHash;
+            
+            // Create instance-specific segments
+            const privacySegment = createDetailsSegment({
+                icon: entityInfo.instanceSettingPrivacy === 'Public' ? 'public' : 'group',
+                text: entityInfo.instanceSettingPrivacy || 'Unknown'
+            });
+            
+            const regionSegment = createDetailsSegment({
+                icon: 'location_on',
+                text: (entityInfo.region || 'unknown').toUpperCase()
+            });
+            
+            const ownerSegment = createDetailsSegment({
+                iconType: 'image',
+                iconHash: entityInfo.owner?.imageHash,
+                text: `Owner: ${entityInfo.owner?.name || 'Unknown'}`,
+                clickable: entityInfo.owner?.id ? true : false,
+                onClick: entityInfo.owner?.id ? () => ShowDetails(DetailsType.User, entityInfo.owner.id) : null
+            });
+            
+            // Add segments to container
+            headerElements.segmentsContainer.appendChild(privacySegment);
+            headerElements.segmentsContainer.appendChild(regionSegment);
+            headerElements.segmentsContainer.appendChild(ownerSegment);
 
             // Add instance action buttons
             // Remove any existing button container
@@ -1391,7 +1404,7 @@ async function ShowDetails(entityType, entityId) {
             buttonContainer.append(joinInstanceButton);
 
             // Add the button container to the header
-            detailsHeader.appendChild(buttonContainer);
+            headerElements.headerContent.appendChild(buttonContainer);
 
             // Show tabs and content for instance details
             detailsTabs.style.display = 'flex';
@@ -3184,17 +3197,119 @@ document.querySelector('#props-filter')?.addEventListener('input', (event) => {
 
 // Helper function to remove all possible button containers to prevent duplication
 function removeAllButtonContainers(detailsHeader) {
-    const possibleButtonContainers = [
-        '.user-details-button-container',
-        '.avatar-details-button-container', 
-        '.prop-details-button-container',
-        '.world-details-button-container',
-        '.instance-details-button-container'
-    ];
-    possibleButtonContainers.forEach(selector => {
-        const existingContainer = detailsHeader.querySelector(selector);
-        if (existingContainer) {
-            existingContainer.remove();
-        }
+    // Remove all possible button containers
+    const containers = detailsHeader.querySelectorAll('[class*="button-container"]');
+    containers.forEach(container => container.remove());
+}
+
+// Create universal details header structure
+function createDetailsHeaderStructure(entityInfo, entityType) {
+    const detailsHeader = document.querySelector('.details-header');
+    
+    // Clear existing content
+    detailsHeader.innerHTML = '';
+    
+    // Create main container
+    const headerContent = createElement('div', {
+        className: 'details-header-content'
     });
+    
+    // Create main info section
+    const mainInfo = createElement('div', {
+        className: 'details-main-info'
+    });
+    
+    // Create thumbnail container
+    const thumbnailContainer = createElement('div', {
+        className: 'details-thumbnail-container'
+    });
+    
+    // Create thumbnail image
+    const thumbnail = createElement('img', {
+        className: 'details-thumbnail',
+        src: 'img/ui/placeholder.png',
+        dataset: { hash: entityInfo.imageHash || '' }
+    });
+    
+    thumbnailContainer.appendChild(thumbnail);
+    
+    // Create entity name
+    const entityName = createElement('h1', {
+        className: 'details-entity-name',
+        textContent: entityInfo.name || 'Unknown'
+    });
+    
+    // Add thumbnail and name to main info
+    mainInfo.appendChild(thumbnailContainer);
+    mainInfo.appendChild(entityName);
+    
+    // Create segments container
+    const segmentsContainer = createElement('div', {
+        className: 'details-segments-container'
+    });
+    
+    // Add main info and segments to header content
+    headerContent.appendChild(mainInfo);
+    headerContent.appendChild(segmentsContainer);
+    
+    // Add header content to details header
+    detailsHeader.appendChild(headerContent);
+    
+    // Return references for easy access
+    return {
+        headerContent,
+        mainInfo,
+        thumbnail,
+        entityName,
+        segmentsContainer,
+        detailsHeader
+    };
+}
+
+// Create a universal segment element
+function createDetailsSegment(options = {}) {
+    const {
+        icon,
+        iconType = 'material', // 'material' or 'image'
+        iconHash,
+        text,
+        clickable = false,
+        onClick
+    } = options;
+    
+    const segment = createElement('div', {
+        className: `details-segment${clickable ? ' clickable' : ''}`
+    });
+    
+    // Add icon if provided
+    if (icon) {
+        if (iconType === 'image') {
+            const iconImg = createElement('img', {
+                src: 'img/ui/placeholder.png',
+                dataset: { hash: iconHash || '' }
+            });
+            segment.appendChild(iconImg);
+        } else {
+            const iconElement = createElement('span', {
+                className: 'material-symbols-outlined',
+                textContent: icon
+            });
+            segment.appendChild(iconElement);
+        }
+    }
+    
+    // Add text content
+    if (text) {
+        const textElement = createElement('span', {
+            innerHTML: text
+        });
+        segment.appendChild(textElement);
+    }
+    
+    // Add click handler if needed
+    if (clickable && onClick) {
+        segment.addEventListener('click', onClick);
+    }
+    
+    return segment;
 }
