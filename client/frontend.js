@@ -627,6 +627,95 @@ function getCurrentEntityType(entityId) {
     return 'user'; // Default fallback
 }
 
+// Helper function to get entity-specific CSS class prefix
+function getEntityClassPrefix(entityType) {
+    switch (entityType) {
+        case DetailsType.User: return 'user-details';
+        case DetailsType.Avatar: return 'avatar-details';
+        case DetailsType.Prop: return 'prop-details';
+        case DetailsType.World: return 'world-details';
+        case DetailsType.Instance: return 'instance-details';
+        default: return 'user-details'; // Default fallback
+    }
+}
+
+// Helper function to update details window classes based on entity type
+function updateDetailsWindowClasses(entityType) {
+    const classPrefix = getEntityClassPrefix(entityType);
+    
+    // Remove all existing entity-specific classes from base elements, but preserve base classes
+    const baseElements = [
+        { selector: '.details-window', baseClass: 'details-window' },
+        { selector: '.details-header', baseClass: 'details-header' },
+        { selector: '.details-content', baseClass: 'details-content' },
+        { selector: '.details-tabs', baseClass: 'details-tabs' },
+        { selector: '.details-tab-content', baseClass: 'details-tab-content' }
+    ];
+    
+    // Update base elements - preserve base class, add entity-specific class
+    baseElements.forEach(({ selector, baseClass }) => {
+        const element = document.querySelector(selector);
+        if (element) {
+            // Remove all entity-specific variants of this class
+            const entityPrefixes = ['user-details', 'avatar-details', 'prop-details', 'world-details', 'instance-details'];
+            entityPrefixes.forEach(entityPrefix => {
+                const specificClass = baseClass.replace('details', entityPrefix);
+                element.classList.remove(specificClass);
+            });
+            
+            // Ensure base class is present
+            element.classList.add(baseClass);
+            
+            // Add the new entity-specific class as an additional modifier
+            const specificClass = baseClass.replace('details', classPrefix);
+            element.classList.add(specificClass);
+        }
+    });
+    
+    // Update tab elements - these don't have direct base classes, so handle them separately
+    document.querySelectorAll('.details-tab').forEach(tab => {
+        const entityPrefixes = ['user-details', 'avatar-details', 'prop-details', 'world-details', 'instance-details'];
+        entityPrefixes.forEach(entityPrefix => {
+            tab.classList.remove(`${entityPrefix}-tab`);
+        });
+        // Preserve the base 'details-tab' class and add entity-specific one
+        tab.classList.add('details-tab');
+        tab.classList.add(`${classPrefix}-tab`);
+    });
+    
+    // Update tab pane elements
+    document.querySelectorAll('.details-tab-pane').forEach(pane => {
+        const entityPrefixes = ['user-details', 'avatar-details', 'prop-details', 'world-details', 'instance-details'];
+        entityPrefixes.forEach(entityPrefix => {
+            pane.classList.remove(`${entityPrefix}-tab-pane`);
+        });
+        // Preserve the base 'details-tab-pane' class and add entity-specific one
+        pane.classList.add('details-tab-pane');
+        pane.classList.add(`${classPrefix}-tab-pane`);
+    });
+    
+    // Update grid elements
+    document.querySelectorAll('[class*="details-grid"]').forEach(grid => {
+        const entityPrefixes = ['user-details', 'avatar-details', 'prop-details', 'world-details', 'instance-details'];
+        entityPrefixes.forEach(entityPrefix => {
+            grid.classList.remove(`${entityPrefix}-grid`);
+        });
+        // Add the new entity-specific grid class (these don't have a generic base class)
+        grid.classList.add(`${classPrefix}-grid`);
+    });
+
+    // Update avatar elements  
+    document.querySelectorAll('[class*="details-avatar"]').forEach(avatar => {
+        const entityPrefixes = ['user-details', 'avatar-details', 'prop-details', 'world-details', 'instance-details'];
+        entityPrefixes.forEach(entityPrefix => {
+            avatar.classList.remove(`${entityPrefix}-avatar`);
+        });
+        // Add base class if not present and add entity-specific class
+        avatar.classList.add('details-avatar');
+        avatar.classList.add(`${classPrefix}-avatar`);
+    });
+}
+
 async function ShowDetails(entityType, entityId) {
     let detailsName = document.querySelector('.details-window--name');
     let detailsImg = document.querySelector('.details-window--img');
@@ -640,6 +729,9 @@ async function ShowDetails(entityType, entityId) {
 
     let entityInfo;
     let existingButtonContainer;
+
+    // Update the window classes based on entity type
+    updateDetailsWindowClasses(entityType);
 
     // Show the details window
     const detailsShade = document.querySelector('.details-shade');
@@ -674,26 +766,27 @@ async function ShowDetails(entityType, entityId) {
             detailsTabs.style.display = 'flex';
             detailsContent.style.display = 'block';
 
-            // Show all tabs for User Details
+            // Show only specific tabs for User Details
             document.querySelectorAll('.user-details-tab').forEach(tab => {
-                if (tab.dataset.tab === 'users') {
-                    // Hide Users tab for User Details
-                    tab.style.display = 'none';
-                } else if (tab.dataset.tab === 'notes') {
-                    // Show Notes tab only if user is a friend
-                    tab.style.display = entityInfo.isFriend ? 'flex' : 'none';
-                } else {
-                    // Show all other tabs
+                const tabType = tab.dataset.tab;
+                if (tabType === 'avatars' || tabType === 'worlds' || tabType === 'props') {
+                    // Left side tabs
                     tab.style.display = 'flex';
+                } else if (tabType === 'notes') {
+                    // Right side tab - only show for friends
+                    tab.style.display = entityInfo.isFriend ? 'flex' : 'none';
+                } else if (tabType === 'stats') {
+                    // Right side tab - disabled by design for now
+                    tab.style.display = 'none';
+                } else {
+                    // Hide all other tabs (users, description, shares)
+                    tab.style.display = 'none';
                 }
             });
 
             // Add friend management button
-            // Remove any existing button container
-            existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
-            if (existingButtonContainer) {
-                existingButtonContainer.remove();
-            }
+            // Remove any existing button container (check all possible entity types)
+            removeAllButtonContainers(detailsHeader);
 
             // Create button container
             const buttonContainer = createElement('div', {
@@ -894,7 +987,7 @@ async function ShowDetails(entityType, entityId) {
             detailsImg.src = 'img/ui/placeholder.png';
             detailsImg.dataset.hash = entityInfo.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Avatar`;
-            document.querySelector('.user-details-avatar').classList.add('hidden');
+            document.querySelector('.avatar-details-avatar').classList.add('hidden');
             
             // Rank: Creator info (using 'user' field for avatars) - moved above dates
             detailsRank.innerHTML = `<img src="img/ui/placeholder.png" data-hash="${entityInfo.user?.imageHash || ''}">By: ${entityInfo.user?.name || 'Unknown'}`;
@@ -937,19 +1030,16 @@ async function ShowDetails(entityType, entityId) {
             }
 
             // Remove any existing button container
-            existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
-            if (existingButtonContainer) {
-                existingButtonContainer.remove();
-            }
+            removeAllButtonContainers(detailsHeader);
 
             // Create button container
             const buttonContainer = createElement('div', {
-                className: 'user-details-button-container',
+                className: 'avatar-details-button-container',
             });
 
             // Categories button
             const categoriesButton = createElement('button', {
-                className: 'user-details-action-button',
+                className: 'avatar-details-action-button',
                 innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
                 tooltip: 'View Avatar Categories',
                 onClick: () => {
@@ -969,7 +1059,7 @@ async function ShowDetails(entityType, entityId) {
             detailsContent.style.display = 'block';
 
             // Show only Description and Shares tabs for Avatar Details
-            document.querySelectorAll('.user-details-tab').forEach(tab => {
+            document.querySelectorAll('.avatar-details-tab').forEach(tab => {
                 if (tab.dataset.tab === 'description' || tab.dataset.tab === 'shares') {
                     tab.style.display = 'flex';
                 } else {
@@ -987,11 +1077,11 @@ async function ShowDetails(entityType, entityId) {
             });
 
             // Add click handlers to new tabs
-            document.querySelectorAll('.user-details-tab').forEach(tab => {
+            document.querySelectorAll('.avatar-details-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
                     // Remove active class from all tabs and panes
-                    document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+                    document.querySelectorAll('.avatar-details-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.avatar-details-tab-pane').forEach(p => p.classList.remove('active'));
 
                     // Add active class to clicked tab and corresponding pane
                     tab.classList.add('active');
@@ -1003,11 +1093,11 @@ async function ShowDetails(entityType, entityId) {
             });
 
             // Reset all tabs to inactive state
-            document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.avatar-details-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.avatar-details-tab-pane').forEach(p => p.classList.remove('active'));
 
             // Set Description tab as active
-            const descriptionTab = document.querySelector('.user-details-tab[data-tab="description"]');
+            const descriptionTab = document.querySelector('.avatar-details-tab[data-tab="description"]');
             const descriptionPane = document.getElementById('description-tab');
             if (descriptionTab && descriptionPane) {
                 descriptionTab.classList.add('active');
@@ -1024,7 +1114,7 @@ async function ShowDetails(entityType, entityId) {
             detailsImg.src = 'img/ui/placeholder.png';
             detailsImg.dataset.hash = entityInfo.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">Prop`;
-            document.querySelector('.user-details-avatar').classList.add('hidden');
+            document.querySelector('.prop-details-avatar').classList.add('hidden');
             
             // Rank: Creator info (using 'author' field for props) - moved above dates
             detailsRank.innerHTML = `<img src="img/ui/placeholder.png" data-hash="${entityInfo.author?.imageHash || ''}">By: ${entityInfo.author?.name || 'Unknown'}`;
@@ -1067,19 +1157,16 @@ async function ShowDetails(entityType, entityId) {
             }
 
             // Remove any existing button container
-            existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
-            if (existingButtonContainer) {
-                existingButtonContainer.remove();
-            }
+            removeAllButtonContainers(detailsHeader);
 
             // Create button container
             const buttonContainer = createElement('div', {
-                className: 'user-details-button-container',
+                className: 'prop-details-button-container',
             });
 
             // Categories button
             const categoriesButton = createElement('button', {
-                className: 'user-details-action-button',
+                className: 'prop-details-action-button',
                 innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
                 tooltip: 'View Prop Categories',
                 onClick: () => {
@@ -1099,7 +1186,7 @@ async function ShowDetails(entityType, entityId) {
             detailsContent.style.display = 'block';
 
             // Show only Description and Shares tabs for Prop Details
-            document.querySelectorAll('.user-details-tab').forEach(tab => {
+            document.querySelectorAll('.prop-details-tab').forEach(tab => {
                 if (tab.dataset.tab === 'description' || tab.dataset.tab === 'shares') {
                     tab.style.display = 'flex';
                 } else {
@@ -1117,11 +1204,11 @@ async function ShowDetails(entityType, entityId) {
             });
 
             // Add click handlers to new tabs
-            document.querySelectorAll('.user-details-tab').forEach(tab => {
+            document.querySelectorAll('.prop-details-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
                     // Remove active class from all tabs and panes
-                    document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+                    document.querySelectorAll('.prop-details-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.prop-details-tab-pane').forEach(p => p.classList.remove('active'));
 
                     // Add active class to clicked tab and corresponding pane
                     tab.classList.add('active');
@@ -1133,11 +1220,11 @@ async function ShowDetails(entityType, entityId) {
             });
 
             // Reset all tabs to inactive state
-            document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.prop-details-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.prop-details-tab-pane').forEach(p => p.classList.remove('active'));
 
             // Set Description tab as active
-            const descriptionTab = document.querySelector('.user-details-tab[data-tab="description"]');
+            const descriptionTab = document.querySelector('.prop-details-tab[data-tab="description"]');
             const descriptionPane = document.getElementById('description-tab');
             if (descriptionTab && descriptionPane) {
                 descriptionTab.classList.add('active');
@@ -1154,15 +1241,12 @@ async function ShowDetails(entityType, entityId) {
             detailsImg.src = 'img/ui/placeholder.png';
             detailsImg.dataset.hash = entityInfo.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">World`;
-            document.querySelector('.user-details-avatar').classList.add('hidden');
+            document.querySelector('.world-details-avatar').classList.add('hidden');
             detailsBadge.innerHTML = '';
             detailsRank.innerHTML = '';
             detailsGroup.innerHTML = '';
             // Remove any existing button container
-            existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
-            if (existingButtonContainer) {
-                existingButtonContainer.remove();
-            }
+            removeAllButtonContainers(detailsHeader);
             break;
         }
         case DetailsType.Instance: {
@@ -1172,7 +1256,7 @@ async function ShowDetails(entityType, entityId) {
             detailsImg.src = 'img/ui/placeholder.png';
             detailsImg.dataset.hash = entityInfo.world.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.world.imageHash}">Instance`;
-            document.querySelector('.user-details-avatar').classList.add('hidden');
+            document.querySelector('.instance-details-avatar').classList.add('hidden');
             
             // Badge: Privacy Level
             detailsBadge.innerHTML = `<span class="material-symbols-outlined">
@@ -1196,19 +1280,16 @@ async function ShowDetails(entityType, entityId) {
 
             // Add instance action buttons
             // Remove any existing button container
-            existingButtonContainer = detailsHeader.querySelector('.user-details-button-container');
-            if (existingButtonContainer) {
-                existingButtonContainer.remove();
-            }
+            removeAllButtonContainers(detailsHeader);
 
             // Create button container
             const buttonContainer = createElement('div', {
-                className: 'user-details-button-container',
+                className: 'instance-details-button-container',
             });
 
             // Join Instance button
             const joinInstanceButton = createElement('button', {
-                className: 'user-details-action-button',
+                className: 'instance-details-action-button',
                 innerHTML: '<span class="material-symbols-outlined">login</span>Join Instance',
                 tooltip: 'Join This Instance',
                 onClick: () => {
@@ -1228,7 +1309,7 @@ async function ShowDetails(entityType, entityId) {
             detailsContent.style.display = 'block';
 
             // Show only Users tab for Instance Details
-            document.querySelectorAll('.user-details-tab').forEach(tab => {
+            document.querySelectorAll('.instance-details-tab').forEach(tab => {
                 if (tab.dataset.tab === 'users') {
                     tab.style.display = 'flex';
                 } else {
@@ -1246,11 +1327,11 @@ async function ShowDetails(entityType, entityId) {
             });
 
             // Add click handlers to new tabs
-            document.querySelectorAll('.user-details-tab').forEach(tab => {
+            document.querySelectorAll('.instance-details-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
                     // Remove active class from all tabs and panes
-                    document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+                    document.querySelectorAll('.instance-details-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.instance-details-tab-pane').forEach(p => p.classList.remove('active'));
 
                     // Add active class to clicked tab and corresponding pane
                     tab.classList.add('active');
@@ -1262,11 +1343,11 @@ async function ShowDetails(entityType, entityId) {
             });
 
             // Reset all tabs to inactive state
-            document.querySelectorAll('.user-details-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.user-details-tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.instance-details-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.instance-details-tab-pane').forEach(p => p.classList.remove('active'));
 
             // Set Users tab as active
-            const usersTab = document.querySelector('.user-details-tab[data-tab="users"]');
+            const usersTab = document.querySelector('.instance-details-tab[data-tab="users"]');
             const usersPane = document.getElementById('users-tab');
             if (usersTab && usersPane) {
                 usersTab.classList.add('active');
@@ -1436,7 +1517,30 @@ async function loadTabContent(tab, entityId) {
         return;
     }
 
-    const grid = document.querySelector(`#${tab}-tab .user-details-grid`);
+    // Determine the current entity type to use the correct grid class
+    const currentEntityType = getCurrentEntityType(entityId);
+    let entityClassPrefix = 'user-details'; // Default fallback
+    
+    // Map current entity type to class prefix
+    switch (currentEntityType) {
+        case 'avatar':
+            entityClassPrefix = 'avatar-details';
+            break;
+        case 'prop':
+            entityClassPrefix = 'prop-details';
+            break;
+        case 'world':
+            entityClassPrefix = 'world-details';
+            break;
+        case 'instance':
+            entityClassPrefix = 'instance-details';
+            break;
+        default:
+            entityClassPrefix = 'user-details';
+            break;
+    }
+
+    const grid = document.querySelector(`#${tab}-tab .${entityClassPrefix}-grid`);
     if (!grid) return;
 
     grid.innerHTML = '<div class="loading-indicator">Loading...</div>';
@@ -2933,3 +3037,20 @@ document.querySelector('#props-filter')?.addEventListener('input', (event) => {
         }
     });
 });
+
+// Helper function to remove all possible button containers to prevent duplication
+function removeAllButtonContainers(detailsHeader) {
+    const possibleButtonContainers = [
+        '.user-details-button-container',
+        '.avatar-details-button-container', 
+        '.prop-details-button-container',
+        '.world-details-button-container',
+        '.instance-details-button-container'
+    ];
+    possibleButtonContainers.forEach(selector => {
+        const existingContainer = detailsHeader.querySelector(selector);
+        if (existingContainer) {
+            existingContainer.remove();
+        }
+    });
+}
