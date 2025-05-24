@@ -2141,7 +2141,7 @@ button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 5px;
 }
 
 .details-profile-image {
@@ -2177,7 +2177,7 @@ button {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 0;
+    padding: 2px 0;
     font-size: 14px;
     line-height: 1.4;
     color: var(--color-text);
