@@ -4443,3 +4443,218 @@ button {
 .instance-details-avatar.hidden {
     display: none;
 }
+
+/* World Details Button Container */
+.world-details-button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid var(--color-border);
+}
+
+.world-details-action-button {
+    width: 100%;
+    height: 30px;
+    padding: 10px;
+    background: var(--color-background-dark);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radii);
+    color: var(--color-text);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.world-details-action-button:hover {
+    background: var(--color-background-light);
+    border-color: var(--color-accent);
+}
+
+.world-details-action-button .material-symbols-outlined {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.world-details-avatar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: var(--color-background-dark);
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+}
+
+.world-details-avatar.hidden {
+    display: none;
+}
+
+/* World Details Tabs */
+.world-details-tab,
+.world-details-tab-pane,
+.world-details-grid {
+    /* Inherits from the existing tab styling patterns */
+}
+
+/* Instance Cards in Details View */
+.instance-card-node .thumbnail-container {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Create a blurred background layer that doesn't affect the overlay */
+.instance-thumbnail::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: inherit;
+    background-size: cover;
+    background-position: center;
+    filter: blur(2px);
+    z-index: 0;
+}
+
+.instance-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.instance-card-user-icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    justify-content: center;
+    align-items: center;
+    max-width: 95%;
+    max-height: 95%;
+    overflow: hidden;
+    padding: 6px;
+}
+
+.instance-user-icon {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    object-fit: cover;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.instance-user-icon:hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 1);
+    z-index: 10;
+    position: relative;
+}
+
+.instance-user-icon.friend {
+    border-color: rgba(0, 255, 0, 0.8);
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+}
+
+.instance-user-icon.blocked {
+    opacity: 0.5;
+    filter: grayscale(1);
+    border-color: rgba(128, 128, 128, 0.8);
+}
+
+.instance-user-icon-remainder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    color: white;
+    font-size: 9px;
+    font-weight: bold;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Remove blur from instance-thumbnail class since we're using ::before */
+.instance-thumbnail {
+    background-size: cover;
+    background-position: center;
+}
+
+.instance-thumbnail::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+/* Region indicator for instance cards */
+.instance-card-node .region-indicator {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 12px;
+    padding: 4px 8px;
+    font-size: 10px;
+    color: white;
+    z-index: 3;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.instance-card-node .region-indicator .region-eu,
+.instance-card-node .region-indicator .region-us,
+.instance-card-node .region-indicator .region-as {
+    width: 12px;
+    height: 9px;
+    flex-shrink: 0;
+}
+
+/* Player count indicator for instance cards */
+.instance-card-node .player-count-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 12px;
+    padding: 4px 8px;
+    font-size: 10px;
+    color: white;
+    z-index: 3;
+    font-weight: bold;
+}
+
+.instance-card-node .player-count-indicator .material-symbols-outlined {
+    font-size: 12px;
+}

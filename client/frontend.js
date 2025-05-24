@@ -15,6 +15,9 @@ const friendImageCache = {};
 // Store the current active user for filtering purposes
 let currentActiveUser = null;
 
+// Store active instances for filtering in world details
+let activeInstances = [];
+
 const DetailsType = Object.freeze({
     User: Symbol('user'),
     Avatar: Symbol('avatar'),
@@ -830,6 +833,27 @@ function addEntityTabs(entityType, entityInfo, entityId) {
             
             firstTabId = 'users';
             break;
+            
+        case DetailsType.World:
+            // Left side tabs for World Details
+            const worldDescTab = createTabButton('description', 'description', 'Description', classPrefix, true);
+            tabs.push(worldDescTab);
+            tabsLeft.append(worldDescTab);
+            
+            // Instances tab - we'll calculate the count dynamically
+            const worldInstancesTab = createTabButton('instances', 'public', 'Instances', classPrefix);
+            tabs.push(worldInstancesTab);
+            tabsLeft.append(worldInstancesTab);
+            
+            // Create corresponding tab panes
+            const worldDescPane = createTabPane('description', classPrefix, '<div class="description-container"></div>', true);
+            tabPanes.push(worldDescPane);
+            
+            const worldInstancesPane = createTabPane('instances', classPrefix, '<div class="' + classPrefix + '-grid"></div>');
+            tabPanes.push(worldInstancesPane);
+            
+            firstTabId = 'description';
+            break;
     }
     
     // Add all tab panes to the content area
@@ -1244,11 +1268,74 @@ async function ShowDetails(entityType, entityId) {
             detailsImg.dataset.hash = entityInfo.imageHash;
             detailsAvatar.innerHTML = `<img data-hash="${entityInfo.imageHash}">World`;
             document.querySelector('.world-details-avatar').classList.add('hidden');
-            detailsBadge.innerHTML = '';
-            detailsRank.innerHTML = '';
-            detailsGroup.innerHTML = '';
+            
+            // Rank: Creator info (using 'author' field for worlds)
+            detailsRank.innerHTML = `<img src="img/ui/placeholder.png" data-hash="${entityInfo.author?.imageHash || ''}">By: ${entityInfo.author?.name || 'Unknown'}`;
+            
+            // Badge: Upload/Update dates
+            const uploadDate = entityInfo.uploadedAt ? new Date(entityInfo.uploadedAt).toLocaleDateString() : 'Unknown';
+            const updateDate = entityInfo.updatedAt ? new Date(entityInfo.updatedAt).toLocaleDateString() : 'Unknown';
+            detailsBadge.innerHTML = `
+                <div class="detail-section">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <div class="detail-content">
+                        <div>Uploaded: ${uploadDate}</div>
+                        <div>Updated: ${updateDate}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Group: File size
+            const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
+            detailsGroup.innerHTML = `
+                <div class="detail-section">
+                    <span class="material-symbols-outlined">storage</span>
+                    <div class="detail-content">
+                        <div>Size: ${fileSize}</div>
+                    </div>
+                </div>
+            `;
+
+            // Make the creator clickable to view their profile (only if author exists)
+            if (entityInfo.author?.id) {
+                detailsRank.style.cursor = 'pointer';
+                detailsRank.onclick = () => ShowDetails(DetailsType.User, entityInfo.author.id);
+            } else {
+                detailsRank.style.cursor = 'default';
+                detailsRank.onclick = null;
+            }
+
             // Remove any existing button container
             removeAllButtonContainers(detailsHeader);
+
+            // Create button container
+            const buttonContainer = createElement('div', {
+                className: 'world-details-button-container',
+            });
+
+            // Create Instance button (placeholder)
+            const createInstanceButton = createElement('button', {
+                className: 'world-details-action-button',
+                innerHTML: '<span class="material-symbols-outlined">add</span>Create Instance',
+                tooltip: 'Create Instance (Coming Soon)',
+                onClick: () => {
+                    // TODO: Implement create instance logic
+                    pushToast('Create Instance feature coming soon!', 'info');
+                },
+            });
+
+            // Add button to container
+            buttonContainer.append(createInstanceButton);
+
+            // Add the button container to the header
+            detailsHeader.appendChild(buttonContainer);
+
+            // Show tabs and content for world details
+            detailsTabs.style.display = 'flex';
+            detailsContent.style.display = 'block';
+
+            // Add tabs dynamically
+            addEntityTabs(entityType, entityInfo, entityId);
             break;
         }
         case DetailsType.Instance: {
@@ -1312,6 +1399,13 @@ async function ShowDetails(entityType, entityId) {
 
             // Add tabs dynamically
             addEntityTabs(entityType, entityInfo, entityId);
+            
+            // Update the instances tab text with count
+            const instancesTab = document.querySelector(`[data-tab="instances"]`);
+            if (instancesTab) {
+                const instanceCount = activeInstances.filter(instance => instance.world?.id === entityId).length;
+                instancesTab.innerHTML = `<span class="material-symbols-outlined">public</span>Instances (${instanceCount})`;
+            }
             break;
         }
     }
@@ -1334,6 +1428,8 @@ async function loadTabContent(tab, entityId) {
                 entityInfo = await window.API.getAvatarById(entityId);
             } else if (currentEntityType === 'prop') {
                 entityInfo = await window.API.getPropById(entityId);
+            } else if (currentEntityType === 'world') {
+                entityInfo = await window.API.getWorldById(entityId);
             }
 
             const description = entityInfo?.description || '';
@@ -1518,6 +1614,18 @@ async function loadTabContent(tab, entityId) {
                 const instanceInfo = await window.API.getInstanceById(entityId);
                 items = instanceInfo.members || [];
                 break;
+            case 'instances':
+                // For worlds, get active instances using this world
+                // Filter the global active instances by world ID
+                items = activeInstances.filter(instance => instance.world?.id === entityId) || [];
+                
+                // Update the instances tab text with count
+                const instancesTab = document.querySelector(`[data-tab="instances"]`);
+                if (instancesTab) {
+                    const instanceCount = items.length;
+                    instancesTab.innerHTML = `<span class="material-symbols-outlined">public</span>Instances (${instanceCount})`;
+                }
+                break;
             case 'stats':
                 // Stats tab is disabled, but we'll keep this case for future implementation
                 grid.innerHTML = '<div class="no-items-message">Stats feature coming soon!</div>';
@@ -1568,6 +1676,31 @@ async function loadTabContent(tab, entityId) {
                         </div>`;
                     break;
                 }
+                case 'instances': {
+                    icon = 'public';
+                    // Add privacy indicator
+                    const privacyIcon = item.privacy === 'Public' ? 'public' : 'group';
+                    const privacyLabel = item.privacy || 'Unknown';
+                    
+                    // Add player count
+                    const playerCount = `<div class="player-count-indicator">
+                        <span class="material-symbols-outlined">group</span>${item.currentPlayerCount || 0}/${item.maxPlayer || '?'}
+                    </div>`;
+                    
+                    // Add region indicator
+                    const regionIndicator = item.region ? 
+                        `<div class="region-indicator">
+                            <div class="region-${item.region}"></div>${item.region.toUpperCase()}
+                        </div>` : '';
+                    
+                    additionalInfo = `
+                        ${playerCount}
+                        ${regionIndicator}
+                        <div class="card-detail">
+                            <span class="material-symbols-outlined">${privacyIcon}</span>${privacyLabel}
+                        </div>`;
+                    break;
+                }
                 case 'users': {
                     icon = 'person';
                     // Add friend indicator if applicable
@@ -1590,43 +1723,95 @@ async function loadTabContent(tab, entityId) {
                 }
             }
 
-            const itemNode = createElement('div', {
-                className: 'card-node',
-                innerHTML: `
-                    <div class="thumbnail-container">
-                        <img src="img/ui/placeholder.png" data-hash="${item.imageHash}" class="hidden"/>
-                    </div>
-                    <div class="card-content">
-                        <p class="card-name">${item.name}</p>
-                        <p class="card-description">${item.description || ''}</p>
-                        ${additionalInfo}
-                    </div>
-                `,
-                onClick: () => {
-                    switch (tab) {
-                        case 'avatars':
-                            ShowDetails(DetailsType.Avatar, item.id);
-                            break;
-                        case 'props':
-                            ShowDetails(DetailsType.Prop, item.id);
-                            break;
-                        case 'worlds':
-                            ShowDetails(DetailsType.World, item.id);
-                            break;
-                        case 'users':
-                            ShowDetails(DetailsType.User, item.id);
-                            break;
+            // Special handling for instance cards
+            if (tab === 'instances') {
+                // Create user icons for instance members
+                let userIconsHtml = '';
+                if (item.members && item.members.length > 0) {
+                    const maxVisibleIcons = 25;
+                    const visibleMembers = item.members.slice(0, maxVisibleIcons);
+                    const remainingCount = item.members.length - maxVisibleIcons;
+                    
+                    userIconsHtml = `<div class="instance-card-user-icons">`;
+                    visibleMembers.forEach(member => {
+                        const memberImgSrc = friendImageCache[member.imageHash] || 'img/ui/placeholder.png';
+                        const memberClasses = member.isFriend ? 'instance-user-icon friend' : 'instance-user-icon';
+                        const blockedClass = member.isBlocked ? ' blocked' : '';
+                        userIconsHtml += `<img src="${memberImgSrc}" class="${memberClasses}${blockedClass}" data-hash="${member.imageHash}" data-tooltip="${member.name}" />`;
+                    });
+                    
+                    if (remainingCount > 0) {
+                        userIconsHtml += `<div class="instance-user-icon-remainder">+${remainingCount}</div>`;
                     }
-                },
-            });
+                    userIconsHtml += `</div>`;
+                }
 
-            // Set placeholder background image
-            const thumbnailContainer = itemNode.querySelector('.thumbnail-container');
-            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
-            thumbnailContainer.style.backgroundSize = 'cover';
-            thumbnailContainer.dataset.hash = item.imageHash;
+                const itemNode = createElement('div', {
+                    className: 'card-node instance-card-node',
+                    innerHTML: `
+                        <div class="thumbnail-container instance-thumbnail">
+                            <img src="img/ui/placeholder.png" data-hash="${item.world?.imageHash}" class="hidden"/>
+                            <div class="instance-overlay">
+                                ${userIconsHtml}
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-name">${item.name || 'Unknown Instance'}</p>
+                            <p class="card-description">${item.world?.name || ''}</p>
+                            ${additionalInfo}
+                        </div>
+                    `,
+                    onClick: () => ShowDetails(DetailsType.Instance, item.id),
+                });
 
-            grid.appendChild(itemNode);
+                // Set blurred world background for instance cards
+                const thumbnailContainer = itemNode.querySelector('.thumbnail-container');
+                const worldImgSrc = friendImageCache[item.world?.imageHash] || 'img/ui/placeholder.png';
+                thumbnailContainer.style.backgroundImage = `url('${worldImgSrc}')`;
+                thumbnailContainer.style.backgroundSize = 'cover';
+                thumbnailContainer.dataset.hash = item.world?.imageHash;
+
+                grid.appendChild(itemNode);
+            } else {
+                // Regular card handling for other types
+                const itemNode = createElement('div', {
+                    className: 'card-node',
+                    innerHTML: `
+                        <div class="thumbnail-container">
+                            <img src="img/ui/placeholder.png" data-hash="${item.imageHash}" class="hidden"/>
+                        </div>
+                        <div class="card-content">
+                            <p class="card-name">${item.name}</p>
+                            <p class="card-description">${item.description || ''}</p>
+                            ${additionalInfo}
+                        </div>
+                    `,
+                    onClick: () => {
+                        switch (tab) {
+                            case 'avatars':
+                                ShowDetails(DetailsType.Avatar, item.id);
+                                break;
+                            case 'props':
+                                ShowDetails(DetailsType.Prop, item.id);
+                                break;
+                            case 'worlds':
+                                ShowDetails(DetailsType.World, item.id);
+                                break;
+                            case 'users':
+                                ShowDetails(DetailsType.User, item.id);
+                                break;
+                        }
+                    },
+                });
+
+                // Set placeholder background image
+                const thumbnailContainer = itemNode.querySelector('.thumbnail-container');
+                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                thumbnailContainer.style.backgroundSize = 'cover';
+                thumbnailContainer.dataset.hash = item.imageHash;
+
+                grid.appendChild(itemNode);
+            }
         });
     } catch (error) {
         grid.innerHTML = `<div class="error-message">Error loading ${tab}</div>`;
@@ -2190,11 +2375,14 @@ document.querySelectorAll('.search-output-category h3').forEach(header => {
 
 // Janky Active Instances
 // -----------------------------
-window.API.onActiveInstancesUpdate((_event, activeInstances) => {
+window.API.onActiveInstancesUpdate((_event, activeInstancesData) => {
+    // Store active instances globally for use in world details
+    activeInstances = activeInstancesData;
+    
     const homeActivity = document.querySelector('.home-activity--activity-wrapper');
 
     // Sort instances: friends first (by friend count desc), then by total player count desc
-    activeInstances.sort((a, b) => {
+    activeInstancesData.sort((a, b) => {
         const aFriendCount = a.members.filter(member => member.isFriend).length;
         const bFriendCount = b.members.filter(member => member.isFriend).length;
         
@@ -2213,7 +2401,7 @@ window.API.onActiveInstancesUpdate((_event, activeInstances) => {
 
     // Create the search result elements
     const elementsOfResults = [];
-    for (const result of activeInstances) {
+    for (const result of activeInstancesData) {
         const elementsOfMembers = [];
         const elementsOfBlocked = [];
 
