@@ -983,10 +983,26 @@ function createUserDetailsHeader(entityInfo) {
     // Create instance segment (only if user is online and connected)
     let instanceSegment = null;
     if (entityInfo.onlineState && entityInfo.isConnected && entityInfo.instance) {
+        // Extract instance ID from instance name (format: "World Name (#123456)")
+        let worldName = entityInfo.instance.world?.name || 'Unknown World';
+        let instanceId = '';
+        
+        if (entityInfo.instance.name) {
+            const match = entityInfo.instance.name.match(/\(#(\d+)\)$/);
+            if (match) {
+                instanceId = `#${match[1]}`;
+            }
+        }
+        
+        // Construct the text with instance ID in smaller, darker font
+        const instanceText = instanceId ? 
+            `${worldName} <span class="instance-id">${instanceId}</span>` : 
+            worldName;
+        
         instanceSegment = createDetailsSegment({
             iconType: 'image',
             iconHash: entityInfo.instance.world?.imageHash,
-            text: entityInfo.instance.world?.name || entityInfo.instance.name || 'Unknown Instance',
+            text: instanceText,
             clickable: entityInfo.instance.id ? true : false,
             onClick: entityInfo.instance.id ? () => ShowDetails(DetailsType.Instance, entityInfo.instance.id) : null
         });

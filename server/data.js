@@ -85,6 +85,9 @@ async function LoadUserImages(userObject) {
     if (userObject?.featuredGroup?.image) {
         await LoadImage(userObject.featuredGroup.image, userObject.featuredGroup);
     }
+    if (userObject?.instance?.world?.imageUrl) {
+        await LoadImage(userObject.instance.world.imageUrl, userObject.instance.world);
+    }
 }
 
 function EscapeStringFromHtml(text) {

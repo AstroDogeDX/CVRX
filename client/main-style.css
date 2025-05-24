@@ -4993,3 +4993,11 @@ button {
         padding: 6px 10px;
     }
 }
+
+/* Instance ID styling for details segments */
+.instance-id {
+    font-size: 0.85em;
+    color: var(--color-text-secondary);
+    font-weight: normal;
+    opacity: 0.8;
+}
