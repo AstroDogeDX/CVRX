@@ -494,6 +494,8 @@ button {
     flex-direction: column;
     min-height: 0;
     margin-top: 4px;
+    padding: 4px;
+    gap: 5px;
 }
 
 .home-requests-wrapper:empty {
@@ -3974,7 +3976,6 @@ button {
     min-height: 72px;
     width: 100%;
     padding: 8px;
-    margin-bottom: 4px;
     background: var(--color-background-dark);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--border-radii);
