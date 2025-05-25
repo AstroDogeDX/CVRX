@@ -16,7 +16,8 @@ import {
     createDetailsSegment,
     createDetailsHeaderStructure,
     addEntityTabs,
-    createUserDetailsHeader
+    createUserDetailsHeader,
+    ShowDetails
 } from './astrolib/details_constructor.js';
 
 // ===========
@@ -593,7 +594,7 @@ window.API.onGetActiveUser((_event, activeUser) => {
     if (profileButton) {
         profileButton.setAttribute('data-hash', activeUser.imageHash);
         profileButton.style.backgroundImage = 'url(img/ui/placeholder.png)';
-        profileButton.onclick = () => ShowDetails(DetailsType.User, activeUser.id);
+        profileButton.onclick = () => ShowDetailsWrapper(DetailsType.User, activeUser.id);
     }
 });
 
@@ -631,502 +632,23 @@ function getFriendStatus(friend) {
 
 
 
-async function ShowDetails(entityType, entityId) {
-    // Get container elements (we'll create the header content dynamically)
-    let detailsTabs = document.querySelector('.details-tabs');
-    let detailsContent = document.querySelector('.details-content');
-    let detailsHeader = document.querySelector('.details-header');
-
-    let entityInfo;
-
-    // Update the window classes based on entity type
-    updateDetailsWindowClasses(entityType);
-
-    // Show the details window
-    const detailsShade = document.querySelector('.details-shade');
-    detailsShade.style.display = 'flex';
-
-    // Handle clicking outside to close
-    detailsShade.onclick = (event) => {
-        if (event.target === detailsShade) {
-            detailsShade.style.display = 'none';
-        }
+// Create a wrapper function that provides dependencies to the ShowDetails function
+function createShowDetailsWrapper() {
+    return (entityType, entityId) => {
+        const dependencies = {
+            currentActiveUser,
+            activeInstances,
+            loadTabContentCallback: loadTabContent,
+            createElement,
+            pushToast,
+            window: window.API
+        };
+        return ShowDetails(entityType, entityId, dependencies);
     };
-
-    // Clear all existing tabs
-    clearAllTabs();
-
-    // Hide tabs and content by default
-    detailsTabs.style.display = 'none';
-    detailsContent.style.display = 'none';
-
-    switch (entityType) {
-        case DetailsType.User: {
-            entityInfo = await window.API.getUserById(entityId);
-            
-            // Create the custom user header structure
-            const headerElements = createUserDetailsHeader(entityInfo, ShowDetails);
-
-            // Show tabs and content for user details
-            detailsTabs.style.display = 'flex';
-            detailsContent.style.display = 'block';
-
-            // Add friend management button
-            // Remove any existing button container (check all possible entity types)
-            removeAllButtonContainers(detailsHeader);
-
-            // Create button container
-            const buttonContainer = createElement('div', {
-                className: 'user-details-button-container',
-            });
-
-            // Friend action button
-            const friendActionButton = createElement('button', {
-                className: 'user-details-action-button',
-                innerHTML: `<span class="material-symbols-outlined">${entityInfo.isFriend ? 'person_remove' : 'person_add'}</span>${entityInfo.isFriend ? 'Remove Friend' : 'Send Friend Request'}`,
-                tooltip: entityInfo.isFriend ? 'Remove Friend' : 'Send Friend Request',
-                onClick: async () => {
-                    if (entityInfo.isFriend) {
-                        // Show confirmation dialog
-                        const confirmShade = document.querySelector('.prompt-layer');
-                        const confirmPrompt = createElement('div', { className: 'prompt' });
-                        const confirmTitle = createElement('div', { className: 'prompt-title', textContent: 'Remove Friend' });
-                        const confirmText = createElement('div', {
-                            className: 'prompt-text',
-                            textContent: `Are you sure you want to remove ${entityInfo.name} from your friends list?`,
-                        });
-                        const confirmButtons = createElement('div', { className: 'prompt-buttons' });
-
-                        const confirmButton = createElement('button', {
-                            id: 'prompt-confirm',
-                            textContent: 'Remove Friend',
-                            onClick: async () => {
-                                try {
-                                    await window.API.unfriend(entityId);
-                                    pushToast(`Removed ${entityInfo.name} from friends`, 'confirm');
-                                    confirmPrompt.remove();
-                                    confirmShade.style.display = 'none';
-                                    // Remove the button since they are no longer friends
-                                    friendActionButton.remove();
-                                } catch (error) {
-                                    pushToast('Failed to remove friend', 'error');
-                                }
-                            },
-                        });
-
-                        const cancelButton = createElement('button', {
-                            id: 'prompt-cancel',
-                            textContent: 'Cancel',
-                            onClick: () => {
-                                confirmPrompt.remove();
-                                confirmShade.style.display = 'none';
-                            },
-                        });
-
-                        confirmButtons.append(confirmButton, cancelButton);
-                        confirmPrompt.append(confirmTitle, confirmText, confirmButtons);
-                        confirmShade.append(confirmPrompt);
-                        confirmShade.style.display = 'flex';
-                    } else {
-                        try {
-                            await window.API.sendFriendRequest(entityId);
-                            pushToast(`Friend request sent to ${entityInfo.name}`, 'confirm');
-                            // Update button state to show request sent
-                            friendActionButton.innerHTML = `<span class="material-symbols-outlined">hourglass_empty</span>Request Sent`;
-                            friendActionButton.tooltip = 'Friend Request Sent';
-                            friendActionButton.disabled = true;
-                            friendActionButton.classList.add('disabled');
-                        } catch (error) {
-                            pushToast('Failed to send friend request', 'error');
-                        }
-                    }
-                },
-            });
-
-            // Categories button
-            const categoriesButton = createElement('button', {
-                className: 'user-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
-                tooltip: 'View User Categories',
-                onClick: () => {
-                    // TODO: Implement categories view
-                    pushToast('Categories feature coming soon!', 'info');
-                },
-            });
-
-            // Block/Unblock button
-            const blockButton = createElement('button', {
-                className: 'user-details-action-button',
-                innerHTML: `<span class="material-symbols-outlined">${entityInfo.isBlocked ? 'block' : 'no_accounts'}</span>${entityInfo.isBlocked ? 'Unblock User' : 'Block User'}`,
-                tooltip: entityInfo.isBlocked ? 'Unblock User' : 'Block User',
-                onClick: async () => {
-                    if (entityInfo.isBlocked) {
-                        try {
-                            await window.API.unblockUser(entityId);
-                            pushToast(`Unblocked ${entityInfo.name}`, 'confirm');
-                            blockButton.innerHTML = `<span class="material-symbols-outlined">no_accounts</span>Block User`;
-                            blockButton.tooltip = 'Block User';
-                            entityInfo.isBlocked = false;
-                        } catch (error) {
-                            pushToast('Failed to unblock user', 'error');
-                        }
-                    } else {
-                        // Show confirmation dialog
-                        const confirmShade = document.querySelector('.prompt-layer');
-                        const confirmPrompt = createElement('div', { className: 'prompt' });
-                        const confirmTitle = createElement('div', { className: 'prompt-title', textContent: 'Block User' });
-                        const confirmText = createElement('div', {
-                            className: 'prompt-text',
-                            textContent: `Are you sure you want to block ${entityInfo.name}?`,
-                        });
-                        const confirmButtons = createElement('div', { className: 'prompt-buttons' });
-
-                        const confirmButton = createElement('button', {
-                            id: 'prompt-confirm',
-                            textContent: 'Block User',
-                            onClick: async () => {
-                                try {
-                                    await window.API.blockUser(entityId);
-                                    pushToast(`Blocked ${entityInfo.name}`, 'confirm');
-                                    blockButton.innerHTML = `<span class="material-symbols-outlined">block</span>Unblock User`;
-                                    blockButton.tooltip = 'Unblock User';
-                                    entityInfo.isBlocked = true;
-                                    confirmPrompt.remove();
-                                    confirmShade.style.display = 'none';
-                                } catch (error) {
-                                    pushToast('Failed to block user', 'error');
-                                }
-                            },
-                        });
-
-                        const cancelButton = createElement('button', {
-                            id: 'prompt-cancel',
-                            textContent: 'Cancel',
-                            onClick: () => {
-                                confirmPrompt.remove();
-                                confirmShade.style.display = 'none';
-                            },
-                        });
-
-                        confirmButtons.append(confirmButton, cancelButton);
-                        confirmPrompt.append(confirmTitle, confirmText, confirmButtons);
-                        confirmShade.append(confirmPrompt);
-                        confirmShade.style.display = 'flex';
-                    }
-                },
-            });
-
-            // Set initial button state
-            if (entityInfo.isFriend) {
-                friendActionButton.classList.add('is-friend');
-            }
-
-            // Add buttons to container
-            buttonContainer.append(friendActionButton, categoriesButton, blockButton);
-
-            // Add the button container to the header
-            headerElements.detailsHeader.appendChild(buttonContainer);
-
-            // Add tabs dynamically
-            addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, loadTabContent);
-            break;
-        }
-        case DetailsType.Avatar: {
-            entityInfo = await window.API.getAvatarById(entityId);
-            
-            // Create the universal header structure
-            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
-            
-            // Update the thumbnail for the avatar image
-            headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
-            
-            // Create avatar-specific segments
-            const creatorSegment = createDetailsSegment({
-                iconType: 'image',
-                iconHash: entityInfo.user?.imageHash,
-                text: `By: ${entityInfo.user?.name || 'Unknown'}`,
-                clickable: entityInfo.user?.id ? true : false,
-                onClick: entityInfo.user?.id ? () => ShowDetails(DetailsType.User, entityInfo.user.id) : null
-            });
-            
-            // Upload/Update dates segment
-            const uploadDate = entityInfo.uploadedAt ? new Date(entityInfo.uploadedAt).toLocaleDateString() : 'Unknown';
-            const updateDate = entityInfo.updatedAt ? new Date(entityInfo.updatedAt).toLocaleDateString() : 'Unknown';
-            const datesSegment = createDetailsSegment({
-                icon: 'schedule',
-                text: `Uploaded: ${uploadDate}<br>Updated: ${updateDate}`
-            });
-            
-            // File info segment
-            const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
-            const publicationStatus = entityInfo.isPublished ? 'Public' : 'Private';
-            const sharingStatus = entityInfo.isSharedWithMe ? 'Shared with me' : 'Not shared';
-            const infoSegment = createDetailsSegment({
-                icon: 'info',
-                text: `Size: ${fileSize}<br>Status: ${publicationStatus}<br>${sharingStatus}`
-            });
-            
-            // Add segments to container
-            headerElements.segmentsContainer.appendChild(creatorSegment);
-            headerElements.segmentsContainer.appendChild(datesSegment);
-            headerElements.segmentsContainer.appendChild(infoSegment);
-
-            // Remove any existing button container
-            removeAllButtonContainers(detailsHeader);
-
-            // Create button container
-            const buttonContainer = createElement('div', {
-                className: 'avatar-details-button-container',
-            });
-
-            // Categories button
-            const categoriesButton = createElement('button', {
-                className: 'avatar-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
-                tooltip: 'View Avatar Categories',
-                onClick: () => {
-                    // TODO: Implement categories view
-                    pushToast('Categories feature coming soon!', 'info');
-                },
-            });
-
-            // Add button to container
-            buttonContainer.append(categoriesButton);
-
-            // Add the button container to the header
-            headerElements.detailsHeader.appendChild(buttonContainer);
-
-            // Show tabs and content for avatar details
-            detailsTabs.style.display = 'flex';
-            detailsContent.style.display = 'block';
-
-            // Add tabs dynamically
-            addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, loadTabContent);
-            break;
-        }
-        case DetailsType.Prop: {
-            entityInfo = await window.API.getPropById(entityId);
-            
-            // Create the universal header structure
-            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
-            
-            // Update the thumbnail for the prop image
-            headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
-            
-            // Create prop-specific segments
-            const creatorSegment = createDetailsSegment({
-                iconType: 'image',
-                iconHash: entityInfo.author?.imageHash,
-                text: `By: ${entityInfo.author?.name || 'Unknown'}`,
-                clickable: entityInfo.author?.id ? true : false,
-                onClick: entityInfo.author?.id ? () => ShowDetails(DetailsType.User, entityInfo.author.id) : null
-            });
-            
-            // Upload/Update dates segment
-            const uploadDate = entityInfo.uploadedAt ? new Date(entityInfo.uploadedAt).toLocaleDateString() : 'Unknown';
-            const updateDate = entityInfo.updatedAt ? new Date(entityInfo.updatedAt).toLocaleDateString() : 'Unknown';
-            const datesSegment = createDetailsSegment({
-                icon: 'schedule',
-                text: `Uploaded: ${uploadDate}<br>Updated: ${updateDate}`
-            });
-            
-            // File info segment
-            const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
-            const publicationStatus = entityInfo.isPublished ? 'Public' : 'Private';
-            const sharingStatus = entityInfo.isSharedWithMe ? 'Shared with me' : 'Not shared';
-            const infoSegment = createDetailsSegment({
-                icon: 'info',
-                text: `Size: ${fileSize}<br>Status: ${publicationStatus}<br>${sharingStatus}`
-            });
-            
-            // Add segments to container
-            headerElements.segmentsContainer.appendChild(creatorSegment);
-            headerElements.segmentsContainer.appendChild(datesSegment);
-            headerElements.segmentsContainer.appendChild(infoSegment);
-
-            // Remove any existing button container
-            removeAllButtonContainers(detailsHeader);
-
-            // Create button container
-            const buttonContainer = createElement('div', {
-                className: 'prop-details-button-container',
-            });
-
-            // Categories button
-            const categoriesButton = createElement('button', {
-                className: 'prop-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
-                tooltip: 'View Prop Categories',
-                onClick: () => {
-                    // TODO: Implement categories view
-                    pushToast('Categories feature coming soon!', 'info');
-                },
-            });
-
-            // Add button to container
-            buttonContainer.append(categoriesButton);
-
-            // Add the button container to the header
-            headerElements.detailsHeader.appendChild(buttonContainer);
-
-            // Show tabs and content for prop details
-            detailsTabs.style.display = 'flex';
-            detailsContent.style.display = 'block';
-
-            // Add tabs dynamically
-            addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, loadTabContent);
-            break;
-        }
-        case DetailsType.World: {
-            entityInfo = await window.API.getWorldById(entityId);
-            
-            // Create the universal header structure
-            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
-            
-            // Update the thumbnail for the world image
-            headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
-            
-            // Create world-specific segments
-            const creatorSegment = createDetailsSegment({
-                iconType: 'image',
-                iconHash: entityInfo.author?.imageHash,
-                text: `By: ${entityInfo.author?.name || 'Unknown'}`,
-                clickable: entityInfo.author?.id ? true : false,
-                onClick: entityInfo.author?.id ? () => ShowDetails(DetailsType.User, entityInfo.author.id) : null
-            });
-            
-            // Upload/Update dates segment
-            const uploadDate = entityInfo.uploadedAt ? new Date(entityInfo.uploadedAt).toLocaleDateString() : 'Unknown';
-            const updateDate = entityInfo.updatedAt ? new Date(entityInfo.updatedAt).toLocaleDateString() : 'Unknown';
-            const datesSegment = createDetailsSegment({
-                icon: 'schedule',
-                text: `Uploaded: ${uploadDate}<br>Updated: ${updateDate}`
-            });
-            
-            // File size segment
-            const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
-            const sizeSegment = createDetailsSegment({
-                icon: 'storage',
-                text: `Size: ${fileSize}`
-            });
-            
-            // Add segments to container
-            headerElements.segmentsContainer.appendChild(creatorSegment);
-            headerElements.segmentsContainer.appendChild(datesSegment);
-            headerElements.segmentsContainer.appendChild(sizeSegment);
-
-            // Remove any existing button container
-            removeAllButtonContainers(detailsHeader);
-
-            // Create button container
-            const buttonContainer = createElement('div', {
-                className: 'world-details-button-container',
-            });
-
-            // Create Instance button (placeholder)
-            const createInstanceButton = createElement('button', {
-                className: 'world-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">add</span>Create Instance',
-                tooltip: 'Create Instance (Coming Soon)',
-                onClick: () => {
-                    // TODO: Implement create instance logic
-                    pushToast('Create Instance feature coming soon!', 'info');
-                },
-            });
-
-            // Add button to container
-            buttonContainer.append(createInstanceButton);
-
-            // Add the button container to the header
-            headerElements.detailsHeader.appendChild(buttonContainer);
-
-            // Show tabs and content for world details
-            detailsTabs.style.display = 'flex';
-            detailsContent.style.display = 'block';
-
-            // Add tabs dynamically
-            addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, loadTabContent);
-            break;
-        }
-        case DetailsType.Instance: {
-            entityInfo = await window.API.getInstanceById(entityId);
-            
-            // Create the universal header structure
-            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
-            
-            // Update the entity name to include player count
-            headerElements.entityName.innerHTML = `${entityInfo.name} <span class="instance-player-count">(${entityInfo.currentPlayerCount || 0}/${entityInfo.maxPlayer || '?'})</span>`;
-            
-            // Update the thumbnail for the world image
-            headerElements.thumbnail.dataset.hash = entityInfo.world?.imageHash;
-            
-            // Create instance-specific segments
-            const privacySegment = createDetailsSegment({
-                icon: entityInfo.instanceSettingPrivacy === 'Public' ? 'public' : 'group',
-                text: entityInfo.instanceSettingPrivacy || 'Unknown'
-            });
-            
-            const regionSegment = createDetailsSegment({
-                icon: 'location_on',
-                text: (entityInfo.region || 'unknown').toUpperCase()
-            });
-            
-            const ownerSegment = createDetailsSegment({
-                iconType: 'image',
-                iconHash: entityInfo.owner?.imageHash,
-                text: `Owner: ${entityInfo.owner?.name || 'Unknown'}`,
-                clickable: entityInfo.owner?.id ? true : false,
-                onClick: entityInfo.owner?.id ? () => ShowDetails(DetailsType.User, entityInfo.owner.id) : null
-            });
-            
-            // Add segments to container
-            headerElements.segmentsContainer.appendChild(privacySegment);
-            headerElements.segmentsContainer.appendChild(regionSegment);
-            headerElements.segmentsContainer.appendChild(ownerSegment);
-
-            // Add instance action buttons
-            // Remove any existing button container
-            removeAllButtonContainers(detailsHeader);
-
-            // Create button container
-            const buttonContainer = createElement('div', {
-                className: 'instance-details-button-container',
-            });
-
-            // Join Instance button
-            const joinInstanceButton = createElement('button', {
-                className: 'instance-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">login</span>Join Instance',
-                tooltip: 'Join This Instance',
-                onClick: () => {
-                    // TODO: Implement join instance logic
-                    pushToast('Join Instance feature coming soon!', 'info');
-                },
-            });
-
-            // Add button to container
-            buttonContainer.append(joinInstanceButton);
-
-            // Add the button container to the header
-            headerElements.detailsHeader.appendChild(buttonContainer);
-
-            // Show tabs and content for instance details
-            detailsTabs.style.display = 'flex';
-            detailsContent.style.display = 'block';
-
-            // Add tabs dynamically
-            addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, loadTabContent);
-            
-            // Update the instances tab text with count
-            const instancesTab = document.querySelector(`[data-tab="instances"]`);
-            if (instancesTab) {
-                const instanceCount = activeInstances.filter(instance => instance.world?.id === entityId).length;
-                instancesTab.innerHTML = `<span class="material-symbols-outlined">public</span>Instances (${instanceCount})`;
-            }
-            break;
-        }
-    }
 }
+
+// Create the wrapper instance
+const ShowDetailsWrapper = createShowDetailsWrapper();
 
 // Function to load content for each tab
 async function loadTabContent(tab, entityId) {
@@ -1478,7 +1000,7 @@ async function loadTabContent(tab, entityId) {
                             ${additionalInfo}
                         </div>
                     `,
-                    onClick: () => ShowDetails(DetailsType.Instance, item.id),
+                    onClick: () => ShowDetailsWrapper(DetailsType.Instance, item.id),
                 });
 
                 // Set blurred world background for instance cards
@@ -1506,16 +1028,16 @@ async function loadTabContent(tab, entityId) {
                     onClick: () => {
                         switch (tab) {
                             case 'avatars':
-                                ShowDetails(DetailsType.Avatar, item.id);
+                                ShowDetailsWrapper(DetailsType.Avatar, item.id);
                                 break;
                             case 'props':
-                                ShowDetails(DetailsType.Prop, item.id);
+                                ShowDetailsWrapper(DetailsType.Prop, item.id);
                                 break;
                             case 'worlds':
-                                ShowDetails(DetailsType.World, item.id);
+                                ShowDetailsWrapper(DetailsType.World, item.id);
                                 break;
                             case 'users':
-                                ShowDetails(DetailsType.User, item.id);
+                                ShowDetailsWrapper(DetailsType.User, item.id);
                                 break;
                         }
                     },
@@ -1605,7 +1127,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
                     <p class="online-friend-node--name">${friend.name}</p>
                     <p class="online-friend-node--status ${onlineFriendInPrivateClass}">${instanceTypeStr}</p>
                     <p class="online-friend-node--world" data-tooltip="${name}">${name}</p>`,
-                onClick: () => ShowDetails(DetailsType.User, friend.id),
+                onClick: () => ShowDetailsWrapper(DetailsType.User, friend.id),
             });
 
             // Get category from map
@@ -1662,7 +1184,7 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
                     <p class="${offlineFriendClass} friend-status">${worldIcon} ${name}</p>
                 </div>
             `,
-            onClick: () => ShowDetails(DetailsType.User, friend.id),
+            onClick: () => ShowDetailsWrapper(DetailsType.User, friend.id),
         });
 
         // Set placeholder background image and data-hash directly on the container
@@ -1808,7 +1330,7 @@ searchBar.addEventListener('keypress', async (event) => {
                 hideAllSearchCategories();
 
                 // Attempt to show details for the GUID
-                await ShowDetails(type, guid);
+                await ShowDetailsWrapper(type, guid);
                 
                 // Clear the search bar after successful search
                 searchBar.value = '';
@@ -1970,19 +1492,19 @@ searchBar.addEventListener('keypress', async (event) => {
 
             switch (result.type) {
                 case 'user':
-                    searchResult.onclick = () => ShowDetails(DetailsType.User, result.id);
+                    searchResult.onclick = () => ShowDetailsWrapper(DetailsType.User, result.id);
                     userResults.push(searchResult);
                     break;
                 case 'world':
-                    searchResult.onclick = () => ShowDetails(DetailsType.World, result.id);
+                    searchResult.onclick = () => ShowDetailsWrapper(DetailsType.World, result.id);
                     worldsResults.push(searchResult);
                     break;
                 case 'avatar':
-                    searchResult.onclick = () => ShowDetails(DetailsType.Avatar, result.id);
+                    searchResult.onclick = () => ShowDetailsWrapper(DetailsType.Avatar, result.id);
                     avatarResults.push(searchResult);
                     break;
                 case 'prop':
-                    searchResult.onclick = () => ShowDetails(DetailsType.Prop, result.id);
+                    searchResult.onclick = () => ShowDetailsWrapper(DetailsType.Prop, result.id);
                     propsResults.push(searchResult);
                     break;
                 default:
@@ -2128,7 +1650,7 @@ window.API.onActiveInstancesUpdate((_event, activeInstancesData) => {
             let userIcon = createElement('img', {
                 className: 'active-instance-node--user-icon',
                 src: userIconSource,
-                onClick: () => ShowDetails(DetailsType.User, member.id),
+                onClick: () => ShowDetailsWrapper(DetailsType.User, member.id),
             });
             userIcon.dataset.hash = member.imageHash;
             userIcon.dataset.tooltip = member.name;
@@ -2184,8 +1706,8 @@ window.API.onActiveInstancesUpdate((_event, activeInstancesData) => {
         instanceNameElement.style.cursor = 'pointer';
         instanceIconElement.style.cursor = 'pointer';
         
-        instanceNameElement.onclick = () => ShowDetails(DetailsType.Instance, result.id);
-        instanceIconElement.onclick = () => ShowDetails(DetailsType.Instance, result.id);
+        instanceNameElement.onclick = () => ShowDetailsWrapper(DetailsType.Instance, result.id);
+        instanceIconElement.onclick = () => ShowDetailsWrapper(DetailsType.Instance, result.id);
 
         elementsOfResults.push(activeWorldNode);
     }
@@ -2244,7 +1766,7 @@ window.API.onInvites((_event, invites) => {
         const userImageNode = createElement('img', {
             className: 'notification-avatar',
             src: 'img/ui/placeholder.png',
-            onClick: () => ShowDetails(DetailsType.User, invite.user.id),
+            onClick: () => ShowDetailsWrapper(DetailsType.User, invite.user.id),
         });
         userImageNode.dataset.hash = invite.user.imageHash;
 
@@ -2281,7 +1803,7 @@ window.API.onInvites((_event, invites) => {
 
         // Add click handler for sender name
         const senderElement = inviteNode.querySelector('.notification-sender');
-        senderElement.addEventListener('click', () => ShowDetails(DetailsType.User, invite.user.id));
+        senderElement.addEventListener('click', () => ShowDetailsWrapper(DetailsType.User, invite.user.id));
 
         // Prepend the images
         const notificationContent = inviteNode.querySelector('.notification-content');
@@ -2309,7 +1831,7 @@ window.API.onInviteRequests((_event, requestInvites) => {
         const userImageNode = createElement('img', {
             className: 'notification-avatar',
             src: 'img/ui/placeholder.png',
-            onClick: () => ShowDetails(DetailsType.User, requestInvite.sender.id),
+            onClick: () => ShowDetailsWrapper(DetailsType.User, requestInvite.sender.id),
         });
         userImageNode.dataset.hash = requestInvite.sender.imageHash;
 
@@ -2335,7 +1857,7 @@ window.API.onInviteRequests((_event, requestInvites) => {
 
         // Add click handler for sender name
         const senderElement = requestInviteNode.querySelector('.notification-sender');
-        senderElement.addEventListener('click', () => ShowDetails(DetailsType.User, requestInvite.sender.id));
+        senderElement.addEventListener('click', () => ShowDetailsWrapper(DetailsType.User, requestInvite.sender.id));
 
         // Prepend the user image
         const notificationContent = requestInviteNode.querySelector('.notification-content');
@@ -2360,7 +1882,7 @@ window.API.onFriendRequests((_event, friendRequests) => {
         const userImageNode = createElement('img', {
             className: 'notification-avatar',
             src: 'img/ui/placeholder.png',
-            onClick: () => ShowDetails(DetailsType.User, friendRequest.id),
+            onClick: () => ShowDetailsWrapper(DetailsType.User, friendRequest.id),
         });
         userImageNode.dataset.hash = friendRequest.imageHash;
 
@@ -2399,7 +1921,7 @@ window.API.onFriendRequests((_event, friendRequests) => {
 
         // Add click handler for sender name
         const senderElement = friendRequestNode.querySelector('.notification-sender');
-        senderElement.addEventListener('click', () => ShowDetails(DetailsType.User, friendRequest.id));
+        senderElement.addEventListener('click', () => ShowDetailsWrapper(DetailsType.User, friendRequest.id));
 
         // Add the buttons to the action area
         const actionButtons = friendRequestNode.querySelector('.notification-action-buttons');
@@ -2448,7 +1970,7 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
                     </div>
                 </div>
             `,
-            onClick: () => ShowDetails(DetailsType.World, ourWorld.id),
+            onClick: () => ShowDetailsWrapper(DetailsType.World, ourWorld.id),
         });
 
         // Set placeholder background image and data-hash directly on the container
@@ -2501,7 +2023,7 @@ window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
                     </div>
                 </div>
             `,
-            onClick: () => ShowDetails(DetailsType.Avatar, ourAvatar.id),
+            onClick: () => ShowDetailsWrapper(DetailsType.Avatar, ourAvatar.id),
         });
 
         // Set placeholder background image and data-hash directly on the container
@@ -2554,7 +2076,7 @@ window.API.onGetActiveUserProps((_event, ourProps) => {
                     </div>
                 </div>
             `,
-            onClick: () => ShowDetails(DetailsType.Prop, ourProp.id),
+            onClick: () => ShowDetailsWrapper(DetailsType.Prop, ourProp.id),
         });
 
         // Set placeholder background image and data-hash directly on the container
@@ -2608,7 +2130,7 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
                         `<img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${recentActivity.current.imageHash}"/>
                         <p class="friend-name-history">${recentActivity.current.name} <small>(${dateStr})</small></p>
                         <p class="friend-status-history"><span class="old-history">${previousInstanceInfo}</span> ➡ ${currentInstanceInfo}</p>`,
-                    onClick: () => ShowDetails(DetailsType.User, recentActivity.current.id),
+                    onClick: () => ShowDetailsWrapper(DetailsType.User, recentActivity.current.id),
                 });
 
                 newNodes.push(activityUpdateNode);
