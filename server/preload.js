@@ -134,6 +134,9 @@ contextBridge.exposeInMainWorld('API', {
     getConfig: () => ipcRenderer.invoke('config-get'),
     updateConfig: (newConfigSettings) => ipcRenderer.invoke('config-update', newConfigSettings),
 
+    // Cache
+    clearCachedImages: () => ipcRenderer.invoke('clear-cached-images'),
+
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),
 });

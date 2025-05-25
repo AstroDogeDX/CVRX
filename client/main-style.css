@@ -2907,6 +2907,14 @@ button {
     background: #a00000;
 }
 
+#clear-cached-images-button {
+    background: #ff6b35;
+}
+
+#clear-cached-images-button:hover {
+    background: #ff5722;
+}
+
 .settings-button .material-symbols-outlined {
     font-size: 18px;
 }

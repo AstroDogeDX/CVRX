@@ -263,6 +263,9 @@ class Core {
         ipcMain.handle('config-get', () => Config.GetConfig());
         ipcMain.handle('config-update', (_event, newConfigSettings) => Config.UpdateConfig(newConfigSettings));
 
+        // Cache
+        ipcMain.handle('clear-cached-images', async (_event) => await cache.ClearAllCachedImages());
+
         // Socket Events
         CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.CONNECTED, () => this.recentActivityInitialFriends = true);
         CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.DEAD, () => this.SendToRenderer('socket-died'));

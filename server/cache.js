@@ -210,3 +210,59 @@ async function CleanCache() {
         log.error('[CleanCache] Cleaning cache...', e);
     }
 }
+
+async function ClearAllCachedImages() {
+    log.info('[ClearAllCachedImages] Clearing all cached images...');
+    
+    try {
+        // Check if the cache directory exists
+        try {
+            await fs.promises.access(CacheImagesPath, fs.constants.F_OK);
+        } catch (err) {
+            // Directory doesn't exist, nothing to clear
+            log.info('[ClearAllCachedImages] Cache directory does not exist, nothing to clear');
+            return { success: true, message: 'No cached images to clear' };
+        }
+
+        // Get all files in the cache directory
+        const fileNames = await fs.promises.readdir(CacheImagesPath);
+        
+        if (fileNames.length === 0) {
+            log.info('[ClearAllCachedImages] Cache directory is already empty');
+            return { success: true, message: 'Cache directory is already empty' };
+        }
+
+        let deletedCount = 0;
+        let totalSize = 0;
+
+        // Delete all files
+        for (const fileName of fileNames) {
+            const filePath = path.join(CacheImagesPath, fileName);
+            try {
+                const fileStats = await fs.promises.stat(filePath);
+                totalSize += fileStats.size;
+                await fs.promises.unlink(filePath);
+                deletedCount++;
+            } catch (err) {
+                log.error(`[ClearAllCachedImages] Failed to delete file ${filePath}:`, err);
+            }
+        }
+
+        const totalSizeMB = BytesToMegabytes(totalSize);
+        log.info(`[ClearAllCachedImages] Successfully deleted ${deletedCount} files, freed ${totalSizeMB.toFixed(2)} MB`);
+        
+        return { 
+            success: true, 
+            message: `Successfully cleared ${deletedCount} cached images (${totalSizeMB.toFixed(2)} MB freed)` 
+        };
+    }
+    catch (e) {
+        log.error('[ClearAllCachedImages] Error clearing cached images:', e);
+        return { 
+            success: false, 
+            message: `Failed to clear cached images: ${e.message}` 
+        };
+    }
+}
+
+exports.ClearAllCachedImages = ClearAllCachedImages;
