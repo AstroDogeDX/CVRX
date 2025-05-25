@@ -463,9 +463,9 @@ button {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
     min-height: 0;
-    margin-top: 8px;
+    margin-top: 4px;
     padding: 4px;
 }
 
@@ -493,7 +493,7 @@ button {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    margin-top: 8px;
+    margin-top: 4px;
 }
 
 .home-requests-wrapper:empty {
@@ -532,7 +532,9 @@ button {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    margin-top: 8px;
+    gap: 5px;
+    padding: 4px;
+    margin-top: 4px;
 }
 
 .home-history--history-wrapper:empty {
@@ -616,7 +618,6 @@ button {
 .home-history--history-wrapper .friend-history-node {
     border: 1px solid rgba(255, 255, 255, 0.08);
     transition: all 0.3s ease;
-    margin-bottom: 4px;
 }
 
 .home-history--history-wrapper .friend-history-node:hover {
