@@ -4801,21 +4801,6 @@ button {
     transform: scale(1.05);
 }
 
-.user-details-username {
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
-    margin: 0;
-    text-align: center;
-}
-
-.user-details-separator {
-    width: 80%;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--color-bg-secondary), transparent);
-    margin: 0.5rem 0;
-}
-
 .user-details-info-item {
     display: flex;
     align-items: center;
@@ -4901,10 +4886,6 @@ button {
         height: 100px;
     }
     
-    .user-details-username {
-        font-size: 1.5rem;
-    }
-    
     .user-details-info-item {
         min-width: auto;
         width: 100%;
@@ -4921,7 +4902,7 @@ button {
     /* Additional styling for user-specific segment layout */
 }
 
-.user-details-separator-line {
+.details-separator-line {
     width: 80%;
     height: 1px;
     background: linear-gradient(to right, transparent, var(--color-border), transparent);
@@ -4931,7 +4912,8 @@ button {
 
 /* User-specific segment styling - builds on existing details-segment */
 .user-details-avatar-segment,
-.user-details-instance-segment {
+.user-details-instance-segment,
+.avatar-details-creator-segment {
     /* Inherits all styles from .details-segment */
     padding: 8px 12px;
     background: rgba(255, 255, 255, 0.05);
@@ -4941,7 +4923,8 @@ button {
 }
 
 .user-details-avatar-segment:hover,
-.user-details-instance-segment:hover {
+.user-details-instance-segment:hover,
+.avatar-details-creator-segment:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: var(--color-accent);
 }
@@ -4958,14 +4941,18 @@ button {
 }
 
 /* Special styling for avatar images in segments */
-.user-details-avatar-segment img {
+.user-details-avatar-segment img,
+.user-details-instance-segment img,
+.avatar-details-creator-segment img {
     border: 1px solid var(--color-border);
     transition: var(--transition-standard);
     width: 32px;
     height: 32px;
 }
 
-.user-details-avatar-segment:hover img {
+.user-details-avatar-segment:hover img,
+.user-details-instance-segment:hover img,
+.avatar-details-creator-segment:hover img {
     border-color: var(--color-accent);
 }
 
@@ -4975,18 +4962,6 @@ button {
     transition: var(--transition-standard);
     width: 30px;
     height: 30px;
-}
-
-/* World/instance images in segments */
-.user-details-instance-segment img {
-    border: 1px solid var(--color-border);
-    transition: var(--transition-standard);
-    width: 32px;
-    height: 32px;
-}
-
-.user-details-instance-segment:hover img {
-    border-color: var(--color-accent);
 }
 
 /* Responsive adjustments for user details header */

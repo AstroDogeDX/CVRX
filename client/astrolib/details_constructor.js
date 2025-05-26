@@ -307,6 +307,17 @@ function addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, load
             tabs.push(avatarDescTab);
             tabsLeft.append(avatarDescTab);
             
+            // Show Advanced Avatar Settings tab if we have access (own it, it's public, or shared with us)
+            const hasAvatarAccess = (currentActiveUser && entityInfo.user?.id === currentActiveUser.id) || 
+                                   entityInfo.isPublished || 
+                                   entityInfo.isSharedWithMe;
+            
+            if (hasAvatarAccess) {
+                const avatarAdvSettingsTab = createTabButton('adv-settings', 'tune', 'Adv. Avatar Settings', classPrefix);
+                tabs.push(avatarAdvSettingsTab);
+                tabsLeft.append(avatarAdvSettingsTab);
+            }
+            
             // Only show Shares tab if the current user owns this avatar
             if (currentActiveUser && entityInfo.user?.id === currentActiveUser.id) {
                 const avatarSharesTab = createTabButton('shares', 'share', 'Shares', classPrefix);
@@ -317,6 +328,12 @@ function addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, load
             // Create corresponding tab panes
             const avatarDescPane = createTabPane('description', classPrefix, '<div class="description-container"></div>', true);
             tabPanes.push(avatarDescPane);
+            
+            // Create Advanced Avatar Settings pane if we have access
+            if (hasAvatarAccess) {
+                const avatarAdvSettingsPane = createTabPane('adv-settings', classPrefix, '<div class="adv-settings-container"><div class="no-items-message">Advanced Avatar Settings coming soon!</div></div>');
+                tabPanes.push(avatarAdvSettingsPane);
+            }
             
             if (currentActiveUser && entityInfo.user?.id === currentActiveUser.id) {
                 const avatarSharesPane = createTabPane('shares', classPrefix, '<div class="shares-container"></div>');
@@ -487,7 +504,7 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
     
     // Create separator div
     const separator = document.createElement('div');
-    separator.className = 'user-details-separator-line';
+    separator.className = 'details-separator-line';
     
     // Create avatar segment using universal details-segment
     const avatarSegment = createDetailsSegment({
@@ -779,36 +796,79 @@ async function ShowDetails(entityType, entityId, dependencies) {
             // Update the thumbnail for the avatar image
             headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
             
-            // Create avatar-specific segments
+            // Create avatar-specific segments using universal details-segment system
             const creatorSegment = createDetailsSegment({
                 iconType: 'image',
                 iconHash: entityInfo.user?.imageHash,
-                text: `By: ${entityInfo.user?.name || 'Unknown'}`,
+                text: `${entityInfo.user?.name || 'Unknown'}`,
                 clickable: entityInfo.user?.id ? true : false,
                 onClick: entityInfo.user?.id ? () => ShowDetails(DetailsType.User, entityInfo.user.id, dependencies) : null
             });
+            creatorSegment.classList.add('avatar-details-creator-segment');
             
-            // Upload/Update dates segment
+            // Create separator div
+            const separator = document.createElement('div');
+            separator.className = 'details-separator-line';
+            
+            // Upload date segment
             const uploadDate = entityInfo.uploadedAt ? new Date(entityInfo.uploadedAt).toLocaleDateString() : 'Unknown';
+            const uploadDateSegment = createDetailsSegment({
+                icon: 'upload',
+                text: `Upload Date: ${uploadDate}`
+            });
+            uploadDateSegment.classList.add('avatar-details-upload-segment');
+            
+            // Update date segment
             const updateDate = entityInfo.updatedAt ? new Date(entityInfo.updatedAt).toLocaleDateString() : 'Unknown';
-            const datesSegment = createDetailsSegment({
-                icon: 'schedule',
-                text: `Uploaded: ${uploadDate}<br>Updated: ${updateDate}`
+            const updateDateSegment = createDetailsSegment({
+                icon: 'update',
+                text: `Updated: ${updateDate}`
             });
+            updateDateSegment.classList.add('avatar-details-update-segment');
             
-            // File info segment
-            const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
+            // Create second separator div
+            const separator2 = document.createElement('div');
+            separator2.className = 'details-separator-line';
+            
+            // Public status segment
             const publicationStatus = entityInfo.isPublished ? 'Public' : 'Private';
-            const sharingStatus = entityInfo.isSharedWithMe ? 'Shared with me' : 'Not shared';
-            const infoSegment = createDetailsSegment({
-                icon: 'info',
-                text: `Size: ${fileSize}<br>Status: ${publicationStatus}<br>${sharingStatus}`
+            const publicStatusSegment = createDetailsSegment({
+                icon: entityInfo.isPublished ? 'public' : 'lock',
+                text: publicationStatus
             });
+            publicStatusSegment.classList.add('avatar-details-public-segment');
             
-            // Add segments to container
+            // Add segments to container in the requested order
             headerElements.segmentsContainer.appendChild(creatorSegment);
-            headerElements.segmentsContainer.appendChild(datesSegment);
-            headerElements.segmentsContainer.appendChild(infoSegment);
+            headerElements.segmentsContainer.appendChild(separator);
+            headerElements.segmentsContainer.appendChild(uploadDateSegment);
+            headerElements.segmentsContainer.appendChild(updateDateSegment);
+            headerElements.segmentsContainer.appendChild(separator2);
+            headerElements.segmentsContainer.appendChild(publicStatusSegment);
+            
+            // Only show "Shared With Me" status if it's true
+            if (entityInfo.isSharedWithMe) {
+                const sharedSegment = createDetailsSegment({
+                    icon: 'share',
+                    text: 'Shared with me'
+                });
+                sharedSegment.classList.add('avatar-details-shared-segment');
+                headerElements.segmentsContainer.appendChild(sharedSegment);
+            }
+            
+            // Add divider before file size (always show divider if we have shared segment, or if we don't have shared segment but still want to separate from public status)
+            const separator3 = document.createElement('div');
+            separator3.className = 'details-separator-line';
+            headerElements.segmentsContainer.appendChild(separator3);
+            
+            // File size segment (always show)
+            const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
+            const fileSizeSegment = createDetailsSegment({
+                icon: 'storage',
+                text: `File Size: ${fileSize}`
+            });
+            fileSizeSegment.classList.add('avatar-details-filesize-segment');
+            headerElements.segmentsContainer.appendChild(fileSizeSegment);
 
             // Remove any existing button container
             removeAllButtonContainers(detailsHeader);
