@@ -912,36 +912,79 @@ async function ShowDetails(entityType, entityId, dependencies) {
             // Update the thumbnail for the prop image
             headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
             
-            // Create prop-specific segments
+            // Create prop-specific segments using universal details-segment system
             const creatorSegment = createDetailsSegment({
                 iconType: 'image',
                 iconHash: entityInfo.author?.imageHash,
-                text: `By: ${entityInfo.author?.name || 'Unknown'}`,
+                text: `${entityInfo.author?.name || 'Unknown'}`,
                 clickable: entityInfo.author?.id ? true : false,
                 onClick: entityInfo.author?.id ? () => ShowDetails(DetailsType.User, entityInfo.author.id, dependencies) : null
             });
+            creatorSegment.classList.add('prop-details-creator-segment');
             
-            // Upload/Update dates segment
+            // Create separator div
+            const separator = document.createElement('div');
+            separator.className = 'details-separator-line';
+            
+            // Upload date segment
             const uploadDate = entityInfo.uploadedAt ? new Date(entityInfo.uploadedAt).toLocaleDateString() : 'Unknown';
+            const uploadDateSegment = createDetailsSegment({
+                icon: 'upload',
+                text: `Upload Date: ${uploadDate}`
+            });
+            uploadDateSegment.classList.add('prop-details-upload-segment');
+            
+            // Update date segment
             const updateDate = entityInfo.updatedAt ? new Date(entityInfo.updatedAt).toLocaleDateString() : 'Unknown';
-            const datesSegment = createDetailsSegment({
-                icon: 'schedule',
-                text: `Uploaded: ${uploadDate}<br>Updated: ${updateDate}`
+            const updateDateSegment = createDetailsSegment({
+                icon: 'update',
+                text: `Updated: ${updateDate}`
             });
+            updateDateSegment.classList.add('prop-details-update-segment');
             
-            // File info segment
-            const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
+            // Create second separator div
+            const separator2 = document.createElement('div');
+            separator2.className = 'details-separator-line';
+            
+            // Public status segment
             const publicationStatus = entityInfo.isPublished ? 'Public' : 'Private';
-            const sharingStatus = entityInfo.isSharedWithMe ? 'Shared with me' : 'Not shared';
-            const infoSegment = createDetailsSegment({
-                icon: 'info',
-                text: `Size: ${fileSize}<br>Status: ${publicationStatus}<br>${sharingStatus}`
+            const publicStatusSegment = createDetailsSegment({
+                icon: entityInfo.isPublished ? 'public' : 'lock',
+                text: publicationStatus
             });
+            publicStatusSegment.classList.add('prop-details-public-segment');
             
-            // Add segments to container
+            // Add segments to container in the requested order
             headerElements.segmentsContainer.appendChild(creatorSegment);
-            headerElements.segmentsContainer.appendChild(datesSegment);
-            headerElements.segmentsContainer.appendChild(infoSegment);
+            headerElements.segmentsContainer.appendChild(separator);
+            headerElements.segmentsContainer.appendChild(uploadDateSegment);
+            headerElements.segmentsContainer.appendChild(updateDateSegment);
+            headerElements.segmentsContainer.appendChild(separator2);
+            headerElements.segmentsContainer.appendChild(publicStatusSegment);
+            
+            // Only show "Shared With Me" status if it's true
+            if (entityInfo.isSharedWithMe) {
+                const sharedSegment = createDetailsSegment({
+                    icon: 'share',
+                    text: 'Shared with me'
+                });
+                sharedSegment.classList.add('prop-details-shared-segment');
+                headerElements.segmentsContainer.appendChild(sharedSegment);
+            }
+            
+            // Add divider before file size
+            const separator3 = document.createElement('div');
+            separator3.className = 'details-separator-line';
+            headerElements.segmentsContainer.appendChild(separator3);
+            
+            // File size segment (always show)
+            const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
+            const fileSizeSegment = createDetailsSegment({
+                icon: 'storage',
+                text: `File Size: ${fileSize}`
+            });
+            fileSizeSegment.classList.add('prop-details-filesize-segment');
+            headerElements.segmentsContainer.appendChild(fileSizeSegment);
 
             // Remove any existing button container
             removeAllButtonContainers(detailsHeader);
