@@ -226,8 +226,13 @@ function createDetailsHeaderStructure(entityInfo, entityType) {
     const segmentsContainer = document.createElement('div');
     segmentsContainer.className = 'details-segments-container';
     
-    // Add main info and segments to header content
+    // Create separator between main info and segments
+    const mainSeparator = document.createElement('div');
+    mainSeparator.className = 'details-separator-line details-main-separator';
+    
+    // Add main info, separator, and segments to header content
     headerContent.appendChild(mainInfo);
+    headerContent.appendChild(mainSeparator);
     headerContent.appendChild(segmentsContainer);
     
     // Add header content to details header
@@ -483,6 +488,10 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
     const segmentsContainer = document.createElement('div');
     segmentsContainer.className = 'details-segments-container user-details-segments';
     
+    // Create separator between main info and segments
+    const mainSeparator = document.createElement('div');
+    mainSeparator.className = 'details-separator-line details-main-separator';
+    
     // Create rank segment using universal details-segment
     const rankSegment = createDetailsSegment({
         icon: 'military_tech',
@@ -569,8 +578,9 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
         segmentsContainer.appendChild(instanceSegment);
     }
     
-    // Add main info and segments to header content
+    // Add main info, separator, and segments to header content
     headerContent.appendChild(mainInfo);
+    headerContent.appendChild(mainSeparator);
     headerContent.appendChild(segmentsContainer);
     
     // Add header content to details header
@@ -1134,35 +1144,96 @@ async function ShowDetails(entityType, entityId, dependencies) {
             // Create the universal header structure
             const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
             
-            // Update the entity name to include player count
-            headerElements.entityName.innerHTML = `${entityInfo.name} <span class="instance-player-count">(${entityInfo.currentPlayerCount || 0}/${entityInfo.maxPlayer || '?'})</span>`;
+            // Clean the entity name by removing the instance ID portion
+            let cleanName = entityInfo.name || 'Unknown Instance';
+            if (entityInfo.name) {
+                // Remove the (#12345) part from the name
+                cleanName = entityInfo.name.replace(/\s*\(#\d+\)$/, '');
+            }
+            headerElements.entityName.textContent = cleanName;
             
             // Update the thumbnail for the world image
             headerElements.thumbnail.dataset.hash = entityInfo.world?.imageHash;
             
-            // Create instance-specific segments
+            // Create instance-specific segments using universal details-segment system
+            
+            // Instance Owner segment (clickable, using creator-segment styling)
+            const ownerSegment = createDetailsSegment({
+                iconType: 'image',
+                iconHash: entityInfo.owner?.imageHash,
+                text: `${entityInfo.owner?.name || 'Unknown'}`,
+                clickable: entityInfo.owner?.id ? true : false,
+                onClick: entityInfo.owner?.id ? () => ShowDetails(DetailsType.User, entityInfo.owner.id, dependencies) : null
+            });
+            ownerSegment.classList.add('instance-details-creator-segment');
+            
+            // Instance World segment (clickable, using creator-segment styling)
+            const worldSegment = createDetailsSegment({
+                iconType: 'image',
+                iconHash: entityInfo.world?.imageHash,
+                text: `${entityInfo.world?.name || 'Unknown World'}`,
+                clickable: entityInfo.world?.id ? true : false,
+                onClick: entityInfo.world?.id ? () => ShowDetails(DetailsType.World, entityInfo.world.id, dependencies) : null
+            });
+            worldSegment.classList.add('instance-details-creator-segment');
+            
+            // Create separator div
+            const separator = document.createElement('div');
+            separator.className = 'details-separator-line';
+            
+            // Player Count segment
+            const playerCountSegment = createDetailsSegment({
+                icon: 'group',
+                text: `${entityInfo.currentPlayerCount || 0}/${entityInfo.maxPlayer || '?'} Players`
+            });
+            playerCountSegment.classList.add('instance-details-player-count-segment');
+            
+            // Privacy segment
             const privacySegment = createDetailsSegment({
                 icon: entityInfo.instanceSettingPrivacy === 'Public' ? 'public' : 'group',
                 text: entityInfo.instanceSettingPrivacy || 'Unknown'
             });
+            privacySegment.classList.add('instance-details-privacy-segment');
             
+            // Region segment
             const regionSegment = createDetailsSegment({
                 icon: 'location_on',
                 text: (entityInfo.region || 'unknown').toUpperCase()
             });
+            regionSegment.classList.add('instance-details-region-segment');
             
-            const ownerSegment = createDetailsSegment({
-                iconType: 'image',
-                iconHash: entityInfo.owner?.imageHash,
-                text: `Owner: ${entityInfo.owner?.name || 'Unknown'}`,
-                clickable: entityInfo.owner?.id ? true : false,
-                onClick: entityInfo.owner?.id ? () => ShowDetails(DetailsType.User, entityInfo.owner.id, dependencies) : null
-            });
+            // Extract instance ID from the name (format: "World Name (#12345)")
+            let instanceId = null;
+            if (entityInfo.name) {
+                const match = entityInfo.name.match(/\(#(\d+)\)$/);
+                if (match) {
+                    instanceId = `#${match[1]}`;
+                }
+            }
             
-            // Add segments to container
+            // Add segments to container in the requested order
+            headerElements.segmentsContainer.appendChild(ownerSegment);
+            headerElements.segmentsContainer.appendChild(worldSegment);
+            headerElements.segmentsContainer.appendChild(separator);
+            headerElements.segmentsContainer.appendChild(playerCountSegment);
             headerElements.segmentsContainer.appendChild(privacySegment);
             headerElements.segmentsContainer.appendChild(regionSegment);
-            headerElements.segmentsContainer.appendChild(ownerSegment);
+            
+            // Add instance ID segment if we have one
+            if (instanceId) {
+                // Create second separator div
+                const separator2 = document.createElement('div');
+                separator2.className = 'details-separator-line';
+                headerElements.segmentsContainer.appendChild(separator2);
+                
+                // Instance ID segment
+                const instanceIdSegment = createDetailsSegment({
+                    icon: 'tag',
+                    text: `Instance ID: ${instanceId}`
+                });
+                instanceIdSegment.classList.add('instance-details-id-segment');
+                headerElements.segmentsContainer.appendChild(instanceIdSegment);
+            }
 
             // Add instance action buttons
             // Remove any existing button container

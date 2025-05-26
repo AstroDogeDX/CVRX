@@ -4910,12 +4910,20 @@ button {
     align-self: center;
 }
 
+/* Main separator between title and details segments */
+.details-main-separator {
+    width: 90%;
+    background: linear-gradient(to right, transparent, var(--color-accent), transparent);
+    opacity: 0.6;
+}
+
 /* User-specific segment styling - builds on existing details-segment */
 .user-details-avatar-segment,
 .user-details-instance-segment,
 .avatar-details-creator-segment,
 .prop-details-creator-segment,
-.world-details-creator-segment {
+.world-details-creator-segment,
+.instance-details-creator-segment {
     /* Inherits all styles from .details-segment */
     padding: 8px 12px;
     background: rgba(255, 255, 255, 0.05);
@@ -4928,7 +4936,8 @@ button {
 .user-details-instance-segment:hover,
 .avatar-details-creator-segment:hover,
 .prop-details-creator-segment:hover,
-.world-details-creator-segment:hover {
+.world-details-creator-segment:hover,
+.instance-details-creator-segment:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: var(--color-accent);
 }
@@ -4949,7 +4958,8 @@ button {
 .user-details-instance-segment img,
 .avatar-details-creator-segment img,
 .prop-details-creator-segment img,
-.world-details-creator-segment img {
+.world-details-creator-segment img,
+.instance-details-creator-segment img {
     border: 1px solid var(--color-border);
     transition: var(--transition-standard);
     width: 32px;
@@ -4960,7 +4970,8 @@ button {
 .user-details-instance-segment:hover img,
 .avatar-details-creator-segment:hover img,
 .prop-details-creator-segment:hover img,
-.world-details-creator-segment:hover img {
+.world-details-creator-segment:hover img,
+.instance-details-creator-segment:hover img {
     border-color: var(--color-accent);
 }
 
