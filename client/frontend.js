@@ -16,6 +16,7 @@ import {
     createTabPane,
     createDetailsSegment,
     createDetailsHeaderStructure,
+    updateInstanceCount,
     addEntityTabs,
     createUserDetailsHeader,
     ShowDetails
@@ -33,6 +34,7 @@ let currentActiveUser = null;
 
 // Store active instances for filtering in world details
 let activeInstances = [];
+let currentWorldDetailsId = null; // Track the currently open world details
 
 
 
@@ -463,13 +465,24 @@ function getFriendStatus(friend) {
 // Create a wrapper function that provides dependencies to the ShowDetails function
 function createShowDetailsWrapper() {
     return (entityType, entityId) => {
+        // Track if we're opening world details
+        if (entityType === DetailsType.World) {
+            currentWorldDetailsId = entityId;
+        } else {
+            currentWorldDetailsId = null;
+        }
+        
         const dependencies = {
             currentActiveUser,
             activeInstances,
             loadTabContentCallback: loadTabContent,
             createElement,
             pushToast,
-            window: window.API
+            window: window.API,
+            onClose: () => {
+                // Clear the current world details ID when the window is closed
+                currentWorldDetailsId = null;
+            }
         };
         return ShowDetails(entityType, entityId, dependencies);
     };
@@ -685,13 +698,6 @@ async function loadTabContent(tab, entityId) {
                 // For worlds, get active instances using this world
                 // Filter the global active instances by world ID
                 items = activeInstances.filter(instance => instance.world?.id === entityId) || [];
-                
-                // Update the instances tab text with count
-                const instancesTab = document.querySelector(`[data-tab="instances"]`);
-                if (instancesTab) {
-                    const instanceCount = items.length;
-                    instancesTab.innerHTML = `<span class="material-symbols-outlined">public</span>Instances (${instanceCount})`;
-                }
                 break;
             case 'stats':
                 // Stats tab is disabled, but we'll keep this case for future implementation
@@ -1445,6 +1451,11 @@ document.querySelectorAll('.search-output-category h3').forEach(header => {
 window.API.onActiveInstancesUpdate((_event, activeInstancesData) => {
     // Store active instances globally for use in world details
     activeInstances = activeInstancesData;
+    
+    // Update instance count for any currently open world details
+    if (currentWorldDetailsId) {
+        updateInstanceCount(currentWorldDetailsId, activeInstances);
+    }
     
     const homeActivity = document.querySelector('.home-activity--activity-wrapper');
 

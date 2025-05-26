@@ -248,6 +248,16 @@ function createDetailsHeaderStructure(entityInfo, entityType) {
 // TAB CONTENT MANAGEMENT
 // ===========
 
+// Helper function to update instance count for a world
+function updateInstanceCount(worldId, activeInstances) {
+    const instancesTab = document.querySelector(`[data-tab="instances"]`);
+    if (instancesTab) {
+        // Calculate the actual number of instances visible to the user
+        const visibleInstanceCount = activeInstances.filter(instance => instance.world?.id === worldId).length;
+        instancesTab.innerHTML = `<span class="material-symbols-outlined">public</span>Instances (${visibleInstanceCount})`;
+    }
+}
+
 // Helper function to add tabs for a specific entity type
 function addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, loadTabContentCallback) {
     const classPrefix = getEntityClassPrefix(entityType);
@@ -606,6 +616,10 @@ async function ShowDetails(entityType, entityId, dependencies) {
     detailsShade.onclick = (event) => {
         if (event.target === detailsShade) {
             detailsShade.style.display = 'none';
+            // Call onClose callback if provided
+            if (dependencies.onClose) {
+                dependencies.onClose();
+            }
         }
     };
 
@@ -1028,34 +1042,55 @@ async function ShowDetails(entityType, entityId, dependencies) {
             // Update the thumbnail for the world image
             headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
             
-            // Create world-specific segments
+            // Create world-specific segments using universal details-segment system
             const creatorSegment = createDetailsSegment({
                 iconType: 'image',
                 iconHash: entityInfo.author?.imageHash,
-                text: `By: ${entityInfo.author?.name || 'Unknown'}`,
+                text: `${entityInfo.author?.name || 'Unknown'}`,
                 clickable: entityInfo.author?.id ? true : false,
                 onClick: entityInfo.author?.id ? () => ShowDetails(DetailsType.User, entityInfo.author.id, dependencies) : null
             });
+            creatorSegment.classList.add('world-details-creator-segment');
             
-            // Upload/Update dates segment
+            // Create separator div
+            const separator = document.createElement('div');
+            separator.className = 'details-separator-line';
+            
+            // Upload date segment
             const uploadDate = entityInfo.uploadedAt ? new Date(entityInfo.uploadedAt).toLocaleDateString() : 'Unknown';
-            const updateDate = entityInfo.updatedAt ? new Date(entityInfo.updatedAt).toLocaleDateString() : 'Unknown';
-            const datesSegment = createDetailsSegment({
-                icon: 'schedule',
-                text: `Uploaded: ${uploadDate}<br>Updated: ${updateDate}`
+            const uploadDateSegment = createDetailsSegment({
+                icon: 'upload',
+                text: `Date Uploaded: ${uploadDate}`
             });
+            uploadDateSegment.classList.add('world-details-upload-segment');
+            
+            // Update date segment
+            const updateDate = entityInfo.updatedAt ? new Date(entityInfo.updatedAt).toLocaleDateString() : 'Unknown';
+            const updateDateSegment = createDetailsSegment({
+                icon: 'update',
+                text: `Date Updated: ${updateDate}`
+            });
+            updateDateSegment.classList.add('world-details-update-segment');
+            
+            // Create second separator div
+            const separator2 = document.createElement('div');
+            separator2.className = 'details-separator-line';
             
             // File size segment
             const fileSize = entityInfo.fileSize ? `${(entityInfo.fileSize / (1024 * 1024)).toFixed(2)} MB` : 'Unknown';
-            const sizeSegment = createDetailsSegment({
+            const fileSizeSegment = createDetailsSegment({
                 icon: 'storage',
-                text: `Size: ${fileSize}`
+                text: `File Size: ${fileSize}`
             });
+            fileSizeSegment.classList.add('world-details-filesize-segment');
             
-            // Add segments to container
+            // Add segments to container in the requested order
             headerElements.segmentsContainer.appendChild(creatorSegment);
-            headerElements.segmentsContainer.appendChild(datesSegment);
-            headerElements.segmentsContainer.appendChild(sizeSegment);
+            headerElements.segmentsContainer.appendChild(separator);
+            headerElements.segmentsContainer.appendChild(uploadDateSegment);
+            headerElements.segmentsContainer.appendChild(updateDateSegment);
+            headerElements.segmentsContainer.appendChild(separator2);
+            headerElements.segmentsContainer.appendChild(fileSizeSegment);
 
             // Remove any existing button container
             removeAllButtonContainers(detailsHeader);
@@ -1088,6 +1123,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
 
             // Add tabs dynamically
             addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, loadTabContentCallback);
+            
+            // Update the instances tab text with actual count from activeInstances
+            updateInstanceCount(entityId, activeInstances);
             break;
         }
         case DetailsType.Instance: {
@@ -1185,6 +1223,7 @@ export {
     createTabPane,
     createDetailsSegment,
     createDetailsHeaderStructure,
+    updateInstanceCount,
     addEntityTabs,
     createUserDetailsHeader,
     ShowDetails

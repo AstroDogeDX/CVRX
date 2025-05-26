@@ -4914,7 +4914,8 @@ button {
 .user-details-avatar-segment,
 .user-details-instance-segment,
 .avatar-details-creator-segment,
-.prop-details-creator-segment {
+.prop-details-creator-segment,
+.world-details-creator-segment {
     /* Inherits all styles from .details-segment */
     padding: 8px 12px;
     background: rgba(255, 255, 255, 0.05);
@@ -4926,7 +4927,8 @@ button {
 .user-details-avatar-segment:hover,
 .user-details-instance-segment:hover,
 .avatar-details-creator-segment:hover,
-.prop-details-creator-segment:hover {
+.prop-details-creator-segment:hover,
+.world-details-creator-segment:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: var(--color-accent);
 }
@@ -4946,7 +4948,8 @@ button {
 .user-details-avatar-segment img,
 .user-details-instance-segment img,
 .avatar-details-creator-segment img,
-.prop-details-creator-segment img {
+.prop-details-creator-segment img,
+.world-details-creator-segment img {
     border: 1px solid var(--color-border);
     transition: var(--transition-standard);
     width: 32px;
@@ -4956,7 +4959,8 @@ button {
 .user-details-avatar-segment:hover img,
 .user-details-instance-segment:hover img,
 .avatar-details-creator-segment:hover img,
-.prop-details-creator-segment:hover img {
+.prop-details-creator-segment:hover img,
+.world-details-creator-segment:hover img {
     border-color: var(--color-accent);
 }
 
