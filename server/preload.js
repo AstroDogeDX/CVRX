@@ -140,6 +140,9 @@ contextBridge.exposeInMainWorld('API', {
     // External Links
     openExternal: (url) => ipcRenderer.invoke('open-external', url),
 
+    // Process Detection
+    isChilloutVRRunning: () => ipcRenderer.invoke('is-chilloutvr-running'),
+
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),
 });

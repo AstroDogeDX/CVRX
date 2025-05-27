@@ -661,6 +661,16 @@ async function ShowDetails(entityType, entityId, dependencies) {
     let detailsHeader = document.querySelector('.details-header');
 
     let entityInfo;
+    
+    // Check if ChilloutVR is running to determine if we should show "View Details In-Game" buttons
+    let isChilloutVRRunning = false;
+    try {
+        isChilloutVRRunning = await windowAPI.isChilloutVRRunning();
+    } catch (error) {
+        console.warn('Failed to check if ChilloutVR is running:', error);
+        // Default to false if we can't determine the status
+        isChilloutVRRunning = false;
+    }
 
     // Update the window classes based on entity type
     updateDetailsWindowClasses(entityType);
@@ -707,25 +717,28 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 className: 'user-details-button-container',
             });
 
-            // View Details In-Game button
-            const viewInGameButton = createElement('button', {
-                className: 'user-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
-                onClick: async () => {
-                    try {
-                        const deepLink = generateUserDetailsLink(entityId);
-                        const success = await openDeepLink(deepLink);
-                        if (success) {
-                            pushToast('Opening user details in ChilloutVR...', 'confirm');
-                        } else {
-                            pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+            // View Details In-Game button (only show if ChilloutVR is running)
+            let viewInGameButton = null;
+            if (isChilloutVRRunning) {
+                viewInGameButton = createElement('button', {
+                    className: 'user-details-action-button',
+                    innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
+                    onClick: async () => {
+                        try {
+                            const deepLink = generateUserDetailsLink(entityId);
+                            const success = await openDeepLink(deepLink);
+                            if (success) {
+                                pushToast('Opening user details in ChilloutVR...', 'confirm');
+                            } else {
+                                pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                            }
+                        } catch (error) {
+                            console.error('Failed to open user deep link:', error);
+                            pushToast('Failed to generate user link', 'error');
                         }
-                    } catch (error) {
-                        console.error('Failed to open user deep link:', error);
-                        pushToast('Failed to generate user link', 'error');
-                    }
-                },
-            });
+                    },
+                });
+            }
 
             // Friend action button
             const friendActionButton = createElement('button', {
@@ -866,7 +879,11 @@ async function ShowDetails(entityType, entityId, dependencies) {
             }
 
             // Add buttons to container
-            buttonContainer.append(viewInGameButton, friendActionButton, categoriesButton, blockButton);
+            const buttonsToAdd = [friendActionButton, categoriesButton, blockButton];
+            if (viewInGameButton) {
+                buttonsToAdd.unshift(viewInGameButton); // Add at the beginning
+            }
+            buttonContainer.append(...buttonsToAdd);
 
             // Add the button container to the header
             headerElements.detailsHeader.appendChild(buttonContainer);
@@ -967,25 +984,28 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 className: 'avatar-details-button-container',
             });
 
-            // View Details In-Game button
-            const viewInGameButton = createElement('button', {
-                className: 'avatar-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
-                onClick: async () => {
-                    try {
-                        const deepLink = generateAvatarDetailsLink(entityId);
-                        const success = await openDeepLink(deepLink);
-                        if (success) {
-                            pushToast('Opening avatar details in ChilloutVR...', 'confirm');
-                        } else {
-                            pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+            // View Details In-Game button (only show if ChilloutVR is running)
+            let viewInGameButton = null;
+            if (isChilloutVRRunning) {
+                viewInGameButton = createElement('button', {
+                    className: 'avatar-details-action-button',
+                    innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
+                    onClick: async () => {
+                        try {
+                            const deepLink = generateAvatarDetailsLink(entityId);
+                            const success = await openDeepLink(deepLink);
+                            if (success) {
+                                pushToast('Opening avatar details in ChilloutVR...', 'confirm');
+                            } else {
+                                pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                            }
+                        } catch (error) {
+                            console.error('Failed to open avatar deep link:', error);
+                            pushToast('Failed to generate avatar link', 'error');
                         }
-                    } catch (error) {
-                        console.error('Failed to open avatar deep link:', error);
-                        pushToast('Failed to generate avatar link', 'error');
-                    }
-                },
-            });
+                    },
+                });
+            }
 
             // Categories button
             const categoriesButton = createElement('button', {
@@ -998,7 +1018,11 @@ async function ShowDetails(entityType, entityId, dependencies) {
             });
 
             // Add buttons to container
-            buttonContainer.append(viewInGameButton, categoriesButton);
+            const buttonsToAdd = [categoriesButton];
+            if (viewInGameButton) {
+                buttonsToAdd.unshift(viewInGameButton); // Add at the beginning
+            }
+            buttonContainer.append(...buttonsToAdd);
 
             // Add the button container to the header
             headerElements.detailsHeader.appendChild(buttonContainer);
@@ -1103,25 +1127,28 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 className: 'prop-details-button-container',
             });
 
-            // View Details In-Game button
-            const viewInGameButton = createElement('button', {
-                className: 'prop-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
-                onClick: async () => {
-                    try {
-                        const deepLink = generatePropDetailsLink(entityId);
-                        const success = await openDeepLink(deepLink);
-                        if (success) {
-                            pushToast('Opening prop details in ChilloutVR...', 'confirm');
-                        } else {
-                            pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+            // View Details In-Game button (only show if ChilloutVR is running)
+            let viewInGameButton = null;
+            if (isChilloutVRRunning) {
+                viewInGameButton = createElement('button', {
+                    className: 'prop-details-action-button',
+                    innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
+                    onClick: async () => {
+                        try {
+                            const deepLink = generatePropDetailsLink(entityId);
+                            const success = await openDeepLink(deepLink);
+                            if (success) {
+                                pushToast('Opening prop details in ChilloutVR...', 'confirm');
+                            } else {
+                                pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                            }
+                        } catch (error) {
+                            console.error('Failed to open prop deep link:', error);
+                            pushToast('Failed to generate prop link', 'error');
                         }
-                    } catch (error) {
-                        console.error('Failed to open prop deep link:', error);
-                        pushToast('Failed to generate prop link', 'error');
-                    }
-                },
-            });
+                    },
+                });
+            }
 
             // Categories button
             const categoriesButton = createElement('button', {
@@ -1134,7 +1161,11 @@ async function ShowDetails(entityType, entityId, dependencies) {
             });
 
             // Add buttons to container
-            buttonContainer.append(viewInGameButton, categoriesButton);
+            const buttonsToAdd = [categoriesButton];
+            if (viewInGameButton) {
+                buttonsToAdd.unshift(viewInGameButton); // Add at the beginning
+            }
+            buttonContainer.append(...buttonsToAdd);
 
             // Add the button container to the header
             headerElements.detailsHeader.appendChild(buttonContainer);
@@ -1215,25 +1246,28 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 className: 'world-details-button-container',
             });
 
-            // View Details In-Game button
-            const viewInGameButton = createElement('button', {
-                className: 'world-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
-                onClick: async () => {
-                    try {
-                        const deepLink = generateWorldDetailsLink(entityId);
-                        const success = await openDeepLink(deepLink);
-                        if (success) {
-                            pushToast('Opening world details in ChilloutVR...', 'confirm');
-                        } else {
-                            pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+            // View Details In-Game button (only show if ChilloutVR is running)
+            let viewInGameButton = null;
+            if (isChilloutVRRunning) {
+                viewInGameButton = createElement('button', {
+                    className: 'world-details-action-button',
+                    innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
+                    onClick: async () => {
+                        try {
+                            const deepLink = generateWorldDetailsLink(entityId);
+                            const success = await openDeepLink(deepLink);
+                            if (success) {
+                                pushToast('Opening world details in ChilloutVR...', 'confirm');
+                            } else {
+                                pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                            }
+                        } catch (error) {
+                            console.error('Failed to open world deep link:', error);
+                            pushToast('Failed to generate world link', 'error');
                         }
-                    } catch (error) {
-                        console.error('Failed to open world deep link:', error);
-                        pushToast('Failed to generate world link', 'error');
-                    }
-                },
-            });
+                    },
+                });
+            }
 
             // Set World as Home button
             const setHomeButton = createElement('button', {
@@ -1251,7 +1285,11 @@ async function ShowDetails(entityType, entityId, dependencies) {
             });
 
             // Add buttons to container
-            buttonContainer.append(viewInGameButton, setHomeButton);
+            const buttonsToAdd = [setHomeButton];
+            if (viewInGameButton) {
+                buttonsToAdd.unshift(viewInGameButton); // Add at the beginning
+            }
+            buttonContainer.append(...buttonsToAdd);
 
             // Add the button container to the header
             headerElements.detailsHeader.appendChild(buttonContainer);
@@ -1375,25 +1413,28 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 className: 'instance-details-button-container',
             });
 
-            // View Details In-Game button
-            const viewInGameButton = createElement('button', {
-                className: 'instance-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
-                onClick: async () => {
-                    try {
-                        const deepLink = generateInstanceDetailsLink(entityId);
-                        const success = await openDeepLink(deepLink);
-                        if (success) {
-                            pushToast('Opening instance details in ChilloutVR...', 'confirm');
-                        } else {
-                            pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+            // View Details In-Game button (only show if ChilloutVR is running)
+            let viewInGameButton = null;
+            if (isChilloutVRRunning) {
+                viewInGameButton = createElement('button', {
+                    className: 'instance-details-action-button',
+                    innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
+                    onClick: async () => {
+                        try {
+                            const deepLink = generateInstanceDetailsLink(entityId);
+                            const success = await openDeepLink(deepLink);
+                            if (success) {
+                                pushToast('Opening instance details in ChilloutVR...', 'confirm');
+                            } else {
+                                pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                            }
+                        } catch (error) {
+                            console.error('Failed to open instance deep link:', error);
+                            pushToast('Failed to generate instance link', 'error');
                         }
-                    } catch (error) {
-                        console.error('Failed to open instance deep link:', error);
-                        pushToast('Failed to generate instance link', 'error');
-                    }
-                },
-            });
+                    },
+                });
+            }
 
             // Create split button container for Join Instance
             const joinSplitButton = createElement('div', {
@@ -1460,7 +1501,11 @@ async function ShowDetails(entityType, entityId, dependencies) {
             joinSplitButton.append(joinDesktopButton, joinVRButton);
 
             // Add buttons to container
-            buttonContainer.append(viewInGameButton, joinSplitButton);
+            const buttonsToAdd = [joinSplitButton];
+            if (viewInGameButton) {
+                buttonsToAdd.unshift(viewInGameButton); // Add at the beginning
+            }
+            buttonContainer.append(...buttonsToAdd);
 
             // Add the button container to the header
             headerElements.detailsHeader.appendChild(buttonContainer);

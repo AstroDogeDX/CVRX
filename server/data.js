@@ -174,6 +174,14 @@ class Core {
                 throw error;
             }
         });
+        ipcMain.handle('is-chilloutvr-running', async (_event) => {
+            try {
+                return await Utils.IsChilloutVRRunning();
+            } catch (error) {
+                log.error(`[is-chilloutvr-running] Failed to check ChilloutVR process: ${error}`);
+                return false;
+            }
+        });
 
         // Setup on events for IPC
         ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());
