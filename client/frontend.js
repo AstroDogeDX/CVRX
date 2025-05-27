@@ -1459,8 +1459,15 @@ window.API.onActiveInstancesUpdate((_event, activeInstancesData) => {
     
     const homeActivity = document.querySelector('.home-activity--activity-wrapper');
 
-    // Sort instances: friends first (by friend count desc), then by total player count desc
+    // Sort instances: current user first, then friends (by friend count desc), then by total player count desc
     activeInstancesData.sort((a, b) => {
+        const aHasCurrentUser = currentActiveUser && a.members.some(member => member.id === currentActiveUser.id);
+        const bHasCurrentUser = currentActiveUser && b.members.some(member => member.id === currentActiveUser.id);
+        
+        // If one has the current user and the other doesn't, prioritize the one with current user
+        if (aHasCurrentUser && !bHasCurrentUser) return -1;
+        if (bHasCurrentUser && !aHasCurrentUser) return 1;
+        
         const aFriendCount = a.members.filter(member => member.isFriend).length;
         const bFriendCount = b.members.filter(member => member.isFriend).length;
         
@@ -1482,6 +1489,7 @@ window.API.onActiveInstancesUpdate((_event, activeInstancesData) => {
     for (const result of activeInstancesData) {
         const elementsOfMembers = [];
         const elementsOfBlocked = [];
+        const elementsOfCurrentUser = []; // Array to hold the current user's icon
 
         let friendCount = 0;
         for (const member of result.members) {
@@ -1493,12 +1501,22 @@ window.API.onActiveInstancesUpdate((_event, activeInstancesData) => {
             });
             userIcon.dataset.hash = member.imageHash;
             userIcon.dataset.tooltip = member.name;
+            
             if (member.isBlocked) {
                 userIcon.classList.add('active-instance-node--blocked');
                 userIcon.dataset.tooltip = `<span class="tooltip-blocked">${userIcon.dataset.tooltip} <small>(Blocked)</small></span>`;
                 elementsOfBlocked.push(userIcon);
                 continue;
             }
+            
+            // Check if this member is the current logged-in user
+            if (currentActiveUser && member.id === currentActiveUser.id) {
+                userIcon.classList.add('icon-is-you');
+                userIcon.dataset.tooltip = `${member.name} <small style="color: rgba(255,255,255,0.6); font-size: 0.85em;">(You)</small>`;
+                elementsOfCurrentUser.push(userIcon);
+                continue;
+            }
+            
             if (member.isFriend) {
                 userIcon.classList.add('icon-is-online');
                 friendCount++;
@@ -1525,7 +1543,7 @@ window.API.onActiveInstancesUpdate((_event, activeInstancesData) => {
         let friendDisplay = friendCount ? `<span class="material-symbols-outlined">groups</span>${friendCount}` : '';
 
         const activeWorldUserIconWrapper = createElement('div', { className: 'active-instance-node--user-icon-wrapper' });
-        activeWorldUserIconWrapper.append(...elementsOfMembers, ...elementsOfBlocked);
+        activeWorldUserIconWrapper.append(...elementsOfCurrentUser, ...elementsOfMembers, ...elementsOfBlocked);
 
         let activeWorldNode = createElement('div', {
             className: 'active-instance-node',
