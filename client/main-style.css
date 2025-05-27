@@ -4690,8 +4690,6 @@ button {
 /* Universal Details Segment Classes */
 
 .details-header-content {
-    display: flex;
-    flex-direction: column;
     width: 100%;
 }
 
@@ -4908,7 +4906,7 @@ button {
     width: 80%;
     height: 1px;
     background: linear-gradient(to right, transparent, var(--color-border), transparent);
-    margin: 8px auto;
+    margin: 4px auto;
     align-self: center;
 }
 
