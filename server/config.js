@@ -60,6 +60,7 @@ exports.Load = async () => {
         ActiveUserID: null,
         CacheMaxSizeInMegabytes: 1000,
         CloseToSystemTray: false,
+        ThumbnailShape: 'hexagonal',
         CVRExecutable: path.join(CVRExecutableDefaultFolderPath, CVRExecutableName),
         UpdaterIgnoreVersion: null,
     };
@@ -265,6 +266,17 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.CloseToSystemTray = closeToTray;
     }
 
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'ThumbnailShape')) {
+        const thumbnailShape = newConfigSettings.ThumbnailShape;
+        const validShapes = ['hexagonal', 'square', 'rounded', 'circle'];
+
+        if (typeof thumbnailShape !== 'string' || !validShapes.includes(thumbnailShape)) {
+            throw new Error('[UpdateConfig] ThumbnailShape should be one of: hexagonal, square, rounded, circle.');
+        }
+
+        config.ThumbnailShape = thumbnailShape;
+    }
+
     await UpdateJsonFile(FileType.CONFIG);
 
     return exports.GetConfig();
@@ -274,6 +286,7 @@ exports.UpdateConfig = async (newConfigSettings) => {
 exports.GetConfig = () => ({
     CacheMaxSizeInMegabytes: config.CacheMaxSizeInMegabytes,
     CloseToSystemTray: config.CloseToSystemTray,
+    ThumbnailShape: config.ThumbnailShape,
 });
 
 

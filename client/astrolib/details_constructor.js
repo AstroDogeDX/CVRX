@@ -228,6 +228,17 @@ function createDetailsHeaderStructure(entityInfo, entityType) {
     const thumbnailContainer = document.createElement('div');
     thumbnailContainer.className = 'details-thumbnail-container';
     
+    // Apply current thumbnail shape from config
+    window.API.getConfig().then(config => {
+        if (config && config.ThumbnailShape) {
+            thumbnailContainer.classList.add(`shape-${config.ThumbnailShape}`);
+        } else {
+            thumbnailContainer.classList.add('shape-hexagonal'); // Default fallback
+        }
+    }).catch(() => {
+        thumbnailContainer.classList.add('shape-hexagonal'); // Default fallback on error
+    });
+    
     // Create thumbnail image
     const thumbnail = document.createElement('img');
     thumbnail.className = 'details-thumbnail';
@@ -490,6 +501,17 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
     // Create thumbnail container using existing clip-path class
     const thumbnailContainer = document.createElement('div');
     thumbnailContainer.className = 'details-thumbnail-container';
+    
+    // Apply current thumbnail shape from config
+    window.API.getConfig().then(config => {
+        if (config && config.ThumbnailShape) {
+            thumbnailContainer.classList.add(`shape-${config.ThumbnailShape}`);
+        } else {
+            thumbnailContainer.classList.add('shape-hexagonal'); // Default fallback
+        }
+    }).catch(() => {
+        thumbnailContainer.classList.add('shape-hexagonal'); // Default fallback on error
+    });
     
     // Create thumbnail image using existing details-thumbnail class
     const thumbnail = document.createElement('img');

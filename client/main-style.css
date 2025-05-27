@@ -2855,6 +2855,7 @@ button {
 .settings-option {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 8px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -4709,6 +4710,32 @@ button {
     flex-shrink: 0;
 }
 
+/* Thumbnail shape variants */
+.details-thumbnail-container.shape-hexagonal {
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+.details-thumbnail-container.shape-square {
+    clip-path: none;
+    border-radius: 0;
+    width: 140px;
+    height: 140px;
+}
+
+.details-thumbnail-container.shape-rounded {
+    clip-path: none;
+    border-radius: 12px;
+    width: 140px;
+    height: 140px;
+}
+
+.details-thumbnail-container.shape-circle {
+    clip-path: none;
+    border-radius: 50%;
+    width: 140px;
+    height: 140px;
+}
+
 .details-thumbnail {
     width: 100%;
     height: 100%;
@@ -5043,4 +5070,32 @@ button {
 .split-button-left.instance-details-action-button:hover,
 .split-button-right.instance-details-action-button:hover {
     border-radius: 0 !important;
+}
+
+.settings-option input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.settings-dropdown {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radii);
+    color: white;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.settings-dropdown:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.settings-dropdown option {
+    background: #2a2a2a;
+    color: white;
 }

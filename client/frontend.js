@@ -2178,14 +2178,32 @@ document.querySelectorAll('.settings-tab').forEach(tab => {
 // Handle "Close to System Tray" setting
 const closeToTrayCheckbox = document.getElementById('setting-close-to-tray');
 
-// Load initial setting from config
+// Handle "Thumbnail Shape" setting
+const thumbnailShapeDropdown = document.getElementById('setting-thumbnail-shape');
+
+// Function to apply thumbnail shape to all existing thumbnail containers
+function applyThumbnailShape(shape) {
+    const thumbnailContainers = document.querySelectorAll('.details-thumbnail-container');
+    thumbnailContainers.forEach(container => {
+        // Remove all shape classes
+        container.classList.remove('shape-hexagonal', 'shape-square', 'shape-rounded', 'shape-circle');
+        // Add the new shape class
+        container.classList.add(`shape-${shape}`);
+    });
+}
+
+// Load initial settings from config
 window.API.getConfig().then(config => {
     if (config && config.CloseToSystemTray !== undefined) {
         closeToTrayCheckbox.checked = config.CloseToSystemTray;
     }
+    if (config && config.ThumbnailShape !== undefined) {
+        thumbnailShapeDropdown.value = config.ThumbnailShape;
+        applyThumbnailShape(config.ThumbnailShape);
+    }
 });
 
-// Update config when setting is changed
+// Update config when "Close to System Tray" setting is changed
 closeToTrayCheckbox.addEventListener('change', () => {
     window.API.updateConfig({ CloseToSystemTray: closeToTrayCheckbox.checked })
         .then(() => {
@@ -2196,6 +2214,23 @@ closeToTrayCheckbox.addEventListener('change', () => {
             // Revert checkbox state if save failed
             window.API.getConfig().then(config => {
                 closeToTrayCheckbox.checked = config.CloseToSystemTray;
+            });
+        });
+});
+
+// Update config when "Thumbnail Shape" setting is changed
+thumbnailShapeDropdown.addEventListener('change', () => {
+    const selectedShape = thumbnailShapeDropdown.value;
+    window.API.updateConfig({ ThumbnailShape: selectedShape })
+        .then(() => {
+            applyThumbnailShape(selectedShape);
+            pushToast('Thumbnail shape updated', 'confirm');
+        })
+        .catch(err => {
+            pushToast(`Error saving setting: ${err}`, 'error');
+            // Revert dropdown state if save failed
+            window.API.getConfig().then(config => {
+                thumbnailShapeDropdown.value = config.ThumbnailShape;
             });
         });
 });
