@@ -137,6 +137,9 @@ contextBridge.exposeInMainWorld('API', {
     // Cache
     clearCachedImages: () => ipcRenderer.invoke('clear-cached-images'),
 
+    // External Links
+    openExternal: (url) => ipcRenderer.invoke('open-external', url),
+
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),
 });

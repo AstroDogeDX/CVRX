@@ -159,7 +159,7 @@ button {
     /* display: none; */ /* Replaced by opacity/visibility for potential transitions if ever needed */
     opacity: 0;
     visibility: hidden;
-    z-index: 100;
+    z-index: 10001; /* Ensure navbar tooltips are also on top */
     filter: drop-shadow(2.5px 2.5px 0px rgba(0, 0, 0, 0.5)); /* Existing shadow */
     transition: opacity 0.15s ease, visibility 0.15s ease; /* Basic transition for navbar tooltips */
 }
@@ -3062,6 +3062,8 @@ button {
     top: 0;
     width: 100%;
     height: 100%;
+    z-index: 10000; /* Ensure tooltip overlay is above all other elements */
+    pointer-events: none; /* Allow clicks to pass through the overlay */
 }
 
 #tooltip {
@@ -3079,7 +3081,7 @@ button {
     visibility: hidden;
     transform: translateY(5px) scale(0.95); /* Initial state for transition */
     font-size: 15px; /* Slightly adjusted font size */
-    z-index: 101;
+    z-index: 10000; /* Ensure tooltips are always on top of everything */
     transition: opacity 0.15s ease-in-out, visibility 0.15s ease-in-out, transform 0.15s ease-in-out; /* Smooth transitions */
     pointer-events: none; /* Ensure tooltip doesn't interfere with mouse events on elements below */
 }
@@ -5004,4 +5006,43 @@ button {
     color: var(--color-text-secondary);
     font-weight: normal;
     opacity: 0.8;
+}
+
+/* Split Button Styles */
+.instance-details-split-button {
+    display: flex;
+    border-radius: var(--border-radii);
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.split-button-left,
+.split-button-right {
+    flex: 1;
+    border-radius: 0 !important;
+    border: none;
+    margin: 0;
+    font-size: 12px;
+}
+
+.split-button-left {
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.split-button-left:hover,
+.split-button-right:hover {
+    border-radius: 0 !important;
+}
+
+/* Ensure split buttons maintain consistent styling with other action buttons */
+.split-button-left.instance-details-action-button,
+.split-button-right.instance-details-action-button {
+    border-radius: 0 !important;
+    min-width: auto;
+    flex: 1;
+}
+
+.split-button-left.instance-details-action-button:hover,
+.split-button-right.instance-details-action-button:hover {
+    border-radius: 0 !important;
 }

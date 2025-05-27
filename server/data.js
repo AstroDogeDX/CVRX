@@ -1,4 +1,4 @@
-const { ipcMain, dialog } = require('electron');
+const { ipcMain, dialog, shell } = require('electron');
 const cache = require('./cache.js');
 const CVRHttp = require('./api_cvr_http');
 const CVRWebsocket = require('./api_cvr_ws');
@@ -265,6 +265,20 @@ class Core {
 
         // Cache
         ipcMain.handle('clear-cached-images', async (_event) => await cache.ClearAllCachedImages());
+
+        // External Links
+        ipcMain.handle('open-external', async (_event, url) => {
+            try {
+                if (!url || typeof url !== 'string') {
+                    throw new Error('Invalid URL provided');
+                }
+                await shell.openExternal(url);
+                return { success: true };
+            } catch (error) {
+                log.error(`[open-external] Failed to open external URL: ${error}`);
+                throw error;
+            }
+        });
 
         // Socket Events
         CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.CONNECTED, () => this.recentActivityInitialFriends = true);
