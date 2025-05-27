@@ -30,6 +30,14 @@ const DetailsType = Object.freeze({
 // HELPER FUNCTIONS
 // ===========
 
+// Helper function to decode HTML entities
+function decodeHtmlEntities(text) {
+    if (!text) return text;
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+}
+
 // Helper function to determine current entity type from the details window
 function getCurrentEntityType(entityId) {
     // Check the details window classes to determine entity type
@@ -231,7 +239,7 @@ function createDetailsHeaderStructure(entityInfo, entityType) {
     // Create entity name
     const entityName = document.createElement('h1');
     entityName.className = 'details-entity-name';
-    entityName.textContent = entityInfo.name || 'Unknown';
+    entityName.textContent = decodeHtmlEntities(entityInfo.name) || 'Unknown';
     
     // Add thumbnail and name to main info
     mainInfo.appendChild(thumbnailContainer);
@@ -493,7 +501,7 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
     // Create entity name
     const entityName = document.createElement('h1');
     entityName.className = 'details-entity-name';
-    entityName.textContent = entityInfo.name || 'Unknown User';
+    entityName.textContent = decodeHtmlEntities(entityInfo.name) || 'Unknown User';
     
     // Add thumbnail and name to main info
     mainInfo.appendChild(thumbnailContainer);
@@ -1249,7 +1257,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 // Remove the (#12345) part from the name
                 cleanName = entityInfo.name.replace(/\s*\(#\d+\)$/, '');
             }
-            headerElements.entityName.textContent = cleanName;
+            headerElements.entityName.textContent = decodeHtmlEntities(cleanName);
             
             // Update the thumbnail for the world image
             headerElements.thumbnail.dataset.hash = entityInfo.world?.imageHash;
@@ -1459,6 +1467,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
 
 export {
     DetailsType,
+    decodeHtmlEntities,
     getCurrentEntityType,
     getEntityClassPrefix,
     updateDetailsWindowClasses,
