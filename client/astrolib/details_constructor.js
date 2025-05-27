@@ -159,11 +159,17 @@ function createDetailsSegment(options = {}) {
         iconHash,
         text,
         clickable = false,
-        onClick
+        onClick,
+        tooltip
     } = options;
     
     const segment = document.createElement('div');
     segment.className = `details-segment${clickable ? ' clickable' : ''}`;
+    
+    // Add tooltip if provided
+    if (tooltip) {
+        segment.dataset.tooltip = tooltip;
+    }
     
     // Add icon if provided (either material icon or image)
     if (icon || iconType === 'image') {
@@ -540,7 +546,8 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
         iconHash: entityInfo.avatar?.imageHash,
         text: entityInfo.avatar?.name || 'No Avatar',
         clickable: entityInfo.avatar?.id ? true : false,
-        onClick: entityInfo.avatar?.id ? () => ShowDetailsCallback(DetailsType.Avatar, entityInfo.avatar.id) : null
+        onClick: entityInfo.avatar?.id ? () => ShowDetailsCallback(DetailsType.Avatar, entityInfo.avatar.id) : null,
+        tooltip: entityInfo.avatar?.id ? 'Current Avatar' : null
     });
     avatarSegment.classList.add('user-details-avatar-segment');
     
@@ -568,7 +575,8 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
             iconHash: entityInfo.instance.world?.imageHash,
             text: instanceText,
             clickable: entityInfo.instance.id ? true : false,
-            onClick: entityInfo.instance.id ? () => ShowDetailsCallback(DetailsType.Instance, entityInfo.instance.id) : null
+            onClick: entityInfo.instance.id ? () => ShowDetailsCallback(DetailsType.Instance, entityInfo.instance.id) : null,
+            tooltip: entityInfo.instance.id ? 'Current Instance' : null
         });
         instanceSegment.classList.add('user-details-instance-segment');
     }
@@ -673,7 +681,6 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const viewInGameButton = createElement('button', {
                 className: 'user-details-action-button',
                 innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
-                tooltip: 'Open user details in ChilloutVR',
                 onClick: async () => {
                     try {
                         const deepLink = generateUserDetailsLink(entityId);
@@ -694,7 +701,6 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const friendActionButton = createElement('button', {
                 className: 'user-details-action-button',
                 innerHTML: `<span class="material-symbols-outlined">${entityInfo.isFriend ? 'person_remove' : 'person_add'}</span>${entityInfo.isFriend ? 'Remove Friend' : 'Send Friend Request'}`,
-                tooltip: entityInfo.isFriend ? 'Remove Friend' : 'Send Friend Request',
                 onClick: async () => {
                     if (entityInfo.isFriend) {
                         // Show confirmation dialog
@@ -743,7 +749,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                             pushToast(`Friend request sent to ${entityInfo.name}`, 'confirm');
                             // Update button state to show request sent
                             friendActionButton.innerHTML = `<span class="material-symbols-outlined">hourglass_empty</span>Request Sent`;
-                            friendActionButton.tooltip = 'Friend Request Sent';
+
                             friendActionButton.disabled = true;
                             friendActionButton.classList.add('disabled');
                         } catch (error) {
@@ -757,7 +763,6 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const categoriesButton = createElement('button', {
                 className: 'user-details-action-button',
                 innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
-                tooltip: 'View User Categories',
                 onClick: () => {
                     // TODO: Implement categories view
                     pushToast('Categories feature coming soon!', 'info');
@@ -768,14 +773,13 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const blockButton = createElement('button', {
                 className: 'user-details-action-button',
                 innerHTML: `<span class="material-symbols-outlined">${entityInfo.isBlocked ? 'block' : 'no_accounts'}</span>${entityInfo.isBlocked ? 'Unblock User' : 'Block User'}`,
-                tooltip: entityInfo.isBlocked ? 'Unblock User' : 'Block User',
                 onClick: async () => {
                     if (entityInfo.isBlocked) {
                         try {
                             await windowAPI.unblockUser(entityId);
                             pushToast(`Unblocked ${entityInfo.name}`, 'confirm');
                             blockButton.innerHTML = `<span class="material-symbols-outlined">no_accounts</span>Block User`;
-                            blockButton.tooltip = 'Block User';
+
                             entityInfo.isBlocked = false;
                         } catch (error) {
                             pushToast('Failed to unblock user', 'error');
@@ -799,7 +803,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                                     await windowAPI.blockUser(entityId);
                                     pushToast(`Blocked ${entityInfo.name}`, 'confirm');
                                     blockButton.innerHTML = `<span class="material-symbols-outlined">block</span>Unblock User`;
-                                    blockButton.tooltip = 'Unblock User';
+
                                     entityInfo.isBlocked = true;
                                     confirmPrompt.remove();
                                     confirmShade.style.display = 'none';
@@ -856,7 +860,8 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 iconHash: entityInfo.user?.imageHash,
                 text: `${entityInfo.user?.name || 'Unknown'}`,
                 clickable: entityInfo.user?.id ? true : false,
-                onClick: entityInfo.user?.id ? () => ShowDetails(DetailsType.User, entityInfo.user.id, dependencies) : null
+                onClick: entityInfo.user?.id ? () => ShowDetails(DetailsType.User, entityInfo.user.id, dependencies) : null,
+                tooltip: entityInfo.user?.id ? 'Creator' : null
             });
             creatorSegment.classList.add('avatar-details-creator-segment');
             
@@ -936,7 +941,6 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const viewInGameButton = createElement('button', {
                 className: 'avatar-details-action-button',
                 innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
-                tooltip: 'Open avatar details in ChilloutVR',
                 onClick: async () => {
                     try {
                         const deepLink = generateAvatarDetailsLink(entityId);
@@ -957,7 +961,6 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const categoriesButton = createElement('button', {
                 className: 'avatar-details-action-button',
                 innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
-                tooltip: 'View Avatar Categories',
                 onClick: () => {
                     // TODO: Implement categories view
                     pushToast('Categories feature coming soon!', 'info');
@@ -993,7 +996,8 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 iconHash: entityInfo.author?.imageHash,
                 text: `${entityInfo.author?.name || 'Unknown'}`,
                 clickable: entityInfo.author?.id ? true : false,
-                onClick: entityInfo.author?.id ? () => ShowDetails(DetailsType.User, entityInfo.author.id, dependencies) : null
+                onClick: entityInfo.author?.id ? () => ShowDetails(DetailsType.User, entityInfo.author.id, dependencies) : null,
+                tooltip: entityInfo.author?.id ? 'Creator' : null
             });
             creatorSegment.classList.add('prop-details-creator-segment');
             
@@ -1073,7 +1077,6 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const viewInGameButton = createElement('button', {
                 className: 'prop-details-action-button',
                 innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
-                tooltip: 'Open prop details in ChilloutVR',
                 onClick: async () => {
                     try {
                         const deepLink = generatePropDetailsLink(entityId);
@@ -1094,7 +1097,6 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const categoriesButton = createElement('button', {
                 className: 'prop-details-action-button',
                 innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
-                tooltip: 'View Prop Categories',
                 onClick: () => {
                     // TODO: Implement categories view
                     pushToast('Categories feature coming soon!', 'info');
@@ -1130,7 +1132,8 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 iconHash: entityInfo.author?.imageHash,
                 text: `${entityInfo.author?.name || 'Unknown'}`,
                 clickable: entityInfo.author?.id ? true : false,
-                onClick: entityInfo.author?.id ? () => ShowDetails(DetailsType.User, entityInfo.author.id, dependencies) : null
+                onClick: entityInfo.author?.id ? () => ShowDetails(DetailsType.User, entityInfo.author.id, dependencies) : null,
+                tooltip: entityInfo.author?.id ? 'Creator' : null
             });
             creatorSegment.classList.add('world-details-creator-segment');
             
@@ -1186,7 +1189,6 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const viewInGameButton = createElement('button', {
                 className: 'world-details-action-button',
                 innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
-                tooltip: 'Open world details in ChilloutVR',
                 onClick: async () => {
                     try {
                         const deepLink = generateWorldDetailsLink(entityId);
@@ -1203,19 +1205,23 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 },
             });
 
-            // Create Instance button (placeholder)
-            const createInstanceButton = createElement('button', {
+            // Set World as Home button
+            const setHomeButton = createElement('button', {
                 className: 'world-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">add</span>Create Instance',
-                tooltip: 'Create Instance (Coming Soon)',
-                onClick: () => {
-                    // TODO: Implement create instance logic
-                    pushToast('Create Instance feature coming soon!', 'info');
+                innerHTML: '<span class="material-symbols-outlined">home</span>Set World as Home',
+                onClick: async () => {
+                    try {
+                        await windowAPI.setWorldAsHome(entityId);
+                        pushToast(`Set "${entityInfo.name}" as your home world`, 'confirm');
+                    } catch (error) {
+                        console.error('Failed to set world as home:', error);
+                        pushToast('Failed to set world as home', 'error');
+                    }
                 },
             });
 
             // Add buttons to container
-            buttonContainer.append(viewInGameButton, createInstanceButton);
+            buttonContainer.append(viewInGameButton, setHomeButton);
 
             // Add the button container to the header
             headerElements.detailsHeader.appendChild(buttonContainer);
@@ -1256,7 +1262,8 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 iconHash: entityInfo.owner?.imageHash,
                 text: `${entityInfo.owner?.name || 'Unknown'}`,
                 clickable: entityInfo.owner?.id ? true : false,
-                onClick: entityInfo.owner?.id ? () => ShowDetails(DetailsType.User, entityInfo.owner.id, dependencies) : null
+                onClick: entityInfo.owner?.id ? () => ShowDetails(DetailsType.User, entityInfo.owner.id, dependencies) : null,
+                tooltip: entityInfo.owner?.id ? 'Instance Owner' : null
             });
             ownerSegment.classList.add('instance-details-creator-segment');
             
@@ -1266,7 +1273,8 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 iconHash: entityInfo.world?.imageHash,
                 text: `${entityInfo.world?.name || 'Unknown World'}`,
                 clickable: entityInfo.world?.id ? true : false,
-                onClick: entityInfo.world?.id ? () => ShowDetails(DetailsType.World, entityInfo.world.id, dependencies) : null
+                onClick: entityInfo.world?.id ? () => ShowDetails(DetailsType.World, entityInfo.world.id, dependencies) : null,
+                tooltip: entityInfo.world?.id ? 'World Details' : null
             });
             worldSegment.classList.add('instance-details-creator-segment');
             
@@ -1341,7 +1349,6 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const viewInGameButton = createElement('button', {
                 className: 'instance-details-action-button',
                 innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
-                tooltip: 'Open instance details in ChilloutVR',
                 onClick: async () => {
                     try {
                         const deepLink = generateInstanceDetailsLink(entityId);
@@ -1367,7 +1374,6 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const joinDesktopButton = createElement('button', {
                 className: 'instance-details-action-button split-button-left',
                 innerHTML: '<span class="material-symbols-outlined">desktop_windows</span>Join in Desktop',
-                tooltip: 'Join this instance in Desktop mode',
                 onClick: async () => {
                     try {
                         // Use the full instance ID from entityInfo.id
@@ -1396,7 +1402,6 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const joinVRButton = createElement('button', {
                 className: 'instance-details-action-button split-button-right',
                 innerHTML: '<span class="material-symbols-outlined">view_in_ar</span>Join in VR',
-                tooltip: 'Join this instance in VR mode',
                 onClick: async () => {
                     try {
                         // Use the full instance ID from entityInfo.id
