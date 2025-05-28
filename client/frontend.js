@@ -6,6 +6,10 @@ import { pushToast } from './astrolib/toasty_notifications.js';
 import { applyTooltips } from './astrolib/tooltip.js';
 import { parseMarkdown } from './astrolib/github_markdown_parser.js';
 import { 
+    generateInstanceJoinLink,
+    openDeepLink 
+} from './astrolib/deeplinks.js';
+import { 
     DetailsType,
     getCurrentEntityType,
     getEntityClassPrefix,
@@ -1785,6 +1789,64 @@ window.API.onInvites((_event, invites) => {
         });
         worldImageNode.dataset.hash = invite.world.imageHash;
 
+        // Create split button for joining the instance
+        const joinSplitButton = createElement('div', {
+            className: 'notification-split-button',
+        });
+
+        // Join Desktop button (left side of split)
+        const joinDesktopButton = createElement('button', {
+            className: 'split-button-left',
+            innerHTML: '<span class="material-symbols-outlined">desktop_windows</span>Desktop',
+            onClick: async () => {
+                try {
+                    if (!invite.instanceId) {
+                        pushToast('Could not get instance ID from invite', 'error');
+                        return;
+                    }
+                    
+                    const deepLink = generateInstanceJoinLink(invite.instanceId, false);
+                    const success = await openDeepLink(deepLink);
+                    if (success) {
+                        pushToast('Joining instance in Desktop mode...', 'confirm');
+                    } else {
+                        pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Failed to join instance in desktop:', error);
+                    pushToast('Failed to generate join link', 'error');
+                }
+            },
+        });
+
+        // Join VR button (right side of split)
+        const joinVRButton = createElement('button', {
+            className: 'split-button-right',
+            innerHTML: '<span class="material-symbols-outlined">view_in_ar</span>VR',
+            onClick: async () => {
+                try {
+                    if (!invite.instanceId) {
+                        pushToast('Could not get instance ID from invite', 'error');
+                        return;
+                    }
+                    
+                    const deepLink = generateInstanceJoinLink(invite.instanceId, true);
+                    const success = await openDeepLink(deepLink);
+                    if (success) {
+                        pushToast('Joining instance in VR mode...', 'confirm');
+                    } else {
+                        pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Failed to join instance in VR:', error);
+                    pushToast('Failed to generate join link', 'error');
+                }
+            },
+        });
+
+        // Add both buttons to the split button container
+        joinSplitButton.append(joinDesktopButton, joinVRButton);
+
         const inviteNode = createElement('div', {
             className: 'notification-item notification-invite',
             innerHTML: `
@@ -1801,10 +1863,6 @@ window.API.onInvites((_event, invites) => {
                         </div>
                     </div>
                     <div class="notification-action">
-                        <span class="notification-action-text">
-                            <span class="material-symbols-outlined">videogame_asset</span>
-                            Accept In Game
-                        </span>
                     </div>
                 </div>
             `,
@@ -1813,6 +1871,10 @@ window.API.onInvites((_event, invites) => {
         // Add click handler for sender name
         const senderElement = inviteNode.querySelector('.notification-sender');
         senderElement.addEventListener('click', () => ShowDetailsWrapper(DetailsType.User, invite.user.id));
+
+        // Add the split button to the action area
+        const actionArea = inviteNode.querySelector('.notification-action');
+        actionArea.appendChild(joinSplitButton);
 
         // Prepend the images
         const notificationContent = inviteNode.querySelector('.notification-content');

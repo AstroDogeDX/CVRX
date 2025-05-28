@@ -4114,7 +4114,6 @@ button {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 4px;
     min-width: 0;
     background: transparent;
 }
@@ -5125,4 +5124,69 @@ button {
 .settings-dropdown option {
     background: #2a2a2a;
     color: white;
+}
+
+/* Notification Split Button Styles */
+.notification-split-button {
+    display: flex;
+    border-radius: 5px;
+    overflow: hidden;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    width: 180px;
+}
+
+.notification-split-button .split-button-left,
+.notification-split-button .split-button-right {
+    flex: 1;
+    height: 32px;
+    border: none;
+    border-radius: 0;
+    background: rgba(0, 0, 0, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.notification-split-button .split-button-left {
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.notification-split-button .split-button-left::before,
+.notification-split-button .split-button-right::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+}
+
+.notification-split-button .split-button-left:hover::before,
+.notification-split-button .split-button-right:hover::before {
+    opacity: 1;
+}
+
+.notification-split-button .split-button-left:hover,
+.notification-split-button .split-button-right:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transform: scale(1.02);
+}
+
+.notification-split-button .material-symbols-outlined {
+    font-size: 14px;
+    font-weight: 500;
 }
