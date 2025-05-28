@@ -271,6 +271,9 @@ class Core {
         ipcMain.handle('config-get', () => Config.GetConfig());
         ipcMain.handle('config-update', (_event, newConfigSettings) => Config.UpdateConfig(newConfigSettings));
 
+        // Categories
+        ipcMain.handle('get-categories', async (_event) => EscapeHtml(this.categories));
+
         // Cache
         ipcMain.handle('clear-cached-images', async (_event) => await cache.ClearAllCachedImages());
 
@@ -354,7 +357,7 @@ class Core {
                 this.UpdateUserStats(),
                 this.RefreshFriendRequests(),
                 this.ActiveInstancesUpdate(true),
-                //this.UpdateCategories(),
+                this.UpdateCategories(),
             ]);
 
             // Initialize the websocket

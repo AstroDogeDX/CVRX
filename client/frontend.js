@@ -36,7 +36,11 @@ let currentActiveUser = null;
 let activeInstances = [];
 let currentWorldDetailsId = null; // Track the currently open world details
 
+// Store friend categories for filtering
+let friendCategories = [];
 
+// Store friends data for category filtering
+let friendsData = {};
 
 const PrivacyLevel = Object.freeze({
     Public: 0,
@@ -152,11 +156,14 @@ function swapNavPages(page) {
         case 'friends':
             setInputValueAndFocus('.friends-filter', '');
             removeFilteredItemClass('.friend-list-node');
-            // Reset filter controls to "All" and ensure all friends are visible
-            document.querySelectorAll('.friends-filter-controls .filter-button').forEach(btn => {
-                btn.classList.remove('active');
+            // Load friend categories and reset filter controls
+            loadFriendCategories().then(() => {
+                // Reset to "All" filter after categories are loaded
+                const allButton = document.querySelector('.friends-filter-controls .filter-button[data-filter="all"]');
+                if (allButton) {
+                    handleFriendFilterClick('all', allButton);
+                }
             });
-            document.querySelector('.friends-filter-controls .filter-button[data-filter="all"]').classList.add('active');
             // Make sure all friend cards are visible
             document.querySelectorAll('.friend-list-node').forEach(card => {
                 card.style.display = '';
@@ -197,6 +204,128 @@ function createFriendsListCategory(title) {
     element.classList.add('friend-sidebar-header');
     element.textContent = title;
     return element;
+}
+
+// Function to load friend categories and update filter buttons
+async function loadFriendCategories() {
+    try {
+        const categories = await window.API.getCategories();
+        if (categories && categories.friends) {
+            friendCategories = categories.friends;
+            updateFriendFilterButtons();
+        }
+    } catch (error) {
+        console.error('Failed to load friend categories:', error);
+        // Fallback to default buttons if categories fail to load
+        friendCategories = [];
+        updateFriendFilterButtons();
+    }
+}
+
+// Function to update friend filter buttons based on categories
+function updateFriendFilterButtons() {
+    const filterControlsContainer = document.querySelector('.friends-filter-controls');
+    if (!filterControlsContainer) return;
+
+    // Clear existing buttons
+    filterControlsContainer.innerHTML = '';
+
+    // Always add "All" button
+    const allButton = createElement('button', {
+        className: 'filter-button active',
+        innerHTML: '<span class="material-symbols-outlined">group</span>All',
+        onClick: () => handleFriendFilterClick('all', allButton)
+    });
+    allButton.dataset.filter = 'all';
+    filterControlsContainer.appendChild(allButton);
+
+    // Add "Online" button
+    const onlineButton = createElement('button', {
+        className: 'filter-button',
+        innerHTML: '<span class="material-symbols-outlined">circle</span>Online',
+        onClick: () => handleFriendFilterClick('online', onlineButton)
+    });
+    onlineButton.dataset.filter = 'online';
+    filterControlsContainer.appendChild(onlineButton);
+
+    // Add category buttons from API
+    friendCategories.forEach(category => {
+        // Skip the default online/offline categories as we handle them differently
+        if (category.id === 'frndonline' || category.id === 'frndoffline') {
+            return;
+        }
+
+        const categoryButton = createElement('button', {
+            className: 'filter-button',
+            innerHTML: `<span class="material-symbols-outlined">label</span>${category.name}`,
+            onClick: () => handleFriendFilterClick(category.id, categoryButton)
+        });
+        categoryButton.dataset.filter = category.id;
+        filterControlsContainer.appendChild(categoryButton);
+    });
+}
+
+// Function to handle friend filter button clicks
+function handleFriendFilterClick(filterType, clickedButton) {
+    // Remove active class from all filter buttons
+    document.querySelectorAll('.friends-filter-controls .filter-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active class to clicked button
+    clickedButton.classList.add('active');
+    
+    // Apply the filter
+    applyFriendFilter(filterType);
+}
+
+// Function to apply friend filtering based on selected filter
+function applyFriendFilter(filterType) {
+    const filterText = document.querySelector('.friends-filter').value.toLowerCase();
+    const friendCards = document.querySelectorAll('.friend-list-node');
+    
+    friendCards.forEach(card => {
+        const isOnline = card.querySelector('.status-indicator:not(.offline)');
+        const friendName = card.querySelector('.friend-name').textContent.toLowerCase();
+        const matchesText = filterText === '' || friendName.includes(filterText);
+        
+        let matchesButtonFilter = false;
+        
+        // Check if friend matches button filter
+        if (filterType === 'all') {
+            matchesButtonFilter = true;
+        } else if (filterType === 'online') {
+            matchesButtonFilter = isOnline;
+        } else {
+            // For category filters, we need to check the friend's categories
+            // We need to get the friend data to check their categories
+            const friendNameElement = card.querySelector('.friend-name');
+            const friendName = friendNameElement.textContent;
+            
+            // Find the friend in our friends data by name
+            const friendData = Object.values(friendsData || {}).find(friend => friend.name === friendName);
+            
+            if (friendData && friendData.categories && Array.isArray(friendData.categories)) {
+                matchesButtonFilter = friendData.categories.includes(filterType);
+                // Debug logging
+                if (filterType !== 'all' && filterType !== 'online') {
+                    console.log(`Friend: ${friendName}, Categories: ${JSON.stringify(friendData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
+                }
+            } else {
+                // If no categories or friend not found, don't show for category filters
+                matchesButtonFilter = false;
+            }
+        }
+        
+        // Show card only if it matches both text and button filters
+        if (matchesText && matchesButtonFilter) {
+            card.style.display = '';
+            card.classList.remove('filtered-item');
+        } else {
+            card.style.display = 'none';
+            card.classList.add('filtered-item');
+        }
+    });
 }
 
 // Temporary reconnect prompt - will be expanded with a proper library later.
@@ -338,6 +467,8 @@ window.API.onLoginPage((_event, _availableCredentials) => {
 // Hide loading screen when main content is ready
 window.API.onHomePage((_event) => {
     loadingScreen.hide();
+    // Load friend categories when home page is ready
+    loadFriendCategories();
 });
 
 // Handle automatic update notifications from backend
@@ -385,7 +516,11 @@ window.API.onLoginPage((_event, availableCredentials) => {
     document.querySelector('.login-shade').style.display = 'flex';
 });
 
-window.API.onHomePage((_event) => swapNavPages('home'));
+window.API.onHomePage((_event) => {
+    swapNavPages('home');
+    // Load friend categories when home page is ready
+    loadFriendCategories();
+});
 
 
 // Navbar Control Logic
@@ -896,6 +1031,12 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     log('Friends Refresh! isRefresh: ' + isRefresh);
     log(friends);
 
+    // Store friends data globally for category filtering
+    friendsData = {};
+    friends.forEach(friend => {
+        friendsData[friend.id] = friend;
+    });
+
     const friendsBarNode = document.querySelector('.friends-sidebar-container');
     const friendsListNode = document.querySelector('.friends-wrapper');
 
@@ -1047,67 +1188,13 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     document.querySelector('#friend-count').textContent = totalFriends;
 });
 
-// Friends Filter Controls - Handle All/Online button filtering
-document.querySelectorAll('.friends-filter-controls .filter-button').forEach(button => {
-    button.addEventListener('click', () => {
-        // Remove active class from all filter buttons
-        document.querySelectorAll('.friends-filter-controls .filter-button').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        // Add active class to clicked button
-        button.classList.add('active');
-        
-        // Get filter type and current text filter
-        const filterType = button.dataset.filter;
-        const filterText = document.querySelector('.friends-filter').value.toLowerCase();
-        
-        // Get all friend cards
-        const friendCards = document.querySelectorAll('.friend-list-node');
-        
-        friendCards.forEach(card => {
-            const isOnline = card.querySelector('.status-indicator:not(.offline)');
-            const friendName = card.querySelector('.friend-name').textContent.toLowerCase();
-            const matchesText = filterText === '' || friendName.includes(filterText);
-            
-            // Check if friend matches button filter
-            const matchesButtonFilter = filterType === 'all' || (filterType === 'online' && isOnline);
-            
-            // Show card only if it matches both text and button filters
-            if (matchesText && matchesButtonFilter) {
-                card.style.display = '';
-                card.classList.remove('filtered-item');
-            } else {
-                card.style.display = 'none';
-                card.classList.add('filtered-item');
-            }
-        });
-    });
-});
-
 // Friends text filter functionality
 document.querySelector('.friends-filter').addEventListener('input', (event) => {
     const filterText = event.target.value.toLowerCase();
-    const friendCards = document.querySelectorAll('.friend-list-node');
-    const activeButtonFilter = document.querySelector('.friends-filter-controls .filter-button.active').dataset.filter;
+    const activeButtonFilter = document.querySelector('.friends-filter-controls .filter-button.active')?.dataset.filter || 'all';
     
-    friendCards.forEach(card => {
-        const friendName = card.querySelector('.friend-name').textContent.toLowerCase();
-        const matchesText = filterText === '' || friendName.includes(filterText);
-        
-        // Check if friend matches button filter
-        const isOnline = card.querySelector('.status-indicator:not(.offline)');
-        const matchesButtonFilter = activeButtonFilter === 'all' || (activeButtonFilter === 'online' && isOnline);
-        
-        // Show card only if it matches both text and button filters
-        if (matchesText && matchesButtonFilter) {
-            card.style.display = '';
-            card.classList.remove('filtered-item');
-        } else {
-            card.style.display = 'none';
-            card.classList.add('filtered-item');
-        }
-    });
+    // Use the new applyFriendFilter function
+    applyFriendFilter(activeButtonFilter);
 });
 
 // returns .imageBase64, .imageHash, .imageUrl
