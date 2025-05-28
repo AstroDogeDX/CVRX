@@ -211,13 +211,7 @@ function swapNavPages(page) {
                 // Reset to "My Worlds" filter after categories are loaded
                 const myWorldsButton = document.querySelector('.worlds-filter-controls .filter-button[data-filter="wrldmine"]');
                 if (myWorldsButton) {
-                    // Don't call handleWorldFilterClick here as it would reload the worlds
-                    // Just make sure the button is active and the worlds are visible
-                    document.querySelectorAll('.worlds-filter-controls .filter-button').forEach(btn => {
-                        btn.classList.remove('active');
-                    });
-                    myWorldsButton.classList.add('active');
-                    console.log('Set "My Worlds" as active filter on page load');
+                    handleWorldFilterClick('wrldmine', myWorldsButton);
                 }
             });
             // Make sure all world cards are visible initially
