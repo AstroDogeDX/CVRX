@@ -54,6 +54,12 @@ let propCategories = [];
 // Store props data for category filtering
 let propsData = {};
 
+// Store world categories for filtering
+let worldCategories = [];
+
+// Store worlds data for category filtering
+let worldsData = {};
+
 const PrivacyLevel = Object.freeze({
     Public: 0,
     FriendsOfFriends: 1,
@@ -200,6 +206,25 @@ function swapNavPages(page) {
             break;
         case 'worlds':
             loadAndFilterPageContent('worlds', '#display-worlds', window.API.refreshGetActiveUserWorlds, '#worlds-filter');
+            // Load world categories and reset filter controls
+            loadWorldCategories().then(() => {
+                // Reset to "My Worlds" filter after categories are loaded
+                const myWorldsButton = document.querySelector('.worlds-filter-controls .filter-button[data-filter="wrldmine"]');
+                if (myWorldsButton) {
+                    // Don't call handleWorldFilterClick here as it would reload the worlds
+                    // Just make sure the button is active and the worlds are visible
+                    document.querySelectorAll('.worlds-filter-controls .filter-button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    myWorldsButton.classList.add('active');
+                    console.log('Set "My Worlds" as active filter on page load');
+                }
+            });
+            // Make sure all world cards are visible initially
+            document.querySelectorAll('.worlds-wrapper--worlds-node').forEach(card => {
+                card.style.display = '';
+                card.classList.remove('filtered-item');
+            });
             break;
         case 'props':
             loadAndFilterPageContent('props', '#display-props', window.API.refreshGetActiveUserProps, '#props-filter');
@@ -511,6 +536,8 @@ window.API.onHomePage((_event) => {
     loadAvatarCategories();
     // Load prop categories when home page is ready
     loadPropCategories();
+    // Load world categories when home page is ready
+    loadWorldCategories();
 });
 
 // Handle automatic update notifications from backend
@@ -562,6 +589,8 @@ window.API.onHomePage((_event) => {
     swapNavPages('home');
     // Load friend categories when home page is ready
     loadFriendCategories();
+    // Load world categories when home page is ready
+    loadWorldCategories();
 });
 
 
@@ -1928,6 +1957,14 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
     log('[On] GetActiveUserWorlds');
     log(ourWorlds);
 
+    // Store worlds data globally for category filtering
+    worldsData = {};
+    ourWorlds.forEach(world => {
+        worldsData[world.id] = world;
+    });
+
+    console.log(`Loaded ${ourWorlds.length} worlds into worldsData:`, worldsData);
+
     const worldDisplayNode = document.querySelector('.worlds-wrapper');
     let docFragment = document.createDocumentFragment();
 
@@ -1969,6 +2006,101 @@ window.API.onGetActiveUserWorlds((_event, ourWorlds) => {
     }
 
     worldDisplayNode.replaceChildren(docFragment);
+    
+    console.log(`Created ${docFragment.children.length} world cards in DOM`);
+    
+    // Apply the current active filter after loading worlds, but only if filter buttons exist
+    const activeFilterButton = document.querySelector('.worlds-filter-controls .filter-button.active');
+    if (activeFilterButton) {
+        const activeFilter = activeFilterButton.dataset.filter;
+        console.log(`Applying active filter: ${activeFilter}`);
+        applyWorldFilter(activeFilter);
+    } else {
+        console.log('No active filter button found, showing all worlds');
+        // If no filter buttons exist yet, show all worlds
+        document.querySelectorAll('.worlds-wrapper--worlds-node').forEach(card => {
+            card.style.display = '';
+            card.classList.remove('filtered-item');
+        });
+    }
+});
+
+// Add event listener for worlds category refresh
+window.API.onWorldsByCategoryRefresh((_event, categoryId, worlds) => {
+    log(`[On] Worlds Category Refresh for ${categoryId}`);
+    log(worlds);
+
+    // Store worlds data globally for category filtering
+    worlds.forEach(world => {
+        worldsData[world.id] = world;
+    });
+
+    console.log(`Loaded ${worlds.length} worlds for category ${categoryId} into worldsData`);
+
+    const worldDisplayNode = document.querySelector('.worlds-wrapper');
+    let docFragment = document.createDocumentFragment();
+
+    for (const world of worlds) {
+        // Use cached image or placeholder
+        const imgSrc = friendImageCache[world.imageHash] || 'img/ui/placeholder.png';
+
+        // Player count indicator for worlds
+        const playerCount = world.playerCount?
+            `<div class="player-count-indicator">
+                <span class="material-symbols-outlined">group</span>${world.playerCount}
+            </div>` : '';
+
+        // Create card similar to search and friends layout
+        const worldNode = createElement('div', {
+            className: 'worlds-wrapper--worlds-node card-node',
+            innerHTML: `
+                ${playerCount}
+                <div class="thumbnail-container">
+                    <img src="${imgSrc}" data-hash="${world.imageHash}" class="hidden"/>
+                </div>
+                <div class="card-content">
+                    <p class="card-name">${world.name}</p>
+                    <div class="card-detail">
+                        <span class="material-symbols-outlined">language</span>World
+                    </div>
+                </div>
+            `,
+            onClick: () => ShowDetailsWrapper(DetailsType.World, world.id),
+        });
+
+        // Set placeholder background image and data-hash directly on the container
+        const thumbnailContainer = worldNode.querySelector('.thumbnail-container');
+        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
+        thumbnailContainer.style.backgroundSize = 'cover';
+        thumbnailContainer.dataset.hash = world.imageHash;
+
+        docFragment.appendChild(worldNode);
+    }
+
+    worldDisplayNode.replaceChildren(docFragment);
+    
+    console.log(`Created ${worlds.length} world cards for category ${categoryId}`);
+    
+    // Show all worlds for this category (no additional filtering needed since we fetched by category)
+    document.querySelectorAll('.worlds-wrapper--worlds-node').forEach(card => {
+        card.style.display = '';
+        card.classList.remove('filtered-item');
+    });
+    
+    // Apply text filter if there's any text in the filter input
+    const filterText = document.querySelector('#worlds-filter').value.toLowerCase();
+    if (filterText) {
+        document.querySelectorAll('.worlds-wrapper--worlds-node').forEach(card => {
+            const worldName = card.querySelector('.card-name').textContent.toLowerCase();
+            if (worldName.includes(filterText)) {
+                card.style.display = '';
+                card.classList.remove('filtered-item');
+            } else {
+                card.style.display = 'none';
+                card.classList.add('filtered-item');
+            }
+        });
+    }
 });
 
 // Janky active user avatars
@@ -2402,21 +2534,28 @@ document.querySelector('#avatars-filter')?.addEventListener('input', (event) => 
 });
 
 document.querySelector('#worlds-filter')?.addEventListener('input', (event) => {
+    const activeButtonFilter = document.querySelector('.worlds-filter-controls .filter-button.active')?.dataset.filter || 'wrldmine';
     const filterText = event.target.value.toLowerCase();
-    const worldCards = document.querySelectorAll('.worlds-wrapper--worlds-node');
     
-    worldCards.forEach(card => {
-        const worldName = card.querySelector('.card-name').textContent.toLowerCase();
-        const matchesText = filterText === '' || worldName.includes(filterText);
-        
-        if (matchesText) {
-            card.style.display = '';
-            card.classList.remove('filtered-item');
-        } else {
-            card.style.display = 'none';
-            card.classList.add('filtered-item');
-        }
-    });
+    console.log(`World text filter changed: "${filterText}", active category: ${activeButtonFilter}`);
+    
+    // For user-defined categories, we just apply text filtering to the loaded worlds
+    if (activeButtonFilter.startsWith('worlds_')) {
+        // Apply text filter to currently loaded worlds
+        document.querySelectorAll('.worlds-wrapper--worlds-node').forEach(card => {
+            const worldName = card.querySelector('.card-name').textContent.toLowerCase();
+            if (filterText === '' || worldName.includes(filterText)) {
+                card.style.display = '';
+                card.classList.remove('filtered-item');
+            } else {
+                card.style.display = 'none';
+                card.classList.add('filtered-item');
+            }
+        });
+    } else {
+        // Use the existing applyWorldFilter function for other categories
+        applyWorldFilter(activeButtonFilter);
+    }
 });
 
 document.querySelector('#props-filter')?.addEventListener('input', (event) => {
@@ -2648,6 +2787,158 @@ function applyPropFilter(filterType) {
             card.classList.add('filtered-item');
         }
     });
+}
+
+// Function to load world categories and update filter buttons
+async function loadWorldCategories() {
+    try {
+        const categories = await window.API.getCategories();
+        console.log('Raw categories from API:', categories);
+        
+        if (categories && categories.worlds) {
+            console.log('World categories before filtering:', categories.worlds);
+            
+            // Filter out the categories we want to ignore
+            worldCategories = categories.worlds.filter(category => 
+                !['wrldactive', 'wrldnew', 'wrldtrending', 'wrldavatars', 'wrldpublic', 'wrldrecentlyupdated'].includes(category.id)
+            );
+            
+            console.log('World categories after filtering:', worldCategories);
+            updateWorldFilterButtons();
+        } else {
+            console.log('No world categories found in API response');
+            worldCategories = [];
+            updateWorldFilterButtons();
+        }
+    } catch (error) {
+        console.error('Failed to load world categories:', error);
+        // Fallback to default buttons if categories fail to load
+        worldCategories = [];
+        updateWorldFilterButtons();
+    }
+}
+
+// Function to update world filter buttons based on categories
+function updateWorldFilterButtons() {
+    const filterControlsContainer = document.querySelector('.worlds-filter-controls');
+    if (!filterControlsContainer) {
+        console.log('No worlds filter controls container found');
+        return;
+    }
+
+    console.log('Updating world filter buttons...');
+
+    // Clear existing buttons
+    filterControlsContainer.innerHTML = '';
+
+    // Add "My Worlds" button (using wrldmine category)
+    const myWorldsButton = createElement('button', {
+        className: 'filter-button active',
+        innerHTML: '<span class="material-symbols-outlined">language</span>My Worlds',
+        onClick: () => handleWorldFilterClick('wrldmine', myWorldsButton)
+    });
+    myWorldsButton.dataset.filter = 'wrldmine';
+    filterControlsContainer.appendChild(myWorldsButton);
+    console.log('Added "My Worlds" button');
+
+    // Add user-created category buttons (those starting with 'worlds_')
+    let userCategoryCount = 0;
+    worldCategories.forEach(category => {
+        // Only add user-created categories (those starting with 'worlds_')
+        if (category.id.startsWith('worlds_')) {
+            const categoryButton = createElement('button', {
+                className: 'filter-button',
+                innerHTML: `<span class="material-symbols-outlined">label</span>${category.name}`,
+                onClick: () => handleWorldFilterClick(category.id, categoryButton)
+            });
+            categoryButton.dataset.filter = category.id;
+            filterControlsContainer.appendChild(categoryButton);
+            userCategoryCount++;
+            console.log(`Added user category button: ${category.name} (${category.id})`);
+        }
+    });
+    
+    console.log(`Total buttons created: 1 default + ${userCategoryCount} user categories`);
+}
+
+// Function to handle world filter button clicks
+function handleWorldFilterClick(filterType, clickedButton) {
+    // Remove active class from all filter buttons
+    document.querySelectorAll('.worlds-filter-controls .filter-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active class to clicked button
+    clickedButton.classList.add('active');
+    
+    console.log(`World filter clicked: ${filterType}`);
+    
+    // For user-defined categories (starting with 'worlds_'), fetch worlds by category
+    if (filterType.startsWith('worlds_')) {
+        console.log(`Loading worlds for user-defined category: ${filterType}`);
+        // Clear current worlds data for this category to avoid mixing data
+        worldsData = {};
+        window.API.refreshWorldsCategory(filterType);
+    } else if (filterType === 'wrldmine') {
+        // For "My Worlds", use the existing method
+        console.log('Loading My Worlds');
+        window.API.refreshGetActiveUserWorlds();
+    } else {
+        // For other categories, apply the filter to existing data
+        console.log(`Applying filter to existing data: ${filterType}`);
+        applyWorldFilter(filterType);
+    }
+}
+
+// Function to apply world filtering based on selected filter
+function applyWorldFilter(filterType) {
+    const filterText = document.querySelector('#worlds-filter').value.toLowerCase();
+    const worldCards = document.querySelectorAll('.worlds-wrapper--worlds-node');
+    
+    console.log(`Applying world filter: ${filterType}, found ${worldCards.length} world cards`);
+    
+    worldCards.forEach(card => {
+        const worldName = card.querySelector('.card-name').textContent.toLowerCase();
+        const matchesText = filterText === '' || worldName.includes(filterText);
+        
+        let matchesButtonFilter = false;
+        
+        // Find the world in our worlds data by name
+        const worldNameElement = card.querySelector('.card-name');
+        const worldNameText = worldNameElement.textContent;
+        
+        // Find the world in our worlds data by name
+        const worldData = Object.values(worldsData || {}).find(world => world.name === worldNameText);
+        
+        if (worldData) {
+            console.log(`World: ${worldNameText}, Categories: ${JSON.stringify(worldData.categories)}, Filter: ${filterType}`);
+            
+            if (worldData.categories && Array.isArray(worldData.categories)) {
+                matchesButtonFilter = worldData.categories.includes(filterType);
+            } else {
+                // If no categories array exists, show for 'wrldmine' filter (assume it's user's world)
+                matchesButtonFilter = filterType === 'wrldmine';
+                console.log(`World ${worldNameText} has no categories, treating as ${filterType === 'wrldmine' ? 'owned' : 'not owned'}`);
+            }
+        } else {
+            // If world not found in data, show for 'wrldmine' filter as fallback
+            matchesButtonFilter = filterType === 'wrldmine';
+            console.log(`World ${worldNameText} not found in worldsData, treating as ${filterType === 'wrldmine' ? 'owned' : 'not owned'}`);
+        }
+        
+        // Show card only if it matches both text and button filters
+        if (matchesText && matchesButtonFilter) {
+            card.style.display = '';
+            card.classList.remove('filtered-item');
+        } else {
+            card.style.display = 'none';
+            card.classList.add('filtered-item');
+        }
+    });
+    
+    // Count visible cards for debugging
+    const visibleCards = document.querySelectorAll('.worlds-wrapper--worlds-node:not(.filtered-item)');
+    console.log(`After filtering: ${visibleCards.length} visible world cards`);
 }
 
 

@@ -1498,9 +1498,10 @@ button {
     height: 100%;
     gap: 5px;
     grid-template-columns: 1fr 50px;
-    grid-template-rows: 50px 1fr;
+    grid-template-rows: 50px 50px 1fr;
     grid-template-areas:
         "worlds-filter worlds-refresh"
+        "worlds-filter-controls worlds-filter-controls"
         "worlds-list worlds-list";
 }
 
@@ -1516,6 +1517,15 @@ button {
 
 #worlds-filter::placeholder {
     font-style: italic;
+}
+
+.worlds-filter-controls {
+    grid-area: worlds-filter-controls;
+    display: flex;
+    gap: 10px;
+    padding: 5px 0;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 #worlds-refresh {
