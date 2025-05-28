@@ -48,6 +48,12 @@ let avatarCategories = [];
 // Store avatars data for category filtering
 let avatarsData = {};
 
+// Store prop categories for filtering
+let propCategories = [];
+
+// Store props data for category filtering
+let propsData = {};
+
 const PrivacyLevel = Object.freeze({
     Public: 0,
     FriendsOfFriends: 1,
@@ -197,6 +203,19 @@ function swapNavPages(page) {
             break;
         case 'props':
             loadAndFilterPageContent('props', '#display-props', window.API.refreshGetActiveUserProps, '#props-filter');
+            // Load prop categories and reset filter controls
+            loadPropCategories().then(() => {
+                // Reset to "My Props" filter after categories are loaded
+                const myPropsButton = document.querySelector('.props-filter-controls .filter-button[data-filter="propmine"]');
+                if (myPropsButton) {
+                    handlePropFilterClick('propmine', myPropsButton);
+                }
+            });
+            // Make sure all prop cards are visible initially
+            document.querySelectorAll('.props-wrapper--props-node').forEach(card => {
+                card.style.display = '';
+                card.classList.remove('filtered-item');
+            });
             break;
     }
 
@@ -490,6 +509,8 @@ window.API.onHomePage((_event) => {
     loadFriendCategories();
     // Load avatar categories when home page is ready
     loadAvatarCategories();
+    // Load prop categories when home page is ready
+    loadPropCategories();
 });
 
 // Handle automatic update notifications from backend
@@ -2006,13 +2027,14 @@ window.API.onGetActiveUserProps((_event, ourProps) => {
     log('[On] GetActiveUserProps');
     log(ourProps);
 
-    // Filter props to only show those owned by the current user
-    if (currentActiveUser) {
-        ourProps = ourProps.filter(prop => 
-            prop.authorGuid === currentActiveUser.id || 
-            (prop.categories && prop.categories.includes(PropCategories.Mine))
-        );
-    }
+    // Store props data globally for category filtering
+    propsData = {};
+    ourProps.forEach(prop => {
+        propsData[prop.id] = prop;
+    });
+
+    // Remove the filtering that only shows props owned by the current user
+    // This allows shared props and props in user-defined categories to be shown
 
     const propDisplayNode = document.querySelector('.props-wrapper');
     let docFragment = document.createDocumentFragment();
@@ -2052,6 +2074,13 @@ window.API.onGetActiveUserProps((_event, ourProps) => {
     }
 
     propDisplayNode.replaceChildren(docFragment);
+    
+    // Apply the current active filter after loading props
+    const activeFilterButton = document.querySelector('.props-filter-controls .filter-button.active');
+    if (activeFilterButton) {
+        const activeFilter = activeFilterButton.dataset.filter;
+        applyPropFilter(activeFilter);
+    }
 });
 
 // Janky recent activity
@@ -2391,21 +2420,10 @@ document.querySelector('#worlds-filter')?.addEventListener('input', (event) => {
 });
 
 document.querySelector('#props-filter')?.addEventListener('input', (event) => {
-    const filterText = event.target.value.toLowerCase();
-    const propCards = document.querySelectorAll('.props-wrapper--props-node');
+    const activeButtonFilter = document.querySelector('.props-filter-controls .filter-button.active')?.dataset.filter || 'propmine';
     
-    propCards.forEach(card => {
-        const propName = card.querySelector('.card-name').textContent.toLowerCase();
-        const matchesText = filterText === '' || propName.includes(filterText);
-        
-        if (matchesText) {
-            card.style.display = '';
-            card.classList.remove('filtered-item');
-        } else {
-            card.style.display = 'none';
-            card.classList.add('filtered-item');
-        }
-    });
+    // Use the new applyPropFilter function
+    applyPropFilter(activeButtonFilter);
 });
 
 // Function to load avatar categories and update filter buttons
@@ -2506,6 +2524,118 @@ function applyAvatarFilter(filterType) {
             console.log(`Avatar: ${avatarNameText}, Categories: ${JSON.stringify(avatarData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
         } else {
             // If no categories or avatar not found, don't show for category filters
+            matchesButtonFilter = false;
+        }
+        
+        // Show card only if it matches both text and button filters
+        if (matchesText && matchesButtonFilter) {
+            card.style.display = '';
+            card.classList.remove('filtered-item');
+        } else {
+            card.style.display = 'none';
+            card.classList.add('filtered-item');
+        }
+    });
+}
+
+// Function to load prop categories and update filter buttons
+async function loadPropCategories() {
+    try {
+        const categories = await window.API.getCategories();
+        if (categories && categories.spawnables) {
+            // Filter out the categories we want to ignore
+            propCategories = categories.spawnables.filter(category => 
+                !['proppublic', 'prop_new', 'prop_recently'].includes(category.id)
+            );
+            updatePropFilterButtons();
+        }
+    } catch (error) {
+        console.error('Failed to load prop categories:', error);
+        // Fallback to default buttons if categories fail to load
+        propCategories = [];
+        updatePropFilterButtons();
+    }
+}
+
+// Function to update prop filter buttons based on categories
+function updatePropFilterButtons() {
+    const filterControlsContainer = document.querySelector('.props-filter-controls');
+    if (!filterControlsContainer) return;
+
+    // Clear existing buttons
+    filterControlsContainer.innerHTML = '';
+
+    // Add "My Props" button (using propmine category)
+    const myPropsButton = createElement('button', {
+        className: 'filter-button active',
+        innerHTML: '<span class="material-symbols-outlined">view_in_ar</span>My Props',
+        onClick: () => handlePropFilterClick('propmine', myPropsButton)
+    });
+    myPropsButton.dataset.filter = 'propmine';
+    filterControlsContainer.appendChild(myPropsButton);
+
+    // Add "Shared With Me" button (using propshared category)
+    const sharedButton = createElement('button', {
+        className: 'filter-button',
+        innerHTML: '<span class="material-symbols-outlined">share</span>Shared With Me',
+        onClick: () => handlePropFilterClick('propshared', sharedButton)
+    });
+    sharedButton.dataset.filter = 'propshared';
+    filterControlsContainer.appendChild(sharedButton);
+
+    // Add user-created category buttons (those starting with 'props_')
+    propCategories.forEach(category => {
+        // Only add user-created categories (those starting with 'props_')
+        if (category.id.startsWith('props_')) {
+            const categoryButton = createElement('button', {
+                className: 'filter-button',
+                innerHTML: `<span class="material-symbols-outlined">label</span>${category.name}`,
+                onClick: () => handlePropFilterClick(category.id, categoryButton)
+            });
+            categoryButton.dataset.filter = category.id;
+            filterControlsContainer.appendChild(categoryButton);
+        }
+    });
+}
+
+// Function to handle prop filter button clicks
+function handlePropFilterClick(filterType, clickedButton) {
+    // Remove active class from all filter buttons
+    document.querySelectorAll('.props-filter-controls .filter-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active class to clicked button
+    clickedButton.classList.add('active');
+    
+    // Apply the filter
+    applyPropFilter(filterType);
+}
+
+// Function to apply prop filtering based on selected filter
+function applyPropFilter(filterType) {
+    const filterText = document.querySelector('#props-filter').value.toLowerCase();
+    const propCards = document.querySelectorAll('.props-wrapper--props-node');
+    
+    propCards.forEach(card => {
+        const propName = card.querySelector('.card-name').textContent.toLowerCase();
+        const matchesText = filterText === '' || propName.includes(filterText);
+        
+        let matchesButtonFilter = false;
+        
+        // Find the prop in our props data by name
+        const propNameElement = card.querySelector('.card-name');
+        const propNameText = propNameElement.textContent;
+        
+        // Find the prop in our props data by name
+        const propData = Object.values(propsData || {}).find(prop => prop.name === propNameText);
+        
+        if (propData && propData.categories && Array.isArray(propData.categories)) {
+            matchesButtonFilter = propData.categories.includes(filterType);
+            // Debug logging
+            console.log(`Prop: ${propNameText}, Categories: ${JSON.stringify(propData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
+        } else {
+            // If no categories or prop not found, don't show for category filters
             matchesButtonFilter = false;
         }
         

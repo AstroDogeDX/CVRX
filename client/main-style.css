@@ -1575,9 +1575,10 @@ button {
     height: 100%;
     gap: 5px;
     grid-template-columns: 1fr 50px;
-    grid-template-rows: 50px 1fr;
+    grid-template-rows: 50px 50px 1fr;
     grid-template-areas:
         "props-filter props-refresh"
+        "props-filter-controls props-filter-controls"
         "props-list props-list";
 }
 
@@ -1593,6 +1594,15 @@ button {
 
 #props-filter::placeholder {
     font-style: italic;
+}
+
+.props-filter-controls {
+    display: flex;
+    gap: 10px;
+    padding: 10px 5px;
+    background-color: rgba(40, 40, 40, 0.7);
+    border-radius: var(--border-radii);
+    grid-area: props-filter-controls;
 }
 
 #props-refresh {
