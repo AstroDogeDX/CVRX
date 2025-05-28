@@ -1411,9 +1411,10 @@ button {
     height: 100%;
     gap: 5px;
     grid-template-columns: 1fr 50px;
-    grid-template-rows: 50px 1fr;
+    grid-template-rows: 50px 50px 1fr;
     grid-template-areas:
         "avatars-filter avatars-refresh"
+        "avatars-filter-controls avatars-filter-controls"
         "avatars-list avatars-list";
 }
 
@@ -1429,6 +1430,15 @@ button {
 
 #avatars-filter::placeholder {
     font-style: italic;
+}
+
+.avatars-filter-controls {
+    grid-area: avatars-filter-controls;
+    display: flex;
+    gap: 10px;
+    padding: 5px 0;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 #avatars-refresh {
