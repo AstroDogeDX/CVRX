@@ -25,13 +25,21 @@ import {
     createUserDetailsHeader,
     ShowDetails
 } from './astrolib/details_constructor.js';
+import { 
+    friendImageCache,
+    initializeFriendsModule,
+    updateCurrentActiveUser,
+    loadFriendCategories,
+    handleFriendsRefresh,
+    initializeFriendsPage,
+    setupFriendsTextFilter,
+    applyFriendFilter,
+    getFriendStatus
+} from './astrolib/user_content.js';
 
 // ===========
 // GLOBAL VARS
 // ===========
-
-// Cache for friend images to prevent losing loaded images on refresh
-const friendImageCache = {};
 
 // Store the current active user for filtering purposes
 let currentActiveUser = null;
@@ -39,12 +47,6 @@ let currentActiveUser = null;
 // Store active instances for filtering in world details
 let activeInstances = [];
 let currentWorldDetailsId = null; // Track the currently open world details
-
-// Store friend categories for filtering
-let friendCategories = [];
-
-// Store friends data for category filtering
-let friendsData = {};
 
 // Store avatar categories for filtering
 let avatarCategories = [];
@@ -86,17 +88,6 @@ const GetPrivacyLevelName = (privacyLevel) => {
         default: return 'Unknown';
     }
 };
-
-// const WorldCategories = Object.freeze({
-//     ActiveInstances: 'wrldactive',
-//     New: 'wrldnew',
-//     Trending: 'wrldtrending',
-//     Official: 'wrldofficial',
-//     Avatar: 'wrldavatars',
-//     Public: 'wrldpublic',
-//     RecentlyUpdated: 'wrldrecentlyupdated',
-//     Mine: 'wrldmine',
-// });
 
 const AvatarCategories = Object.freeze({
     Public: 'avtrpublic',
@@ -176,21 +167,7 @@ function swapNavPages(page) {
             document.querySelector('.search-loading').classList.add('hidden');
             break;
         case 'friends':
-            setInputValueAndFocus('.friends-filter', '');
-            removeFilteredItemClass('.friend-list-node');
-            // Load friend categories and reset filter controls
-            loadFriendCategories().then(() => {
-                // Reset to "All" filter after categories are loaded
-                const allButton = document.querySelector('.friends-filter-controls .filter-button[data-filter="all"]');
-                if (allButton) {
-                    handleFriendFilterClick('all', allButton);
-                }
-            });
-            // Make sure all friend cards are visible
-            document.querySelectorAll('.friend-list-node').forEach(card => {
-                card.style.display = '';
-                card.classList.remove('filtered-item');
-            });
+            initializeFriendsPage();
             break;
         case 'avatars':
             loadAndFilterPageContent('avatars', '#display-avatars', window.API.refreshGetActiveUserAvatars, '#avatars-filter');
@@ -248,7 +225,7 @@ function swapNavPages(page) {
 }
 
 // Simplify Element w/ Stuff Creation
-function createElement(type, options = {}) {
+export function createElement(type, options = {}) {
     const element = document.createElement(type);
     if (options.id) element.id = options.id;
     if (options.className) element.className = options.className;
@@ -258,135 +235,6 @@ function createElement(type, options = {}) {
     if (options.onClick) element.addEventListener('click', options.onClick);
     if (options.tooltip) element.dataset.tooltip = options.tooltip;
     return element;
-}
-
-function createFriendsListCategory(title) {
-    const element = document.createElement('p');
-    element.classList.add('friend-sidebar-header');
-    element.textContent = title;
-    return element;
-}
-
-// Function to load friend categories and update filter buttons
-async function loadFriendCategories() {
-    try {
-        const categories = await window.API.getCategories();
-        if (categories && categories.friends) {
-            friendCategories = categories.friends;
-            updateFriendFilterButtons();
-        }
-    } catch (error) {
-        console.error('Failed to load friend categories:', error);
-        // Fallback to default buttons if categories fail to load
-        friendCategories = [];
-        updateFriendFilterButtons();
-    }
-}
-
-// Function to update friend filter buttons based on categories
-function updateFriendFilterButtons() {
-    const filterControlsContainer = document.querySelector('.friends-filter-controls');
-    if (!filterControlsContainer) return;
-
-    // Clear existing buttons
-    filterControlsContainer.innerHTML = '';
-
-    // Always add "All" button
-    const allButton = createElement('button', {
-        className: 'filter-button active',
-        innerHTML: '<span class="material-symbols-outlined">group</span>All',
-        onClick: () => handleFriendFilterClick('all', allButton)
-    });
-    allButton.dataset.filter = 'all';
-    filterControlsContainer.appendChild(allButton);
-
-    // Add "Online" button
-    const onlineButton = createElement('button', {
-        className: 'filter-button',
-        innerHTML: '<span class="material-symbols-outlined">circle</span>Online',
-        onClick: () => handleFriendFilterClick('online', onlineButton)
-    });
-    onlineButton.dataset.filter = 'online';
-    filterControlsContainer.appendChild(onlineButton);
-
-    // Add category buttons from API
-    friendCategories.forEach(category => {
-        // Skip the default online/offline categories as we handle them differently
-        if (category.id === 'frndonline' || category.id === 'frndoffline') {
-            return;
-        }
-
-        const categoryButton = createElement('button', {
-            className: 'filter-button',
-            innerHTML: `<span class="material-symbols-outlined">label</span>${category.name}`,
-            onClick: () => handleFriendFilterClick(category.id, categoryButton)
-        });
-        categoryButton.dataset.filter = category.id;
-        filterControlsContainer.appendChild(categoryButton);
-    });
-}
-
-// Function to handle friend filter button clicks
-function handleFriendFilterClick(filterType, clickedButton) {
-    // Remove active class from all filter buttons
-    document.querySelectorAll('.friends-filter-controls .filter-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Add active class to clicked button
-    clickedButton.classList.add('active');
-    
-    // Apply the filter
-    applyFriendFilter(filterType);
-}
-
-// Function to apply friend filtering based on selected filter
-function applyFriendFilter(filterType) {
-    const filterText = document.querySelector('.friends-filter').value.toLowerCase();
-    const friendCards = document.querySelectorAll('.friend-list-node');
-    
-    friendCards.forEach(card => {
-        const isOnline = card.querySelector('.status-indicator:not(.offline)');
-        const friendName = card.querySelector('.friend-name').textContent.toLowerCase();
-        const matchesText = filterText === '' || friendName.includes(filterText);
-        
-        let matchesButtonFilter = false;
-        
-        // Check if friend matches button filter
-        if (filterType === 'all') {
-            matchesButtonFilter = true;
-        } else if (filterType === 'online') {
-            matchesButtonFilter = isOnline;
-        } else {
-            // For category filters, we need to check the friend's categories
-            // We need to get the friend data to check their categories
-            const friendNameElement = card.querySelector('.friend-name');
-            const friendName = friendNameElement.textContent;
-            
-            // Find the friend in our friends data by name
-            const friendData = Object.values(friendsData || {}).find(friend => friend.name === friendName);
-            
-            if (friendData && friendData.categories && Array.isArray(friendData.categories)) {
-                matchesButtonFilter = friendData.categories.includes(filterType);
-                // Debug logging
-                if (filterType !== 'all' && filterType !== 'online') {
-                    console.log(`Friend: ${friendName}, Categories: ${JSON.stringify(friendData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
-                }
-            } else {
-                // If no categories or friend not found, don't show for category filters
-                matchesButtonFilter = false;
-            }
-        }
-        
-        // Show card only if it matches both text and button filters
-        if (matchesText && matchesButtonFilter) {
-            card.style.display = '';
-            card.classList.remove('filtered-item');
-        } else {
-            card.style.display = 'none';
-            card.classList.add('filtered-item');
-        }
-    });
 }
 
 // Temporary reconnect prompt - will be expanded with a proper library later.
@@ -536,6 +384,8 @@ window.API.onHomePage((_event) => {
     loadPropCategories();
     // Load world categories when home page is ready
     loadWorldCategories();
+    // Setup friends text filter
+    setupFriendsTextFilter();
 });
 
 // Handle automatic update notifications from backend
@@ -589,6 +439,8 @@ window.API.onHomePage((_event) => {
     loadFriendCategories();
     // Load world categories when home page is ready
     loadWorldCategories();
+    // Setup friends text filter
+    setupFriendsTextFilter();
 });
 
 
@@ -622,6 +474,16 @@ window.API.onGetActiveUser((_event, activeUser) => {
 
     // Store the current active user for filtering purposes
     currentActiveUser = activeUser;
+    
+    // Initialize the friends module with dependencies
+    initializeFriendsModule({
+        currentActiveUser,
+        ShowDetailsWrapper,
+        DetailsType
+    });
+    
+    // Update the current active user in the friends module
+    updateCurrentActiveUser(activeUser);
 
     // Set profile picture for profile navbar button
     const profileButton = document.querySelector('.profile-navbar-button');
@@ -645,21 +507,6 @@ window.API.onImageLoaded((_event, imageData) => {
         }
     });
 });
-
-function getFriendStatus(friend) {
-    if (!friend?.isOnline) return { name: 'Offline', type: null };
-    if (!friend.isConnected) return { name: '', type: 'Offline Instance' };
-    if (!friend.instance) return { name: '', type: 'Private Instance' };
-    if (friend.instance.name) return {
-        name: friend.instance.name,
-        type: GetPrivacyLevelName(friend.instance.privacy),
-    };
-    return { name: 'Unknown', type: null };
-}
-
-
-
-
 
 // Helper function to add tabs for a specific entity type
 
@@ -1097,174 +944,10 @@ async function loadTabContent(tab, entityId) {
 }
 
 window.API.onFriendsRefresh((_event, friends, isRefresh) => {
-    log('Friends Refresh! isRefresh: ' + isRefresh);
-    log(friends);
-
-    // Store friends data globally for category filtering
-    friendsData = {};
-    friends.forEach(friend => {
-        friendsData[friend.id] = friend;
-    });
-
-    const friendsBarNode = document.querySelector('.friends-sidebar-container');
-    const friendsListNode = document.querySelector('.friends-wrapper');
-
-    let totalFriends = 0;
-
-    // Friends Sidebar Categories
-    const categories = {
-        public: null,
-        friendsOfFriends: null,
-        friendsOnly: null,
-        anyoneCanInvite: null,
-        ownerOnlyInvite: null,
-        privateInstance: null,
-        offlineInstance: null,
-    };
-
-    // Prep by assigning nodes to the categories
-    for (const key in categories) {
-        categories[key] = createElement('div', { className: 'friend-sidebar-category-group' });
-    }
-
-    // Instance type to category map
-    const instanceTypeToCategoryKey = {
-        'Public': 'public',
-        'Friends of Friends': 'friendsOfFriends',
-        'Friends Only': 'friendsOnly',
-        'Everyone Can Invite': 'anyoneCanInvite',
-        'Owner Must Invite': 'ownerOnlyInvite',
-        'Private Instance': 'privateInstance',
-        'Offline Instance': 'offlineInstance',
-    };
-
-    // Clear all children (this event sends all friends, we so can empty our previous state)
-    friendsBarNode.replaceChildren();
-    friendsListNode.replaceChildren();
-
-    // Sort friends alphabetically regardless of case
-    friends.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-
-    // Array to collect all friend cards before adding to DOM
-    const friendCards = [];
-
-    for (const friend of friends) {
-        const { name, type } = getFriendStatus(friend);
-        const instanceTypeStr = type ? `${type}` : '';
-        const onlineFriendInPrivateClass = friend.instance ? '' : 'friend-is-offline';
-
-        // Use cached image if available, otherwise use placeholder
-        if (friend.imageBase64) {
-            // If we received the image with this update, cache it
-            friendImageCache[friend.imageHash] = friend.imageBase64;
-        }
-        // Use cached image or fall back to placeholder
-        const friendImgSrc = friendImageCache[friend.imageHash] || 'img/ui/placeholder.png';
-
-        // Setting up the HTMLElement used for the Online Friends panel.
-        if (friend.isOnline) {
-            totalFriends = totalFriends + 1;
-            let onlineFriendNode = createElement('div', {
-                className: 'friends-sidebar--online-friend-node',
-                innerHTML:
-                    `<img class="online-friend-node--image" src="${friendImgSrc}" data-hash="${friend.imageHash}"/>
-                    <p class="online-friend-node--name">${friend.name}</p>
-                    <p class="online-friend-node--status ${onlineFriendInPrivateClass}">${instanceTypeStr}</p>
-                    <p class="online-friend-node--world" data-tooltip="${name}">${name}</p>`,
-                onClick: () => ShowDetailsWrapper(DetailsType.User, friend.id),
-            });
-
-            // Get category from map
-            const categoryKey = instanceTypeToCategoryKey[instanceTypeStr];
-
-            // Populate category with friend
-            if (categoryKey) {
-                const category = categories[categoryKey];
-
-                // If the category is empty, start by giving it its title
-                if (!category.children.length) {
-                    category.appendChild(createFriendsListCategory(instanceTypeStr));
-                }
-                category.appendChild(onlineFriendNode);
-            } else {
-                friendsBarNode.appendChild(onlineFriendNode);
-            }
-        }
-
-        // Setting up the HTMLElement used for the Friends List page.
-        const offlineFriendClass = friend.isOnline ? '' : 'friend-is-offline';
-
-        // Status indicator
-        const statusIndicator = friend.isOnline
-            ? '<div class="status-indicator"><span class="material-symbols-outlined">circle</span>Online</div>'
-            : '<div class="status-indicator offline"><span class="material-symbols-outlined">circle</span>Offline</div>';
-
-        // Badge indicator (if present)
-        let badgeIndicator = '';
-        if (friend.featuredBadge && friend.featuredBadge.name && friend.featuredBadge.name !== 'No badge featured') {
-            badgeIndicator = `<div class="badge-indicator">
-                <span class="material-symbols-outlined">workspace_premium</span>
-                ${friend.featuredBadge.name}
-            </div>`;
-        }
-
-        // World/instance icon
-        const worldIcon = friend.isOnline
-            ? '<span class="material-symbols-outlined">public</span>'
-            : '<span class="material-symbols-outlined">public_off</span>';
-
-        // Create the friend card with the same structure as search results
-        let friendCard = createElement('div', {
-            className: 'friend-list-node',
-            innerHTML: `
-                ${badgeIndicator}
-                <div class="thumbnail-container">
-                    <img src="${friendImgSrc}" data-hash="${friend.imageHash}" class="hidden"/>
-                    ${statusIndicator}
-                </div>
-                <div class="friend-content">
-                    <p class="friend-name">${friend.name}</p>
-                    <p class="${offlineFriendClass} friend-status-type">${instanceTypeStr}</p>
-                    <p class="${offlineFriendClass} friend-status">${worldIcon} ${name}</p>
-                </div>
-            `,
-            onClick: () => ShowDetailsWrapper(DetailsType.User, friend.id),
-        });
-
-        // Set placeholder background image and data-hash directly on the container
-        const thumbnailContainer = friendCard.querySelector('.thumbnail-container');
-        thumbnailContainer.style.backgroundImage = `url('${friendImgSrc}')`;
-        thumbnailContainer.style.backgroundSize = 'cover';
-        thumbnailContainer.dataset.hash = friend.imageHash;
-
-        friendCards.push(friendCard);
-    }
-
-    // Add all friend cards to the DOM at once
-    friendsListNode.append(...friendCards);
-
-    // After getting all friends statuses, populate the Friends Sidebar in order of Categories
-    for (const key in categories) {
-        const category = categories[key];
-        if (category.children.length) {
-            let categoryName = category.querySelector('p').textContent;
-            category.querySelector('p').textContent = `${categoryName} - ${category.children.length - 1}`;
-            friendsBarNode.appendChild(category);
-        }
-    }
-
-    // Update the Total Friend Counter :)
-    document.querySelector('#friend-count').textContent = totalFriends;
+    handleFriendsRefresh(friends, isRefresh);
 });
 
-// Friends text filter functionality
-document.querySelector('.friends-filter').addEventListener('input', (event) => {
-    const filterText = event.target.value.toLowerCase();
-    const activeButtonFilter = document.querySelector('.friends-filter-controls .filter-button.active')?.dataset.filter || 'all';
-    
-    // Use the new applyFriendFilter function
-    applyFriendFilter(activeButtonFilter);
-});
+// Friends text filter is now handled by setupFriendsTextFilter in user_content module
 
 // returns .imageBase64, .imageHash, .imageUrl
 window.API.onImageLoaded((_event, image) => {
