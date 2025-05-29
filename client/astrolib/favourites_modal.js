@@ -58,7 +58,7 @@ function getCategoriesForEntityType(categories, entityType) {
     switch (entityType) {
         case 'user': return categories.friends || [];
         case 'avatar': return categories.avatars || [];
-        case 'prop': return categories.props || [];
+        case 'prop': return categories.spawnables || [];
         case 'world': return categories.worlds || [];
         default: return [];
     }
@@ -87,14 +87,23 @@ export async function showFavouritesModal(entityType, entityId, entityName, curr
         const systemCategories = {
             'user': ['friends_online', 'friends_offline', 'Online Friends', 'Offline Friends'],
             'avatar': ['avtrpublic', 'avtrshared', 'avtrmine', 'avtr_new', 'avtr_recently'],
-            'prop': ['propmine', 'propshared'],
+            'prop': ['proppublic', 'propmine', 'propshared', 'prop_new', 'prop_recently'],
             'world': ['wrldactive', 'wrldnew', 'wrldtrending', 'wrldofficial', 'wrldavatars', 'wrldpublic', 'wrldrecentlyupdated', 'wrldmine']
         };
         
-        const userCategories = entityCategories.filter(category => 
-            !systemCategories[entityType]?.includes(category.id) && 
-            !systemCategories[entityType]?.includes(category.name)
-        );
+        let userCategories;
+        if (entityType === 'prop') {
+            // For props, only show user-created categories (those starting with 'props_')
+            userCategories = entityCategories.filter(category => 
+                category.id.startsWith('props_')
+            );
+        } else {
+            // For other entity types, use the existing logic
+            userCategories = entityCategories.filter(category => 
+                !systemCategories[entityType]?.includes(category.id) && 
+                !systemCategories[entityType]?.includes(category.name)
+            );
+        }
         
         if (userCategories.length === 0) {
             pushToast(`No favourites categories available for ${getEntityTypeName(entityType).toLowerCase()}s. Create some categories first!`, 'info');
