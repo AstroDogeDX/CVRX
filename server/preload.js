@@ -136,6 +136,10 @@ contextBridge.exposeInMainWorld('API', {
 
     // Categories
     getCategories: () => ipcRenderer.invoke('get-categories'),
+    setFriendCategories: (userId, categoryIds) => ipcRenderer.invoke('set-friend-categories', userId, categoryIds),
+    setAvatarCategories: (avatarId, categoryIds) => ipcRenderer.invoke('set-avatar-categories', avatarId, categoryIds),
+    setPropCategories: (propId, categoryIds) => ipcRenderer.invoke('set-prop-categories', propId, categoryIds),
+    setWorldCategories: (worldId, categoryIds) => ipcRenderer.invoke('set-world-categories', worldId, categoryIds),
 
     // Cache
     clearCachedImages: () => ipcRenderer.invoke('clear-cached-images'),

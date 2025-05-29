@@ -13,6 +13,7 @@ import {
     generateInstanceJoinLink,
     openDeepLink 
 } from './deeplinks.js';
+import { showFavouritesModal } from './favourites_modal.js';
 
 // ===========
 // CONSTANTS
@@ -802,15 +803,14 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 },
             });
 
-            // Categories button (only show for friends)
+            // Add to Favourites button (only show for friends)
             let categoriesButton = null;
             if (entityInfo.isFriend) {
                 categoriesButton = createElement('button', {
                     className: 'user-details-action-button',
-                    innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
+                    innerHTML: '<span class="material-symbols-outlined">favorite</span>Add to Favourites',
                     onClick: () => {
-                        // TODO: Implement categories view
-                        pushToast('Categories feature coming soon!', 'info');
+                        showFavouritesModal('user', entityId, entityInfo.name, entityInfo.categories || [], createElement);
                     },
                 });
             }
@@ -1013,7 +1013,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 });
             }
 
-            // Categories button (only show if we have access to the avatar)
+            // Add to Favourites button (only show if we have access to the avatar)
             let categoriesButton = null;
             const hasAvatarAccess = (currentActiveUser && entityInfo.user?.id === currentActiveUser.id) || 
                                    entityInfo.isPublished || 
@@ -1022,10 +1022,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
             if (hasAvatarAccess) {
                 categoriesButton = createElement('button', {
                     className: 'avatar-details-action-button',
-                    innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
+                    innerHTML: '<span class="material-symbols-outlined">favorite</span>Add to Favourites',
                     onClick: () => {
-                        // TODO: Implement categories view
-                        pushToast('Categories feature coming soon!', 'info');
+                        showFavouritesModal('avatar', entityId, entityInfo.name, entityInfo.categories || [], createElement);
                     },
                 });
             }
@@ -1166,7 +1165,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 });
             }
 
-            // Categories button (only show if we have access to the prop)
+            // Add to Favourites button (only show if we have access to the prop)
             let categoriesButton = null;
             const hasPropAccess = (currentActiveUser && entityInfo.author?.id === currentActiveUser.id) || 
                                  entityInfo.isPublished || 
@@ -1175,10 +1174,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
             if (hasPropAccess) {
                 categoriesButton = createElement('button', {
                     className: 'prop-details-action-button',
-                    innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
+                    innerHTML: '<span class="material-symbols-outlined">favorite</span>Add to Favourites',
                     onClick: () => {
-                        // TODO: Implement categories view
-                        pushToast('Categories feature coming soon!', 'info');
+                        showFavouritesModal('prop', entityId, entityInfo.name, entityInfo.categories || [], createElement);
                     },
                 });
             }

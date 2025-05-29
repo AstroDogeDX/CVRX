@@ -5190,3 +5190,58 @@ button {
     font-size: 14px;
     font-weight: 500;
 }
+
+/* FAVOURITES MODAL STYLINGS */
+
+.favourites-modal {
+    min-width: 450px;
+    max-width: 600px;
+}
+
+.favourites-instructions {
+    margin-bottom: 1rem;
+    color: var(--color-text);
+    font-size: 0.9rem;
+}
+
+.favourites-categories-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 0.75rem;
+    background: var(--color-background);
+}
+
+.favourites-category-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.favourites-category-item:last-child {
+    border-bottom: none;
+}
+
+.favourites-category-item input[type="checkbox"] {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.favourites-category-item label {
+    flex: 1;
+    margin: 0;
+    cursor: pointer;
+    color: var(--color-text);
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.favourites-category-item:hover {
+    background: var(--color-background-hover);
+    border-radius: 4px;
+}

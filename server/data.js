@@ -273,6 +273,10 @@ class Core {
 
         // Categories
         ipcMain.handle('get-categories', async (_event) => EscapeHtml(this.categories));
+        ipcMain.handle('set-friend-categories', async (_event, userId, categoryIds) => await CVRHttp.SetFriendCategories(userId, categoryIds));
+        ipcMain.handle('set-avatar-categories', async (_event, avatarId, categoryIds) => await CVRHttp.SetAvatarCategories(avatarId, categoryIds));
+        ipcMain.handle('set-prop-categories', async (_event, propId, categoryIds) => await CVRHttp.SetPropCategories(propId, categoryIds));
+        ipcMain.handle('set-world-categories', async (_event, worldId, categoryIds) => await CVRHttp.SetWorldCategories(worldId, categoryIds));
 
         // Cache
         ipcMain.handle('clear-cached-images', async (_event) => await cache.ClearAllCachedImages());
