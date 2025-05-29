@@ -14,6 +14,7 @@ import {
     openDeepLink 
 } from './deeplinks.js';
 import { showFavouritesModal } from './favourites_modal.js';
+import { refreshContentAfterFavoritesUpdate } from './user_content.js';
 
 // ===========
 // CONSTANTS
@@ -810,7 +811,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                     className: 'user-details-action-button',
                     innerHTML: '<span class="material-symbols-outlined">favorite</span>Add to Favourites',
                     onClick: () => {
-                        showFavouritesModal('user', entityId, entityInfo.name, entityInfo.categories || [], createElement);
+                        showFavouritesModal('user', entityId, entityInfo.name, entityInfo.categories || [], createElement, refreshContentAfterFavoritesUpdate);
                     },
                 });
             }
@@ -1024,7 +1025,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                     className: 'avatar-details-action-button',
                     innerHTML: '<span class="material-symbols-outlined">favorite</span>Add to Favourites',
                     onClick: () => {
-                        showFavouritesModal('avatar', entityId, entityInfo.name, entityInfo.categories || [], createElement);
+                        showFavouritesModal('avatar', entityId, entityInfo.name, entityInfo.categories || [], createElement, refreshContentAfterFavoritesUpdate);
                     },
                 });
             }
@@ -1176,7 +1177,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                     className: 'prop-details-action-button',
                     innerHTML: '<span class="material-symbols-outlined">favorite</span>Add to Favourites',
                     onClick: () => {
-                        showFavouritesModal('prop', entityId, entityInfo.name, entityInfo.categories || [], createElement);
+                        showFavouritesModal('prop', entityId, entityInfo.name, entityInfo.categories || [], createElement, refreshContentAfterFavoritesUpdate);
                     },
                 });
             }
@@ -1313,7 +1314,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 className: 'world-details-action-button',
                 innerHTML: '<span class="material-symbols-outlined">favorite</span>Add to Favourites',
                 onClick: () => {
-                    showFavouritesModal('world', entityId, entityInfo.name, entityInfo.categories || [], createElement);
+                    showFavouritesModal('world', entityId, entityInfo.name, entityInfo.categories || [], createElement, refreshContentAfterFavoritesUpdate);
                 },
             });
 

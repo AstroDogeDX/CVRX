@@ -75,8 +75,9 @@ function getCategoriesForEntityType(categories, entityType) {
  * @param {string} entityName - The name of the entity for display
  * @param {Array} currentCategories - Array of current category IDs the entity belongs to
  * @param {Function} createElement - Helper function to create elements
+ * @param {Function} onSuccess - Optional callback to call after successful category update
  */
-export async function showFavouritesModal(entityType, entityId, entityName, currentCategories = [], createElement) {
+export async function showFavouritesModal(entityType, entityId, entityName, currentCategories = [], createElement, onSuccess = null) {
     try {
         // Get all categories from the API
         const allCategories = await window.API.getCategories();
@@ -166,6 +167,11 @@ export async function showFavouritesModal(entityType, entityId, entityName, curr
                     // Close modal
                     modal.remove();
                     modalShade.style.display = 'none';
+                    
+                    // Call success callback if provided to trigger content refresh
+                    if (onSuccess && typeof onSuccess === 'function') {
+                        onSuccess(entityType, entityId);
+                    }
                     
                 } catch (error) {
                     console.error('Failed to update favourites:', error);

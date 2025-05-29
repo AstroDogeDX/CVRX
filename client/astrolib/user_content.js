@@ -1231,3 +1231,39 @@ export function setupPropsTextFilter() {
         });
     }
 }
+
+// ===========
+// REFRESH UTILITY FOR FAVORITES
+// ===========
+
+/**
+ * Trigger content refresh after favorites are updated
+ * @param {string} entityType - The type of entity (user, avatar, prop, world)
+ * @param {string} entityId - The ID of the entity (not used currently, but may be useful for future)
+ */
+export function refreshContentAfterFavoritesUpdate(entityType, entityId) {
+    console.log(`Triggering content refresh for ${entityType} after favorites update`);
+    
+    switch (entityType) {
+        case 'avatar':
+            // Trigger avatar refresh
+            window.API.refreshGetActiveUserAvatars();
+            break;
+        case 'prop':
+            // Trigger props refresh
+            window.API.refreshGetActiveUserProps();
+            break;
+        case 'world':
+            // Trigger worlds refresh
+            window.API.refreshGetActiveUserWorlds();
+            break;
+        case 'user':
+            // For friends, we would refresh friends, but friends categories 
+            // are usually handled differently and don't need immediate refresh
+            // as they're more about organization than filtering
+            console.log('Friend categories updated - no automatic refresh needed');
+            break;
+        default:
+            console.warn(`Unknown entity type for refresh: ${entityType}`);
+    }
+}
