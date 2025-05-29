@@ -350,7 +350,7 @@ function addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, load
             firstTabId = 'avatars';
             break;
             
-        case DetailsType.Avatar:
+        case DetailsType.Avatar: {
             // Left side tabs for Avatar Details - Description moved to left
             const avatarDescTab = createTabButton('description', 'description', 'Description', classPrefix, true);
             tabs.push(avatarDescTab);
@@ -391,7 +391,7 @@ function addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, load
             
             firstTabId = 'description';
             break;
-            
+        }
         case DetailsType.Prop:
             // Left side tabs for Prop Details - Description moved to left
             const propDescTab = createTabButton('description', 'description', 'Description', classPrefix, true);
@@ -802,15 +802,18 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 },
             });
 
-            // Categories button
-            const categoriesButton = createElement('button', {
-                className: 'user-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
-                onClick: () => {
-                    // TODO: Implement categories view
-                    pushToast('Categories feature coming soon!', 'info');
-                },
-            });
+            // Categories button (only show for friends)
+            let categoriesButton = null;
+            if (entityInfo.isFriend) {
+                categoriesButton = createElement('button', {
+                    className: 'user-details-action-button',
+                    innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
+                    onClick: () => {
+                        // TODO: Implement categories view
+                        pushToast('Categories feature coming soon!', 'info');
+                    },
+                });
+            }
 
             // Block/Unblock button
             const blockButton = createElement('button', {
@@ -879,7 +882,10 @@ async function ShowDetails(entityType, entityId, dependencies) {
             }
 
             // Add buttons to container
-            const buttonsToAdd = [friendActionButton, categoriesButton, blockButton];
+            const buttonsToAdd = [friendActionButton, blockButton];
+            if (categoriesButton) {
+                buttonsToAdd.splice(1, 0, categoriesButton); // Insert after friendActionButton
+            }
             if (viewInGameButton) {
                 buttonsToAdd.unshift(viewInGameButton); // Add at the beginning
             }
@@ -1007,18 +1013,28 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 });
             }
 
-            // Categories button
-            const categoriesButton = createElement('button', {
-                className: 'avatar-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
-                onClick: () => {
-                    // TODO: Implement categories view
-                    pushToast('Categories feature coming soon!', 'info');
-                },
-            });
+            // Categories button (only show if we have access to the avatar)
+            let categoriesButton = null;
+            const hasAvatarAccess = (currentActiveUser && entityInfo.user?.id === currentActiveUser.id) || 
+                                   entityInfo.isPublished || 
+                                   entityInfo.isSharedWithMe;
+            
+            if (hasAvatarAccess) {
+                categoriesButton = createElement('button', {
+                    className: 'avatar-details-action-button',
+                    innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
+                    onClick: () => {
+                        // TODO: Implement categories view
+                        pushToast('Categories feature coming soon!', 'info');
+                    },
+                });
+            }
 
             // Add buttons to container
-            const buttonsToAdd = [categoriesButton];
+            const buttonsToAdd = [];
+            if (categoriesButton) {
+                buttonsToAdd.push(categoriesButton);
+            }
             if (viewInGameButton) {
                 buttonsToAdd.unshift(viewInGameButton); // Add at the beginning
             }
@@ -1150,18 +1166,28 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 });
             }
 
-            // Categories button
-            const categoriesButton = createElement('button', {
-                className: 'prop-details-action-button',
-                innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
-                onClick: () => {
-                    // TODO: Implement categories view
-                    pushToast('Categories feature coming soon!', 'info');
-                },
-            });
+            // Categories button (only show if we have access to the prop)
+            let categoriesButton = null;
+            const hasPropAccess = (currentActiveUser && entityInfo.author?.id === currentActiveUser.id) || 
+                                 entityInfo.isPublished || 
+                                 entityInfo.isSharedWithMe;
+            
+            if (hasPropAccess) {
+                categoriesButton = createElement('button', {
+                    className: 'prop-details-action-button',
+                    innerHTML: '<span class="material-symbols-outlined">category</span>Categories',
+                    onClick: () => {
+                        // TODO: Implement categories view
+                        pushToast('Categories feature coming soon!', 'info');
+                    },
+                });
+            }
 
             // Add buttons to container
-            const buttonsToAdd = [categoriesButton];
+            const buttonsToAdd = [];
+            if (categoriesButton) {
+                buttonsToAdd.push(categoriesButton);
+            }
             if (viewInGameButton) {
                 buttonsToAdd.unshift(viewInGameButton); // Add at the beginning
             }
