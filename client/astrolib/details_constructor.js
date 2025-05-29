@@ -1308,8 +1308,17 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 },
             });
 
+            // Add to Favourites button
+            const favouritesButton = createElement('button', {
+                className: 'world-details-action-button',
+                innerHTML: '<span class="material-symbols-outlined">favorite</span>Add to Favourites',
+                onClick: () => {
+                    showFavouritesModal('world', entityId, entityInfo.name, entityInfo.categories || [], createElement);
+                },
+            });
+
             // Add buttons to container
-            const buttonsToAdd = [setHomeButton];
+            const buttonsToAdd = [setHomeButton, favouritesButton];
             if (viewInGameButton) {
                 buttonsToAdd.unshift(viewInGameButton); // Add at the beginning
             }

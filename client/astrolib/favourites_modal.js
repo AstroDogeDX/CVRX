@@ -4,6 +4,7 @@
 
 import { pushToast } from './toasty_notifications.js';
 import { applyTooltips } from './tooltip.js';
+import { decodeHtmlEntities } from './details_constructor.js';
 
 // ===========
 // HELPER FUNCTIONS
@@ -22,7 +23,7 @@ function createCategoryCheckbox(category, isChecked) {
     
     const label = document.createElement('label');
     label.htmlFor = `category-${category.id}`;
-    label.textContent = category.name;
+    label.textContent = decodeHtmlEntities(category.name);
     
     checkboxContainer.appendChild(checkbox);
     checkboxContainer.appendChild(label);
@@ -83,14 +84,15 @@ export async function showFavouritesModal(entityType, entityId, entityName, curr
         
         // Filter out system categories that shouldn't be shown in the favourites modal
         const systemCategories = {
-            'user': ['friends_online', 'friends_offline'],
+            'user': ['friends_online', 'friends_offline', 'Online Friends', 'Offline Friends'],
             'avatar': ['avtrpublic', 'avtrshared', 'avtrmine', 'avtr_new', 'avtr_recently'],
             'prop': ['propmine', 'propshared'],
             'world': ['wrldactive', 'wrldnew', 'wrldtrending', 'wrldofficial', 'wrldavatars', 'wrldpublic', 'wrldrecentlyupdated', 'wrldmine']
         };
         
         const userCategories = entityCategories.filter(category => 
-            !systemCategories[entityType]?.includes(category.id)
+            !systemCategories[entityType]?.includes(category.id) && 
+            !systemCategories[entityType]?.includes(category.name)
         );
         
         if (userCategories.length === 0) {
