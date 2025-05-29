@@ -488,7 +488,7 @@ function handleAvatarFilterClick(filterType, clickedButton) {
     // Add active class to clicked button
     clickedButton.classList.add('active');
     
-    // Apply the filter
+    // Apply the filter to existing data
     applyAvatarFilter(filterType);
 }
 
@@ -510,13 +510,20 @@ function applyAvatarFilter(filterType) {
         // Find the avatar in our avatars data by name
         const avatarData = Object.values(avatarsData || {}).find(avatar => avatar.name === avatarNameText);
         
-        if (avatarData && avatarData.categories && Array.isArray(avatarData.categories)) {
-            matchesButtonFilter = avatarData.categories.includes(filterType);
-            // Debug logging
-            console.log(`Avatar: ${avatarNameText}, Categories: ${JSON.stringify(avatarData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
+        if (avatarData) {
+            console.log(`Avatar: ${avatarNameText}, Categories: ${JSON.stringify(avatarData.categories)}, Filter: ${filterType}`);
+            
+            if (avatarData.categories && Array.isArray(avatarData.categories)) {
+                matchesButtonFilter = avatarData.categories.includes(filterType);
+            } else {
+                // If no categories array exists, show for 'avtrmine' filter (assume it's user's avatar)
+                matchesButtonFilter = filterType === 'avtrmine';
+                console.log(`Avatar ${avatarNameText} has no categories, treating as ${filterType === 'avtrmine' ? 'owned' : 'not owned'}`);
+            }
         } else {
-            // If no categories or avatar not found, don't show for category filters
-            matchesButtonFilter = false;
+            // If avatar not found in data, show for 'avtrmine' filter as fallback
+            matchesButtonFilter = filterType === 'avtrmine';
+            console.log(`Avatar ${avatarNameText} not found in avatarsData, treating as ${filterType === 'avtrmine' ? 'owned' : 'not owned'}`);
         }
         
         // Show card only if it matches both text and button filters
@@ -543,6 +550,8 @@ export function handleAvatarsRefresh(ourAvatars) {
     ourAvatars.forEach(avatar => {
         avatarsData[avatar.id] = avatar;
     });
+
+    console.log(`Loaded ${ourAvatars.length} avatars into avatarsData:`, avatarsData);
 
     const avatarDisplayNode = document.querySelector('.avatars-wrapper');
     let docFragment = document.createDocumentFragment();
@@ -578,6 +587,23 @@ export function handleAvatarsRefresh(ourAvatars) {
     }
 
     avatarDisplayNode.replaceChildren(docFragment);
+    
+    console.log(`Created ${ourAvatars.length} avatar cards in DOM`);
+    
+    // Apply the current active filter after loading avatars, but only if filter buttons exist
+    const activeFilterButton = document.querySelector('.avatars-filter-controls .filter-button.active');
+    if (activeFilterButton) {
+        const activeFilter = activeFilterButton.dataset.filter;
+        console.log(`Applying active filter: ${activeFilter}`);
+        applyAvatarFilter(activeFilter);
+    } else {
+        console.log('No active filter button found, showing all avatars');
+        // If no filter buttons exist yet, show all avatars
+        document.querySelectorAll('.avatars-wrapper--avatars-node').forEach(card => {
+            card.style.display = '';
+            card.classList.remove('filtered-item');
+        });
+    }
 }
 
 // Function to initialize avatars page when navigating to it
@@ -716,21 +742,8 @@ function handleWorldFilterClick(filterType, clickedButton) {
     
     console.log(`World filter clicked: ${filterType}`);
     
-    // For user-defined categories (starting with 'worlds_'), fetch worlds by category
-    if (filterType.startsWith('worlds_')) {
-        console.log(`Loading worlds for user-defined category: ${filterType}`);
-        // Clear current worlds data for this category to avoid mixing data
-        worldsData = {};
-        window.API.refreshWorldsCategory(filterType);
-    } else if (filterType === 'wrldmine') {
-        // For "My Worlds", use the existing method
-        console.log('Loading My Worlds');
-        window.API.refreshGetActiveUserWorlds();
-    } else {
-        // For other categories, apply the filter to existing data
-        console.log(`Applying filter to existing data: ${filterType}`);
-        applyWorldFilter(filterType);
-    }
+    // Apply the filter to existing data
+    applyWorldFilter(filterType);
 }
 
 // Function to apply world filtering based on selected filter
@@ -973,27 +986,11 @@ export function setupWorldsTextFilter() {
     if (worldsFilter) {
         worldsFilter.addEventListener('input', (event) => {
             const activeButtonFilter = document.querySelector('.worlds-filter-controls .filter-button.active')?.dataset.filter || 'wrldmine';
-            const filterText = event.target.value.toLowerCase();
             
-            console.log(`World text filter changed: "${filterText}", active category: ${activeButtonFilter}`);
+            console.log(`World text filter changed, active category: ${activeButtonFilter}`);
             
-            // For user-defined categories, we just apply text filtering to the loaded worlds
-            if (activeButtonFilter.startsWith('worlds_')) {
-                // Apply text filter to currently loaded worlds
-                document.querySelectorAll('.worlds-wrapper--worlds-node').forEach(card => {
-                    const worldName = card.querySelector('.card-name').textContent.toLowerCase();
-                    if (filterText === '' || worldName.includes(filterText)) {
-                        card.style.display = '';
-                        card.classList.remove('filtered-item');
-                    } else {
-                        card.style.display = 'none';
-                        card.classList.add('filtered-item');
-                    }
-                });
-            } else {
-                // Use the existing applyWorldFilter function for other categories
-                applyWorldFilter(activeButtonFilter);
-            }
+            // Use the applyWorldFilter function for all categories
+            applyWorldFilter(activeButtonFilter);
         });
     }
 }

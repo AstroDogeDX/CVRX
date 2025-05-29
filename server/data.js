@@ -25,11 +25,11 @@ const PublicContentType = Object.freeze({
     PROPS: 'props',
 });
 
-// const AvatarCategories = Object.freeze({
-//     Public: 'avtrpublic',
-//     Shared: 'avtrshared',
-//     Mine: 'avtrmine',
-// });
+const AvatarCategories = Object.freeze({
+    Public: 'avtrpublic',
+    Shared: 'avtrshared',
+    Mine: 'avtrmine',
+});
 
 // const PropCategories = Object.freeze({
 //     Mine: 'propmine',
