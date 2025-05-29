@@ -474,14 +474,60 @@ class Core {
     }
 
     async GetOurUserWorlds() {
-        const ourWorlds = await this.UpdateWorldsByCategory(WorldCategories.Mine);
-        // const ourWorlds = [{
-        //     playerCount: 9,
-        //     id: '406acf24-99b1-4119-8883-4fcda4250743',
-        //     name: 'The Purple Fox',
-        //     imageUrl: 'https://files.abidata.io/user_content/worlds/406acf24-99b1-4119-8883-4fcda4250743/406acf24-99b1-4119-8883-4fcda4250743.png',
-        // }];
-        this.SendToRenderer('active-user-worlds-load', ourWorlds);
+        // Load worlds from all relevant user categories (similar to how avatars and props work)
+        let allWorlds = [];
+        const allWorldsMap = {};
+        
+        try {
+            // Get categories to know which ones to load
+            await this.UpdateCategories();
+            
+            // Get all relevant world categories (Mine + user-created categories)
+            const relevantCategories = ['wrldmine']; // Always include Mine
+            
+            if (this.categories && this.categories.worlds) {
+                // Add user-created world categories (those starting with 'worlds_')
+                const userCategories = this.categories.worlds
+                    .filter(category => category.id.startsWith('worlds_'))
+                    .map(category => category.id);
+                relevantCategories.push(...userCategories);
+            }
+            
+            console.log(`Loading worlds from categories: ${relevantCategories.join(', ')}`);
+            
+            // Load worlds from each relevant category
+            for (const categoryId of relevantCategories) {
+                try {
+                    const categoryWorlds = await this.UpdateWorldsByCategory(categoryId);
+                    
+                    // Add worlds to the combined list, avoiding duplicates and adding category info
+                    for (const world of categoryWorlds) {
+                        if (!allWorldsMap[world.id]) {
+                            allWorldsMap[world.id] = { ...world, categories: [] };
+                        }
+                        // Add this category to the world's categories array
+                        if (!allWorldsMap[world.id].categories.includes(categoryId)) {
+                            allWorldsMap[world.id].categories.push(categoryId);
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Failed to load worlds from category ${categoryId}:`, error);
+                }
+            }
+            
+            // Convert to array
+            allWorlds = Object.values(allWorldsMap);
+            console.log(`Loaded ${allWorlds.length} total unique worlds from ${relevantCategories.length} categories`);
+            
+        } catch (error) {
+            console.error('Failed to load all user worlds, falling back to Mine category only:', error);
+            // Fallback to just Mine category if the above fails
+            allWorlds = await this.UpdateWorldsByCategory(WorldCategories.Mine);
+            // Ensure categories array exists for fallback
+            allWorlds = allWorlds.map(world => ({ ...world, categories: ['wrldmine'] }));
+        }
+        
+        this.SendToRenderer('active-user-worlds-load', allWorlds);
     }
 
     async UpdateRecentActivity(updateType, updateInfo) {
