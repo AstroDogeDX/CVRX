@@ -407,3 +407,217 @@ export function setupFriendsTextFilter() {
         });
     }
 }
+
+// ================
+// AVATARS SECTION
+// ================
+
+// Store avatar categories for filtering
+let avatarCategories = [];
+
+// Store avatars data for category filtering
+let avatarsData = {};
+
+// Function to load avatar categories and update filter buttons
+export async function loadAvatarCategories() {
+    try {
+        const categories = await window.API.getCategories();
+        if (categories && categories.avatars) {
+            // Filter out the categories we want to ignore
+            avatarCategories = categories.avatars.filter(category => 
+                !['avtrpublic', 'avtr_new', 'avtr_recently'].includes(category.id)
+            );
+            updateAvatarFilterButtons();
+        }
+    } catch (error) {
+        console.error('Failed to load avatar categories:', error);
+        // Fallback to default buttons if categories fail to load
+        avatarCategories = [];
+        updateAvatarFilterButtons();
+    }
+}
+
+// Function to update avatar filter buttons based on categories
+function updateAvatarFilterButtons() {
+    const filterControlsContainer = document.querySelector('.avatars-filter-controls');
+    if (!filterControlsContainer) return;
+
+    // Clear existing buttons
+    filterControlsContainer.innerHTML = '';
+
+    // Add "My Avatars" button (using avtrmine category)
+    const myAvatarsButton = createElement('button', {
+        className: 'filter-button active',
+        innerHTML: '<span class="material-symbols-outlined">emoji_people</span>My Avatars',
+        onClick: () => handleAvatarFilterClick('avtrmine', myAvatarsButton)
+    });
+    myAvatarsButton.dataset.filter = 'avtrmine';
+    filterControlsContainer.appendChild(myAvatarsButton);
+
+    // Add "Shared With Me" button (using avtrshared category)
+    const sharedButton = createElement('button', {
+        className: 'filter-button',
+        innerHTML: '<span class="material-symbols-outlined">share</span>Shared With Me',
+        onClick: () => handleAvatarFilterClick('avtrshared', sharedButton)
+    });
+    sharedButton.dataset.filter = 'avtrshared';
+    filterControlsContainer.appendChild(sharedButton);
+
+    // Add user-created category buttons (those starting with 'avatars_')
+    avatarCategories.forEach(category => {
+        // Only add user-created categories (those starting with 'avatars_')
+        if (category.id.startsWith('avatars_')) {
+            const categoryButton = createElement('button', {
+                className: 'filter-button',
+                innerHTML: `<span class="material-symbols-outlined">label</span>${category.name}`,
+                onClick: () => handleAvatarFilterClick(category.id, categoryButton)
+            });
+            categoryButton.dataset.filter = category.id;
+            filterControlsContainer.appendChild(categoryButton);
+        }
+    });
+}
+
+// Function to handle avatar filter button clicks
+function handleAvatarFilterClick(filterType, clickedButton) {
+    // Remove active class from all filter buttons
+    document.querySelectorAll('.avatars-filter-controls .filter-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active class to clicked button
+    clickedButton.classList.add('active');
+    
+    // Apply the filter
+    applyAvatarFilter(filterType);
+}
+
+// Function to apply avatar filtering based on selected filter
+function applyAvatarFilter(filterType) {
+    const filterText = document.querySelector('#avatars-filter').value.toLowerCase();
+    const avatarCards = document.querySelectorAll('.avatars-wrapper--avatars-node');
+    
+    avatarCards.forEach(card => {
+        const avatarName = card.querySelector('.card-name').textContent.toLowerCase();
+        const matchesText = filterText === '' || avatarName.includes(filterText);
+        
+        let matchesButtonFilter = false;
+        
+        // Find the avatar in our avatars data by name
+        const avatarNameElement = card.querySelector('.card-name');
+        const avatarNameText = avatarNameElement.textContent;
+        
+        // Find the avatar in our avatars data by name
+        const avatarData = Object.values(avatarsData || {}).find(avatar => avatar.name === avatarNameText);
+        
+        if (avatarData && avatarData.categories && Array.isArray(avatarData.categories)) {
+            matchesButtonFilter = avatarData.categories.includes(filterType);
+            // Debug logging
+            console.log(`Avatar: ${avatarNameText}, Categories: ${JSON.stringify(avatarData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
+        } else {
+            // If no categories or avatar not found, don't show for category filters
+            matchesButtonFilter = false;
+        }
+        
+        // Show card only if it matches both text and button filters
+        if (matchesText && matchesButtonFilter) {
+            card.style.display = '';
+            card.classList.remove('filtered-item');
+        } else {
+            card.style.display = 'none';
+            card.classList.add('filtered-item');
+        }
+    });
+}
+
+// Export the filter function so it can be called from event listeners
+export { applyAvatarFilter };
+
+// Function to handle active user avatars refresh
+export function handleAvatarsRefresh(ourAvatars) {
+    console.log('[On] GetActiveUserAvatars');
+    console.log(ourAvatars);
+
+    // Store avatars data globally for category filtering
+    avatarsData = {};
+    ourAvatars.forEach(avatar => {
+        avatarsData[avatar.id] = avatar;
+    });
+
+    const avatarDisplayNode = document.querySelector('.avatars-wrapper');
+    let docFragment = document.createDocumentFragment();
+
+    for (const ourAvatar of ourAvatars) {
+        // Use cached image or placeholder
+        const imgSrc = friendImageCache[ourAvatar.imageHash] || 'img/ui/placeholder.png';
+
+        // Create card similar to search and friends layout
+        const avatarNode = createElement('div', {
+            className: 'avatars-wrapper--avatars-node card-node',
+            innerHTML: `
+                <div class="thumbnail-container">
+                    <img src="${imgSrc}" data-hash="${ourAvatar.imageHash}" class="hidden"/>
+                </div>
+                <div class="card-content">
+                    <p class="card-name">${ourAvatar.name}</p>
+                    <div class="card-detail">
+                        <span class="material-symbols-outlined">emoji_people</span>Avatar
+                    </div>
+                </div>
+            `,
+            onClick: () => ShowDetailsWrapper(DetailsType.Avatar, ourAvatar.id),
+        });
+
+        // Set placeholder background image and data-hash directly on the container
+        const thumbnailContainer = avatarNode.querySelector('.thumbnail-container');
+        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
+        thumbnailContainer.style.backgroundSize = 'cover';
+        thumbnailContainer.dataset.hash = ourAvatar.imageHash;
+
+        docFragment.appendChild(avatarNode);
+    }
+
+    avatarDisplayNode.replaceChildren(docFragment);
+}
+
+// Function to initialize avatars page when navigating to it
+export function initializeAvatarsPage() {
+    const filterInput = document.querySelector('#avatars-filter');
+    if (filterInput) {
+        filterInput.value = '';
+    }
+    
+    // Remove filtered class from all avatars
+    document.querySelectorAll('.avatars-wrapper--avatars-node').forEach((e) => {
+        e.classList.remove('filtered-item');
+        e.style.display = '';
+    });
+    
+    // Load avatar categories and reset filter controls
+    loadAvatarCategories().then(() => {
+        // Reset to "My Avatars" filter after categories are loaded
+        const myAvatarsButton = document.querySelector('.avatars-filter-controls .filter-button[data-filter="avtrmine"]');
+        if (myAvatarsButton) {
+            handleAvatarFilterClick('avtrmine', myAvatarsButton);
+        }
+    });
+    
+    // Make sure all avatar cards are visible initially
+    document.querySelectorAll('.avatars-wrapper--avatars-node').forEach(card => {
+        card.style.display = '';
+        card.classList.remove('filtered-item');
+    });
+}
+
+// Function to setup avatars text filter event listener
+export function setupAvatarsTextFilter() {
+    const avatarsFilter = document.querySelector('#avatars-filter');
+    if (avatarsFilter) {
+        avatarsFilter.addEventListener('input', (event) => {
+            const activeButtonFilter = document.querySelector('.avatars-filter-controls .filter-button.active')?.dataset.filter || 'avtrmine';
+            
+            // Use the applyAvatarFilter function
+            applyAvatarFilter(activeButtonFilter);
+        });
+    }
+}

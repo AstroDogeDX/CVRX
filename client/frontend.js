@@ -1,4 +1,4 @@
-// =======
+﻿// =======
 // MODULES
 // =======
 
@@ -34,7 +34,12 @@ import {
     initializeFriendsPage,
     setupFriendsTextFilter,
     applyFriendFilter,
-    getFriendStatus
+    getFriendStatus,
+    loadAvatarCategories,
+    handleAvatarsRefresh,
+    initializeAvatarsPage,
+    setupAvatarsTextFilter,
+    applyAvatarFilter
 } from './astrolib/user_content.js';
 
 // ===========
@@ -47,12 +52,6 @@ let currentActiveUser = null;
 // Store active instances for filtering in world details
 let activeInstances = [];
 let currentWorldDetailsId = null; // Track the currently open world details
-
-// Store avatar categories for filtering
-let avatarCategories = [];
-
-// Store avatars data for category filtering
-let avatarsData = {};
 
 // Store prop categories for filtering
 let propCategories = [];
@@ -171,19 +170,8 @@ function swapNavPages(page) {
             break;
         case 'avatars':
             loadAndFilterPageContent('avatars', '#display-avatars', window.API.refreshGetActiveUserAvatars, '#avatars-filter');
-            // Load avatar categories and reset filter controls
-            loadAvatarCategories().then(() => {
-                // Reset to "My Avatars" filter after categories are loaded
-                const myAvatarsButton = document.querySelector('.avatars-filter-controls .filter-button[data-filter="avtrmine"]');
-                if (myAvatarsButton) {
-                    handleAvatarFilterClick('avtrmine', myAvatarsButton);
-                }
-            });
-            // Make sure all avatar cards are visible initially
-            document.querySelectorAll('.avatars-wrapper--avatars-node').forEach(card => {
-                card.style.display = '';
-                card.classList.remove('filtered-item');
-            });
+            // Initialize avatars page
+            initializeAvatarsPage();
             break;
         case 'worlds':
             loadAndFilterPageContent('worlds', '#display-worlds', window.API.refreshGetActiveUserWorlds, '#worlds-filter');
@@ -386,6 +374,8 @@ window.API.onHomePage((_event) => {
     loadWorldCategories();
     // Setup friends text filter
     setupFriendsTextFilter();
+    // Setup avatars text filter
+    setupAvatarsTextFilter();
 });
 
 // Handle automatic update notifications from backend
@@ -417,7 +407,7 @@ window.API.onLoginPage((_event, availableCredentials) => {
         });
         const deleteCredentialButton = createElement('button', {
             className: 'login-credential-node--delete',
-            innerHTML: '×',
+            innerHTML: 'Ã—',
             onClick: (event) => {
                 event.stopPropagation();
                 deleteCredentialButton.disabled = true;
@@ -441,6 +431,8 @@ window.API.onHomePage((_event) => {
     loadWorldCategories();
     // Setup friends text filter
     setupFriendsTextFilter();
+    // Setup avatars text filter
+    setupAvatarsTextFilter();
 });
 
 
@@ -1844,53 +1836,7 @@ window.API.onWorldsByCategoryRefresh((_event, categoryId, worlds) => {
 
 // Janky active user avatars
 window.API.onGetActiveUserAvatars((_event, ourAvatars) => {
-    log('[On] GetActiveUserAvatars');
-    log(ourAvatars);
-
-    // Store avatars data globally for category filtering
-    avatarsData = {};
-    ourAvatars.forEach(avatar => {
-        avatarsData[avatar.id] = avatar;
-    });
-
-    const avatarDisplayNode = document.querySelector('.avatars-wrapper');
-    let docFragment = document.createDocumentFragment();
-
-    // Event listener setup moved to initialization to prevent stacking
-    // const reloadAvatarsButton = document.querySelector('#avatars-refresh');
-    // reloadAvatarsButton.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
-
-    for (const ourAvatar of ourAvatars) {
-        // Use cached image or placeholder
-        const imgSrc = friendImageCache[ourAvatar.imageHash] || 'img/ui/placeholder.png';
-
-        // Create card similar to search and friends layout
-        const avatarNode = createElement('div', {
-            className: 'avatars-wrapper--avatars-node card-node',
-            innerHTML: `
-                <div class="thumbnail-container">
-                    <img src="${imgSrc}" data-hash="${ourAvatar.imageHash}" class="hidden"/>
-                </div>
-                <div class="card-content">
-                    <p class="card-name">${ourAvatar.name}</p>
-                    <div class="card-detail">
-                        <span class="material-symbols-outlined">emoji_people</span>Avatar
-                    </div>
-                </div>
-            `,
-            onClick: () => ShowDetailsWrapper(DetailsType.Avatar, ourAvatar.id),
-        });
-
-        // Set placeholder background image and data-hash directly on the container
-        const thumbnailContainer = avatarNode.querySelector('.thumbnail-container');
-        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
-        thumbnailContainer.style.backgroundSize = 'cover';
-        thumbnailContainer.dataset.hash = ourAvatar.imageHash;
-
-        docFragment.appendChild(avatarNode);
-    }
-
-    avatarDisplayNode.replaceChildren(docFragment);
+    handleAvatarsRefresh(ourAvatars);
 });
 
 // Janky active user props
@@ -1992,7 +1938,7 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
                     innerHTML:
                         `<img ${imgOnlineClass} src="${friendImgSrc}" data-hash="${recentActivity.current.imageHash}"/>
                         <p class="friend-name-history">${recentActivity.current.name} <small>(${dateStr})</small></p>
-                        <p class="friend-status-history"><span class="old-history">${previousInstanceInfo}</span> ➡ ${currentInstanceInfo}</p>`,
+                        <p class="friend-status-history"><span class="old-history">${previousInstanceInfo}</span> âž¡ ${currentInstanceInfo}</p>`,
                     onClick: () => ShowDetailsWrapper(DetailsType.User, recentActivity.current.id),
                 });
 
@@ -2264,14 +2210,7 @@ document.querySelector('#worlds-refresh')?.addEventListener('click', () => windo
 document.querySelector('#avatars-refresh')?.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
 document.querySelector('#props-refresh')?.addEventListener('click', () => window.API.refreshGetActiveUserProps());
 
-// Set up filter input event listeners for avatars, worlds, and props
-document.querySelector('#avatars-filter')?.addEventListener('input', (event) => {
-    const activeButtonFilter = document.querySelector('.avatars-filter-controls .filter-button.active')?.dataset.filter || 'avtrmine';
-    
-    // Use the new applyAvatarFilter function
-    applyAvatarFilter(activeButtonFilter);
-});
-
+// Set up filter input event listeners for worlds and props
 document.querySelector('#worlds-filter')?.addEventListener('input', (event) => {
     const activeButtonFilter = document.querySelector('.worlds-filter-controls .filter-button.active')?.dataset.filter || 'wrldmine';
     const filterText = event.target.value.toLowerCase();
@@ -2304,119 +2243,7 @@ document.querySelector('#props-filter')?.addEventListener('input', (event) => {
     applyPropFilter(activeButtonFilter);
 });
 
-// Function to load avatar categories and update filter buttons
-async function loadAvatarCategories() {
-    try {
-        const categories = await window.API.getCategories();
-        if (categories && categories.avatars) {
-            // Filter out the categories we want to ignore
-            avatarCategories = categories.avatars.filter(category => 
-                !['avtrpublic', 'avtr_new', 'avtr_recently'].includes(category.id)
-            );
-            updateAvatarFilterButtons();
-        }
-    } catch (error) {
-        console.error('Failed to load avatar categories:', error);
-        // Fallback to default buttons if categories fail to load
-        avatarCategories = [];
-        updateAvatarFilterButtons();
-    }
-}
-
-// Function to update avatar filter buttons based on categories
-function updateAvatarFilterButtons() {
-    const filterControlsContainer = document.querySelector('.avatars-filter-controls');
-    if (!filterControlsContainer) return;
-
-    // Clear existing buttons
-    filterControlsContainer.innerHTML = '';
-
-    // Add "My Avatars" button (using avtrmine category)
-    const myAvatarsButton = createElement('button', {
-        className: 'filter-button active',
-        innerHTML: '<span class="material-symbols-outlined">emoji_people</span>My Avatars',
-        onClick: () => handleAvatarFilterClick('avtrmine', myAvatarsButton)
-    });
-    myAvatarsButton.dataset.filter = 'avtrmine';
-    filterControlsContainer.appendChild(myAvatarsButton);
-
-    // Add "Shared With Me" button (using avtrshared category)
-    const sharedButton = createElement('button', {
-        className: 'filter-button',
-        innerHTML: '<span class="material-symbols-outlined">share</span>Shared With Me',
-        onClick: () => handleAvatarFilterClick('avtrshared', sharedButton)
-    });
-    sharedButton.dataset.filter = 'avtrshared';
-    filterControlsContainer.appendChild(sharedButton);
-
-    // Add user-created category buttons (those starting with 'avatars_')
-    avatarCategories.forEach(category => {
-        // Only add user-created categories (those starting with 'avatars_')
-        if (category.id.startsWith('avatars_')) {
-            const categoryButton = createElement('button', {
-                className: 'filter-button',
-                innerHTML: `<span class="material-symbols-outlined">label</span>${category.name}`,
-                onClick: () => handleAvatarFilterClick(category.id, categoryButton)
-            });
-            categoryButton.dataset.filter = category.id;
-            filterControlsContainer.appendChild(categoryButton);
-        }
-    });
-}
-
-// Function to handle avatar filter button clicks
-function handleAvatarFilterClick(filterType, clickedButton) {
-    // Remove active class from all filter buttons
-    document.querySelectorAll('.avatars-filter-controls .filter-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Add active class to clicked button
-    clickedButton.classList.add('active');
-    
-    // Apply the filter
-    applyAvatarFilter(filterType);
-}
-
-// Function to apply avatar filtering based on selected filter
-function applyAvatarFilter(filterType) {
-    const filterText = document.querySelector('#avatars-filter').value.toLowerCase();
-    const avatarCards = document.querySelectorAll('.avatars-wrapper--avatars-node');
-    
-    avatarCards.forEach(card => {
-        const avatarName = card.querySelector('.card-name').textContent.toLowerCase();
-        const matchesText = filterText === '' || avatarName.includes(filterText);
-        
-        let matchesButtonFilter = false;
-        
-        // Find the avatar in our avatars data by name
-        const avatarNameElement = card.querySelector('.card-name');
-        const avatarNameText = avatarNameElement.textContent;
-        
-        // Find the avatar in our avatars data by name
-        const avatarData = Object.values(avatarsData || {}).find(avatar => avatar.name === avatarNameText);
-        
-        if (avatarData && avatarData.categories && Array.isArray(avatarData.categories)) {
-            matchesButtonFilter = avatarData.categories.includes(filterType);
-            // Debug logging
-            console.log(`Avatar: ${avatarNameText}, Categories: ${JSON.stringify(avatarData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
-        } else {
-            // If no categories or avatar not found, don't show for category filters
-            matchesButtonFilter = false;
-        }
-        
-        // Show card only if it matches both text and button filters
-        if (matchesText && matchesButtonFilter) {
-            card.style.display = '';
-            card.classList.remove('filtered-item');
-        } else {
-            card.style.display = 'none';
-            card.classList.add('filtered-item');
-        }
-    });
-}
-
-// Function to load prop categories and update filter buttons
+// Avatar functions moved to user_content.js module
 async function loadPropCategories() {
     try {
         const categories = await window.API.getCategories();
