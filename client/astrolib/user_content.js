@@ -754,48 +754,28 @@ function handleWorldFilterClick(filterType, clickedButton) {
     
     console.log(`World filter clicked: ${filterType}`);
     
-    // Apply the filter to existing data
-    applyWorldFilter(filterType);
+    // For worlds, we need to fetch data from API by category instead of filtering existing data
+    // because worlds are loaded per category, not all at once like avatars and props
+    window.API.refreshWorldsCategory(filterType);
 }
 
 // Function to apply world filtering based on selected filter
+// NOTE: This function is now primarily for debugging since worlds are loaded per category via API
 function applyWorldFilter(filterType) {
+    console.log(`applyWorldFilter called with filterType: ${filterType} (for debugging only)`);
+    
     const filterText = document.querySelector('#worlds-filter').value.toLowerCase();
     const worldCards = document.querySelectorAll('.worlds-wrapper--worlds-node');
     
-    console.log(`Applying world filter: ${filterType}, found ${worldCards.length} world cards`);
+    console.log(`Found ${worldCards.length} world cards to potentially filter`);
     
+    // For worlds, category filtering is handled by API, so this is mainly for text filtering
     worldCards.forEach(card => {
         const worldName = card.querySelector('.card-name').textContent.toLowerCase();
         const matchesText = filterText === '' || worldName.includes(filterText);
         
-        let matchesButtonFilter = false;
-        
-        // Find the world in our worlds data by name
-        const worldNameElement = card.querySelector('.card-name');
-        const worldNameText = worldNameElement.textContent;
-        
-        // Find the world in our worlds data by name
-        const worldData = Object.values(worldsData || {}).find(world => world.name === worldNameText);
-        
-        if (worldData) {
-            console.log(`World: ${worldNameText}, Categories: ${JSON.stringify(worldData.categories)}, Filter: ${filterType}`);
-            
-            if (worldData.categories && Array.isArray(worldData.categories)) {
-                matchesButtonFilter = worldData.categories.includes(filterType);
-            } else {
-                // If no categories array exists, show for 'wrldmine' filter (assume it's user's world)
-                matchesButtonFilter = filterType === 'wrldmine';
-                console.log(`World ${worldNameText} has no categories, treating as ${filterType === 'wrldmine' ? 'owned' : 'not owned'}`);
-            }
-        } else {
-            // If world not found in data, show for 'wrldmine' filter as fallback
-            matchesButtonFilter = filterType === 'wrldmine';
-            console.log(`World ${worldNameText} not found in worldsData, treating as ${filterType === 'wrldmine' ? 'owned' : 'not owned'}`);
-        }
-        
-        // Show card only if it matches both text and button filters
-        if (matchesText && matchesButtonFilter) {
+        // Show card if it matches text filter (category filtering is handled by API)
+        if (matchesText) {
             card.style.display = '';
             card.classList.remove('filtered-item');
         } else {
@@ -941,15 +921,10 @@ export function handleWorldsByCategoryRefresh(categoryId, worlds) {
     
     console.log(`Created ${worlds.length} world cards for category ${categoryId}`);
     
-    // Show all worlds for this category (no additional filtering needed since we fetched by category)
-    document.querySelectorAll('.worlds-wrapper--worlds-node').forEach(card => {
-        card.style.display = '';
-        card.classList.remove('filtered-item');
-    });
-    
     // Apply text filter if there's any text in the filter input
     const filterText = document.querySelector('#worlds-filter').value.toLowerCase();
     if (filterText) {
+        console.log(`Applying text filter "${filterText}" to ${worlds.length} worlds`);
         document.querySelectorAll('.worlds-wrapper--worlds-node').forEach(card => {
             const worldName = card.querySelector('.card-name').textContent.toLowerCase();
             if (worldName.includes(filterText)) {
@@ -959,6 +934,12 @@ export function handleWorldsByCategoryRefresh(categoryId, worlds) {
                 card.style.display = 'none';
                 card.classList.add('filtered-item');
             }
+        });
+    } else {
+        // Show all worlds if no text filter
+        document.querySelectorAll('.worlds-wrapper--worlds-node').forEach(card => {
+            card.style.display = '';
+            card.classList.remove('filtered-item');
         });
     }
 }
@@ -970,29 +951,30 @@ export function initializeWorldsPage() {
         filterInput.value = '';
     }
     
-    // Remove filtered class from all worlds
-    document.querySelectorAll('.worlds-wrapper--worlds-node').forEach((e) => {
-        e.classList.remove('filtered-item');
-        e.style.display = '';
-    });
+    // Clear any existing world cards since we'll load fresh data
+    const worldsWrapper = document.querySelector('.worlds-wrapper');
+    if (worldsWrapper) {
+        worldsWrapper.innerHTML = '';
+    }
     
-    // Load world categories and reset filter controls
+    // Load world categories and set up filter controls
     loadWorldCategories().then(() => {
-        // Reset to "My Worlds" filter after categories are loaded
+        // Set the "My Worlds" button as active and trigger the API call
         const myWorldsButton = document.querySelector('.worlds-filter-controls .filter-button[data-filter="wrldmine"]');
         if (myWorldsButton) {
-            handleWorldFilterClick('wrldmine', myWorldsButton);
+            // Remove active from all buttons and set this one as active
+            document.querySelectorAll('.worlds-filter-controls .filter-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            myWorldsButton.classList.add('active');
+            
+            // Trigger the API call to load "My Worlds"
+            console.log('Initializing worlds page with "My Worlds" category');
+            window.API.refreshWorldsCategory('wrldmine');
         }
     });
     
-    // Make sure all world cards are visible initially
-    document.querySelectorAll('.worlds-wrapper--worlds-node').forEach(card => {
-        card.style.display = '';
-        card.classList.remove('filtered-item');
-    });
-    
     // Scroll to top of worlds page
-    const worldsWrapper = document.querySelector('.worlds-wrapper');
     if (worldsWrapper) {
         worldsWrapper.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -1003,12 +985,24 @@ export function setupWorldsTextFilter() {
     const worldsFilter = document.querySelector('#worlds-filter');
     if (worldsFilter) {
         worldsFilter.addEventListener('input', (event) => {
-            const activeButtonFilter = document.querySelector('.worlds-filter-controls .filter-button.active')?.dataset.filter || 'wrldmine';
+            const filterText = event.target.value.toLowerCase();
+            const worldCards = document.querySelectorAll('.worlds-wrapper--worlds-node');
             
-            console.log(`World text filter changed, active category: ${activeButtonFilter}`);
+            console.log(`World text filter changed: "${filterText}"`);
             
-            // Use the applyWorldFilter function for all categories
-            applyWorldFilter(activeButtonFilter);
+            // For worlds, we only apply text filtering since category filtering is handled by API
+            worldCards.forEach(card => {
+                const worldName = card.querySelector('.card-name').textContent.toLowerCase();
+                const matchesText = filterText === '' || worldName.includes(filterText);
+                
+                if (matchesText) {
+                    card.style.display = '';
+                    card.classList.remove('filtered-item');
+                } else {
+                    card.style.display = 'none';
+                    card.classList.add('filtered-item');
+                }
+            });
         });
     }
 }
@@ -1120,8 +1114,11 @@ function applyPropFilter(filterType) {
             // Debug logging
             console.log(`Prop: ${propNameText}, Categories: ${JSON.stringify(propData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
         } else {
-            // If no categories or prop not found, don't show for category filters
+            // If no categories found, only show for fallback cases where we know the prop should match
+            // For "propmine" filter, we shouldn't show props without proper category data
+            // For "propshared" and custom categories, we also shouldn't show props without categories
             matchesButtonFilter = false;
+            console.log(`Prop ${propNameText} has no categories or not found in propsData, hiding for filter: ${filterType}`);
         }
         
         // Show card only if it matches both text and button filters
