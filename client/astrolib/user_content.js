@@ -392,6 +392,12 @@ export function initializeFriendsPage() {
         card.style.display = '';
         card.classList.remove('filtered-item');
     });
+    
+    // Scroll to top of friends page
+    const friendsWrapper = document.querySelector('.friends-wrapper');
+    if (friendsWrapper) {
+        friendsWrapper.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 // Function to setup friends text filter event listener
@@ -633,6 +639,12 @@ export function initializeAvatarsPage() {
         card.style.display = '';
         card.classList.remove('filtered-item');
     });
+    
+    // Scroll to top of avatars page
+    const avatarsWrapper = document.querySelector('.avatars-wrapper');
+    if (avatarsWrapper) {
+        avatarsWrapper.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 // Function to setup avatars text filter event listener
@@ -978,6 +990,12 @@ export function initializeWorldsPage() {
         card.style.display = '';
         card.classList.remove('filtered-item');
     });
+    
+    // Scroll to top of worlds page
+    const worldsWrapper = document.querySelector('.worlds-wrapper');
+    if (worldsWrapper) {
+        worldsWrapper.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 // Function to setup worlds text filter event listener
@@ -1201,6 +1219,12 @@ export function initializePropsPage() {
         card.style.display = '';
         card.classList.remove('filtered-item');
     });
+    
+    // Scroll to top of props page
+    const propsWrapper = document.querySelector('.props-wrapper');
+    if (propsWrapper) {
+        propsWrapper.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 // Function to setup props text filter event listener
