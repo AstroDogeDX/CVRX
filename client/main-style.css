@@ -5294,13 +5294,20 @@ button {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--button-reject-color);
+    color: white;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 16px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 12px 16px;
+    border-radius: var(--border-radii);
+    border: 2px solid var(--button-reject-color);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .share-remove-text .material-symbols-outlined {
-    font-size: 20px;
+    font-size: 22px;
+    color: var(--button-reject-color);
 }
 
 /* Add share card styles */
@@ -5309,6 +5316,9 @@ button {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     border: 2px dashed var(--color-border);
     background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .add-share-card:hover {
@@ -5317,31 +5327,23 @@ button {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.add-share-thumbnail {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(40, 40, 40, 0.5);
-    min-height: var(--thumbnail-size-standard);
-}
-
 .add-share-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     color: var(--color-text-secondary);
     text-align: center;
-    padding: 20px;
+    padding: 40px 20px;
 }
 
 .add-share-content .material-symbols-outlined {
-    font-size: 32px;
+    font-size: 48px;
     opacity: 0.7;
 }
 
 .add-share-text {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
 }
 
@@ -5425,20 +5427,32 @@ button {
 }
 
 .shares-search-result-card .thumbnail-container {
-    height: 60px;
+    height: 140px;
     background-size: cover;
     background-position: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.shares-search-result-card .thumbnail-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .shares-search-result-card .card-content {
-    padding: 8px;
+    padding: 6px;
     flex: 1;
+    min-height: 60px;
 }
 
 .shares-search-result-card .card-name {
     font-size: 12px;
     font-weight: 500;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

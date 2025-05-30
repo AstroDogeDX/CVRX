@@ -140,11 +140,9 @@ function createAddShareCard(onAdd, createElement) {
     const card = createElement('div', {
         className: 'add-share-card card-node',
         innerHTML: `
-            <div class="thumbnail-container add-share-thumbnail">
-                <div class="add-share-content">
-                    <span class="material-symbols-outlined">add</span>
-                    <span class="add-share-text">Add New Share</span>
-                </div>
+            <div class="add-share-content">
+                <span class="material-symbols-outlined">add</span>
+                <span class="add-share-text">Add New Share</span>
             </div>
         `
     });
@@ -353,7 +351,7 @@ function displaySearchResults(userResults, resultsContainer, resultsStatus, onAd
             className: 'shares-search-result-card',
             innerHTML: `
                 <div class="thumbnail-container">
-                    <img src="img/ui/placeholder.png" data-hash="${user.imageHash || ''}" class="hidden"/>
+                    <img src="img/ui/placeholder.png" data-hash="${user.imageHash || ''}" />
                 </div>
                 <div class="card-content">
                     <p class="card-name">${decodeHtmlEntities(user.name)}</p>
@@ -364,11 +362,9 @@ function displaySearchResults(userResults, resultsContainer, resultsStatus, onAd
             `
         });
         
-        // Set up background image
-        const thumbnailContainer = userCard.querySelector('.thumbnail-container');
-        thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
-        thumbnailContainer.style.backgroundSize = 'cover';
-        thumbnailContainer.dataset.hash = user.imageHash || '';
+        // Set up the image hash for loading
+        const img = userCard.querySelector('.thumbnail-container img');
+        img.dataset.hash = user.imageHash || '';
         
         // Add click handler
         userCard.addEventListener('click', async () => {
