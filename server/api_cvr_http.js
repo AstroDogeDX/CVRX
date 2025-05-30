@@ -10,11 +10,11 @@ const APIBase2 = `${APIAddress}/2`;
 let CVRApi;
 let CVRApiV2;
 
-const UnauthenticatedCVRApi = axios.create({ 
+const UnauthenticatedCVRApi = axios.create({
     baseURL: APIBase,
     headers: {
         'Content-Type': 'application/json',
-    }
+    },
 });
 
 async function Get(url, authenticated = true, apiVersion = 1) {
@@ -25,10 +25,12 @@ async function Get(url, authenticated = true, apiVersion = 1) {
     }
     catch (error) {
         log.error(`[GET] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack);
+        if (error?.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        }
         throw new Error(`Error:\n${error.stack}\n${error.toString()}`);
     }
 }
-
 
 async function Post(url, data, authenticated = true, apiVersion = 1) {
     try {
@@ -38,6 +40,24 @@ async function Post(url, data, authenticated = true, apiVersion = 1) {
     }
     catch (error) {
         log.error(`[Post] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack);
+        if (error?.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        }
+        throw new Error(`Error:\n${error.stack}\n${error.toString()}`);
+    }
+}
+
+async function Patch(url, data, authenticated = true, apiVersion = 1) {
+    try {
+        const response = await (authenticated ? (apiVersion === 1 ? CVRApi : CVRApiV2) : UnauthenticatedCVRApi).patch(url, data);
+        log.debug(`[Patch] [${response.status}] [${authenticated ? '' : 'Non-'}Auth] ${url}`, response.data);
+        return response.data;
+    }
+    catch (error) {
+        log.error(`[Patch] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack);
+        if (error?.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        }
         throw new Error(`Error:\n${error.stack}\n${error.toString()}`);
     }
 }
@@ -46,22 +66,26 @@ async function Delete(url, authenticated = true, apiVersion = 1) {
     try {
         const response = await (authenticated ? (apiVersion === 1 ? CVRApi : CVRApiV2) : UnauthenticatedCVRApi).delete(url);
         log.debug(`[DELETE] [${response.status}] [${authenticated ? '' : 'Non-'}Auth] ${url}`, response.data);
-        return response.data.data;
+        return response.data;
     }
     catch (error) {
         log.error(`[DELETE] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack);
+        if (error?.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        }
         throw new Error(`Error:\n${error.stack}\n${error.toString()}`);
     }
 }
 
 // API Constants
 
-const CATEGORY_TYPES = Object.freeze({
+const CategoryType = Object.freeze({
     AVATARS: 'Avatars',
     FRIENDS: 'Friends',
     PROPS: 'Props',
     WORLDS: 'Worlds',
 });
+exports.CategoryType = CategoryType;
 
 const AuthMethod = Object.freeze({
     ACCESS_KEY: 1,
@@ -141,13 +165,14 @@ exports.RemoveAvatarShare = async (avatarId, userId) => await Delete(`/avatars/$
 
 // Categories
 exports.GetCategories = async () => await Get('/categories');
-async function SetAvatarCategories(type, id, categoryIds) {
-    return (await Post('/categories/assign', {Uuid: id, CategoryType: type, Categories: categoryIds})).data;
-}
-exports.SetAvatarCategories = async (avatarId, categoryIds) => await SetAvatarCategories(CATEGORY_TYPES.AVATARS, avatarId, categoryIds);
-exports.SetFriendCategories = async (userId, categoryIds) => await SetAvatarCategories(CATEGORY_TYPES.FRIENDS, userId, categoryIds);
-exports.SetPropCategories = async (propId, categoryIds) => await SetAvatarCategories(CATEGORY_TYPES.PROPS, propId, categoryIds);
-exports.SetWorldCategories = async (worldId, categoryIds) => await SetAvatarCategories(CATEGORY_TYPES.WORLDS, worldId, categoryIds);
+exports.AssignCategory = async (type, contentGuid, categoryIds) => await Post('/categories/assign', {
+    Uuid: contentGuid,
+    CategoryType: type,
+    Categories: categoryIds,
+});
+exports.CreateCategory = async (type, categoryName) => await Post(`/categories/${type}`, {name: categoryName});
+exports.DeleteCategory = async (type, categoryId) => await Delete(`/categories/${type}/${categoryId}`);
+exports.ReorderCategories = async (type, newOrderedCategoryIds) => await Patch(`/categories/${type}`, {order: newOrderedCategoryIds});
 
 // Worlds
 exports.GetWorldById = async (worldId) => await Get(`/worlds/${worldId}`);
