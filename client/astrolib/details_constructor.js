@@ -299,6 +299,54 @@ function updateInstanceCount(worldId, activeInstances) {
     }
 }
 
+// Helper function to add tabs for "My Profile" view (current user viewing their own profile)
+function addMyProfileTabs(entityType, entityInfo, entityId, currentActiveUser, loadTabContentCallback) {
+    const classPrefix = getEntityClassPrefix(entityType);
+    const tabsLeft = document.querySelector('.details-tabs-left');
+    const tabsRight = document.querySelector('.details-tabs-right');
+    const tabContent = document.querySelector('.details-tab-content');
+    
+    let tabs = [];
+    let tabPanes = [];
+    
+    // Only Categories tab for My Profile
+    const categoriesTab = createTabButton('categories', 'folder', 'Categories', classPrefix, true);
+    tabs.push(categoriesTab);
+    tabsLeft.append(categoriesTab);
+    
+    // Create corresponding tab pane
+    const categoriesPane = createTabPane('categories', classPrefix, '<div class="categories-container"><div class="no-items-message">Categories management coming soon!</div></div>', true);
+    tabPanes.push(categoriesPane);
+    
+    // Add tab pane to the content area
+    tabContent.append(...tabPanes);
+    
+    // Set up click handler for the tab
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs and panes
+            document.querySelectorAll(`.${classPrefix}-tab`).forEach(t => t.classList.remove('active'));
+            document.querySelectorAll(`.${classPrefix}-tab-pane`).forEach(p => p.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding pane
+            tab.classList.add('active');
+            const pane = document.getElementById(`${tab.dataset.tab}-tab`);
+            if (pane) {
+                pane.classList.add('active');
+            }
+            
+            // Load content for the selected tab
+            loadTabContentCallback(tab.dataset.tab, entityId);
+        });
+    });
+    
+    // Load initial tab content
+    loadTabContentCallback('categories', entityId);
+    
+    // Apply tooltips to newly created elements
+    applyTooltips();
+}
+
 // Helper function to add tabs for a specific entity type
 function addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, loadTabContentCallback) {
     const classPrefix = getEntityClassPrefix(entityType);
@@ -713,6 +761,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
         case DetailsType.User: {
             entityInfo = await windowAPI.getUserById(entityId);
             
+            // Check if this is the current user viewing their own profile
+            const isMyProfile = currentActiveUser && entityId === currentActiveUser.id;
+            
             // Create the custom user header structure
             const headerElements = createUserDetailsHeader(entityInfo, (type, id) => ShowDetails(type, id, dependencies));
 
@@ -720,193 +771,197 @@ async function ShowDetails(entityType, entityId, dependencies) {
             detailsTabs.style.display = 'flex';
             detailsContent.style.display = 'block';
 
-            // Add friend management button
             // Remove any existing button container (check all possible entity types)
             removeAllButtonContainers(detailsHeader);
 
-            // Create button container
-            const buttonContainer = createElement('div', {
-                className: 'user-details-button-container',
-            });
+            if (!isMyProfile) {
+                // Create button container for other users
+                const buttonContainer = createElement('div', {
+                    className: 'user-details-button-container',
+                });
 
-            // View Details In-Game button (only show if ChilloutVR is running)
-            let viewInGameButton = null;
-            if (isChilloutVRRunning) {
-                viewInGameButton = createElement('button', {
-                    className: 'user-details-action-button',
-                    innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
-                    onClick: async () => {
-                        try {
-                            const deepLink = generateUserDetailsLink(entityId);
-                            const success = await openDeepLink(deepLink);
-                            if (success) {
-                                pushToast('Opening user details in ChilloutVR...', 'confirm');
-                            } else {
-                                pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                // View Details In-Game button (only show if ChilloutVR is running)
+                let viewInGameButton = null;
+                if (isChilloutVRRunning) {
+                    viewInGameButton = createElement('button', {
+                        className: 'user-details-action-button',
+                        innerHTML: '<span class="material-symbols-outlined">sports_esports</span>View Details In-Game',
+                        onClick: async () => {
+                            try {
+                                const deepLink = generateUserDetailsLink(entityId);
+                                const success = await openDeepLink(deepLink);
+                                if (success) {
+                                    pushToast('Opening user details in ChilloutVR...', 'confirm');
+                                } else {
+                                    pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                                }
+                            } catch (error) {
+                                console.error('Failed to open user deep link:', error);
+                                pushToast('Failed to generate user link', 'error');
                             }
-                        } catch (error) {
-                            console.error('Failed to open user deep link:', error);
-                            pushToast('Failed to generate user link', 'error');
-                        }
-                    },
-                });
-            }
+                        },
+                    });
+                }
 
-            // Friend action button
-            const friendActionButton = createElement('button', {
-                className: 'user-details-action-button',
-                innerHTML: `<span class="material-symbols-outlined">${entityInfo.isFriend ? 'person_remove' : 'person_add'}</span>${entityInfo.isFriend ? 'Remove Friend' : 'Send Friend Request'}`,
-                onClick: async () => {
-                    if (entityInfo.isFriend) {
-                        // Show confirmation dialog
-                        const confirmShade = document.querySelector('.prompt-layer');
-                        const confirmPrompt = createElement('div', { className: 'prompt' });
-                        const confirmTitle = createElement('div', { className: 'prompt-title', textContent: 'Remove Friend' });
-                        const confirmText = createElement('div', {
-                            className: 'prompt-text',
-                            textContent: `Are you sure you want to remove ${entityInfo.name} from your friends list?`,
-                        });
-                        const confirmButtons = createElement('div', { className: 'prompt-buttons' });
-
-                        const confirmButton = createElement('button', {
-                            id: 'prompt-confirm',
-                            textContent: 'Remove Friend',
-                            onClick: async () => {
-                                try {
-                                    await windowAPI.unfriend(entityId);
-                                    pushToast(`Removed ${entityInfo.name} from friends`, 'confirm');
-                                    confirmPrompt.remove();
-                                    confirmShade.style.display = 'none';
-                                    // Remove the button since they are no longer friends
-                                    friendActionButton.remove();
-                                } catch (error) {
-                                    pushToast('Failed to remove friend', 'error');
-                                }
-                            },
-                        });
-
-                        const cancelButton = createElement('button', {
-                            id: 'prompt-cancel',
-                            textContent: 'Cancel',
-                            onClick: () => {
-                                confirmPrompt.remove();
-                                confirmShade.style.display = 'none';
-                            },
-                        });
-
-                        confirmButtons.append(confirmButton, cancelButton);
-                        confirmPrompt.append(confirmTitle, confirmText, confirmButtons);
-                        confirmShade.append(confirmPrompt);
-                        confirmShade.style.display = 'flex';
-                    } else {
-                        try {
-                            await windowAPI.sendFriendRequest(entityId);
-                            pushToast(`Friend request sent to ${entityInfo.name}`, 'confirm');
-                            // Update button state to show request sent
-                            friendActionButton.innerHTML = `<span class="material-symbols-outlined">hourglass_empty</span>Request Sent`;
-
-                            friendActionButton.disabled = true;
-                            friendActionButton.classList.add('disabled');
-                        } catch (error) {
-                            pushToast('Failed to send friend request', 'error');
-                        }
-                    }
-                },
-            });
-
-            // Add to Favourites button (only show for friends)
-            let categoriesButton = null;
-            if (entityInfo.isFriend) {
-                categoriesButton = createElement('button', {
+                // Friend action button
+                const friendActionButton = createElement('button', {
                     className: 'user-details-action-button',
-                    innerHTML: '<span class="material-symbols-outlined">favorite</span>Add to Favourites',
-                    onClick: () => {
-                        showFavouritesModal('user', entityId, entityInfo.name, entityInfo.categories || [], createElement, refreshContentAfterFavoritesUpdate);
-                    },
-                });
-            }
+                    innerHTML: `<span class="material-symbols-outlined">${entityInfo.isFriend ? 'person_remove' : 'person_add'}</span>${entityInfo.isFriend ? 'Remove Friend' : 'Send Friend Request'}`,
+                    onClick: async () => {
+                        if (entityInfo.isFriend) {
+                            // Show confirmation dialog
+                            const confirmShade = document.querySelector('.prompt-layer');
+                            const confirmPrompt = createElement('div', { className: 'prompt' });
+                            const confirmTitle = createElement('div', { className: 'prompt-title', textContent: 'Remove Friend' });
+                            const confirmText = createElement('div', {
+                                className: 'prompt-text',
+                                textContent: `Are you sure you want to remove ${entityInfo.name} from your friends list?`,
+                            });
+                            const confirmButtons = createElement('div', { className: 'prompt-buttons' });
 
-            // Block/Unblock button
-            const blockButton = createElement('button', {
-                className: 'user-details-action-button',
-                innerHTML: `<span class="material-symbols-outlined">${entityInfo.isBlocked ? 'block' : 'no_accounts'}</span>${entityInfo.isBlocked ? 'Unblock User' : 'Block User'}`,
-                onClick: async () => {
-                    if (entityInfo.isBlocked) {
-                        try {
-                            await windowAPI.unblockUser(entityId);
-                            pushToast(`Unblocked ${entityInfo.name}`, 'confirm');
-                            blockButton.innerHTML = `<span class="material-symbols-outlined">no_accounts</span>Block User`;
+                            const confirmButton = createElement('button', {
+                                id: 'prompt-confirm',
+                                textContent: 'Remove Friend',
+                                onClick: async () => {
+                                    try {
+                                        await windowAPI.unfriend(entityId);
+                                        pushToast(`Removed ${entityInfo.name} from friends`, 'confirm');
+                                        confirmPrompt.remove();
+                                        confirmShade.style.display = 'none';
+                                        // Remove the button since they are no longer friends
+                                        friendActionButton.remove();
+                                    } catch (error) {
+                                        pushToast('Failed to remove friend', 'error');
+                                    }
+                                },
+                            });
 
-                            entityInfo.isBlocked = false;
-                        } catch (error) {
-                            pushToast('Failed to unblock user', 'error');
-                        }
-                    } else {
-                        // Show confirmation dialog
-                        const confirmShade = document.querySelector('.prompt-layer');
-                        const confirmPrompt = createElement('div', { className: 'prompt' });
-                        const confirmTitle = createElement('div', { className: 'prompt-title', textContent: 'Block User' });
-                        const confirmText = createElement('div', {
-                            className: 'prompt-text',
-                            textContent: `Are you sure you want to block ${entityInfo.name}?`,
-                        });
-                        const confirmButtons = createElement('div', { className: 'prompt-buttons' });
-
-                        const confirmButton = createElement('button', {
-                            id: 'prompt-confirm',
-                            textContent: 'Block User',
-                            onClick: async () => {
-                                try {
-                                    await windowAPI.blockUser(entityId);
-                                    pushToast(`Blocked ${entityInfo.name}`, 'confirm');
-                                    blockButton.innerHTML = `<span class="material-symbols-outlined">block</span>Unblock User`;
-
-                                    entityInfo.isBlocked = true;
+                            const cancelButton = createElement('button', {
+                                id: 'prompt-cancel',
+                                textContent: 'Cancel',
+                                onClick: () => {
                                     confirmPrompt.remove();
                                     confirmShade.style.display = 'none';
-                                } catch (error) {
-                                    pushToast('Failed to block user', 'error');
-                                }
-                            },
-                        });
+                                },
+                            });
 
-                        const cancelButton = createElement('button', {
-                            id: 'prompt-cancel',
-                            textContent: 'Cancel',
-                            onClick: () => {
-                                confirmPrompt.remove();
-                                confirmShade.style.display = 'none';
-                            },
-                        });
+                            confirmButtons.append(confirmButton, cancelButton);
+                            confirmPrompt.append(confirmTitle, confirmText, confirmButtons);
+                            confirmShade.append(confirmPrompt);
+                            confirmShade.style.display = 'flex';
+                        } else {
+                            try {
+                                await windowAPI.sendFriendRequest(entityId);
+                                pushToast(`Friend request sent to ${entityInfo.name}`, 'confirm');
+                                // Update button state to show request sent
+                                friendActionButton.innerHTML = `<span class="material-symbols-outlined">hourglass_empty</span>Request Sent`;
 
-                        confirmButtons.append(confirmButton, cancelButton);
-                        confirmPrompt.append(confirmTitle, confirmText, confirmButtons);
-                        confirmShade.append(confirmPrompt);
-                        confirmShade.style.display = 'flex';
-                    }
-                },
-            });
+                                friendActionButton.disabled = true;
+                                friendActionButton.classList.add('disabled');
+                            } catch (error) {
+                                pushToast('Failed to send friend request', 'error');
+                            }
+                        }
+                    },
+                });
 
-            // Set initial button state
-            if (entityInfo.isFriend) {
-                friendActionButton.classList.add('is-friend');
+                // Add to Favourites button (only show for friends)
+                let categoriesButton = null;
+                if (entityInfo.isFriend) {
+                    categoriesButton = createElement('button', {
+                        className: 'user-details-action-button',
+                        innerHTML: '<span class="material-symbols-outlined">favorite</span>Add to Favourites',
+                        onClick: () => {
+                            showFavouritesModal('user', entityId, entityInfo.name, entityInfo.categories || [], createElement, refreshContentAfterFavoritesUpdate);
+                        },
+                    });
+                }
+
+                // Block/Unblock button
+                const blockButton = createElement('button', {
+                    className: 'user-details-action-button',
+                    innerHTML: `<span class="material-symbols-outlined">${entityInfo.isBlocked ? 'block' : 'no_accounts'}</span>${entityInfo.isBlocked ? 'Unblock User' : 'Block User'}`,
+                    onClick: async () => {
+                        if (entityInfo.isBlocked) {
+                            try {
+                                await windowAPI.unblockUser(entityId);
+                                pushToast(`Unblocked ${entityInfo.name}`, 'confirm');
+                                blockButton.innerHTML = `<span class="material-symbols-outlined">no_accounts</span>Block User`;
+
+                                entityInfo.isBlocked = false;
+                            } catch (error) {
+                                pushToast('Failed to unblock user', 'error');
+                            }
+                        } else {
+                            // Show confirmation dialog
+                            const confirmShade = document.querySelector('.prompt-layer');
+                            const confirmPrompt = createElement('div', { className: 'prompt' });
+                            const confirmTitle = createElement('div', { className: 'prompt-title', textContent: 'Block User' });
+                            const confirmText = createElement('div', {
+                                className: 'prompt-text',
+                                textContent: `Are you sure you want to block ${entityInfo.name}?`,
+                            });
+                            const confirmButtons = createElement('div', { className: 'prompt-buttons' });
+
+                            const confirmButton = createElement('button', {
+                                id: 'prompt-confirm',
+                                textContent: 'Block User',
+                                onClick: async () => {
+                                    try {
+                                        await windowAPI.blockUser(entityId);
+                                        pushToast(`Blocked ${entityInfo.name}`, 'confirm');
+                                        blockButton.innerHTML = `<span class="material-symbols-outlined">block</span>Unblock User`;
+
+                                        entityInfo.isBlocked = true;
+                                        confirmPrompt.remove();
+                                        confirmShade.style.display = 'none';
+                                    } catch (error) {
+                                        pushToast('Failed to block user', 'error');
+                                    }
+                                },
+                            });
+
+                            const cancelButton = createElement('button', {
+                                id: 'prompt-cancel',
+                                textContent: 'Cancel',
+                                onClick: () => {
+                                    confirmPrompt.remove();
+                                    confirmShade.style.display = 'none';
+                                },
+                            });
+
+                            confirmButtons.append(confirmButton, cancelButton);
+                            confirmPrompt.append(confirmTitle, confirmText, confirmButtons);
+                            confirmShade.append(confirmPrompt);
+                            confirmShade.style.display = 'flex';
+                        }
+                    },
+                });
+
+                // Set initial button state
+                if (entityInfo.isFriend) {
+                    friendActionButton.classList.add('is-friend');
+                }
+
+                // Add buttons to container
+                const buttonsToAdd = [friendActionButton, blockButton];
+                if (categoriesButton) {
+                    buttonsToAdd.splice(1, 0, categoriesButton); // Insert after friendActionButton
+                }
+                if (viewInGameButton) {
+                    buttonsToAdd.unshift(viewInGameButton); // Add at the beginning
+                }
+                buttonContainer.append(...buttonsToAdd);
+
+                // Add the button container to the header
+                headerElements.detailsHeader.appendChild(buttonContainer);
+
+                // Add tabs dynamically for other users
+                addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, loadTabContentCallback);
+            } else {
+                // For "My Profile" view - no action buttons, only Categories tab
+                addMyProfileTabs(entityType, entityInfo, entityId, currentActiveUser, loadTabContentCallback);
             }
-
-            // Add buttons to container
-            const buttonsToAdd = [friendActionButton, blockButton];
-            if (categoriesButton) {
-                buttonsToAdd.splice(1, 0, categoriesButton); // Insert after friendActionButton
-            }
-            if (viewInGameButton) {
-                buttonsToAdd.unshift(viewInGameButton); // Add at the beginning
-            }
-            buttonContainer.append(...buttonsToAdd);
-
-            // Add the button container to the header
-            headerElements.detailsHeader.appendChild(buttonContainer);
-
-            // Add tabs dynamically
-            addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, loadTabContentCallback);
             break;
         }
         case DetailsType.Avatar: {
@@ -1590,6 +1645,7 @@ export {
     createDetailsHeaderStructure,
     updateInstanceCount,
     addEntityTabs,
+    addMyProfileTabs,
     createUserDetailsHeader,
     ShowDetails
 }; 

@@ -5469,3 +5469,19 @@ button {
 .shares-search-result-card .card-detail .material-symbols-outlined {
     font-size: 12px;
 }
+
+/* Categories Management Styles */
+.categories-container {
+    padding: 2rem;
+    text-align: center;
+}
+
+.no-items-message {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-style: italic;
+    padding: 2rem;
+    text-align: center;
+}
+
+/* Favourites Modal Styles */
