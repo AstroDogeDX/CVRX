@@ -539,12 +539,15 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
     const mainSeparator = document.createElement('div');
     mainSeparator.className = 'details-separator-line details-main-separator';
     
-    // Create rank segment using universal details-segment
-    const rankSegment = createDetailsSegment({
-        icon: 'military_tech',
-        text: entityInfo.rank || 'Unknown Rank'
-    });
-    rankSegment.classList.add('user-details-rank-segment');
+    // Create rank segment using universal details-segment (only if rank is not 'User')
+    let rankSegment = null;
+    if (entityInfo.rank && entityInfo.rank !== 'User') {
+        rankSegment = createDetailsSegment({
+            icon: 'military_tech',
+            text: entityInfo.rank
+        });
+        rankSegment.classList.add('user-details-rank-segment');
+    }
     
     // Create badge segment (only if user has a featured badge and it's not the default)
     let badgeSegment = null;
@@ -568,9 +571,12 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
         groupSegment.classList.add('user-details-group-segment');
     }
     
-    // Create separator div
-    const separator = document.createElement('div');
-    separator.className = 'details-separator-line';
+    // Create separator div (only if we have at least one segment to separate)
+    let separator = null;
+    if (rankSegment || badgeSegment || groupSegment) {
+        separator = document.createElement('div');
+        separator.className = 'details-separator-line';
+    }
     
     // Create avatar segment using universal details-segment
     const avatarSegment = createDetailsSegment({
@@ -614,14 +620,18 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
     }
     
     // Add all segments to container in the requested order
-    segmentsContainer.appendChild(rankSegment);
+    if (rankSegment) {
+        segmentsContainer.appendChild(rankSegment);
+    }
     if (badgeSegment) {
         segmentsContainer.appendChild(badgeSegment);
     }
     if (groupSegment) {
         segmentsContainer.appendChild(groupSegment);
     }
-    segmentsContainer.appendChild(separator);
+    if (separator) {
+        segmentsContainer.appendChild(separator);
+    }
     segmentsContainer.appendChild(avatarSegment);
     if (instanceSegment) {
         segmentsContainer.appendChild(instanceSegment);
