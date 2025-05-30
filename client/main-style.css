@@ -5245,3 +5245,213 @@ button {
     background: var(--color-background-hover);
     border-radius: 4px;
 }
+
+/* =======
+   SHARES STYLES
+   ======= */
+
+/* Shares grid layout */
+.shares-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 10px 0;
+}
+
+/* Share card base styles */
+.share-card {
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.share-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Share card overlay for remove functionality */
+.share-card-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    border-radius: var(--border-radii);
+}
+
+.share-card:hover .share-card-overlay {
+    opacity: 1;
+}
+
+.share-remove-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--button-reject-color);
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.share-remove-text .material-symbols-outlined {
+    font-size: 20px;
+}
+
+/* Add share card styles */
+.add-share-card {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 2px dashed var(--color-border);
+    background: transparent;
+}
+
+.add-share-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-accent);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.add-share-thumbnail {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(40, 40, 40, 0.5);
+    min-height: var(--thumbnail-size-standard);
+}
+
+.add-share-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-text-secondary);
+    text-align: center;
+    padding: 20px;
+}
+
+.add-share-content .material-symbols-outlined {
+    font-size: 32px;
+    opacity: 0.7;
+}
+
+.add-share-text {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.add-share-card:hover .add-share-content {
+    color: var(--color-accent);
+}
+
+.add-share-card:hover .add-share-content .material-symbols-outlined {
+    opacity: 1;
+}
+
+/* Shares modal styles */
+.shares-modal {
+    min-width: 500px;
+    max-width: 600px;
+}
+
+.shares-instructions {
+    margin-bottom: 1rem;
+    color: var(--color-text);
+    font-size: 0.9rem;
+}
+
+.shares-search-container {
+    margin-bottom: 1rem;
+}
+
+.shares-search-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radii);
+    background: var(--color-background);
+    color: var(--color-text);
+    font-size: 14px;
+}
+
+.shares-search-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb), 0.2);
+}
+
+.shares-search-results {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radii);
+    background: var(--color-background);
+}
+
+.shares-search-status {
+    padding: 20px;
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+.shares-search-results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    padding: 10px;
+}
+
+.shares-search-result-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-background-dark);
+    border-radius: var(--border-radii);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid var(--color-border);
+}
+
+.shares-search-result-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    border-color: var(--color-accent);
+}
+
+.shares-search-result-card .thumbnail-container {
+    height: 60px;
+    background-size: cover;
+    background-position: center;
+}
+
+.shares-search-result-card .card-content {
+    padding: 8px;
+    flex: 1;
+}
+
+.shares-search-result-card .card-name {
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.shares-search-result-card .card-detail {
+    font-size: 10px;
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.shares-search-result-card .card-detail .material-symbols-outlined {
+    font-size: 12px;
+}

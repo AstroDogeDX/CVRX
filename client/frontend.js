@@ -25,6 +25,7 @@ import {
     createUserDetailsHeader,
     ShowDetails
 } from './astrolib/details_constructor.js';
+import { loadShares } from './astrolib/shares.js';
 import { 
     friendImageCache,
     initializeFriendsModule,
@@ -573,23 +574,8 @@ async function loadTabContent(tab, entityId) {
     }
 
     if (tab === 'shares') {
-        const sharesContainer = document.querySelector('#shares-tab .shares-container');
-        if (!sharesContainer) return;
-
-        // Placeholder content for shares tab
-        sharesContainer.innerHTML = `
-            <div class="shares-content">
-                <div class="shares-placeholder">
-                    <div class="placeholder-icon">
-                        <span class="material-symbols-outlined">share</span>
-                    </div>
-                    <div class="placeholder-text">
-                        <h3>Shares Feature Coming Soon</h3>
-                        <p>This section will show users who have shared this content with you and allow you to share it with others.</p>
-                    </div>
-                </div>
-            </div>
-        `;
+        // Load shares using the shares module
+        loadShares(entityId, createElement);
         return;
     }
 

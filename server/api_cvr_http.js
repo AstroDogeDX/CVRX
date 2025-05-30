@@ -10,7 +10,12 @@ const APIBase2 = `${APIAddress}/2`;
 let CVRApi;
 let CVRApiV2;
 
-const UnauthenticatedCVRApi = axios.create({ baseURL: APIBase });
+const UnauthenticatedCVRApi = axios.create({ 
+    baseURL: APIBase,
+    headers: {
+        'Content-Type': 'application/json',
+    }
+});
 
 async function Get(url, authenticated = true, apiVersion = 1) {
     try {
@@ -95,6 +100,7 @@ async function Authenticate(authType, credentialUser, credentialSecret) {
             'MatureContentDlc': 'true',
             'Platform': 'pc_standalone',
             'CompatibleVersions': '0,1,2',
+            'Content-Type': 'application/json',
         },
     });
     CVRApiV2 = axios.create({
@@ -106,6 +112,7 @@ async function Authenticate(authType, credentialUser, credentialSecret) {
             'MatureContentDlc': 'true',
             'Platform': 'pc_standalone',
             'CompatibleVersions': '0,1,2',
+            'Content-Type': 'application/json',
         },
     });
     return authentication;
@@ -129,7 +136,7 @@ exports.SetFriendNote = async (userId, note) => await Post(`/users/${userId}/not
 exports.GetMyAvatars = async () => await Get('/avatars');
 exports.GetAvatarById = async (avatarId) => await Get(`/avatars/${avatarId}`);
 exports.GetAvatarShares = async (avatarId) => await Get(`/avatars/${avatarId}/shares`);
-exports.AddAvatarShare = async (avatarId, userId) => await Post(`/avatars/${avatarId}/shares/${userId}`, null);
+exports.AddAvatarShare = async (avatarId, userId) => await Post(`/avatars/${avatarId}/shares/${userId}`, {});
 exports.RemoveAvatarShare = async (avatarId, userId) => await Delete(`/avatars/${avatarId}/shares/${userId}`);
 
 // Categories
@@ -153,7 +160,7 @@ exports.SetWorldAsHome = async (worldId) => await Get(`/worlds/${worldId}/sethom
 exports.GetProps = async () => await Get('/spawnables');
 exports.GetPropById = async (propId) => await Get(`/spawnables/${propId}`);
 exports.GetPropShares = async (propId) => await Get(`/spawnables/${propId}/shares`);
-exports.AddPropShare = async (propId, userId) => await Post(`/spawnables/${propId}/shares/${userId}`, null);
+exports.AddPropShare = async (propId, userId) => await Post(`/spawnables/${propId}/shares/${userId}`, {});
 exports.RemovePropShare = async (propId, userId) => await Delete(`/spawnables/${propId}/shares/${userId}`);
 
 // Instances

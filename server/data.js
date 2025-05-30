@@ -1083,27 +1083,43 @@ class Core {
 
     async GetContentShares(contentType, contentId) {
 
-        let entries;
+        let response;
 
-        switch (contentType) {
-            case PublicContentType.AVATARS:
-                entries = await CVRHttp.GetAvatarShares(contentId);
-                break;
-            case PublicContentType.PROPS:
-                entries = await CVRHttp.GetPropShares(contentId);
-                break;
-            default:
-                log.error(`[GetContentShares] ${contentType} content type is not supported at the moment.`);
-                break;
-        }
-
-        for (const entry of entries) {
-            if (entry?.image) {
-                await LoadImage(entry.image, entry);
+        try {
+            switch (contentType) {
+                case PublicContentType.AVATARS:
+                    response = await CVRHttp.GetAvatarShares(contentId);
+                    break;
+                case PublicContentType.PROPS:
+                    response = await CVRHttp.GetPropShares(contentId);
+                    break;
+                default:
+                    log.error(`[GetContentShares] ${contentType} content type is not supported at the moment.`);
+                    return [];
             }
-        }
 
-        return entries;
+            // Extract the actual shares array from the response
+            // API returns { value: [...] } structure
+            const entries = response?.value || [];
+
+            // Ensure entries is valid and is an array
+            if (!Array.isArray(entries)) {
+                log.warn(`[GetContentShares] Invalid entries response for ${contentType} ${contentId}:`, response);
+                return [];
+            }
+
+            // Process images for each entry
+            for (const entry of entries) {
+                if (entry?.image) {
+                    await LoadImage(entry.image, entry);
+                }
+            }
+
+            return entries;
+        } catch (error) {
+            log.error(`[GetContentShares] Error fetching shares for ${contentType} ${contentId}:`, error);
+            return [];
+        }
     }
 
     async AddContentShares(contentType, contentId, userId) {
