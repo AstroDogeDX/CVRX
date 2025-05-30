@@ -30,12 +30,13 @@ import {
     friendImageCache,
     initializeFriendsModule,
     updateCurrentActiveUser,
+    createFriendsListCategory,
+    getFriendStatus,
     loadFriendCategories,
     handleFriendsRefresh,
     initializeFriendsPage,
     setupFriendsTextFilter,
     applyFriendFilter,
-    getFriendStatus,
     loadAvatarCategories,
     handleAvatarsRefresh,
     initializeAvatarsPage,
@@ -51,8 +52,10 @@ import {
     handlePropsRefresh,
     initializePropsPage,
     setupPropsTextFilter,
-    applyPropFilter
+    applyPropFilter,
+    refreshContentAfterFavoritesUpdate
 } from './astrolib/user_content.js';
+import { loadCategoriesManager } from './astrolib/categories_manager.js';
 
 // ===========
 // GLOBAL VARS
@@ -576,6 +579,12 @@ async function loadTabContent(tab, entityId) {
     if (tab === 'shares') {
         // Load shares using the shares module
         loadShares(entityId, createElement);
+        return;
+    }
+
+    if (tab === 'categories') {
+        // Load categories manager for My Profile
+        loadCategoriesManager();
         return;
     }
 
