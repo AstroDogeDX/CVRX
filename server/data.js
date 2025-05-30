@@ -5,6 +5,7 @@ const CVRWebsocket = require('./api_cvr_ws');
 const Config = require('./config');
 const Updater = require('./updater');
 const Utils = require('./utils');
+const {CategoryType} = require('./api_cvr_http');
 
 const log = require('./logger').GetLogger('Data');
 const logRenderer = require('../server/logger').GetLogger('Renderer');
@@ -25,11 +26,11 @@ const PublicContentType = Object.freeze({
     PROPS: 'props',
 });
 
-const AvatarCategories = Object.freeze({
-    Public: 'avtrpublic',
-    Shared: 'avtrshared',
-    Mine: 'avtrmine',
-});
+// const AvatarCategories = Object.freeze({
+//     Public: 'avtrpublic',
+//     Shared: 'avtrshared',
+//     Mine: 'avtrmine',
+// });
 
 // const PropCategories = Object.freeze({
 //     Mine: 'propmine',
@@ -206,7 +207,7 @@ class Core {
         ipcMain.handle('get-user-public-avatars', async (_event, userId) => EscapeHtml(await this.GetUserPublicContent(userId, PublicContentType.AVATARS)));
         ipcMain.handle('get-user-public-worlds', async (_event, userId) => EscapeHtml(await this.GetUserPublicContent(userId, PublicContentType.WORLDS)));
         ipcMain.handle('get-user-public-props', async (_event, userId) => EscapeHtml(await this.GetUserPublicContent(userId, PublicContentType.PROPS)));
-        ipcMain.handle('set-friend-note', async (_event, userId, note) => await CVRHttp.SetFriendNote(userId, note));
+        ipcMain.handle('set-friend-note', async (_event, userId, note) => (await CVRHttp.SetFriendNote(userId, note))?.message);
 
         ipcMain.handle('get-world-by-id', async (_event, worldId) => EscapeHtml(await this.GetWorldById(worldId)));
         ipcMain.handle('get-world-meta-by-id', async (_event, worldId) => EscapeHtml(await CVRHttp.GetWorldMetaById(worldId)));
@@ -272,11 +273,28 @@ class Core {
         ipcMain.handle('config-update', (_event, newConfigSettings) => Config.UpdateConfig(newConfigSettings));
 
         // Categories
-        ipcMain.handle('get-categories', async (_event) => EscapeHtml(this.categories));
-        ipcMain.handle('set-friend-categories', async (_event, userId, categoryIds) => await CVRHttp.SetFriendCategories(userId, categoryIds));
-        ipcMain.handle('set-avatar-categories', async (_event, avatarId, categoryIds) => await CVRHttp.SetAvatarCategories(avatarId, categoryIds));
-        ipcMain.handle('set-prop-categories', async (_event, propId, categoryIds) => await CVRHttp.SetPropCategories(propId, categoryIds));
-        ipcMain.handle('set-world-categories', async (_event, worldId, categoryIds) => await CVRHttp.SetWorldCategories(worldId, categoryIds));
+        ipcMain.handle('get-categories', (_event) => EscapeHtml(this.categories));
+        ipcMain.on('update-categories', (_event) => this.UpdateCategories());
+        // Categories - Assign
+        ipcMain.handle('assign-categories-friend', async (_event, userId, categoryIds) => await this.AssignCategory(CategoryType.FRIENDS, userId, categoryIds));
+        ipcMain.handle('assign-categories-avatar', async (_event, avatarId, categoryIds) => await this.AssignCategory(CategoryType.AVATARS, avatarId, categoryIds));
+        ipcMain.handle('assign-categories-prop', async (_event, propId, categoryIds) => await this.AssignCategory(CategoryType.PROPS, propId, categoryIds));
+        ipcMain.handle('assign-categories-world', async (_event, worldId, categoryIds) => await this.AssignCategory(CategoryType.WORLDS, worldId, categoryIds));
+        // Categories - Create Category
+        ipcMain.handle('create-category-friend', async (_event, categoryName) => await this.CreateCategory(CategoryType.FRIENDS, categoryName));
+        ipcMain.handle('create-category-avatar', async (_event, categoryName) => await this.CreateCategory(CategoryType.AVATARS, categoryName));
+        ipcMain.handle('create-category-prop', async (_event, categoryName) => await this.CreateCategory(CategoryType.PROPS, categoryName));
+        ipcMain.handle('create-category-world', async (_event, categoryName) => await this.CreateCategory(CategoryType.WORLDS, categoryName));
+        // Categories - Delete Category
+        ipcMain.handle('delete-category-friend', async (_event, categoryId) => await this.DeleteCategory(CategoryType.FRIENDS, categoryId));
+        ipcMain.handle('delete-category-avatar', async (_event, categoryId) => await this.DeleteCategory(CategoryType.AVATARS, categoryId));
+        ipcMain.handle('delete-category-prop', async (_event, categoryId) => await this.DeleteCategory(CategoryType.PROPS, categoryId));
+        ipcMain.handle('delete-category-world', async (_event, categoryId) => await this.DeleteCategory(CategoryType.WORLDS, categoryId));
+        // Categories - Reorder Categories
+        ipcMain.handle('reorder-categories-friend', async (_event, newOrderedCategoryIds) => await this.ReorderCategories(CategoryType.FRIENDS, newOrderedCategoryIds));
+        ipcMain.handle('reorder-categories-avatar', async (_event, newOrderedCategoryIds) => await this.ReorderCategories(CategoryType.AVATARS, newOrderedCategoryIds));
+        ipcMain.handle('reorder-categories-prop', async (_event, newOrderedCategoryIds) => await this.ReorderCategories(CategoryType.PROPS, newOrderedCategoryIds));
+        ipcMain.handle('reorder-categories-world', async (_event, newOrderedCategoryIds) => await this.ReorderCategories(CategoryType.WORLDS, newOrderedCategoryIds));
 
         // Cache
         ipcMain.handle('clear-cached-images', async (_event) => await cache.ClearAllCachedImages());
@@ -477,14 +495,12 @@ class Core {
         // Load worlds from all relevant user categories (similar to how avatars and props work)
         let allWorlds = [];
         const allWorldsMap = {};
-        
+
         try {
-            // Get categories to know which ones to load
-            await this.UpdateCategories();
-            
+
             // Get all relevant world categories (Mine + user-created categories)
-            const relevantCategories = ['wrldmine']; // Always include Mine
-            
+            const relevantCategories = [WorldCategories.Mine];
+
             if (this.categories && this.categories.worlds) {
                 // Add user-created world categories (those starting with 'worlds_')
                 const userCategories = this.categories.worlds
@@ -492,14 +508,14 @@ class Core {
                     .map(category => category.id);
                 relevantCategories.push(...userCategories);
             }
-            
-            console.log(`Loading worlds from categories: ${relevantCategories.join(', ')}`);
-            
+
+            log.info(`[GetOurUserWorlds] Loading worlds from categories: ${relevantCategories.join(', ')}`);
+
             // Load worlds from each relevant category
             for (const categoryId of relevantCategories) {
                 try {
                     const categoryWorlds = await this.UpdateWorldsByCategory(categoryId);
-                    
+
                     // Add worlds to the combined list, avoiding duplicates and adding category info
                     for (const world of categoryWorlds) {
                         if (!allWorldsMap[world.id]) {
@@ -511,22 +527,22 @@ class Core {
                         }
                     }
                 } catch (error) {
-                    console.error(`Failed to load worlds from category ${categoryId}:`, error);
+                    log.error(`[GetOurUserWorlds] Failed to load worlds from category ${categoryId}:`, error);
                 }
             }
-            
+
             // Convert to array
             allWorlds = Object.values(allWorldsMap);
-            console.log(`Loaded ${allWorlds.length} total unique worlds from ${relevantCategories.length} categories`);
-            
+            log.info(`[GetOurUserWorlds] Loaded ${allWorlds.length} total unique worlds from ${relevantCategories.length} categories`);
+
         } catch (error) {
-            console.error('Failed to load all user worlds, falling back to Mine category only:', error);
+            log.error('[GetOurUserWorlds] Failed to load all user worlds, falling back to Mine category only:', error);
             // Fallback to just Mine category if the above fails
             allWorlds = await this.UpdateWorldsByCategory(WorldCategories.Mine);
             // Ensure categories array exists for fallback
-            allWorlds = allWorlds.map(world => ({ ...world, categories: ['wrldmine'] }));
+            allWorlds = allWorlds.map(world => ({ ...world, categories: [WorldCategories.Mine] }));
         }
-        
+
         this.SendToRenderer('active-user-worlds-load', allWorlds);
     }
 
@@ -691,6 +707,29 @@ class Core {
 
     async UpdateCategories() {
         this.categories = await CVRHttp.GetCategories();
+        this.SendToRenderer('categories-updated', this.categories);
+    }
+
+    async AssignCategory(type, contentGuid, categoryIds) {
+        return (await CVRHttp.AssignCategory(type, contentGuid, categoryIds))?.message;
+    }
+
+    async CreateCategory(type, categoryName) {
+        const response = await CVRHttp.CreateCategory(type, categoryName);
+        await this.UpdateCategories();
+        return response?.message;
+    }
+
+    async DeleteCategory(type, categoryId) {
+        const response =  await CVRHttp.DeleteCategory(type, categoryId);
+        await this.UpdateCategories();
+        return response?.message;
+    }
+
+    async ReorderCategories(type, newOrderedCategoryIds){
+        const response =  await CVRHttp.ReorderCategories(type, newOrderedCategoryIds);
+        await this.UpdateCategories();
+        return response?.message;
     }
 
     async GetUserById(userId) {
@@ -1125,11 +1164,9 @@ class Core {
     async AddContentShares(contentType, contentId, userId) {
         switch (contentType) {
             case PublicContentType.AVATARS:
-                await CVRHttp.AddAvatarShare(contentId, userId);
-                break;
+                return (await CVRHttp.AddAvatarShare(contentId, userId))?.message;
             case PublicContentType.PROPS:
-                await CVRHttp.AddPropShare(contentId, userId);
-                break;
+                return (await CVRHttp.AddPropShare(contentId, userId))?.message;
             default:
                 log.error(`[AddContentShares] ${contentType} content type is not supported at the moment.`);
                 break;
@@ -1139,11 +1176,9 @@ class Core {
     async RemoveContentShares(contentType, contentId, userId) {
         switch (contentType) {
             case PublicContentType.AVATARS:
-                await CVRHttp.RemoveAvatarShare(contentId, userId);
-                break;
+                return (await CVRHttp.RemoveAvatarShare(contentId, userId))?.message;
             case PublicContentType.PROPS:
-                await CVRHttp.RemovePropShare(contentId, userId);
-                break;
+                return (await CVRHttp.RemovePropShare(contentId, userId))?.message;
             default:
                 log.error(`[RemoveContentShares] ${contentType} content type is not supported at the moment.`);
                 break;

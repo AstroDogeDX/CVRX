@@ -135,11 +135,35 @@ contextBridge.exposeInMainWorld('API', {
     updateConfig: (newConfigSettings) => ipcRenderer.invoke('config-update', newConfigSettings),
 
     // Categories
+    // Returns the last retrieved categories (this does not do an API request)
     getCategories: () => ipcRenderer.invoke('get-categories'),
-    setFriendCategories: (userId, categoryIds) => ipcRenderer.invoke('set-friend-categories', userId, categoryIds),
-    setAvatarCategories: (avatarId, categoryIds) => ipcRenderer.invoke('set-avatar-categories', avatarId, categoryIds),
-    setPropCategories: (propId, categoryIds) => ipcRenderer.invoke('set-prop-categories', propId, categoryIds),
-    setWorldCategories: (worldId, categoryIds) => ipcRenderer.invoke('set-world-categories', worldId, categoryIds),
+    // Fetches current categories, and will trigger an update on update-categories
+    // Only useful if the categories changed outside CVRX, and we want to fetch the current categories
+    updateCategories: () => ipcRenderer.send('update-categories'),
+    // Will trigger when we fetch the current categories
+    // Will happen when: updateCategories, createCategoryX, deleteCategoryX, reorderCategoriesX
+    onCategoriesUpdated: (callback) => ipcRenderer.on('categories-updated', callback),
+    // Categories - Assign
+    setFriendCategories: (userId, categoryIds) => ipcRenderer.invoke('assign-categories-friend', userId, categoryIds),
+    setAvatarCategories: (avatarId, categoryIds) => ipcRenderer.invoke('assign-categories-avatar', avatarId, categoryIds),
+    setPropCategories: (propId, categoryIds) => ipcRenderer.invoke('assign-categories-prop', propId, categoryIds),
+    setWorldCategories: (worldId, categoryIds) => ipcRenderer.invoke('assign-categories-world', worldId, categoryIds),
+    // Categories - Create
+    createFriendCategory: (categoryName) => ipcRenderer.invoke('create-category-friend', categoryName),
+    createAvatarCategory: (categoryName) => ipcRenderer.invoke('create-category-avatar', categoryName),
+    createPropCategory: (categoryName) => ipcRenderer.invoke('create-category-prop', categoryName),
+    createWorldCategory: (categoryName) => ipcRenderer.invoke('create-category-world', categoryName),
+    // Categories - Delete
+    deleteFriendCategory: (categoryId) => ipcRenderer.invoke('delete-category-friend', categoryId),
+    deleteAvatarCategory: (categoryId) => ipcRenderer.invoke('delete-category-avatar', categoryId),
+    deletePropCategory: (categoryId) => ipcRenderer.invoke('delete-category-prop', categoryId),
+    deleteWorldCategory: (categoryId) => ipcRenderer.invoke('delete-category-world', categoryId),
+    // Categories - Reorder Categories (only needs the ids for the custom user categories to be sent)
+    reorderFriendCategories: (newOrderedCategoryIds) => ipcRenderer.invoke('reorder-categories-friend', newOrderedCategoryIds),
+    reorderAvatarCategories: (newOrderedCategoryIds) => ipcRenderer.invoke('reorder-categories-avatar', newOrderedCategoryIds),
+    reorderPropCategories: (newOrderedCategoryIds) => ipcRenderer.invoke('reorder-categories-prop', newOrderedCategoryIds),
+    reorderWorldCategories: (newOrderedCategoryIds) => ipcRenderer.invoke('reorder-categories-world', newOrderedCategoryIds),
+
 
     // Cache
     clearCachedImages: () => ipcRenderer.invoke('clear-cached-images'),
