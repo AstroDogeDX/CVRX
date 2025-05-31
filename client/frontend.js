@@ -1872,8 +1872,7 @@ setInterval(() => {
 document.querySelector('#instances-refresh').addEventListener('click', async _event => {
     const refreshButton = _event.target;
     if (refreshButton.classList.contains('refreshing')) {
-        // Show toast notification explaining the cooldown
-        pushToast('Please wait for the current refresh to complete before requesting another.', 'info');
+        // The backend notification will handle showing the cooldown message
         return;
     }
     
@@ -1883,6 +1882,9 @@ document.querySelector('#instances-refresh').addEventListener('click', async _ev
     try {
         const requestInitialized = await window.API.refreshInstances(true);
         if (requestInitialized) {
+            // Show refreshing toast notification
+            pushToast('Refreshing...', 'info');
+            
             // Show completion state briefly
             refreshButton.classList.remove('refreshing');
             refreshButton.classList.add('refresh-complete');
@@ -1892,6 +1894,7 @@ document.querySelector('#instances-refresh').addEventListener('click', async _ev
                 refreshButton.classList.remove('refresh-complete');
             }, 1500);
         } else {
+            // If request wasn't initialized (due to cooldown), the backend notification will show the message
             refreshButton.classList.remove('refreshing');
         }
     } catch (error) {
@@ -1934,6 +1937,25 @@ window.API.receiveVersion((appVersion) => {
 });
 
 window.API.onSocketDied((_event) => promptReconnect());
+
+// Handle backend notifications (including cooldown messages)
+window.API.onNotification((_event, message, type) => {
+    // Map backend ToastTypes to frontend toast types
+    let toastType = 'info'; // default
+    switch (type) {
+        case 'confirm':
+            toastType = 'confirm';
+            break;
+        case 'error':
+            toastType = 'error';
+            break;
+        case 'info':
+        default:
+            toastType = 'info';
+            break;
+    }
+    pushToast(message, toastType);
+});
 
 applyTooltips();
 

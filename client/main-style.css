@@ -1191,6 +1191,7 @@ button {
 
 .friend-status {
     font-size: 12px;
+    font-style: italic;
     color: rgba(255, 255, 255, 0.7);
     margin-top: auto;
     display: flex;
@@ -1210,10 +1211,6 @@ button {
     font-size: 14px;
     margin-right: 6px;
     opacity: 0.8;
-}
-
-.friend-is-offline {
-    color: rgba(255, 255, 255, 0.4);
 }
 
 .friend-list-node::before {
@@ -1307,10 +1304,6 @@ button {
     background: var(--node-nth-color);
 }
 
-.friend-history-node {
-    cursor: pointer;
-}
-
 .old-history {
     font-style: italic;
     filter: brightness(0.5);
@@ -1354,11 +1347,6 @@ button {
     font-size: x-small;
 }
 
-.friend-status {
-    font-size: 12px;
-    font-style: italic;
-}
-
 .friend-status-history {
     font-size: 12px;
 }
@@ -1370,11 +1358,6 @@ button {
 
 .history-type-prev {
     font-size: x-small !important;
-}
-
-.friend-status-type {
-    font-size: 12px;
-    font-weight: bold;
 }
 
 .friend-is-offline {
