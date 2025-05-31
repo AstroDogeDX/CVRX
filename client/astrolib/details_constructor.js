@@ -632,7 +632,7 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
         iconHash: entityInfo.avatar?.imageHash,
         text: entityInfo.avatar?.name || 'No Avatar',
         clickable: entityInfo.avatar?.id ? true : false,
-        onClick: entityInfo.avatar?.id ? () => ShowDetails(DetailsType.Avatar, entityInfo.avatar.id) : null,
+        onClick: entityInfo.avatar?.id ? () => ShowDetailsCallback(DetailsType.Avatar, entityInfo.avatar.id) : null,
         tooltip: entityInfo.avatar?.id ? 'Current Avatar' : null
     });
     avatarSegment.classList.add('user-details-avatar-segment');
@@ -661,7 +661,7 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
             iconHash: entityInfo.instance.world?.imageHash,
             text: instanceText,
             clickable: entityInfo.instance.id ? true : false,
-            onClick: entityInfo.instance.id ? () => ShowDetails(DetailsType.Instance, entityInfo.instance.id) : null,
+            onClick: entityInfo.instance.id ? () => ShowDetailsCallback(DetailsType.Instance, entityInfo.instance.id) : null,
             tooltip: entityInfo.instance.id ? 'Current Instance' : null
         });
         instanceSegment.classList.add('user-details-instance-segment');
@@ -715,6 +715,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
         window: windowAPI
     } = dependencies;
 
+    // Create a local callback function that captures dependencies
+    const showDetailsWithDependencies = (type, id) => ShowDetails(type, id, dependencies);
+
     // Get container elements (we'll create the header content dynamically)
     let detailsTabs = document.querySelector('.details-tabs');
     let detailsContent = document.querySelector('.details-content');
@@ -765,7 +768,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const isMyProfile = currentActiveUser && entityId === currentActiveUser.id;
             
             // Create the custom user header structure
-            const headerElements = createUserDetailsHeader(entityInfo, (type, id) => ShowDetails(type, id, dependencies));
+            const headerElements = createUserDetailsHeader(entityInfo, showDetailsWithDependencies);
 
             // Show tabs and content for user details
             detailsTabs.style.display = 'flex';
@@ -979,7 +982,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 iconHash: entityInfo.user?.imageHash,
                 text: `${entityInfo.user?.name || 'Unknown'}`,
                 clickable: entityInfo.user?.id ? true : false,
-                onClick: entityInfo.user?.id ? () => ShowDetails(DetailsType.User, entityInfo.user.id, dependencies) : null,
+                onClick: entityInfo.user?.id ? () => showDetailsWithDependencies(DetailsType.User, entityInfo.user.id) : null,
                 tooltip: entityInfo.user?.id ? 'Creator' : null
             });
             creatorSegment.classList.add('avatar-details-creator-segment');
@@ -1131,7 +1134,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 iconHash: entityInfo.author?.imageHash,
                 text: `${entityInfo.author?.name || 'Unknown'}`,
                 clickable: entityInfo.author?.id ? true : false,
-                onClick: entityInfo.author?.id ? () => ShowDetails(DetailsType.User, entityInfo.author.id, dependencies) : null,
+                onClick: entityInfo.author?.id ? () => showDetailsWithDependencies(DetailsType.User, entityInfo.author.id) : null,
                 tooltip: entityInfo.author?.id ? 'Creator' : null
             });
             creatorSegment.classList.add('prop-details-creator-segment');
@@ -1283,7 +1286,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 iconHash: entityInfo.author?.imageHash,
                 text: `${entityInfo.author?.name || 'Unknown'}`,
                 clickable: entityInfo.author?.id ? true : false,
-                onClick: entityInfo.author?.id ? () => ShowDetails(DetailsType.User, entityInfo.author.id, dependencies) : null,
+                onClick: entityInfo.author?.id ? () => showDetailsWithDependencies(DetailsType.User, entityInfo.author.id) : null,
                 tooltip: entityInfo.author?.id ? 'Creator' : null
             });
             creatorSegment.classList.add('world-details-creator-segment');
@@ -1429,7 +1432,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 iconHash: entityInfo.owner?.imageHash,
                 text: `${entityInfo.owner?.name || 'Unknown'}`,
                 clickable: entityInfo.owner?.id ? true : false,
-                onClick: entityInfo.owner?.id ? () => ShowDetails(DetailsType.User, entityInfo.owner.id, dependencies) : null,
+                onClick: entityInfo.owner?.id ? () => showDetailsWithDependencies(DetailsType.User, entityInfo.owner.id) : null,
                 tooltip: entityInfo.owner?.id ? 'Instance Owner' : null
             });
             ownerSegment.classList.add('instance-details-creator-segment');
@@ -1440,7 +1443,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 iconHash: entityInfo.world?.imageHash,
                 text: `${entityInfo.world?.name || 'Unknown World'}`,
                 clickable: entityInfo.world?.id ? true : false,
-                onClick: entityInfo.world?.id ? () => ShowDetails(DetailsType.World, entityInfo.world.id, dependencies) : null,
+                onClick: entityInfo.world?.id ? () => showDetailsWithDependencies(DetailsType.World, entityInfo.world.id) : null,
                 tooltip: entityInfo.world?.id ? 'World Details' : null
             });
             worldSegment.classList.add('instance-details-creator-segment');
