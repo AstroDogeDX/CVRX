@@ -230,17 +230,35 @@ function promptReconnect() {
     promptShade.style.display = 'flex';
 }
 
-
-
 // Update prompt using the new modal system
 function promptUpdate(updateInfo) {
     const promptShade = document.querySelector('.prompt-layer');
     const newPrompt = createElement('div', { className: 'prompt' });
     const promptTitle = createElement('div', { className: 'prompt-title', textContent: 'Update Available' });
-    const promptText = createElement('div', {
-        className: 'prompt-text',
-        innerHTML: `A new version (${updateInfo.tagName}) of CVRX is available!<br><br>Here are the changes:<br><br>${parseMarkdown(updateInfo.changeLogs)}`,
+    
+    // Create main prompt text with version info
+    const promptText = createElement('div', { className: 'prompt-text' });
+    
+    // Version announcement
+    const versionAnnouncement = createElement('p', {
+        innerHTML: `A new version (<strong>${updateInfo.tagName}</strong>) of CVRX is available!`
     });
+    
+    // Changelog header
+    const changelogHeader = createElement('p', {
+        innerHTML: 'Here are the changes:',
+        className: 'changelog-header'
+    });
+    
+    // Changelog content container
+    const changelogContainer = createElement('div', {
+        className: 'changelog-content',
+        innerHTML: parseMarkdown(updateInfo.changeLogs)
+    });
+    
+    // Append all content to prompt text
+    promptText.append(versionAnnouncement, changelogHeader, changelogContainer);
+    
     const promptButtons = createElement('div', { className: 'prompt-buttons' });
 
     const downloadButton = createElement('button', {

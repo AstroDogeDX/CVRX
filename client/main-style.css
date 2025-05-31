@@ -5939,3 +5939,134 @@ button {
 .add-category-item.disabled .add-category-content {
     color: var(--color-text-secondary);
 }
+
+/* Update modal specific styling */
+.changelog-header {
+    font-weight: 600;
+    margin: 1rem 0 0.5rem 0 !important;
+    color: var(--color-text);
+    font-size: 1rem;
+}
+
+.changelog-content {
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 0.5rem 0 1rem 0;
+    max-height: 40vh;
+    overflow-y: auto;
+    line-height: 1.4;
+}
+
+.changelog-content h1,
+.changelog-content h2,
+.changelog-content h3,
+.changelog-content h4,
+.changelog-content h5,
+.changelog-content h6 {
+    color: var(--color-text);
+    margin-top: 0.75em;
+    margin-bottom: 0.25em;
+}
+
+.changelog-content h1:first-child,
+.changelog-content h2:first-child,
+.changelog-content h3:first-child,
+.changelog-content h4:first-child,
+.changelog-content h5:first-child,
+.changelog-content h6:first-child {
+    margin-top: 0;
+}
+
+.changelog-content p {
+    margin: 0.4em 0;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.changelog-content ul,
+.changelog-content ol {
+    margin: 0.4em 0;
+    padding-left: 1.5rem;
+}
+
+.changelog-content li {
+    margin: 0.2em 0;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.changelog-content code {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.changelog-content pre {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 0.75rem;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+}
+
+.changelog-content pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.changelog-content blockquote {
+    border-left: 3px solid rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 0.75rem;
+    margin: 0.5rem 0;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 0 4px 4px 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.changelog-content a {
+    color: #64b5f6;
+    text-decoration: none;
+}
+
+.changelog-content a:hover {
+    color: #90caf9;
+    text-decoration: underline;
+}
+
+.changelog-content hr {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 1rem 0;
+}
+
+.changelog-content strong {
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 600;
+}
+
+.changelog-content em {
+    color: rgba(255, 255, 255, 0.85);
+    font-style: italic;
+}
+
+.prompt-buttons {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--color-border);
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.changelog-content em {
+    color: rgba(255, 255, 255, 0.85);
+    font-style: italic;
+}
