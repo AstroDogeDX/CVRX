@@ -16,6 +16,8 @@ const CategoryType = Object.freeze({
     Props: 'spawnables'
 });
 
+const MAX_CATEGORIES_PER_TYPE = 32;
+
 // ===========
 // STATE MANAGEMENT
 // ===========
@@ -90,18 +92,23 @@ function createCategoryItem(category, index) {
 // Helper function to create the "Add New Category" item
 function createAddCategoryItem() {
     const addItem = document.createElement('div');
-    addItem.className = 'category-item add-category-item';
+    const currentCategories = getUserCategories(currentCategoryType);
+    const isDisabled = currentCategories.length >= MAX_CATEGORIES_PER_TYPE;
+    
+    addItem.className = `category-item add-category-item${isDisabled ? ' disabled' : ''}`;
     
     addItem.innerHTML = `
         <div class="add-category-content">
             <span class="material-symbols-outlined">add</span>
-            <span class="add-category-text">Add New Category</span>
+            <span class="add-category-text">${isDisabled ? `Maximum ${MAX_CATEGORIES_PER_TYPE} categories reached` : 'Add New Category'}</span>
         </div>
     `;
     
-    addItem.addEventListener('click', () => {
-        showCreateCategoryDialog();
-    });
+    if (!isDisabled) {
+        addItem.addEventListener('click', () => {
+            showCreateCategoryDialog();
+        });
+    }
     
     return addItem;
 }
@@ -219,6 +226,35 @@ function updateButtonStates() {
     }
 }
 
+// Helper function to update category counters in subtabs
+function updateCategoryCounters() {
+    const subtabs = document.querySelectorAll('.categories-subtab');
+    
+    subtabs.forEach(tab => {
+        const tabType = tab.dataset.type;
+        const userCategories = getUserCategories(tabType);
+        const count = userCategories.length;
+        const maxCount = MAX_CATEGORIES_PER_TYPE;
+        
+        // Update the tab text to include counter
+        const icon = tab.querySelector('.material-symbols-outlined');
+        const iconText = icon.textContent;
+        
+        let tabText = '';
+        switch (tabType) {
+            case CategoryType.Friends: tabText = 'Friends'; break;
+            case CategoryType.Avatars: tabText = 'Avatars'; break;
+            case CategoryType.Worlds: tabText = 'Worlds'; break;
+            case CategoryType.Props: tabText = 'Props'; break;
+        }
+        
+        tab.innerHTML = `
+            <span class="material-symbols-outlined">${iconText}</span>
+            ${tabText} <span class="category-counter">(${count}/${maxCount})</span>
+        `;
+    });
+}
+
 // Helper function to load categories for the specified type
 async function loadCategoriesForType(categoryType) {
     try {
@@ -229,6 +265,7 @@ async function loadCategoriesForType(categoryType) {
         
         console.log('Loaded categories data:', categoriesData);
         renderCategoriesList(categoryType);
+        updateCategoryCounters();  // Update counters after loading
         updateButtonStates();
     } catch (error) {
         console.error('Failed to load categories:', error);
@@ -275,6 +312,13 @@ function renderCategoriesList(categoryType) {
 // ===========
 
 function showCreateCategoryDialog() {
+    // Check if we've reached the maximum number of categories
+    const currentCategories = getUserCategories(currentCategoryType);
+    if (currentCategories.length >= MAX_CATEGORIES_PER_TYPE) {
+        pushToast(`Maximum of ${MAX_CATEGORIES_PER_TYPE} categories allowed per type`, 'error');
+        return;
+    }
+    
     const modalShade = document.querySelector('.prompt-layer');
     const modal = document.createElement('div');
     modal.className = 'prompt';
@@ -287,6 +331,7 @@ function showCreateCategoryDialog() {
     modalContent.className = 'prompt-text';
     modalContent.innerHTML = `
         <p>Enter a name for your new category:</p>
+        <p><small>Categories: ${currentCategories.length}/${MAX_CATEGORIES_PER_TYPE}</small></p>
         <input type="text" id="new-category-name" placeholder="Category name" maxlength="50" style="width: 100%; padding: 8px; margin-top: 10px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-background); color: var(--color-text);">
     `;
     
@@ -294,7 +339,7 @@ function showCreateCategoryDialog() {
     modalButtons.className = 'prompt-buttons';
     
     const createButton = document.createElement('button');
-    createButton.id = 'prompt-confirm';
+    createButton.className = 'prompt-btn-confirm';
     createButton.textContent = 'Create';
     createButton.addEventListener('click', async () => {
         const nameInput = modal.querySelector('#new-category-name');
@@ -327,7 +372,7 @@ function showCreateCategoryDialog() {
     });
     
     const cancelButton = document.createElement('button');
-    cancelButton.id = 'prompt-cancel';
+    cancelButton.className = 'prompt-btn-neutral';
     cancelButton.textContent = 'Cancel';
     cancelButton.addEventListener('click', () => {
         modal.remove();
@@ -366,9 +411,8 @@ function showDeleteCategoryDialog(categoryId, categoryName) {
     modalButtons.className = 'prompt-buttons';
     
     const deleteButton = document.createElement('button');
-    deleteButton.id = 'prompt-confirm';
+    deleteButton.className = 'prompt-btn-destructive';
     deleteButton.textContent = 'Delete';
-    deleteButton.style.backgroundColor = 'var(--button-reject-color)';
     deleteButton.addEventListener('click', async () => {
         try {
             console.log('Deleting category:', categoryId, 'for type:', currentCategoryType);
@@ -392,7 +436,7 @@ function showDeleteCategoryDialog(categoryId, categoryName) {
     });
     
     const cancelButton = document.createElement('button');
-    cancelButton.id = 'prompt-cancel';
+    cancelButton.className = 'prompt-btn-neutral';
     cancelButton.textContent = 'Cancel';
     cancelButton.addEventListener('click', () => {
         modal.remove();
@@ -481,6 +525,7 @@ function revertChanges() {
     // Reload from original data
     categoriesData = JSON.parse(JSON.stringify(originalCategoriesData));
     renderCategoriesList(currentCategoryType);
+    updateCategoryCounters();  // Update counters after reverting
     updateButtonStates();
     pushToast('Changes reverted', 'info');
 }

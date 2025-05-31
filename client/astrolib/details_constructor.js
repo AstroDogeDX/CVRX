@@ -632,7 +632,7 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
         iconHash: entityInfo.avatar?.imageHash,
         text: entityInfo.avatar?.name || 'No Avatar',
         clickable: entityInfo.avatar?.id ? true : false,
-        onClick: entityInfo.avatar?.id ? () => ShowDetailsCallback(DetailsType.Avatar, entityInfo.avatar.id) : null,
+        onClick: entityInfo.avatar?.id ? () => ShowDetails(DetailsType.Avatar, entityInfo.avatar.id) : null,
         tooltip: entityInfo.avatar?.id ? 'Current Avatar' : null
     });
     avatarSegment.classList.add('user-details-avatar-segment');
@@ -661,7 +661,7 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
             iconHash: entityInfo.instance.world?.imageHash,
             text: instanceText,
             clickable: entityInfo.instance.id ? true : false,
-            onClick: entityInfo.instance.id ? () => ShowDetailsCallback(DetailsType.Instance, entityInfo.instance.id) : null,
+            onClick: entityInfo.instance.id ? () => ShowDetails(DetailsType.Instance, entityInfo.instance.id) : null,
             tooltip: entityInfo.instance.id ? 'Current Instance' : null
         });
         instanceSegment.classList.add('user-details-instance-segment');
@@ -820,7 +820,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                             const confirmButtons = createElement('div', { className: 'prompt-buttons' });
 
                             const confirmButton = createElement('button', {
-                                id: 'prompt-confirm',
+                                className: 'prompt-btn-destructive',
                                 textContent: 'Remove Friend',
                                 onClick: async () => {
                                     try {
@@ -837,7 +837,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                             });
 
                             const cancelButton = createElement('button', {
-                                id: 'prompt-cancel',
+                                className: 'prompt-btn-neutral',
                                 textContent: 'Cancel',
                                 onClick: () => {
                                     confirmPrompt.remove();
@@ -904,7 +904,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                             const confirmButtons = createElement('div', { className: 'prompt-buttons' });
 
                             const confirmButton = createElement('button', {
-                                id: 'prompt-confirm',
+                                className: 'prompt-btn-destructive',
                                 textContent: 'Block User',
                                 onClick: async () => {
                                     try {
@@ -922,7 +922,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                             });
 
                             const cancelButton = createElement('button', {
-                                id: 'prompt-cancel',
+                                className: 'prompt-btn-neutral',
                                 textContent: 'Cancel',
                                 onClick: () => {
                                     confirmPrompt.remove();

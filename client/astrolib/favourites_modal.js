@@ -147,7 +147,7 @@ export async function showFavouritesModal(entityType, entityId, entityName, curr
         
         // Apply button
         const applyButton = createElement('button', {
-            id: 'prompt-confirm',
+            className: 'prompt-btn-confirm',
             textContent: 'Apply',
             onClick: async () => {
                 try {
@@ -191,7 +191,7 @@ export async function showFavouritesModal(entityType, entityId, entityName, curr
         
         // Cancel button
         const cancelButton = createElement('button', {
-            id: 'prompt-cancel',
+            className: 'prompt-btn-neutral',
             textContent: 'Cancel',
             onClick: () => {
                 modal.remove();

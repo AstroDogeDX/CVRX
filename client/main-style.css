@@ -31,6 +31,20 @@ button {
     --color-text-secondary: rgba(255, 255, 255, 0.7);
     --color-accent-rgb: 228, 54, 0;
     
+    /* Additional color variables */
+    --color-background: rgba(40, 40, 40, 0.9);
+    --color-background-secondary: rgba(50, 50, 50, 0.9);
+    --color-background-tertiary: rgba(60, 60, 60, 0.9);
+    --color-background-hover: rgba(55, 55, 55, 0.9);
+    --color-background-lighter: rgba(65, 65, 65, 0.9);
+    --color-text-primary: white;
+    --color-text-on-accent: white;
+    --color-accent-hover: rgba(200, 45, 0, 0.9);
+    --color-border-light: rgba(255, 255, 255, 0.15);
+    --color-border-hover: rgba(255, 255, 255, 0.25);
+    --color-error: #f44336;
+    --color-error-hover: #d32f2f;
+    
     /* Common radius values to reduce duplication */
     --radius-small: 4px;
     --radius-medium: 8px;
@@ -3273,7 +3287,9 @@ button {
     align-items: center;
 }
 
-.prompt-buttons button {
+/* Base prompt button styles */
+.prompt-buttons button,
+.prompt-btn {
     padding: 0.5rem 1rem;
     border-radius: 4px;
     border: 1px solid var(--color-border);
@@ -3284,8 +3300,59 @@ button {
     transition: all 0.2s ease;
     white-space: nowrap;
     min-width: 120px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
+/* Neutral button (default) - for general actions */
+.prompt-btn-neutral {
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
+.prompt-btn-neutral:hover {
+    background: var(--color-background-hover);
+    border-color: var(--color-border-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Green confirm button - for positive actions like updates, confirmations */
+.prompt-btn-confirm {
+    background: #2ecc71;
+    border: 1px solid #27ae60;
+    color: white;
+    font-weight: 600;
+    min-width: 140px;
+}
+
+.prompt-btn-confirm:hover {
+    background: #27ae60;
+    border-color: #219a52;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px rgba(46, 204, 113, 0.4);
+}
+
+/* Red destructive button - for destructive actions like deleting, removing */
+.prompt-btn-destructive {
+    background: var(--color-error);
+    border: 1px solid var(--color-error);
+    color: white;
+    font-weight: 600;
+}
+
+.prompt-btn-destructive:hover {
+    background: var(--color-error-hover);
+    border-color: var(--color-error-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px rgba(244, 67, 54, 0.4);
+}
+
+/* Special styling for update buttons (maintains backward compatibility) */
 .update-primary-action {
     background: #2ecc71 !important;
     border-color: #27ae60 !important;
@@ -3297,18 +3364,39 @@ button {
 .update-primary-action:hover {
     background: #27ae60 !important;
     border-color: #219a52 !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px rgba(46, 204, 113, 0.4);
 }
 
-.prompt-buttons button:not(.update-primary-action) {
+/* Disabled state for all button types */
+.prompt-btn:disabled,
+.prompt-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.prompt-btn:disabled:hover,
+.prompt-buttons button:disabled:hover {
+    background: var(--color-background);
+    border-color: var(--color-border);
+    transform: none;
+    box-shadow: none;
+}
+
+/* Legacy fallback for existing buttons without specific classes */
+.prompt-buttons button:not([class*="prompt-btn"]):not(.update-primary-action) {
     background: var(--color-background);
     border: 1px solid var(--color-border);
-    opacity: 0.8;
+    color: var(--color-text);
 }
 
-.prompt-buttons button:not(.update-primary-action):hover {
-    opacity: 1;
+.prompt-buttons button:not([class*="prompt-btn"]):not(.update-primary-action):hover {
     background: var(--color-background-hover);
+    border-color: var(--color-border-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 #prompt-confirm {
@@ -5543,12 +5631,24 @@ button {
 
 .categories-subtab.active {
     background: var(--color-accent);
-    color: white;
+    color: var(--color-text-on-accent);
     border-color: var(--color-accent);
 }
 
 .categories-subtab .material-symbols-outlined {
+    margin-right: 0.5rem;
     font-size: 1.2rem;
+}
+
+.categories-subtab .category-counter {
+    font-size: 0.7rem;
+    opacity: 0.8;
+    margin-left: 0.25rem;
+    font-weight: 400;
+}
+
+.categories-subtab.active .category-counter {
+    opacity: 1;
 }
 
 /* Categories Content */
@@ -5825,3 +5925,17 @@ button {
 }
 
 /* Favourites Modal Styles */
+.add-category-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--color-background-secondary);
+}
+
+.add-category-item.disabled:hover {
+    background: var(--color-background-secondary);
+    transform: none;
+}
+
+.add-category-item.disabled .add-category-content {
+    color: var(--color-text-secondary);
+}

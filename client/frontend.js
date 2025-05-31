@@ -214,7 +214,7 @@ function promptReconnect() {
     const promptText = createElement('div', { className: 'prompt-text', textContent: 'Socket failed to reconnect after 5 attempts. Click below to manually reconnect.' });
     const promptButtons = createElement('div', { className: 'prompt-buttons' });
     const confirmButton = createElement('button', {
-        id: 'prompt-confirm',
+        className: 'prompt-btn-confirm',
         textContent: 'Reconnect Socket',
         onClick: async () => {
             // Do your reconnect magic here.
@@ -244,8 +244,7 @@ function promptUpdate(updateInfo) {
     const promptButtons = createElement('div', { className: 'prompt-buttons' });
 
     const downloadButton = createElement('button', {
-        id: 'prompt-confirm',
-        className: 'update-primary-action',
+        className: 'prompt-btn-confirm update-primary-action',
         textContent: 'Download and Install',
         onClick: async () => {
             try {
@@ -261,7 +260,7 @@ function promptUpdate(updateInfo) {
     });
 
     const askLaterButton = createElement('button', {
-        id: 'prompt-cancel',
+        className: 'prompt-btn-neutral',
         textContent: 'Ask Again Later',
         onClick: async () => {
             try {
@@ -275,7 +274,7 @@ function promptUpdate(updateInfo) {
     });
 
     const ignoreButton = createElement('button', {
-        id: 'prompt-cancel',
+        className: 'prompt-btn-neutral',
         textContent: 'Ignore Until Restart',
         onClick: async () => {
             try {
@@ -289,7 +288,7 @@ function promptUpdate(updateInfo) {
     });
 
     const skipButton = createElement('button', {
-        id: 'prompt-cancel',
+        className: 'prompt-btn-neutral',
         textContent: 'Skip This Version',
         onClick: async () => {
             try {

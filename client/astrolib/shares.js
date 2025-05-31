@@ -169,7 +169,7 @@ function showRemoveShareConfirmation(user, onConfirm, createElement) {
     const confirmButtons = createElement('div', { className: 'prompt-buttons' });
 
     const confirmButton = createElement('button', {
-        id: 'prompt-confirm',
+        className: 'prompt-btn-destructive',
         textContent: 'Remove Share',
         onClick: async () => {
             try {
@@ -184,7 +184,7 @@ function showRemoveShareConfirmation(user, onConfirm, createElement) {
     });
 
     const cancelButton = createElement('button', {
-        id: 'prompt-cancel',
+        className: 'prompt-btn-neutral',
         textContent: 'Cancel',
         onClick: () => {
             confirmPrompt.remove();
@@ -242,7 +242,7 @@ function showAddShareModal(onAdd, createElement) {
     const modalButtons = createElement('div', { className: 'prompt-buttons' });
     
     const cancelButton = createElement('button', {
-        id: 'prompt-cancel',
+        className: 'prompt-btn-neutral',
         textContent: 'Cancel',
         onClick: () => {
             modal.remove();
