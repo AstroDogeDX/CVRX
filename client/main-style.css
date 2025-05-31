@@ -2105,6 +2105,7 @@ button {
     display: flex;
     flex-direction: column;
     height: 100%;
+    margin-bottom: 10px;
 }
 
 /* Entity-specific Grid Classes - Consolidated */
@@ -3685,7 +3686,6 @@ button {
     width: 100%;
     box-sizing: border-box;
     gap: 10px;
-    padding-bottom: 10px;
 }
 
 .notes-content {
