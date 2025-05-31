@@ -1,5 +1,12 @@
 const overlay = document.querySelector('.toast-notification');
 
+// Safe HTML entity decoder that prevents XSS
+function decodeHtmlEntities(text) {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+}
+
 function pushToast(text, type = 'none', duration = 3000) {
     // Create toast container
     const newToast = document.createElement('div');
@@ -30,10 +37,10 @@ function pushToast(text, type = 'none', duration = 3000) {
         toastContent.appendChild(iconElement);
     }
 
-    // Add message
+    // Add message with safe HTML entity decoding
     const messageElement = document.createElement('span');
     messageElement.classList.add('toast-message');
-    messageElement.textContent = toastText;
+    messageElement.textContent = decodeHtmlEntities(toastText);
     toastContent.appendChild(messageElement);
 
     // Add progress bar
