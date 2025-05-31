@@ -885,7 +885,7 @@ class Core {
             const timeUntilExecute = Math.ceil((this.nextInstancesRefreshAvailableExecuteTime - currentTime) / 1000);
             if (sendMessageToFrontend) {
                 this.SendToRenderer('notification',
-                    `Instance were refreshed less than 1 minute ago. Wait ${timeUntilExecute} seconds...`,
+                    `Slow down! Instances were refreshed less than 1 minute ago. Wait ${timeUntilExecute} seconds...`,
                     ToastTypes.BAD);
             }
             return false;
