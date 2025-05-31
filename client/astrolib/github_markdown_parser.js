@@ -95,8 +95,8 @@ export function parseMarkdown(text) {
         if (headerMatch) {
             const level = headerMatch[1].length;
             const content = headerMatch[2];
-            // Add margin-top only if the previous element wasn't a header
-            const marginTop = lastWasHeader ? '0' : '0.75em';
+            // Add margin-top only if the previous element wasn't a header and this isn't the first element
+            const marginTop = (lastWasHeader || output.length === 0) ? '0' : '0.75em';
             output.push(`<h${level} style="margin-top: ${marginTop}; margin-bottom: 0.15em;">${processInlineFormatting(content)}</h${level}>`);
             lastWasHeader = true;
             continue;
