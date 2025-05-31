@@ -174,6 +174,11 @@ contextBridge.exposeInMainWorld('API', {
     // Process Detection
     isChilloutVRRunning: () => ipcRenderer.invoke('is-chilloutvr-running'),
 
+    // Advanced Avatar Settings
+    hasAvatarAdvancedSettings: (avatarId) => ipcRenderer.invoke('has-avatar-advanced-settings', avatarId),
+    getAvatarAdvancedSettings: (avatarId) => ipcRenderer.invoke('get-avatar-advanced-settings', avatarId),
+    saveAvatarAdvancedSettings: (avatarId, settings) => ipcRenderer.invoke('save-avatar-advanced-settings', avatarId, settings),
+
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),
 });

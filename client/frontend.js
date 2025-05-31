@@ -687,6 +687,13 @@ async function loadTabContent(tab, entityId) {
         return;
     }
 
+    if (tab === 'adv-settings') {
+        // Load Advanced Avatar Settings using the AAS module
+        const { loadAdvancedAvatarSettings } = await import('./astrolib/advanced_avatar_settings.js');
+        loadAdvancedAvatarSettings(entityId);
+        return;
+    }
+
     // Determine the current entity type to use the correct grid class
     const currentEntityType = getCurrentEntityType(entityId);
     let entityClassPrefix = 'user-details'; // Default fallback

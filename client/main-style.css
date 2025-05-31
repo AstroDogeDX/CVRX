@@ -6070,3 +6070,638 @@ button {
     color: rgba(255, 255, 255, 0.85);
     font-style: italic;
 }
+
+.changelog-content em {
+    color: rgba(255, 255, 255, 0.85);
+    font-style: italic;
+}
+
+/* ===============================
+   ADVANCED AVATAR SETTINGS STYLES
+   =============================== */
+
+/* Make the container within the tab pane fill the available height */
+.adv-settings-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.aas-manager {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.aas-header {
+    flex-shrink: 0;
+}
+
+.aas-header h3 {
+    color: var(--color-text);
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.aas-header p {
+    color: var(--color-text-secondary);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.aas-content {
+    display: flex;
+    gap: 5px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.aas-profiles-section {
+    width: 40%;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-background-darker);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 10px;
+    overflow: hidden;
+}
+
+.aas-parameters-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--color-background-darker);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 10px;
+    overflow: hidden;
+}
+
+.aas-section-header {
+    flex-shrink: 0;
+    margin-bottom: 0.75rem;
+}
+
+.aas-section-header h4 {
+    color: var(--color-text);
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.aas-section-header small {
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+}
+
+.aas-profiles-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 0.75rem;
+    min-height: 0;
+    padding-right: 5px;
+}
+
+.aas-add-profile-section {
+    flex-shrink: 0;
+}
+
+.aas-parameters-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.aas-parameters-header {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.aas-parameters-header h4 {
+    color: var(--color-text);
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.aas-add-parameter-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.aas-add-parameter-btn:hover {
+    background: var(--color-accent-hover);
+    transform: translateY(-1px);
+}
+
+.aas-add-parameter-btn .material-symbols-outlined {
+    font-size: 1rem;
+}
+
+.aas-parameters-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-height: 0;
+    padding-right: 5px;
+}
+
+.aas-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 5px;
+    flex-shrink: 0;
+}
+
+.aas-profile-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 5px;
+    background: var(--color-background-light);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.aas-profile-item:hover {
+    background: var(--color-background-lighter);
+    border-color: var(--color-border-light);
+}
+
+.aas-profile-item.selected {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: white;
+}
+
+.aas-profile-item.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+}
+
+.aas-profile-item.drag-over {
+    border-color: var(--color-accent);
+    background: rgba(135, 206, 235, 0.1);
+}
+
+.aas-profile-drag-handle {
+    color: var(--color-text-secondary);
+    cursor: grab;
+    flex-shrink: 0;
+}
+
+.aas-profile-drag-handle:active {
+    cursor: grabbing;
+}
+
+.aas-profile-drag-handle .material-symbols-outlined {
+    font-size: 1.2rem;
+}
+
+.aas-profile-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.aas-profile-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    word-break: break-word;
+}
+
+.aas-profile-name-text {
+    cursor: pointer;
+    padding: 0.1rem 0.2rem;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+
+.aas-profile-name-text:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.aas-profile-name-input {
+    background: var(--color-background-darker);
+    border: 1px solid var(--color-accent);
+    border-radius: 3px;
+    padding: 0.1rem 0.3rem;
+    color: inherit;
+    font-weight: inherit;
+    font-size: inherit;
+    min-width: 100px;
+}
+
+.aas-default-indicator {
+    background: var(--color-accent-secondary);
+    color: white;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.aas-profile-param-count {
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+}
+
+.aas-profile-item.selected .aas-profile-param-count {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.aas-profile-actions {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.aas-set-default-btn,
+.aas-delete-profile-btn,
+.aas-rename-profile-btn {
+    padding: 0.4rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--color-text-secondary);
+}
+
+.aas-set-default-btn:hover {
+    background: rgba(255, 215, 0, 0.2);
+    color: #ffd700;
+    border-color: #ffd700;
+}
+
+.aas-rename-profile-btn:hover {
+    background: rgba(135, 206, 235, 0.2);
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.aas-delete-profile-btn:hover {
+    background: rgba(255, 99, 71, 0.2);
+    color: #ff6347;
+    border-color: #ff6347;
+}
+
+.aas-set-default-btn .material-symbols-outlined,
+.aas-delete-profile-btn .material-symbols-outlined,
+.aas-rename-profile-btn .material-symbols-outlined {
+    font-size: 1rem;
+}
+
+.aas-add-profile-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 5px;
+    background: var(--color-background-light);
+    border: 2px dashed var(--color-border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    width: 100%;
+}
+
+.aas-add-profile-btn:hover {
+    background: var(--color-background-lighter);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.aas-add-profile-btn .material-symbols-outlined {
+    font-size: 1.2rem;
+}
+
+.aas-no-profiles {
+    text-align: center;
+    color: var(--color-text-secondary);
+    padding: 2rem 1rem;
+    font-style: italic;
+}
+
+.aas-parameter-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 10px;
+    background: var(--color-background-light);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.aas-parameter-item:hover {
+    background: var(--color-background-lighter);
+    border-color: var(--color-border-light);
+}
+
+.aas-parameter-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.aas-parameter-name {
+    color: var(--color-text);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.aas-parameter-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.aas-parameter-slider {
+    flex: 1;
+    height: 6px;
+    background: var(--color-background-darker);
+    border-radius: 3px;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.aas-parameter-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.aas-parameter-slider::-webkit-slider-thumb:hover {
+    background: var(--color-accent-hover);
+    transform: scale(1.1);
+}
+
+.aas-parameter-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.aas-parameter-value {
+    width: 80px;
+    padding: 0.4rem 0.6rem;
+    background: var(--color-background-darker);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    color: var(--color-text);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.aas-parameter-value:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    background: var(--color-background-dark);
+}
+
+.aas-parameter-actions {
+    flex-shrink: 0;
+}
+
+.aas-delete-parameter-btn {
+    padding: 0.5rem;
+    background: rgba(255, 99, 71, 0.1);
+    border: 1px solid rgba(255, 99, 71, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #ff6347;
+}
+
+.aas-delete-parameter-btn:hover {
+    background: rgba(255, 99, 71, 0.2);
+    border-color: #ff6347;
+    transform: translateY(-1px);
+}
+
+.aas-delete-parameter-btn .material-symbols-outlined {
+    font-size: 1.1rem;
+}
+
+.aas-no-parameters {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--color-text-secondary);
+    gap: 1rem;
+}
+
+.aas-no-parameters-icon .material-symbols-outlined {
+    font-size: 3rem;
+    opacity: 0.5;
+}
+
+.aas-no-parameters p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.aas-no-parameters small {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.aas-save-btn,
+.aas-revert-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.aas-save-btn {
+    background: var(--color-accent);
+    color: white;
+}
+
+.aas-save-btn:hover:not(.disabled) {
+    background: var(--color-accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(135, 206, 235, 0.3);
+}
+
+.aas-revert-btn {
+    background: var(--color-background-light);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+.aas-revert-btn:hover:not(.disabled) {
+    background: var(--color-background-lighter);
+    transform: translateY(-1px);
+}
+
+.aas-save-btn.disabled,
+.aas-revert-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.aas-save-btn .material-symbols-outlined,
+.aas-revert-btn .material-symbols-outlined {
+    font-size: 1.1rem;
+}
+
+.aas-no-settings,
+.aas-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--color-text-secondary);
+    gap: 1.5rem;
+    height: 100%;
+}
+
+.aas-no-settings-icon .material-symbols-outlined,
+.aas-error-icon .material-symbols-outlined {
+    font-size: 4rem;
+    opacity: 0.5;
+}
+
+.aas-no-settings h3,
+.aas-error h3 {
+    color: var(--color-text);
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.aas-no-settings p,
+.aas-error p {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.5;
+    max-width: 500px;
+}
+
+.aas-no-settings small {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    font-style: italic;
+}
+
+/* Responsive Design for AAS */
+@media (max-width: 768px) {
+    .aas-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .aas-profiles-section {
+        width: 100%;
+        max-height: 250px;
+    }
+    
+    .aas-parameters-section {
+        flex: 1;
+        min-height: 300px;
+    }
+    
+    .aas-parameter-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    
+    .aas-parameter-value {
+        width: 100%;
+    }
+    
+    .aas-actions {
+        flex-direction: column;
+    }
+    
+    .aas-save-btn,
+    .aas-revert-btn {
+        justify-content: center;
+    }
+    
+    .aas-parameters-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    
+    .aas-add-parameter-btn {
+        justify-content: center;
+        align-self: stretch;
+    }
+}

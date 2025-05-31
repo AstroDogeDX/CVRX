@@ -294,6 +294,8 @@ exports.GetMaxCacheSize = () => config.CacheMaxSizeInMegabytes;
 
 exports.GetCloseToSystemTray = () => config.CloseToSystemTray;
 
+exports.GetCVRPath = GetCVRPath;
+
 exports.GetUpdaterIgnoreVersion = () => config.UpdaterIgnoreVersion;
 exports.SetUpdaterIgnoreVersion = async (versionToIgnore) => {
     config.UpdaterIgnoreVersion = versionToIgnore;

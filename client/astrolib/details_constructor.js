@@ -430,7 +430,7 @@ function addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, load
             
             // Create Advanced Avatar Settings pane if we have access
             if (hasAvatarAccess) {
-                const avatarAdvSettingsPane = createTabPane('adv-settings', classPrefix, '<div class="adv-settings-container"><div class="no-items-message">Advanced Avatar Settings coming soon!</div></div>');
+                const avatarAdvSettingsPane = createTabPane('adv-settings', classPrefix, '<div class="adv-settings-container"></div>');
                 tabPanes.push(avatarAdvSettingsPane);
             }
             
@@ -442,7 +442,7 @@ function addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, load
             firstTabId = 'description';
             break;
         }
-        case DetailsType.Prop:
+        case DetailsType.Prop: {
             // Left side tabs for Prop Details - Description moved to left
             const propDescTab = createTabButton('description', 'description', 'Description', classPrefix, true);
             tabs.push(propDescTab);
@@ -466,7 +466,7 @@ function addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, load
             
             firstTabId = 'description';
             break;
-            
+        }
         case DetailsType.Instance:
             // Only Users tab for Instance Details
             const usersTab = createTabButton('users', 'group', 'Users', classPrefix, true);

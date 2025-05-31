@@ -327,6 +327,34 @@ class Core {
         // Notifications
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.MENU_POPUP, (_data, msg) => this.SendToRenderer('notification', msg, ToastTypes.INFO));
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.HUD_MESSAGE, (_data, msg) => this.SendToRenderer('notification', msg, ToastTypes.INFO));
+
+        // Advanced Avatar Settings
+        ipcMain.handle('get-avatar-advanced-settings', async (_event, avatarId) => {
+            try {
+                return await this.GetAvatarAdvancedSettings(avatarId);
+            } catch (error) {
+                log.error(`Failed to get avatar advanced settings for ${avatarId}:`, error);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('save-avatar-advanced-settings', async (_event, avatarId, settings) => {
+            try {
+                return await this.SaveAvatarAdvancedSettings(avatarId, settings);
+            } catch (error) {
+                log.error(`Failed to save avatar advanced settings for ${avatarId}:`, error);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('has-avatar-advanced-settings', async (_event, avatarId) => {
+            try {
+                return await this.HasAvatarAdvancedSettings(avatarId);
+            } catch (error) {
+                log.error(`Failed to check avatar advanced settings for ${avatarId}:`, error);
+                return false;
+            }
+        });
     }
 
     SendToRenderer(channel, ...args) {
@@ -1241,6 +1269,85 @@ class Core {
             await LoadUserImages(prop.author);
         }
         return prop;
+    }
+
+    // Advanced Avatar Settings methods
+    async GetAvatarAdvancedSettings(avatarId) {
+        const fs = require('fs');
+        const path = require('path');
+        
+        try {
+            const advAvatarPath = this.#GetAdvAvatarFilePath(avatarId);
+            
+            if (!fs.existsSync(advAvatarPath)) {
+                return null; // No advanced settings file exists
+            }
+            
+            const fileContent = await fs.promises.readFile(advAvatarPath, 'utf8');
+            return JSON.parse(fileContent);
+        } catch (error) {
+            log.error(`[GetAvatarAdvancedSettings] Failed to read advanced settings for avatar ${avatarId}:`, error);
+            throw error;
+        }
+    }
+
+    async SaveAvatarAdvancedSettings(avatarId, settings) {
+        const fs = require('fs');
+        const path = require('path');
+        
+        try {
+            const advAvatarPath = this.#GetAdvAvatarFilePath(avatarId);
+            const advAvatarDir = path.dirname(advAvatarPath);
+            
+            // Ensure the directory exists
+            await fs.promises.mkdir(advAvatarDir, { recursive: true });
+            
+            // Write the settings to file
+            await fs.promises.writeFile(advAvatarPath, JSON.stringify(settings, null, 4), 'utf8');
+            
+            log.info(`[SaveAvatarAdvancedSettings] Successfully saved advanced settings for avatar ${avatarId}`);
+            return { success: true };
+        } catch (error) {
+            log.error(`[SaveAvatarAdvancedSettings] Failed to save advanced settings for avatar ${avatarId}:`, error);
+            throw error;
+        }
+    }
+
+    async HasAvatarAdvancedSettings(avatarId) {
+        const fs = require('fs');
+        
+        try {
+            const advAvatarPath = this.#GetAdvAvatarFilePath(avatarId);
+            log.debug(`[HasAvatarAdvancedSettings] Checking for avatar ${avatarId} at path: ${advAvatarPath}`);
+            
+            const exists = fs.existsSync(advAvatarPath);
+            log.debug(`[HasAvatarAdvancedSettings] File exists: ${exists}`);
+            
+            return exists;
+        } catch (error) {
+            log.error(`[HasAvatarAdvancedSettings] Failed to check advanced settings for avatar ${avatarId}:`, error);
+            return false;
+        }
+    }
+
+    #GetAdvAvatarFilePath(avatarId) {
+        const path = require('path');
+        
+        // Get the CVR path from config - using the correct method from config.js
+        const cvrPath = Config.GetCVRPath();
+        log.debug(`[GetAdvAvatarFilePath] CVR path from config: ${cvrPath}`);
+        
+        if (!cvrPath) {
+            throw new Error('ChilloutVR path not configured');
+        }
+        
+        // Build the path to the AvatarsAdvancedSettingsProfiles directory
+        const advAvatarDir = path.join(cvrPath, 'ChilloutVR_Data', 'AvatarsAdvancedSettingsProfiles');
+        const advAvatarPath = path.join(advAvatarDir, `${avatarId}.advavtr`);
+        
+        log.debug(`[GetAdvAvatarFilePath] Constructed path: ${advAvatarPath}`);
+        
+        return advAvatarPath;
     }
 }
 
