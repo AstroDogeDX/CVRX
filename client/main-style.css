@@ -433,7 +433,6 @@ button {
     background: rgba(0, 0, 0, 0.5);
     border-color: rgba(255, 255, 255, 0.2);
     color: var(--color-text);
-    transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -2762,8 +2761,10 @@ button {
 #display-settings {
     display: flex;
     flex-flow: column nowrap;
-    gap: 10px;
-    padding: 15px;
+    gap: 20px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .settings-tabs {
@@ -2773,22 +2774,26 @@ button {
     padding-bottom: 5px;
     height: 40px;
     align-items: center;
+    border-radius: var(--border-radii) var(--border-radii) 0 0;
+    padding: 5px 10px;
 }
 
 .settings-tab {
     background: none;
     border: none;
     color: rgba(255, 255, 255, 0.5);
-    padding: 0 16px;
+    padding: 0 20px;
     height: 40px;
     line-height: 40px;
     font-size: 16px;
     cursor: pointer;
     border-radius: var(--border-radii);
-    transition: all 0.2s ease;
+    transition: var(--transition-fast);
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    font-weight: 500;
 }
 
 .settings-tab:hover {
@@ -2797,107 +2802,263 @@ button {
 }
 
 .settings-tab.active {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--color-accent);
     color: white;
+    box-shadow: 0 2px 8px rgba(var(--color-accent-rgb), 0.3);
+}
+
+.settings-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--color-accent);
 }
 
 .settings-content {
     flex: 1;
     overflow-y: auto;
+    border-radius: 0 0 var(--border-radii) var(--border-radii);
+    padding: 20px;
 }
 
 .settings-page {
     display: none;
-    flex-direction: column;
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    align-items: start;
 }
 
 .settings-page.active {
-    display: flex;
+    display: grid;
 }
 
 .settings-section {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: var(--border-radii);
-    padding: 15px;
+    background: var(--color-background-dark);
+    border-radius: var(--radius-medium);
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    backdrop-filter: blur(10px);
+    transition: var(--transition-fast);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.settings-section:hover {
+    border-color: var(--color-border-hover);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .settings-section h3 {
-    margin: 0 0 10px 0;
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 18px;
+    margin: 0 0 16px 0;
+    color: var(--color-text-primary);
+    font-size: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-border-light);
 }
 
+.settings-section h3::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: var(--color-accent);
+    border-radius: 2px;
+}
+
+/* Improved settings options layout */
 .settings-option {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--color-border-light);
+    transition: var(--transition-fast);
 }
 
 .settings-option:last-child {
     border-bottom: none;
+    margin-bottom: 0;
+}
+
+.settings-option:hover {
+    background: var(--color-background-hover);
+    border-radius: var(--radius-small);
+    padding-left: 8px;
+    padding-right: 8px;
+    margin-left: -8px;
+    margin-right: -8px;
 }
 
 .settings-option label {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
-    margin-left: 8px;
+    font-size: 15px;
+    color: var(--color-text-secondary);
     cursor: pointer;
+    flex: 1;
+    font-weight: 500;
+    transition: var(--transition-fast);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
+.settings-option:hover label {
+    color: var(--color-text-primary);
+}
+
+.settings-option label .setting-description {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 400;
+}
+
+/* Custom styled checkboxes */
 .settings-option input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     cursor: pointer;
+    appearance: none;
+    background: var(--color-background-secondary);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-small);
+    position: relative;
+    transition: var(--transition-fast);
+    flex-shrink: 0;
 }
 
+.settings-option input[type="checkbox"]:hover {
+    border-color: var(--color-border-hover);
+    background: var(--color-background-lighter);
+}
+
+.settings-option input[type="checkbox"]:checked {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.settings-option input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Dropdown styling */
+.settings-option .settings-dropdown {
+    min-width: 180px;
+    flex-shrink: 0;
+}
+
+/* Enhanced button styling */
 .settings-button {
     display: flex;
     align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: white;
-    padding: 8px 16px;
-    border-radius: var(--border-radii);
+    gap: 10px;
+    background: var(--color-background-light);
+    border: 2px solid var(--color-border);
+    color: var(--color-text-primary);
+    padding: 12px 20px;
+    border-radius: var(--radius-medium);
     cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s ease;
+    font-size: 15px;
+    font-weight: 500;
+    transition: var(--transition-fast);
+    width: 100%;
+    justify-content: center;
+    text-transform: none;
+    min-height: 48px;
 }
 
 .settings-button:hover {
-    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--color-border-hover);
+    background: var(--color-background-lighter);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.settings-button:active {
+    transform: translateY(0);
 }
 
 #check-updates-button {
-    background: darkcyan;
+    background: linear-gradient(135deg, darkcyan, #006666);
+    border-color: darkcyan;
+    color: white;
 }
 
 #check-updates-button:hover {
-    background: #008b8b;
+    background: linear-gradient(135deg, #008b8b, #007777);
+    border-color: #008b8b;
+    box-shadow: 0 4px 15px rgba(0, 139, 139, 0.3);
 }
 
 #logout-button {
-    background: #8b0000;
+    background: linear-gradient(135deg, #8b0000, #660000);
+    border-color: #8b0000;
+    color: white;
 }
 
 #logout-button:hover {
-    background: #a00000;
+    background: linear-gradient(135deg, #a00000, #770000);
+    border-color: #a00000;
+    box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
 }
 
 #clear-cached-images-button {
-    background: #ff6b35;
+    background: linear-gradient(135deg, #ff6b35, #e55722);
+    border-color: #ff6b35;
+    color: white;
 }
 
 #clear-cached-images-button:hover {
-    background: #ff5722;
+    background: linear-gradient(135deg, #ff5722, #d44516);
+    border-color: #ff5722;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
 }
 
 .settings-button .material-symbols-outlined {
-    font-size: 18px;
+    font-size: 20px;
 }
+
+/* Section-specific enhancements */
+.settings-section[data-section="updates"] h3::before {
+    background: darkcyan;
+}
+
+.settings-section[data-section="system"] h3::before {
+    background: #4CAF50;
+}
+
+.settings-section[data-section="account"] h3::before {
+    background: #f44336;
+}
+
+.settings-section[data-section="appearance"] h3::before {
+    background: #9C27B0;
+}
+
+.settings-section[data-section="cache"] h3::before {
+    background: #FF9800;
+}
+
+.settings-section[data-section="debugging"] h3::before {
+    background: #607D8B;
+}
+
+.settings-page.active .settings-section:nth-child(1) { animation-delay: 0.05s; }
+.settings-page.active .settings-section:nth-child(2) { animation-delay: 0.1s; }
+.settings-page.active .settings-section:nth-child(3) { animation-delay: 0.15s; }
+.settings-page.active .settings-section:nth-child(4) { animation-delay: 0.2s; }
 
 /* NEW 3DS Instance Nodes Bros. U*/
 
@@ -3252,7 +3413,6 @@ button {
 .prompt-btn-neutral:hover {
     background: var(--color-background-hover);
     border-color: var(--color-border-hover);
-    transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -3268,7 +3428,6 @@ button {
 .prompt-btn-confirm:hover {
     background: #27ae60;
     border-color: #219a52;
-    transform: translateY(-1px);
     box-shadow: 0 2px 12px rgba(46, 204, 113, 0.4);
 }
 
@@ -3283,7 +3442,6 @@ button {
 .prompt-btn-destructive:hover {
     background: var(--color-error-hover);
     border-color: var(--color-error-hover);
-    transform: translateY(-1px);
     box-shadow: 0 2px 12px rgba(244, 67, 54, 0.4);
 }
 
@@ -3299,7 +3457,6 @@ button {
 .update-primary-action:hover {
     background: #27ae60 !important;
     border-color: #219a52 !important;
-    transform: translateY(-1px);
     box-shadow: 0 2px 12px rgba(46, 204, 113, 0.4);
 }
 
@@ -3330,7 +3487,6 @@ button {
 .prompt-buttons button:not([class*="prompt-btn"]):not(.update-primary-action):hover {
     background: var(--color-background-hover);
     border-color: var(--color-border-hover);
-    transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -4869,7 +5025,6 @@ button {
 
 .user-details-info-item.clickable:hover {
     background: var(--color-bg-secondary);
-    transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -5230,7 +5385,6 @@ button {
 }
 
 .share-card:hover {
-    transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
@@ -5286,7 +5440,6 @@ button {
 }
 
 .add-share-card:hover {
-    transform: translateY(-2px);
     border-color: var(--color-accent);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
@@ -5385,7 +5538,6 @@ button {
 }
 
 .shares-search-result-card:hover {
-    transform: translateY(-2px);
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
     border-color: var(--color-accent);
 }
@@ -5737,7 +5889,6 @@ button {
 .categories-apply-btn:hover:not(.disabled) {
     background: var(--color-accent-hover);
     border-color: var(--color-accent-hover);
-    transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(var(--color-accent-rgb), 0.3);
 }
 
@@ -5749,7 +5900,6 @@ button {
 .categories-revert-btn:hover:not(.disabled) {
     background: var(--color-background-hover);
     border-color: var(--color-accent);
-    transform: translateY(-1px);
 }
 
 .categories-apply-btn.disabled,
@@ -6050,7 +6200,6 @@ button {
 
 .aas-add-parameter-btn:hover {
     background: var(--color-accent-hover);
-    transform: translateY(-1px);
 }
 
 .aas-add-parameter-btn .material-symbols-outlined {
@@ -6364,7 +6513,6 @@ button {
 .aas-delete-parameter-btn:hover {
     background: rgba(255, 99, 71, 0.2);
     border-color: #ff6347;
-    transform: translateY(-1px);
 }
 
 .aas-delete-parameter-btn .material-symbols-outlined {
@@ -6418,7 +6566,6 @@ button {
 
 .aas-save-btn:hover:not(.disabled) {
     background: var(--color-accent-hover);
-    transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(135, 206, 235, 0.3);
 }
 
@@ -6430,7 +6577,6 @@ button {
 
 .aas-revert-btn:hover:not(.disabled) {
     background: var(--color-background-lighter);
-    transform: translateY(-1px);
 }
 
 .aas-save-btn.disabled,

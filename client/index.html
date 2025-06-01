@@ -205,21 +205,24 @@
         </div>
         <div class="settings-content">
           <div class="settings-page active" id="settings-general">
-            <div class="settings-section">
+            <div class="settings-section" data-section="updates">
               <h3>Updates</h3>
               <button id="check-updates-button" class="settings-button">
                 <span class="material-symbols-outlined">system_update</span>
                 Check for Updates
               </button>
             </div>
-            <div class="settings-section">
+            <div class="settings-section" data-section="system">
               <h3>System</h3>
               <div class="settings-option">
                 <input type="checkbox" id="setting-close-to-tray">
-                <label for="setting-close-to-tray">Close to System Tray</label>
+                <label for="setting-close-to-tray">
+                  Close to System Tray
+                  <span class="setting-description">Keep CVRX running in the system tray when closing the window</span>
+                </label>
               </div>
             </div>
-            <div class="settings-section">
+            <div class="settings-section" data-section="account">
               <h3>Account</h3>
               <button id="logout-button" class="settings-button">
                 <span class="material-symbols-outlined">logout</span>
@@ -228,10 +231,13 @@
             </div>
           </div>
           <div class="settings-page" id="settings-appearance">
-            <div class="settings-section">
+            <div class="settings-section" data-section="appearance">
               <h3>Details View</h3>
               <div class="settings-option">
-                <label for="setting-thumbnail-shape">Thumbnail Shape:</label>
+                <label for="setting-thumbnail-shape">
+                  Thumbnail Shape
+                  <span class="setting-description">Choose how thumbnails appear in detail views</span>
+                </label>
                 <select id="setting-thumbnail-shape" class="settings-dropdown">
                   <option value="hexagonal">Hexagonal</option>
                   <option value="square">Square</option>
@@ -242,14 +248,14 @@
             </div>
           </div>
           <div class="settings-page" id="settings-advanced">
-            <div class="settings-section">
+            <div class="settings-section" data-section="cache">
               <h3>Cache</h3>
               <button id="clear-cached-images-button" class="settings-button">
                 <span class="material-symbols-outlined">delete_sweep</span>
                 Clear Cached Images
               </button>
             </div>
-            <div class="settings-section">
+            <div class="settings-section" data-section="debugging">
               <h3>Debugging</h3>
               <button id="open-logs-folder-button" class="settings-button">
                 <span class="material-symbols-outlined">folder_open</span>
