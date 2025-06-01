@@ -5,6 +5,7 @@ A companion app for **ChilloutVR** that e**X**pands the user experience!
 ## Features
 * **Real Time Friends List** - Stay connected with your friends instantly
 * **Live Instance Tracking** - Monitor instances with player and friend counts
+* **Deep Link Support** - Join instances and invites directly from CVRX
 * **Detailed Content Pages** - Comprehensive views for avatars, props, worlds, users, and instances
 * **Content Search** - Find exactly what you're looking for
 * **Content Discovery** - Explore new, recently updated, and random content
