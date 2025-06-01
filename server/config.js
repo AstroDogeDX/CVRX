@@ -61,6 +61,7 @@ exports.Load = async () => {
         CacheMaxSizeInMegabytes: 1000,
         CloseToSystemTray: false,
         ThumbnailShape: 'hexagonal',
+        OnlineFriendsThumbnailShape: 'rounded',
         CVRExecutable: path.join(CVRExecutableDefaultFolderPath, CVRExecutableName),
         UpdaterIgnoreVersion: null,
     };
@@ -277,6 +278,17 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.ThumbnailShape = thumbnailShape;
     }
 
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'OnlineFriendsThumbnailShape')) {
+        const onlineFriendsThumbnailShape = newConfigSettings.OnlineFriendsThumbnailShape;
+        const validShapes = ['hexagonal', 'square', 'rounded', 'circle'];
+
+        if (typeof onlineFriendsThumbnailShape !== 'string' || !validShapes.includes(onlineFriendsThumbnailShape)) {
+            throw new Error('[UpdateConfig] OnlineFriendsThumbnailShape should be one of: hexagonal, square, rounded, circle.');
+        }
+
+        config.OnlineFriendsThumbnailShape = onlineFriendsThumbnailShape;
+    }
+
     await UpdateJsonFile(FileType.CONFIG);
 
     return exports.GetConfig();
@@ -287,6 +299,7 @@ exports.GetConfig = () => ({
     CacheMaxSizeInMegabytes: config.CacheMaxSizeInMegabytes,
     CloseToSystemTray: config.CloseToSystemTray,
     ThumbnailShape: config.ThumbnailShape,
+    OnlineFriendsThumbnailShape: config.OnlineFriendsThumbnailShape,
 });
 
 

@@ -1898,6 +1898,27 @@ button {
     min-height: 50px;
 }
 
+/* Online friend image shape variants */
+.online-friend-node--image.shape-hexagonal {
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    border-radius: 0;
+}
+
+.online-friend-node--image.shape-square {
+    clip-path: none;
+    border-radius: 0;
+}
+
+.online-friend-node--image.shape-rounded {
+    clip-path: none;
+    border-radius: var(--border-radii);
+}
+
+.online-friend-node--image.shape-circle {
+    clip-path: none;
+    border-radius: 50%;
+}
+
 .online-friend-node--name {
     grid-area: online-friend-node--name;
     font-size: 18px;

@@ -378,6 +378,15 @@ window.API.onHomePage((_event) => {
     setupWorldsTextFilter();
     // Setup props text filter
     setupPropsTextFilter();
+    
+    // Apply the current online friends thumbnail shape on initial load
+    window.API.getConfig().then(config => {
+        const shape = config.OnlineFriendsThumbnailShape || 'rounded';
+        applyOnlineFriendsThumbnailShape(shape);
+    }).catch(error => {
+        // Fallback to default shape if config fails
+        applyOnlineFriendsThumbnailShape('rounded');
+    });
 });
 
 // Handle automatic update notifications from backend
@@ -437,6 +446,15 @@ window.API.onHomePage((_event) => {
     setupAvatarsTextFilter();
     // Setup worlds text filter
     setupWorldsTextFilter();
+    
+    // Apply the current online friends thumbnail shape on initial load
+    window.API.getConfig().then(config => {
+        const shape = config.OnlineFriendsThumbnailShape || 'rounded';
+        applyOnlineFriendsThumbnailShape(shape);
+    }).catch(error => {
+        // Fallback to default shape if config fails
+        applyOnlineFriendsThumbnailShape('rounded');
+    });
 });
 
 
@@ -939,6 +957,15 @@ async function loadTabContent(tab, entityId) {
 
 window.API.onFriendsRefresh((_event, friends, isRefresh) => {
     handleFriendsRefresh(friends, isRefresh);
+    
+    // Apply the current online friends thumbnail shape after friends are refreshed
+    window.API.getConfig().then(config => {
+        const shape = config.OnlineFriendsThumbnailShape || 'rounded';
+        applyOnlineFriendsThumbnailShape(shape);
+    }).catch(error => {
+        // Fallback to default shape if config fails
+        applyOnlineFriendsThumbnailShape('rounded');
+    });
 });
 
 // Friends text filter is now handled by setupFriendsTextFilter in user_content module
@@ -2007,6 +2034,9 @@ const closeToTrayCheckbox = document.getElementById('setting-close-to-tray');
 // Handle "Thumbnail Shape" setting
 const thumbnailShapeDropdown = document.getElementById('setting-thumbnail-shape');
 
+// Handle "Online Friends Thumbnail Shape" setting
+const onlineFriendsThumbnailShapeDropdown = document.getElementById('setting-online-friends-thumbnail-shape');
+
 // Function to apply thumbnail shape to all existing thumbnail containers
 function applyThumbnailShape(shape) {
     const thumbnailContainers = document.querySelectorAll('.details-thumbnail-container');
@@ -2018,6 +2048,17 @@ function applyThumbnailShape(shape) {
     });
 }
 
+// Function to apply thumbnail shape to all existing online friend images
+function applyOnlineFriendsThumbnailShape(shape) {
+    const onlineFriendImages = document.querySelectorAll('.online-friend-node--image');
+    onlineFriendImages.forEach(image => {
+        // Remove all shape classes
+        image.classList.remove('shape-hexagonal', 'shape-square', 'shape-rounded', 'shape-circle');
+        // Add the new shape class
+        image.classList.add(`shape-${shape}`);
+    });
+}
+
 // Load initial settings from config
 window.API.getConfig().then(config => {
     if (config && config.CloseToSystemTray !== undefined) {
@@ -2026,6 +2067,14 @@ window.API.getConfig().then(config => {
     if (config && config.ThumbnailShape !== undefined) {
         thumbnailShapeDropdown.value = config.ThumbnailShape;
         applyThumbnailShape(config.ThumbnailShape);
+    }
+    if (config && config.OnlineFriendsThumbnailShape !== undefined) {
+        onlineFriendsThumbnailShapeDropdown.value = config.OnlineFriendsThumbnailShape;
+        applyOnlineFriendsThumbnailShape(config.OnlineFriendsThumbnailShape);
+    } else {
+        // Default to 'rounded' if not set
+        onlineFriendsThumbnailShapeDropdown.value = 'rounded';
+        applyOnlineFriendsThumbnailShape('rounded');
     }
 });
 
@@ -2050,13 +2099,30 @@ thumbnailShapeDropdown.addEventListener('change', () => {
     window.API.updateConfig({ ThumbnailShape: selectedShape })
         .then(() => {
             applyThumbnailShape(selectedShape);
-            pushToast('Thumbnail shape updated', 'confirm');
+            pushToast('Details view thumbnail shape updated', 'confirm');
         })
         .catch(err => {
             pushToast(`Error saving setting: ${err}`, 'error');
             // Revert dropdown state if save failed
             window.API.getConfig().then(config => {
                 thumbnailShapeDropdown.value = config.ThumbnailShape;
+            });
+        });
+});
+
+// Update config when "Online Friends Thumbnail Shape" setting is changed
+onlineFriendsThumbnailShapeDropdown.addEventListener('change', () => {
+    const selectedShape = onlineFriendsThumbnailShapeDropdown.value;
+    window.API.updateConfig({ OnlineFriendsThumbnailShape: selectedShape })
+        .then(() => {
+            applyOnlineFriendsThumbnailShape(selectedShape);
+            pushToast('Online friends thumbnail shape updated', 'confirm');
+        })
+        .catch(err => {
+            pushToast(`Error saving setting: ${err}`, 'error');
+            // Revert dropdown state if save failed
+            window.API.getConfig().then(config => {
+                onlineFriendsThumbnailShapeDropdown.value = config.OnlineFriendsThumbnailShape || 'rounded';
             });
         });
 });
