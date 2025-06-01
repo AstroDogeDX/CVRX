@@ -82,9 +82,10 @@ const BuildTray = async (mainWindow) => {
 
     const isMac = process.platform === 'darwin';
     const isWindows = process.platform === 'win32';
+    const isLinux = process.platform ==='linux';
 
     // Skip tray on non-tested OS since it might crash the app
-    if (!isWindows && !isMac)
+    if (!isWindows && !isMac && !isLinux)
         return;
 
     // Pick which icon to use
@@ -92,7 +93,7 @@ const BuildTray = async (mainWindow) => {
     if (isMac)
         iconRelativePath = 'client/img/cvrx-tray-mac.png';
 
-    const trayIcon = app.isPackaged
+    const trayIcon = app.isPackaged && !isLinux
         ? path.join(process.resourcesPath, `app/${iconRelativePath}`)
         : `./${iconRelativePath}`;
 
