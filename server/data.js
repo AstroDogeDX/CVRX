@@ -9,6 +9,7 @@ const {CategoryType} = require('./api_cvr_http');
 
 const log = require('./logger').GetLogger('Data');
 const logRenderer = require('../server/logger').GetLogger('Renderer');
+const openLogsFolder = require('./logger').OpenLogsFolder;
 
 const recurringIntervalMinutes = 5;
 let recurringIntervalId;
@@ -187,7 +188,7 @@ class Core {
         // Setup on events for IPC
         ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-friend-requests', (_event) => this.RefreshFriendRequests());
-        ipcMain.on('refresh-worlds-category', (_event, worldCategoryId) => this.UpdateWorldsByCategory(worldCategoryId));
+        // ipcMain.on('refresh-worlds-category', (_event, worldCategoryId) => this.UpdateWorldsByCategory(worldCategoryId));
         ipcMain.handle('refresh-instances', async (_event, fromButton) => await this.RefreshInstancesManual(fromButton));
 
         // Active user
@@ -220,6 +221,9 @@ class Core {
         ipcMain.handle('get-prop-by-id', async (_event, propId) => EscapeHtml(await this.GetPropById(propId)));
         ipcMain.handle('get-props', async (_event) => EscapeHtml(await CVRHttp.GetProps()));
         ipcMain.handle('search', async (_event, term) => EscapeHtml(await this.Search(term)));
+
+        // Avatar
+        ipcMain.handle('set-current-avatar', async (_event, avatarId) => EscapeHtml(await CVRHttp.SetCurrentAvatar(avatarId)));
 
         // Get Random Content
         ipcMain.handle('get-random-avatars', async (_event, count) => EscapeHtml(await this.GetRandomContent(PublicContentType.AVATARS, count)));
@@ -312,6 +316,8 @@ class Core {
                 throw error;
             }
         });
+        // Logs Folder
+        ipcMain.on('open-logs-folder', async (_event) => await openLogsFolder());
 
         // Socket Events
         CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.CONNECTED, () => this.recentActivityInitialFriends = true);
@@ -836,17 +842,27 @@ class Core {
 
     async UpdateWorldsByCategory(categoryId) {
 
-        const result = await CVRHttp.GetWorldsByCategory(categoryId);
-        //const totalPages = result.totalPages;
-        const worlds = result.entries;
-        for (const world of worlds) {
+        const sort = 'Default';
+        const direction = 'Ascending';
+
+        const worldEntries = [];
+
+        let activeWorldsTotalPages = 1;
+        for (let page = 0; page < activeWorldsTotalPages; page++) {
+            const reqResult = await CVRHttp.GetWorldsByCategory(categoryId, page, sort, direction);
+            // Update the total pages, so we can iterate multiple times if more pages are available
+            activeWorldsTotalPages = reqResult.totalPages;
+            worldEntries.push(...reqResult.entries);
+        }
+
+        for (const world of worldEntries) {
             if (world?.imageUrl) {
                 await LoadImage(world.imageUrl, world);
             }
         }
-        this.SendToRenderer('worlds-category-requests', categoryId, worlds);
+        this.SendToRenderer('worlds-category-requests', categoryId, worldEntries);
 
-        return worlds;
+        return worldEntries;
 
         // const worlds = [
         //     {
@@ -859,11 +875,23 @@ class Core {
     }
 
     async ActiveInstancesRefresh() {
-        const activeWorldsResult = await CVRHttp.GetWorldsByCategory(WorldCategories.ActiveInstances);
-        const activeWorlds = activeWorldsResult.entries;
-        // activeWorldsTotalPages = activeWorldsResult.totalPages;
+
+        const sort = 'Default';
+        const direction = 'Ascending';
+
+        const activeWorldEntries = [];
+
+        // Fetch active instances, (if there's multiple pages, iterate through them)
+        let activeWorldsTotalPages = 1;
+        for (let page = 0; page < activeWorldsTotalPages; page++) {
+            const reqResult = await CVRHttp.GetWorldsByCategory(WorldCategories.ActiveInstances, page, sort, direction);
+            // Update the total pages, so we can iterate multiple times if more pages are available
+            activeWorldsTotalPages = reqResult.totalPages;
+            activeWorldEntries.push(...reqResult.entries);
+        }
+
         const activeInstancesDetails = {};
-        for (const activeWorld of activeWorlds) {
+        for (const activeWorld of activeWorldEntries) {
             const activeWorldDetails = await CVRHttp.GetWorldById(activeWorld.id);
             for (const activeInstance of activeWorldDetails.instances) {
                 try {

@@ -58,6 +58,9 @@ contextBridge.exposeInMainWorld('API', {
     getPropById: (propId) => ipcRenderer.invoke('get-prop-by-id', propId),
     getProps: () => ipcRenderer.invoke('get-props'),
 
+    // Avatar
+    setCurrentAvatar: (avatarId) => ipcRenderer.invoke('set-current-avatar', avatarId),
+
     search: (term) => ipcRenderer.invoke('search', term),
 
 
@@ -90,7 +93,7 @@ contextBridge.exposeInMainWorld('API', {
     onUserStats: (callback) => ipcRenderer.on('user-stats', callback),
 
     refreshFriendRequests: () => ipcRenderer.send('refresh-friend-requests'),
-    refreshWorldsCategory: (worldCategoryId) => ipcRenderer.send('refresh-worlds-category', worldCategoryId),
+    // refreshWorldsCategory: (worldCategoryId) => ipcRenderer.send('refresh-worlds-category', worldCategoryId),
 
     // Recent Activity Updates
     onRecentActivityUpdate: (callback) => ipcRenderer.on('recent-activity-update', callback),
@@ -170,6 +173,7 @@ contextBridge.exposeInMainWorld('API', {
 
     // External Links
     openExternal: (url) => ipcRenderer.invoke('open-external', url),
+    openLogsFolder: () => ipcRenderer.send('open-logs-folder'),
 
     // Process Detection
     isChilloutVRRunning: () => ipcRenderer.invoke('is-chilloutvr-running'),
