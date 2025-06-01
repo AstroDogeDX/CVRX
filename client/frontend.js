@@ -1874,6 +1874,21 @@ document.querySelector('#clear-cached-images-button').addEventListener('click', 
     button.disabled = false;
 });
 
+document.querySelector('#open-logs-folder-button').addEventListener('click', async _event => {
+    const button = _event.target;
+    button.disabled = true;
+    
+    try {
+        await window.API.openLogsFolder();
+        pushToast('Logs folder opened', 'confirm');
+    } catch (error) {
+        pushToast('Failed to open logs folder', 'error');
+        log('Error opening logs folder:', error);
+    }
+    
+    button.disabled = false;
+});
+
 // Since it's a single page application, lets clear the cache occasionally.
 setInterval(() => {
     window.API.clearCache();
