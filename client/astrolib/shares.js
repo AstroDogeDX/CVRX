@@ -5,6 +5,16 @@
 import { pushToast } from './toasty_notifications.js';
 import { applyTooltips } from './tooltip.js';
 
+// Logging function to prevent memory leaking when bundled
+let isPackaged = false;
+window.API.isPackaged().then(packaged => {
+    isPackaged = packaged;
+});
+
+const log = (msg) => {
+    if (!isPackaged) console.log(msg);
+};
+
 // ===========
 // HELPER FUNCTIONS
 // ===========
@@ -62,11 +72,11 @@ function getContentTypeFromContainer(container) {
         }
     }
     
-    console.error('Could not determine content type. Container:', container);
-    console.error('Tab pane:', tabPane);
-    console.error('Details window:', detailsWindow);
-    console.error('Header content:', headerContent);
-    console.error('Active tab:', activeTab);
+    log('Could not determine content type. Container:', container);
+    log('Tab pane:', tabPane);
+    log('Details window:', detailsWindow);
+    log('Header content:', headerContent);
+    log('Active tab:', activeTab);
     
     return null;
 }
@@ -177,7 +187,7 @@ function showRemoveShareConfirmation(user, onConfirm, createElement) {
                 confirmPrompt.remove();
                 confirmShade.style.display = 'none';
             } catch (error) {
-                console.error('Failed to remove share:', error);
+                log('Failed to remove share:', error);
                 pushToast('Failed to remove share', 'error');
             }
         },
@@ -306,7 +316,7 @@ function setupShareSearch(searchInput, resultsContainer, resultsStatus, onAdd, m
                 displaySearchResults(userResults, resultsContainer, resultsStatus, onAdd, modal, modalShade, createElement);
                 
             } catch (error) {
-                console.error('Search failed:', error);
+                log('Search failed:', error);
                 resultsStatus.textContent = 'Search failed. Please try again.';
                 resultsStatus.style.display = 'block';
                 clearSearchResults(resultsContainer, resultsStatus);
@@ -373,7 +383,7 @@ function displaySearchResults(userResults, resultsContainer, resultsStatus, onAd
                 modal.remove();
                 modalShade.style.display = 'none';
             } catch (error) {
-                console.error('Failed to add share:', error);
+                log('Failed to add share:', error);
                 // Error handling is done in the onAdd callback
             }
         });
@@ -409,7 +419,7 @@ export async function loadShares(contentId, createElement) {
     // Determine content type from the DOM context
     const contentType = getContentTypeFromContainer(sharesContainer);
     if (!contentType) {
-        console.error('Could not determine content type for shares');
+        log('Could not determine content type for shares');
         sharesContainer.innerHTML = '<div class="error-message">Error: Could not determine content type</div>';
         return;
     }
@@ -417,7 +427,7 @@ export async function loadShares(contentId, createElement) {
     // Get appropriate API functions
     const apiFunctions = getSharesAPIFunctions(contentType);
     if (!apiFunctions) {
-        console.error('No API functions available for content type:', contentType);
+        log('No API functions available for content type:', contentType);
         sharesContainer.innerHTML = '<div class="error-message">Error: API functions not available</div>';
         return;
     }
@@ -427,17 +437,17 @@ export async function loadShares(contentId, createElement) {
     
     try {
         // Fetch shares from API
-        console.log('Loading shares for contentId:', contentId, 'contentType:', contentType);
+        log('Loading shares for contentId:', contentId, 'contentType:', contentType);
         const sharesResponse = await apiFunctions.getShares(contentId);
-        console.log('Shares API response:', sharesResponse);
+        log('Shares API response:', sharesResponse);
         
         // The backend now returns the shares array directly
         const shares = sharesResponse || [];
-        console.log('Processed shares:', shares);
+        log('Processed shares:', shares);
         
         // Ensure shares is an array
         const sharesArray = Array.isArray(shares) ? shares : [];
-        console.log('Final shares array:', sharesArray);
+        log('Final shares array:', sharesArray);
         
         // Clear container
         sharesContainer.innerHTML = '';
@@ -462,7 +472,7 @@ export async function loadShares(contentId, createElement) {
                     pushToast(`Successfully shared with ${userName}`, 'confirm');
                     loadShares(contentId, createElement);
                 } catch (error) {
-                    console.error('Failed to add share:', error);
+                    log('Failed to add share:', error);
                     // Only show generic error if we haven't already shown a specific error message
                     if (!error.message || error.message.includes('Failed to')) {
                         pushToast('Failed to add share', 'error');
@@ -476,14 +486,14 @@ export async function loadShares(contentId, createElement) {
         
         // Add existing share cards
         sharesArray.forEach(share => {
-            console.log('Creating share card for:', share);
+            log('Creating share card for:', share);
             const shareCard = createShareCard(share, async (userId) => {
                 try {
                     await apiFunctions.removeShare(contentId, userId);
                     pushToast(`Share removed successfully`, 'confirm');
                     loadShares(contentId, createElement);
                 } catch (error) {
-                    console.error('Failed to remove share:', error);
+                    log('Failed to remove share:', error);
                     pushToast('Failed to remove share', 'error');
                     throw error;
                 }
@@ -498,8 +508,8 @@ export async function loadShares(contentId, createElement) {
         applyTooltips();
         
     } catch (error) {
-        console.error('Error loading shares:', error);
-        console.error('Error details:', {
+        log('Error loading shares:', error);
+        log('Error details:', {
             message: error.message,
             stack: error.stack,
             contentId,

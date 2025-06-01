@@ -6,6 +6,16 @@ import { pushToast } from './toasty_notifications.js';
 import { applyTooltips } from './tooltip.js';
 import { createElement } from '../frontend.js';
 
+// Import shared log function or create local one
+let isPackaged = false;
+window.API.isPackaged().then(packaged => {
+    isPackaged = packaged;
+});
+
+const log = (msg) => {
+    if (!isPackaged) console.log(msg);
+};
+
 // ===============
 // FRIENDS SECTION
 // ===============
@@ -89,7 +99,8 @@ export async function loadFriendCategories() {
             updateFriendFilterButtons();
         }
     } catch (error) {
-        console.error('Failed to load friend categories:', error);
+        log('Failed to load friend categories:');
+        log(error);
         // Fallback to default buttons if categories fail to load
         friendCategories = [];
         updateFriendFilterButtons();
@@ -183,7 +194,7 @@ function applyFriendFilter(filterType) {
                 matchesButtonFilter = friendData.categories.includes(filterType);
                 // Debug logging
                 if (filterType !== 'all' && filterType !== 'online') {
-                    console.log(`Friend: ${friendName}, Categories: ${JSON.stringify(friendData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
+                    log(`Friend: ${friendName}, Categories: ${JSON.stringify(friendData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
                 }
             } else {
                 // If no categories or friend not found, don't show for category filters
@@ -207,8 +218,8 @@ export { applyFriendFilter };
 
 // Function to handle friends refresh
 export function handleFriendsRefresh(friends, isRefresh) {
-    console.log('Friends Refresh! isRefresh: ' + isRefresh);
-    console.log(friends);
+    log('Friends Refresh! isRefresh: ' + isRefresh);
+    log(friends);
 
     // Store friends data globally for category filtering
     friendsData = {};
@@ -436,7 +447,8 @@ export async function loadAvatarCategories() {
             updateAvatarFilterButtons();
         }
     } catch (error) {
-        console.error('Failed to load avatar categories:', error);
+        log('Failed to load avatar categories:');
+        log(error);
         // Fallback to default buttons if categories fail to load
         avatarCategories = [];
         updateAvatarFilterButtons();
@@ -517,19 +529,19 @@ function applyAvatarFilter(filterType) {
         const avatarData = Object.values(avatarsData || {}).find(avatar => avatar.name === avatarNameText);
         
         if (avatarData) {
-            console.log(`Avatar: ${avatarNameText}, Categories: ${JSON.stringify(avatarData.categories)}, Filter: ${filterType}`);
+            log(`Avatar: ${avatarNameText}, Categories: ${JSON.stringify(avatarData.categories)}, Filter: ${filterType}`);
             
             if (avatarData.categories && Array.isArray(avatarData.categories)) {
                 matchesButtonFilter = avatarData.categories.includes(filterType);
             } else {
                 // If no categories array exists, show for 'avtrmine' filter (assume it's user's avatar)
                 matchesButtonFilter = filterType === 'avtrmine';
-                console.log(`Avatar ${avatarNameText} has no categories, treating as ${filterType === 'avtrmine' ? 'owned' : 'not owned'}`);
+                log(`Avatar ${avatarNameText} has no categories, treating as ${filterType === 'avtrmine' ? 'owned' : 'not owned'}`);
             }
         } else {
             // If avatar not found in data, show for 'avtrmine' filter as fallback
             matchesButtonFilter = filterType === 'avtrmine';
-            console.log(`Avatar ${avatarNameText} not found in avatarsData, treating as ${filterType === 'avtrmine' ? 'owned' : 'not owned'}`);
+            log(`Avatar ${avatarNameText} not found in avatarsData, treating as ${filterType === 'avtrmine' ? 'owned' : 'not owned'}`);
         }
         
         // Show card only if it matches both text and button filters
@@ -548,8 +560,8 @@ export { applyAvatarFilter };
 
 // Function to handle active user avatars refresh
 export function handleAvatarsRefresh(ourAvatars) {
-    console.log('[On] GetActiveUserAvatars');
-    console.log(ourAvatars);
+    log('[On] GetActiveUserAvatars');
+    log(ourAvatars);
 
     // Store avatars data globally for category filtering
     avatarsData = {};
@@ -557,7 +569,7 @@ export function handleAvatarsRefresh(ourAvatars) {
         avatarsData[avatar.id] = avatar;
     });
 
-    console.log(`Loaded ${ourAvatars.length} avatars into avatarsData:`, avatarsData);
+    log(`Loaded ${ourAvatars.length} avatars into avatarsData:`, avatarsData);
 
     const avatarDisplayNode = document.querySelector('.avatars-wrapper');
     let docFragment = document.createDocumentFragment();
@@ -594,16 +606,16 @@ export function handleAvatarsRefresh(ourAvatars) {
 
     avatarDisplayNode.replaceChildren(docFragment);
     
-    console.log(`Created ${ourAvatars.length} avatar cards in DOM`);
+    log(`Created ${ourAvatars.length} avatar cards in DOM`);
     
     // Apply the current active filter after loading avatars, but only if filter buttons exist
     const activeFilterButton = document.querySelector('.avatars-filter-controls .filter-button.active');
     if (activeFilterButton) {
         const activeFilter = activeFilterButton.dataset.filter;
-        console.log(`Applying active filter: ${activeFilter}`);
+        log(`Applying active filter: ${activeFilter}`);
         applyAvatarFilter(activeFilter);
     } else {
-        console.log('No active filter button found, showing all avatars');
+        log('No active filter button found, showing all avatars');
         // If no filter buttons exist yet, show all avatars
         document.querySelectorAll('.avatars-wrapper--avatars-node').forEach(card => {
             card.style.display = '';
@@ -674,25 +686,29 @@ let worldsData = {};
 export async function loadWorldCategories() {
     try {
         const categories = await window.API.getCategories();
-        console.log('Raw categories from API:', categories);
+        log('Raw categories from API:');
+        log(categories);
         
         if (categories && categories.worlds) {
-            console.log('World categories before filtering:', categories.worlds);
+            log('World categories before filtering:');
+            log(categories.worlds);
             
             // Filter out the categories we want to ignore
             worldCategories = categories.worlds.filter(category => 
                 !['wrldactive', 'wrldnew', 'wrldtrending', 'wrldavatars', 'wrldpublic', 'wrldrecentlyupdated'].includes(category.id)
             );
             
-            console.log('World categories after filtering:', worldCategories);
+            log('World categories after filtering:');
+            log(worldCategories);
             updateWorldFilterButtons();
         } else {
-            console.log('No world categories found in API response');
+            log('No world categories found in API response');
             worldCategories = [];
             updateWorldFilterButtons();
         }
     } catch (error) {
-        console.error('Failed to load world categories:', error);
+        log('Failed to load world categories:');
+        log(error);
         // Fallback to default buttons if categories fail to load
         worldCategories = [];
         updateWorldFilterButtons();
@@ -703,11 +719,11 @@ export async function loadWorldCategories() {
 function updateWorldFilterButtons() {
     const filterControlsContainer = document.querySelector('.worlds-filter-controls');
     if (!filterControlsContainer) {
-        console.log('No worlds filter controls container found');
+        log('No worlds filter controls container found');
         return;
     }
 
-    console.log('Updating world filter buttons...');
+    log('Updating world filter buttons...');
 
     // Clear existing buttons
     filterControlsContainer.innerHTML = '';
@@ -720,7 +736,7 @@ function updateWorldFilterButtons() {
     });
     myWorldsButton.dataset.filter = 'wrldmine';
     filterControlsContainer.appendChild(myWorldsButton);
-    console.log('Added "My Worlds" button');
+    log('Added "My Worlds" button');
 
     // Add user-created category buttons (those starting with 'worlds_')
     let userCategoryCount = 0;
@@ -735,11 +751,11 @@ function updateWorldFilterButtons() {
             categoryButton.dataset.filter = category.id;
             filterControlsContainer.appendChild(categoryButton);
             userCategoryCount++;
-            console.log(`Added user category button: ${category.name} (${category.id})`);
+            log(`Added user category button: ${category.name} (${category.id})`);
         }
     });
     
-    console.log(`Total buttons created: 1 default + ${userCategoryCount} user categories`);
+    log(`Total buttons created: 1 default + ${userCategoryCount} user categories`);
 }
 
 // Function to handle world filter button clicks
@@ -752,7 +768,7 @@ function handleWorldFilterClick(filterType, clickedButton) {
     // Add active class to clicked button
     clickedButton.classList.add('active');
     
-    console.log(`World filter clicked: ${filterType}`);
+    log(`World filter clicked: ${filterType}`);
     
     // Apply the filter to existing data (like avatars and props)
     applyWorldFilter(filterType);
@@ -778,13 +794,13 @@ function applyWorldFilter(filterType) {
         
         if (worldData && worldData.categories && Array.isArray(worldData.categories)) {
             matchesButtonFilter = worldData.categories.includes(filterType);
-            console.log(`World: ${worldNameText}, Categories: ${JSON.stringify(worldData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
+            log(`World: ${worldNameText}, Categories: ${JSON.stringify(worldData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
         } else {
             // If no categories found, only show for fallback cases where we know the world should match
             // For "wrldmine" filter, we shouldn't show worlds without proper category data
             // For custom categories, we also shouldn't show worlds without categories
             matchesButtonFilter = false;
-            console.log(`World ${worldNameText} has no categories or not found in worldsData, hiding for filter: ${filterType}`);
+            log(`World ${worldNameText} has no categories or not found in worldsData, hiding for filter: ${filterType}`);
         }
         
         // Show card only if it matches both text and button filters
@@ -803,8 +819,8 @@ export { applyWorldFilter };
 
 // Function to handle active user worlds refresh
 export function handleWorldsRefresh(ourWorlds) {
-    console.log('[On] GetActiveUserWorlds');
-    console.log(ourWorlds);
+    log('[On] GetActiveUserWorlds');
+    log(ourWorlds);
 
     // Store worlds data globally for category filtering
     worldsData = {};
@@ -812,7 +828,7 @@ export function handleWorldsRefresh(ourWorlds) {
         worldsData[world.id] = world;
     });
 
-    console.log(`Loaded ${ourWorlds.length} worlds into worldsData:`, worldsData);
+    log(`Loaded ${ourWorlds.length} worlds into worldsData:`, worldsData);
 
     const worldDisplayNode = document.querySelector('.worlds-wrapper');
     let docFragment = document.createDocumentFragment();
@@ -856,16 +872,16 @@ export function handleWorldsRefresh(ourWorlds) {
 
     worldDisplayNode.replaceChildren(docFragment);
     
-    console.log(`Created ${docFragment.children.length} world cards in DOM`);
+    log(`Created ${docFragment.children.length} world cards in DOM`);
     
     // Apply the current active filter after loading worlds, but only if filter buttons exist
     const activeFilterButton = document.querySelector('.worlds-filter-controls .filter-button.active');
     if (activeFilterButton) {
         const activeFilter = activeFilterButton.dataset.filter;
-        console.log(`Applying active filter: ${activeFilter}`);
+        log(`Applying active filter: ${activeFilter}`);
         applyWorldFilter(activeFilter);
     } else {
-        console.log('No active filter button found, showing all worlds');
+        log('No active filter button found, showing all worlds');
         // If no filter buttons exist yet, show all worlds
         document.querySelectorAll('.worlds-wrapper--worlds-node').forEach(card => {
             card.style.display = '';
@@ -877,15 +893,15 @@ export function handleWorldsRefresh(ourWorlds) {
 // Function to handle worlds by category refresh
 // NOTE: This is primarily for manual category refreshes now, since main loading uses handleWorldsRefresh
 export function handleWorldsByCategoryRefresh(categoryId, worlds) {
-    console.log(`[On] Worlds Category Refresh for ${categoryId} (manual refresh)`);
-    console.log(worlds);
+    log(`[On] Worlds Category Refresh for ${categoryId} (manual refresh)`);
+    log(worlds);
 
     // Store worlds data globally for category filtering
     worlds.forEach(world => {
         worldsData[world.id] = world;
     });
 
-    console.log(`Loaded ${worlds.length} worlds for category ${categoryId} into worldsData`);
+    log(`Loaded ${worlds.length} worlds for category ${categoryId} into worldsData`);
 
     const worldDisplayNode = document.querySelector('.worlds-wrapper');
     let docFragment = document.createDocumentFragment();
@@ -929,12 +945,12 @@ export function handleWorldsByCategoryRefresh(categoryId, worlds) {
 
     worldDisplayNode.replaceChildren(docFragment);
     
-    console.log(`Created ${worlds.length} world cards for category ${categoryId}`);
+    log(`Created ${worlds.length} world cards for category ${categoryId}`);
     
     // Apply text filter if there's any text in the filter input
     const filterText = document.querySelector('#worlds-filter').value.toLowerCase();
     if (filterText) {
-        console.log(`Applying text filter "${filterText}" to ${worlds.length} worlds`);
+        log(`Applying text filter "${filterText}" to ${worlds.length} worlds`);
         document.querySelectorAll('.worlds-wrapper--worlds-node').forEach(card => {
             const worldName = card.querySelector('.card-name').textContent.toLowerCase();
             if (worldName.includes(filterText)) {
@@ -1024,7 +1040,8 @@ export async function loadPropCategories() {
             updatePropFilterButtons();
         }
     } catch (error) {
-        console.error('Failed to load prop categories:', error);
+        log('Failed to load prop categories:');
+        log(error);
         // Fallback to default buttons if categories fail to load
         propCategories = [];
         updatePropFilterButtons();
@@ -1107,13 +1124,13 @@ function applyPropFilter(filterType) {
         if (propData && propData.categories && Array.isArray(propData.categories)) {
             matchesButtonFilter = propData.categories.includes(filterType);
             // Debug logging
-            console.log(`Prop: ${propNameText}, Categories: ${JSON.stringify(propData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
+            log(`Prop: ${propNameText}, Categories: ${JSON.stringify(propData.categories)}, Filter: ${filterType}, Matches: ${matchesButtonFilter}`);
         } else {
             // If no categories found, only show for fallback cases where we know the prop should match
             // For "propmine" filter, we shouldn't show props without proper category data
             // For "propshared" and custom categories, we also shouldn't show props without categories
             matchesButtonFilter = false;
-            console.log(`Prop ${propNameText} has no categories or not found in propsData, hiding for filter: ${filterType}`);
+            log(`Prop ${propNameText} has no categories or not found in propsData, hiding for filter: ${filterType}`);
         }
         
         // Show card only if it matches both text and button filters
@@ -1132,8 +1149,8 @@ export { applyPropFilter };
 
 // Function to handle active user props refresh
 export function handlePropsRefresh(ourProps) {
-    console.log('[On] GetActiveUserProps');
-    console.log(ourProps);
+    log('[On] GetActiveUserProps');
+    log(ourProps);
 
     // Store props data globally for category filtering
     propsData = {};
@@ -1242,7 +1259,7 @@ export function setupPropsTextFilter() {
  * @param {string} entityId - The ID of the entity (not used currently, but may be useful for future)
  */
 export function refreshContentAfterFavoritesUpdate(entityType, entityId) {
-    console.log(`Triggering content refresh for ${entityType} after favorites update`);
+    log(`Triggering content refresh for ${entityType} after favorites update`);
     
     switch (entityType) {
         case 'avatar':
@@ -1261,9 +1278,9 @@ export function refreshContentAfterFavoritesUpdate(entityType, entityId) {
             // For friends, we would refresh friends, but friends categories 
             // are usually handled differently and don't need immediate refresh
             // as they're more about organization than filtering
-            console.log('Friend categories updated - no automatic refresh needed');
+            log('Friend categories updated - no automatic refresh needed');
             break;
         default:
-            console.warn(`Unknown entity type for refresh: ${entityType}`);
+            log(`Unknown entity type for refresh: ${entityType}`);
     }
 }

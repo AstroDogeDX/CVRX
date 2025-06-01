@@ -588,7 +588,7 @@ async function loadTabContent(tab, entityId) {
             `;
         } catch (error) {
             descriptionContainer.innerHTML = `<div class="error-message">Error loading description</div>`;
-            console.error('Error loading description:', error);
+            log('Error loading description:', error);
         }
         return;
     }
@@ -682,7 +682,7 @@ async function loadTabContent(tab, entityId) {
             };
         } catch (error) {
             notesContainer.innerHTML = `<div class="error-message">Error loading note</div>`;
-            console.error('Error loading note:', error);
+            log('Error loading note:', error);
         }
         return;
     }
@@ -933,7 +933,7 @@ async function loadTabContent(tab, entityId) {
         });
     } catch (error) {
         grid.innerHTML = `<div class="error-message">Error loading ${tab}</div>`;
-        console.error(`Error loading ${tab}:`, error);
+        log(`Error loading ${tab}:`, error);
     }
 }
 
@@ -1490,7 +1490,7 @@ window.API.onInvites((_event, invites) => {
                         pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
                     }
                 } catch (error) {
-                    console.error('Failed to join instance in desktop:', error);
+                    log('Failed to join instance in desktop:', error);
                     pushToast('Failed to generate join link', 'error');
                 }
             },
@@ -1515,7 +1515,7 @@ window.API.onInvites((_event, invites) => {
                         pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
                     }
                 } catch (error) {
-                    console.error('Failed to join instance in VR:', error);
+                    log('Failed to join instance in VR:', error);
                     pushToast('Failed to generate join link', 'error');
                 }
             },
@@ -1868,7 +1868,7 @@ document.querySelector('#clear-cached-images-button').addEventListener('click', 
         }
     } catch (error) {
         pushToast('Failed to clear cached images', 'error');
-        console.error('Error clearing cached images:', error);
+        log('Error clearing cached images:', error);
     }
     
     button.disabled = false;
@@ -1913,7 +1913,7 @@ document.querySelector('#instances-refresh').addEventListener('click', async _ev
         }
     } catch (error) {
         refreshButton.classList.remove('refreshing');
-        console.error('Refresh failed:', error);
+        log('Refresh failed:', error);
     }
 });
 
@@ -1940,7 +1940,7 @@ window.addEventListener('focus', async () => {
         }
     } catch (error) {
         refreshButton.classList.remove('refreshing');
-        console.error('Auto-refresh failed:', error);
+        log('Auto-refresh failed:', error);
     }
 });
 

@@ -16,6 +16,16 @@ import {
 import { showFavouritesModal } from './favourites_modal.js';
 import { refreshContentAfterFavoritesUpdate } from './user_content.js';
 
+// Logging function to prevent memory leaking when bundled
+let isPackaged = false;
+window.API.isPackaged().then(packaged => {
+    isPackaged = packaged;
+});
+
+const log = (msg) => {
+    if (!isPackaged) console.log(msg);
+};
+
 // ===========
 // CONSTANTS
 // ===========
@@ -730,7 +740,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
     try {
         isChilloutVRRunning = await windowAPI.isChilloutVRRunning();
     } catch (error) {
-        console.warn('Failed to check if ChilloutVR is running:', error);
+        log('Failed to check if ChilloutVR is running:');
         // Default to false if we can't determine the status
         isChilloutVRRunning = false;
     }
@@ -799,7 +809,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                                     pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
                                 }
                             } catch (error) {
-                                console.error('Failed to open user deep link:', error);
+                                log('Failed to open user deep link:');
                                 pushToast('Failed to generate user link', 'error');
                             }
                         },
@@ -1075,7 +1085,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                                 pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
                             }
                         } catch (error) {
-                            console.error('Failed to open avatar deep link:', error);
+                            log('Failed to open avatar deep link:');
                             pushToast('Failed to generate avatar link', 'error');
                         }
                     },
@@ -1227,7 +1237,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                                 pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
                             }
                         } catch (error) {
-                            console.error('Failed to open prop deep link:', error);
+                            log('Failed to open prop deep link:');
                             pushToast('Failed to generate prop link', 'error');
                         }
                     },
@@ -1355,7 +1365,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                                 pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
                             }
                         } catch (error) {
-                            console.error('Failed to open world deep link:', error);
+                            log('Failed to open world deep link:');
                             pushToast('Failed to generate world link', 'error');
                         }
                     },
@@ -1371,7 +1381,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                         await windowAPI.setWorldAsHome(entityId);
                         pushToast(`Set "${entityInfo.name}" as your home world`, 'confirm');
                     } catch (error) {
-                        console.error('Failed to set world as home:', error);
+                        log('Failed to set world as home:');
                         pushToast('Failed to set world as home', 'error');
                     }
                 },
@@ -1531,7 +1541,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                                 pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
                             }
                         } catch (error) {
-                            console.error('Failed to open instance deep link:', error);
+                            log('Failed to open instance deep link:');
                             pushToast('Failed to generate instance link', 'error');
                         }
                     },
@@ -1565,7 +1575,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                             pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
                         }
                     } catch (error) {
-                        console.error('Failed to join instance in desktop:', error);
+                        log('Failed to join instance in desktop:');
                         pushToast('Failed to generate join link', 'error');
                     }
                 },
@@ -1593,7 +1603,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
                             pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
                         }
                     } catch (error) {
-                        console.error('Failed to join instance in VR:', error);
+                        log('Failed to join instance in VR:');
                         pushToast('Failed to generate join link', 'error');
                     }
                 },

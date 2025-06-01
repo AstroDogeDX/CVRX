@@ -5,6 +5,16 @@
 import { pushToast } from './toasty_notifications.js';
 import { applyTooltips } from './tooltip.js';
 
+// Logging function to prevent memory leaking when bundled
+let isPackaged = false;
+window.API.isPackaged().then(packaged => {
+    isPackaged = packaged;
+});
+
+const log = (msg) => {
+    if (!isPackaged) console.log(msg);
+};
+
 // ===========
 // CONSTANTS
 // ===========
@@ -56,7 +66,7 @@ function getUserCategories(categoryType) {
         category.id.startsWith(expectedPrefix)
     );
     
-    console.log(`Server returned ${categoryType} categories in this order:`, userDefinedCategories.map(c => c.id));
+    log(`Server returned ${categoryType} categories in this order:`, userDefinedCategories.map(c => c.id));
     
     return userDefinedCategories;
 }
@@ -258,17 +268,17 @@ function updateCategoryCounters() {
 // Helper function to load categories for the specified type
 async function loadCategoriesForType(categoryType) {
     try {
-        console.log('Loading categories for type:', categoryType);
+        log('Loading categories for type:', categoryType);
         const allCategories = await window.API.getCategories();
         categoriesData = allCategories || {};
         originalCategoriesData = JSON.parse(JSON.stringify(categoriesData)); // Deep copy
         
-        console.log('Loaded categories data:', categoriesData);
+        log('Loaded categories data:', categoriesData);
         renderCategoriesList(categoryType);
         updateCategoryCounters();  // Update counters after loading
         updateButtonStates();
     } catch (error) {
-        console.error('Failed to load categories:', error);
+        log('Failed to load categories:', error);
         pushToast('Failed to load categories', 'error');
     }
 }
@@ -282,7 +292,7 @@ function renderCategoriesList(categoryType) {
     container.classList.remove('reordered');
     
     const userCategories = getUserCategories(categoryType);
-    console.log('User categories for', categoryType, ':', userCategories);
+    log('User categories for', categoryType, ':', userCategories);
     
     if (userCategories.length === 0) {
         const emptyMessage = document.createElement('div');
@@ -351,13 +361,13 @@ function showCreateCategoryDialog() {
         }
         
         try {
-            console.log('Creating category:', categoryName, 'for type:', currentCategoryType);
+            log('Creating category:', categoryName, 'for type:', currentCategoryType);
             
             // Call the appropriate API function based on category type
             const apiFunction = getCreateCategoryAPIFunction(currentCategoryType);
             const result = await apiFunction(categoryName);
             
-            console.log('Create category result:', result);
+            log('Create category result:', result);
             pushToast(`Created category "${categoryName}"`, 'confirm');
             
             // Reload categories to reflect the change
@@ -366,7 +376,7 @@ function showCreateCategoryDialog() {
             modal.remove();
             modalShade.style.display = 'none';
         } catch (error) {
-            console.error('Failed to create category:', error);
+            log('Failed to create category:', error);
             pushToast(`Failed to create category: ${error.message || error}`, 'error');
         }
     });
@@ -415,13 +425,13 @@ function showDeleteCategoryDialog(categoryId, categoryName) {
     deleteButton.textContent = 'Delete';
     deleteButton.addEventListener('click', async () => {
         try {
-            console.log('Deleting category:', categoryId, 'for type:', currentCategoryType);
+            log('Deleting category:', categoryId, 'for type:', currentCategoryType);
             
             // Call the appropriate API function based on category type
             const apiFunction = getDeleteCategoryAPIFunction(currentCategoryType);
             const result = await apiFunction(categoryId);
             
-            console.log('Delete category result:', result);
+            log('Delete category result:', result);
             pushToast(`Deleted category "${categoryName}"`, 'confirm');
             
             // Reload categories to reflect the change
@@ -430,7 +440,7 @@ function showDeleteCategoryDialog(categoryId, categoryName) {
             modal.remove();
             modalShade.style.display = 'none';
         } catch (error) {
-            console.error('Failed to delete category:', error);
+            log('Failed to delete category:', error);
             pushToast(`Failed to delete category: ${error.message || error}`, 'error');
         }
     });
@@ -489,7 +499,7 @@ function getReorderCategoryAPIFunction(categoryType) {
 
 async function applyChanges() {
     try {
-        console.log('Applying category order changes for type:', currentCategoryType);
+        log('Applying category order changes for type:', currentCategoryType);
         
         const categoryItems = document.querySelectorAll('.category-item:not(.add-category-item)');
         const newOrderedCategoryIds = [];
@@ -499,24 +509,24 @@ async function applyChanges() {
             newOrderedCategoryIds.push(categoryId);
         });
         
-        console.log('New category order being sent to API:', newOrderedCategoryIds);
+        log('New category order being sent to API:', newOrderedCategoryIds);
         
         // Call the reorder API function with just the array of IDs
         const apiFunction = getReorderCategoryAPIFunction(currentCategoryType);
         const result = await apiFunction(newOrderedCategoryIds);
         
-        console.log('Reorder categories API result:', result);
+        log('Reorder categories API result:', result);
         pushToast('Categories reordered successfully', 'confirm');
         
         // Add a small delay to allow server-side processing
         await new Promise(resolve => setTimeout(resolve, 500));
         
         // Reload to reflect changes
-        console.log('Reloading categories from server...');
+        log('Reloading categories from server...');
         await loadCategoriesForType(currentCategoryType);
         
     } catch (error) {
-        console.error('Failed to apply changes:', error);
+        log('Failed to apply changes:', error);
         pushToast(`Failed to apply changes: ${error.message || error}`, 'error');
     }
 }

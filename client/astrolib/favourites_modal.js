@@ -6,6 +6,16 @@ import { pushToast } from './toasty_notifications.js';
 import { applyTooltips } from './tooltip.js';
 import { decodeHtmlEntities } from './details_constructor.js';
 
+// Logging function to prevent memory leaking when bundled
+let isPackaged = false;
+window.API.isPackaged().then(packaged => {
+    isPackaged = packaged;
+});
+
+const log = (msg) => {
+    if (!isPackaged) console.log(msg);
+};
+
 // ===========
 // HELPER FUNCTIONS
 // ===========
@@ -183,7 +193,7 @@ export async function showFavouritesModal(entityType, entityId, entityName, curr
                     }
                     
                 } catch (error) {
-                    console.error('Failed to update favourites:', error);
+                    log('Failed to update favourites:', error);
                     pushToast('Failed to update favourites', 'error');
                 }
             }
@@ -210,7 +220,7 @@ export async function showFavouritesModal(entityType, entityId, entityName, curr
         applyTooltips();
         
     } catch (error) {
-        console.error('Failed to show favourites modal:', error);
+        log('Failed to show favourites modal:', error);
         pushToast('Failed to load favourites categories', 'error');
     }
 } 

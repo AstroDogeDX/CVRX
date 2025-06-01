@@ -2,6 +2,10 @@ const tooltip = document.querySelector('#tooltip');
 const overlay = document.querySelector('#tooltip-overlay');
 
 let isPackaged = false;
+window.API.isPackaged().then(packaged => {
+    isPackaged = packaged;
+});
+
 let hideTooltipTimeout = null; // Store timeout ID
 let safetyCheckTimeout = null; // Store safety check timeout ID
 

@@ -2,6 +2,16 @@
 // DEEP LINKS MODULE
 // =======
 
+// Logging function to prevent memory leaking when bundled
+let isPackaged = false;
+window.API.isPackaged().then(packaged => {
+    isPackaged = packaged;
+});
+
+const log = (msg) => {
+    if (!isPackaged) console.log(msg);
+};
+
 // ===========
 // CONSTANTS
 // ===========
@@ -32,7 +42,7 @@ function generateInstanceJoinLink(instanceId, startInVR = false) {
         throw new Error('Instance ID is required');
     }
     
-    console.log('🏗️ Generating instance join link for:', instanceId, 'startInVR:', startInVR);
+    log('🏗️ Generating instance join link for:', { instanceId, startInVR });
     
     // Ensure the instance ID has the 'i+' prefix
     let formattedInstanceId = instanceId;
@@ -47,7 +57,7 @@ function generateInstanceJoinLink(instanceId, startInVR = false) {
     });
     
     const finalUrl = `${baseUrl}?${params.toString()}`;
-    console.log('🔗 Generated deep link:', finalUrl);
+    log('🔗 Generated deep link:', { finalUrl });
     
     return finalUrl;
 }
@@ -139,30 +149,30 @@ function generateInstanceDetailsLink(instanceId) {
  */
 async function openDeepLink(deepLink) {
     try {
-        console.log('🔗 Attempting to open deep link:', deepLink);
+        log('🔗 Attempting to open deep link:', { deepLink });
         
         if (!deepLink || !deepLink.startsWith(CHILLOUTVR_PROTOCOL)) {
-            console.error('❌ Invalid ChilloutVR deep link - does not start with protocol:', CHILLOUTVR_PROTOCOL);
+            log('❌ Invalid ChilloutVR deep link - does not start with protocol:', { protocol: CHILLOUTVR_PROTOCOL, deepLink });
             throw new Error('Invalid ChilloutVR deep link');
         }
         
-        console.log('✅ Deep link validation passed');
+        log('✅ Deep link validation passed');
         
         // Use Electron's shell.openExternal to open the deep link
         if (window.API && window.API.openExternal) {
-            console.log('🖥️ Using Electron API to open deep link');
+            log('🖥️ Using Electron API to open deep link');
             await window.API.openExternal(deepLink);
-            console.log('✅ Deep link opened successfully via Electron');
+            log('✅ Deep link opened successfully via Electron');
             return true;
         } else {
-            console.log('🌐 Using fallback window.open for deep link');
+            log('🌐 Using fallback window.open for deep link');
             window.open(deepLink, '_blank');
-            console.log('✅ Deep link opened successfully via window.open');
+            log('✅ Deep link opened successfully via window.open');
             return true;
         }
     } catch (error) {
-        console.error('❌ Failed to open deep link:', error);
-        console.error('🔍 Deep link that failed:', deepLink);
+        log('❌ Failed to open deep link:', { error: error.message, stack: error.stack });
+        log('🔍 Deep link that failed:', { deepLink });
         return false;
     }
 }
@@ -181,7 +191,7 @@ async function copyDeepLinkToClipboard(deepLink) {
         await navigator.clipboard.writeText(deepLink);
         return true;
     } catch (error) {
-        console.error('Failed to copy deep link to clipboard:', error);
+        log('Failed to copy deep link to clipboard:', { error: error.message, stack: error.stack });
         return false;
     }
 }
@@ -224,7 +234,7 @@ function parseDeepLink(deepLink) {
         
         return result;
     } catch (error) {
-        console.error('Failed to parse deep link:', error);
+        log('Failed to parse deep link:', { error: error.message, stack: error.stack });
         return null;
     }
 }

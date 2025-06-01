@@ -5,6 +5,16 @@
 import { pushToast } from './toasty_notifications.js';
 import { applyTooltips } from './tooltip.js';
 
+// Logging function to prevent memory leaking when bundled
+let isPackaged = false;
+window.API.isPackaged().then(packaged => {
+    isPackaged = packaged;
+});
+
+const log = (msg) => {
+    if (!isPackaged) console.log(msg);
+};
+
 // ===========
 // STATE MANAGEMENT
 // ===========
@@ -688,7 +698,7 @@ async function saveSettings() {
         
         pushToast('Advanced avatar settings saved successfully', 'confirm');
     } catch (error) {
-        console.error('Failed to save avatar advanced settings:', error);
+        log('Failed to save avatar advanced settings:', error);
         pushToast('Failed to save settings', 'error');
         throw error;
     }
@@ -872,7 +882,7 @@ export async function loadAdvancedAvatarSettings(avatarId) {
         }
         
     } catch (error) {
-        console.error('Error loading advanced avatar settings:', error);
+        log('Error loading advanced avatar settings:', error);
         aasContainer.innerHTML = `
             <div class="aas-error">
                 <div class="aas-error-icon">
