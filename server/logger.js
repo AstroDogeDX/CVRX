@@ -1,4 +1,4 @@
-const { app } = require('electron');
+const { app, shell } = require('electron');
 const winston = require('winston');
 require('winston-daily-rotate-file');
 
@@ -91,3 +91,11 @@ if (!app.isPackaged) {
 }
 
 exports.GetLogger = (module) => logger.child({ module: module });
+
+exports.OpenLogsFolder = async () => {
+    try {
+        await shell.openPath(LogsPath);
+    } catch (error) {
+        logger.error(error);
+    }
+};

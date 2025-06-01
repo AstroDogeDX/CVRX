@@ -1,13 +1,15 @@
-const { ipcMain, dialog } = require('electron');
+const { ipcMain, dialog, shell } = require('electron');
 const cache = require('./cache.js');
 const CVRHttp = require('./api_cvr_http');
 const CVRWebsocket = require('./api_cvr_ws');
 const Config = require('./config');
 const Updater = require('./updater');
 const Utils = require('./utils');
+const {CategoryType} = require('./api_cvr_http');
 
 const log = require('./logger').GetLogger('Data');
 const logRenderer = require('../server/logger').GetLogger('Renderer');
+const openLogsFolder = require('./logger').OpenLogsFolder;
 
 const recurringIntervalMinutes = 5;
 let recurringIntervalId;
@@ -85,6 +87,9 @@ async function LoadUserImages(userObject) {
     if (userObject?.featuredGroup?.image) {
         await LoadImage(userObject.featuredGroup.image, userObject.featuredGroup);
     }
+    if (userObject?.instance?.world?.imageUrl) {
+        await LoadImage(userObject.instance.world.imageUrl, userObject.instance.world);
+    }
 }
 
 function EscapeStringFromHtml(text) {
@@ -120,6 +125,12 @@ class Core {
         this.#ResetCachingObjects();
 
         this.#SetupHandlers();
+
+        // Expose core and api on globals for debugging
+        if (!app.isPackaged){
+            global.Core = this;
+            global.CVRHttp = CVRHttp;
+        }
     }
 
     #ResetCachingObjects() {
@@ -156,11 +167,28 @@ class Core {
         });
         ipcMain.handle('is-dev-tools-opened', (_event) => this.mainWindow.webContents.isDevToolsOpened());
         ipcMain.handle('check-for-updates', (_event) => Updater.CheckLatestRelease(this.mainWindow, true));
+        ipcMain.handle('update-action', async (_event, action, updateInfo) => {
+            try {
+                await Updater.HandleUpdateAction(action, updateInfo);
+                return { success: true };
+            } catch (error) {
+                log.error(`[update-action] Failed to handle update action: ${error}`);
+                throw error;
+            }
+        });
+        ipcMain.handle('is-chilloutvr-running', async (_event) => {
+            try {
+                return await Utils.IsChilloutVRRunning();
+            } catch (error) {
+                log.error(`[is-chilloutvr-running] Failed to check ChilloutVR process: ${error}`);
+                return false;
+            }
+        });
 
         // Setup on events for IPC
         ipcMain.on('refresh-user-stats', (_event) => this.RefreshFriendRequests());
         ipcMain.on('refresh-friend-requests', (_event) => this.RefreshFriendRequests());
-        ipcMain.on('refresh-worlds-category', (_event, worldCategoryId) => this.UpdateWorldsByCategory(worldCategoryId));
+        // ipcMain.on('refresh-worlds-category', (_event, worldCategoryId) => this.UpdateWorldsByCategory(worldCategoryId));
         ipcMain.handle('refresh-instances', async (_event, fromButton) => await this.RefreshInstancesManual(fromButton));
 
         // Active user
@@ -180,11 +208,38 @@ class Core {
         ipcMain.handle('get-user-public-avatars', async (_event, userId) => EscapeHtml(await this.GetUserPublicContent(userId, PublicContentType.AVATARS)));
         ipcMain.handle('get-user-public-worlds', async (_event, userId) => EscapeHtml(await this.GetUserPublicContent(userId, PublicContentType.WORLDS)));
         ipcMain.handle('get-user-public-props', async (_event, userId) => EscapeHtml(await this.GetUserPublicContent(userId, PublicContentType.PROPS)));
-        ipcMain.handle('set-friend-note', async (_event, userId, note) => await CVRHttp.SetFriendNote(userId, note));
+        ipcMain.handle('set-friend-note', async (_event, userId, note) => (await CVRHttp.SetFriendNote(userId, note))?.message);
 
         ipcMain.handle('get-world-by-id', async (_event, worldId) => EscapeHtml(await this.GetWorldById(worldId)));
+        ipcMain.handle('get-world-meta-by-id', async (_event, worldId) => EscapeHtml(await CVRHttp.GetWorldMetaById(worldId)));
+        ipcMain.handle('get-world-portal-by-id', async (_event, worldId) => EscapeHtml(await CVRHttp.GetWorldPortalById(worldId)));
+        ipcMain.handle('get-worlds-by-category', async (_event, categoryId, page, sort, direction) => EscapeHtml(await this.GetWorldsByCategory(categoryId, page, sort, direction)));
+        ipcMain.handle('set-world-as-home', async (_event, worldId) => EscapeHtml(await CVRHttp.SetWorldAsHome(worldId)));
         ipcMain.handle('get-instance-by-id', async (_event, instanceId) => EscapeHtml(await this.GetInstanceById(instanceId)));
+        ipcMain.handle('get-instance-portal-by-id', async (_event, instanceId) => EscapeHtml(await CVRHttp.GetInstancePortalById(instanceId)));
+        ipcMain.handle('join-instance', async (_event, instanceId) => EscapeHtml(await CVRHttp.JoinInstance(instanceId)));
+        ipcMain.handle('get-avatar-by-id', async (_event, avatarId) => EscapeHtml(await this.GetAvatarById(avatarId)));
+        ipcMain.handle('get-prop-by-id', async (_event, propId) => EscapeHtml(await this.GetPropById(propId)));
+        ipcMain.handle('get-props', async (_event) => EscapeHtml(await CVRHttp.GetProps()));
         ipcMain.handle('search', async (_event, term) => EscapeHtml(await this.Search(term)));
+
+        // Avatar
+        ipcMain.handle('set-current-avatar', async (_event, avatarId) => EscapeHtml(await CVRHttp.SetCurrentAvatar(avatarId)));
+
+        // Get Random Content
+        ipcMain.handle('get-random-avatars', async (_event, count) => EscapeHtml(await this.GetRandomContent(PublicContentType.AVATARS, count)));
+        ipcMain.handle('get-random-worlds', async (_event, count) => EscapeHtml(await this.GetRandomContent(PublicContentType.WORLDS, count)));
+        ipcMain.handle('get-random-props', async (_event, count) => EscapeHtml(await this.GetRandomContent(PublicContentType.PROPS, count)));
+
+        // Content Shares (Get)
+        ipcMain.handle('get-avatar-shares', async (_event, avatarId) => EscapeHtml(await this.GetContentShares(PublicContentType.AVATARS, avatarId)));
+        ipcMain.handle('get-prop-shares', async (_event, propId) => EscapeHtml(await this.GetContentShares(PublicContentType.PROPS, propId)));
+        // Content Shares (Add)
+        ipcMain.handle('add-avatar-share', async (_event, avatarId, userId) => EscapeHtml(await this.AddContentShares(PublicContentType.AVATARS, avatarId, userId)));
+        ipcMain.handle('add-prop-share', async (_event, propId, userId) => EscapeHtml(await this.AddContentShares(PublicContentType.PROPS, propId, userId)));
+        // Content Shares (Remove)
+        ipcMain.handle('remove-avatar-share', async (_event, avatarId, userId) => EscapeHtml(await this.RemoveContentShares(PublicContentType.AVATARS, avatarId, userId)));
+        ipcMain.handle('remove-prop-share', async (_event, propId, userId) => EscapeHtml(await this.RemoveContentShares(PublicContentType.PROPS, propId, userId)));
 
         // Friendship
         ipcMain.handle('friend-request-send', (_event, userId) => CVRWebsocket.SendFriendRequest(userId));
@@ -222,6 +277,49 @@ class Core {
         ipcMain.handle('config-get', () => Config.GetConfig());
         ipcMain.handle('config-update', (_event, newConfigSettings) => Config.UpdateConfig(newConfigSettings));
 
+        // Categories
+        ipcMain.handle('get-categories', (_event) => EscapeHtml(this.categories));
+        ipcMain.on('update-categories', (_event) => this.UpdateCategories());
+        // Categories - Assign
+        ipcMain.handle('assign-categories-friend', async (_event, userId, categoryIds) => await this.AssignCategory(CategoryType.FRIENDS, userId, categoryIds));
+        ipcMain.handle('assign-categories-avatar', async (_event, avatarId, categoryIds) => await this.AssignCategory(CategoryType.AVATARS, avatarId, categoryIds));
+        ipcMain.handle('assign-categories-prop', async (_event, propId, categoryIds) => await this.AssignCategory(CategoryType.PROPS, propId, categoryIds));
+        ipcMain.handle('assign-categories-world', async (_event, worldId, categoryIds) => await this.AssignCategory(CategoryType.WORLDS, worldId, categoryIds));
+        // Categories - Create Category
+        ipcMain.handle('create-category-friend', async (_event, categoryName) => await this.CreateCategory(CategoryType.FRIENDS, categoryName));
+        ipcMain.handle('create-category-avatar', async (_event, categoryName) => await this.CreateCategory(CategoryType.AVATARS, categoryName));
+        ipcMain.handle('create-category-prop', async (_event, categoryName) => await this.CreateCategory(CategoryType.PROPS, categoryName));
+        ipcMain.handle('create-category-world', async (_event, categoryName) => await this.CreateCategory(CategoryType.WORLDS, categoryName));
+        // Categories - Delete Category
+        ipcMain.handle('delete-category-friend', async (_event, categoryId) => await this.DeleteCategory(CategoryType.FRIENDS, categoryId));
+        ipcMain.handle('delete-category-avatar', async (_event, categoryId) => await this.DeleteCategory(CategoryType.AVATARS, categoryId));
+        ipcMain.handle('delete-category-prop', async (_event, categoryId) => await this.DeleteCategory(CategoryType.PROPS, categoryId));
+        ipcMain.handle('delete-category-world', async (_event, categoryId) => await this.DeleteCategory(CategoryType.WORLDS, categoryId));
+        // Categories - Reorder Categories
+        ipcMain.handle('reorder-categories-friend', async (_event, newOrderedCategoryIds) => await this.ReorderCategories(CategoryType.FRIENDS, newOrderedCategoryIds));
+        ipcMain.handle('reorder-categories-avatar', async (_event, newOrderedCategoryIds) => await this.ReorderCategories(CategoryType.AVATARS, newOrderedCategoryIds));
+        ipcMain.handle('reorder-categories-prop', async (_event, newOrderedCategoryIds) => await this.ReorderCategories(CategoryType.PROPS, newOrderedCategoryIds));
+        ipcMain.handle('reorder-categories-world', async (_event, newOrderedCategoryIds) => await this.ReorderCategories(CategoryType.WORLDS, newOrderedCategoryIds));
+
+        // Cache
+        ipcMain.handle('clear-cached-images', async (_event) => await cache.ClearAllCachedImages());
+
+        // External Links
+        ipcMain.handle('open-external', async (_event, url) => {
+            try {
+                if (!url || typeof url !== 'string') {
+                    throw new Error('Invalid URL provided');
+                }
+                await shell.openExternal(url);
+                return { success: true };
+            } catch (error) {
+                log.error(`[open-external] Failed to open external URL: ${error}`);
+                throw error;
+            }
+        });
+        // Logs Folder
+        ipcMain.on('open-logs-folder', async (_event) => await openLogsFolder());
+
         // Socket Events
         CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.CONNECTED, () => this.recentActivityInitialFriends = true);
         CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.DEAD, () => this.SendToRenderer('socket-died'));
@@ -236,6 +334,34 @@ class Core {
         // Notifications
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.MENU_POPUP, (_data, msg) => this.SendToRenderer('notification', msg, ToastTypes.INFO));
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.HUD_MESSAGE, (_data, msg) => this.SendToRenderer('notification', msg, ToastTypes.INFO));
+
+        // Advanced Avatar Settings
+        ipcMain.handle('get-avatar-advanced-settings', async (_event, avatarId) => {
+            try {
+                return await this.GetAvatarAdvancedSettings(avatarId);
+            } catch (error) {
+                log.error(`Failed to get avatar advanced settings for ${avatarId}:`, error);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('save-avatar-advanced-settings', async (_event, avatarId, settings) => {
+            try {
+                return await this.SaveAvatarAdvancedSettings(avatarId, settings);
+            } catch (error) {
+                log.error(`Failed to save avatar advanced settings for ${avatarId}:`, error);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('has-avatar-advanced-settings', async (_event, avatarId) => {
+            try {
+                return await this.HasAvatarAdvancedSettings(avatarId);
+            } catch (error) {
+                log.error(`Failed to check avatar advanced settings for ${avatarId}:`, error);
+                return false;
+            }
+        });
     }
 
     SendToRenderer(channel, ...args) {
@@ -288,7 +414,7 @@ class Core {
                 this.UpdateUserStats(),
                 this.RefreshFriendRequests(),
                 this.ActiveInstancesUpdate(true),
-                //this.UpdateCategories(),
+                this.UpdateCategories(),
             ]);
 
             // Initialize the websocket
@@ -401,14 +527,58 @@ class Core {
     }
 
     async GetOurUserWorlds() {
-        const ourWorlds = await this.UpdateWorldsByCategory(WorldCategories.Mine);
-        // const ourWorlds = [{
-        //     playerCount: 9,
-        //     id: '406acf24-99b1-4119-8883-4fcda4250743',
-        //     name: 'The Purple Fox',
-        //     imageUrl: 'https://files.abidata.io/user_content/worlds/406acf24-99b1-4119-8883-4fcda4250743/406acf24-99b1-4119-8883-4fcda4250743.png',
-        // }];
-        this.SendToRenderer('active-user-worlds-load', ourWorlds);
+        // Load worlds from all relevant user categories (similar to how avatars and props work)
+        let allWorlds = [];
+        const allWorldsMap = {};
+
+        try {
+
+            // Get all relevant world categories (Mine + user-created categories)
+            const relevantCategories = [WorldCategories.Mine];
+
+            if (this.categories && this.categories.worlds) {
+                // Add user-created world categories (those starting with 'worlds_')
+                const userCategories = this.categories.worlds
+                    .filter(category => category.id.startsWith('worlds_'))
+                    .map(category => category.id);
+                relevantCategories.push(...userCategories);
+            }
+
+            log.info(`[GetOurUserWorlds] Loading worlds from categories: ${relevantCategories.join(', ')}`);
+
+            // Load worlds from each relevant category
+            for (const categoryId of relevantCategories) {
+                try {
+                    const categoryWorlds = await this.UpdateWorldsByCategory(categoryId);
+
+                    // Add worlds to the combined list, avoiding duplicates and adding category info
+                    for (const world of categoryWorlds) {
+                        if (!allWorldsMap[world.id]) {
+                            allWorldsMap[world.id] = { ...world, categories: [] };
+                        }
+                        // Add this category to the world's categories array
+                        if (!allWorldsMap[world.id].categories.includes(categoryId)) {
+                            allWorldsMap[world.id].categories.push(categoryId);
+                        }
+                    }
+                } catch (error) {
+                    log.error(`[GetOurUserWorlds] Failed to load worlds from category ${categoryId}:`, error);
+                }
+            }
+
+            // Convert to array
+            allWorlds = Object.values(allWorldsMap);
+            log.info(`[GetOurUserWorlds] Loaded ${allWorlds.length} total unique worlds from ${relevantCategories.length} categories`);
+
+        } catch (error) {
+            log.error('[GetOurUserWorlds] Failed to load all user worlds, falling back to Mine category only:', error);
+            // Fallback to just Mine category if the above fails
+            allWorlds = await this.UpdateWorldsByCategory(WorldCategories.Mine);
+            // Ensure categories array exists for fallback
+            allWorlds = allWorlds.map(world => ({ ...world, categories: [WorldCategories.Mine] }));
+        }
+
+        this.SendToRenderer('active-user-worlds-load', allWorlds);
     }
 
     async UpdateRecentActivity(updateType, updateInfo) {
@@ -572,6 +742,29 @@ class Core {
 
     async UpdateCategories() {
         this.categories = await CVRHttp.GetCategories();
+        this.SendToRenderer('categories-updated', this.categories);
+    }
+
+    async AssignCategory(type, contentGuid, categoryIds) {
+        return (await CVRHttp.AssignCategory(type, contentGuid, categoryIds))?.message;
+    }
+
+    async CreateCategory(type, categoryName) {
+        const response = await CVRHttp.CreateCategory(type, categoryName);
+        await this.UpdateCategories();
+        return response?.message;
+    }
+
+    async DeleteCategory(type, categoryId) {
+        const response =  await CVRHttp.DeleteCategory(type, categoryId);
+        await this.UpdateCategories();
+        return response?.message;
+    }
+
+    async ReorderCategories(type, newOrderedCategoryIds){
+        const response =  await CVRHttp.ReorderCategories(type, newOrderedCategoryIds);
+        await this.UpdateCategories();
+        return response?.message;
     }
 
     async GetUserById(userId) {
@@ -650,17 +843,27 @@ class Core {
 
     async UpdateWorldsByCategory(categoryId) {
 
-        const result = await CVRHttp.GetWorldsByCategory(categoryId);
-        //const totalPages = result.totalPages;
-        const worlds = result.entries;
-        for (const world of worlds) {
+        const sort = 'Default';
+        const direction = 'Ascending';
+
+        const worldEntries = [];
+
+        let activeWorldsTotalPages = 1;
+        for (let page = 0; page < activeWorldsTotalPages; page++) {
+            const reqResult = await CVRHttp.GetWorldsByCategory(categoryId, page, sort, direction);
+            // Update the total pages, so we can iterate multiple times if more pages are available
+            activeWorldsTotalPages = reqResult.totalPages;
+            worldEntries.push(...reqResult.entries);
+        }
+
+        for (const world of worldEntries) {
             if (world?.imageUrl) {
                 await LoadImage(world.imageUrl, world);
             }
         }
-        this.SendToRenderer('worlds-category-requests', categoryId, worlds);
+        this.SendToRenderer('worlds-category-requests', categoryId, worldEntries);
 
-        return worlds;
+        return worldEntries;
 
         // const worlds = [
         //     {
@@ -673,11 +876,23 @@ class Core {
     }
 
     async ActiveInstancesRefresh() {
-        const activeWorldsResult = await CVRHttp.GetWorldsByCategory(WorldCategories.ActiveInstances);
-        const activeWorlds = activeWorldsResult.entries;
-        // activeWorldsTotalPages = activeWorldsResult.totalPages;
+
+        const sort = 'Default';
+        const direction = 'Ascending';
+
+        const activeWorldEntries = [];
+
+        // Fetch active instances, (if there's multiple pages, iterate through them)
+        let activeWorldsTotalPages = 1;
+        for (let page = 0; page < activeWorldsTotalPages; page++) {
+            const reqResult = await CVRHttp.GetWorldsByCategory(WorldCategories.ActiveInstances, page, sort, direction);
+            // Update the total pages, so we can iterate multiple times if more pages are available
+            activeWorldsTotalPages = reqResult.totalPages;
+            activeWorldEntries.push(...reqResult.entries);
+        }
+
         const activeInstancesDetails = {};
-        for (const activeWorld of activeWorlds) {
+        for (const activeWorld of activeWorldEntries) {
             const activeWorldDetails = await CVRHttp.GetWorldById(activeWorld.id);
             for (const activeInstance of activeWorldDetails.instances) {
                 try {
@@ -699,7 +914,7 @@ class Core {
             const timeUntilExecute = Math.ceil((this.nextInstancesRefreshAvailableExecuteTime - currentTime) / 1000);
             if (sendMessageToFrontend) {
                 this.SendToRenderer('notification',
-                    `Instance were refreshed less than 1 minute ago. Wait ${timeUntilExecute} seconds...`,
+                    `Slow down! Instances were refreshed less than 1 minute ago. Wait ${timeUntilExecute} seconds...`,
                     ToastTypes.BAD);
             }
             return false;
@@ -962,6 +1177,226 @@ class Core {
         this.SendToRenderer('friend-requests', Object.values(this.friendRequests));
     }
 
+    async GetContentShares(contentType, contentId) {
+
+        let response;
+
+        try {
+            switch (contentType) {
+                case PublicContentType.AVATARS:
+                    response = await CVRHttp.GetAvatarShares(contentId);
+                    break;
+                case PublicContentType.PROPS:
+                    response = await CVRHttp.GetPropShares(contentId);
+                    break;
+                default:
+                    log.error(`[GetContentShares] ${contentType} content type is not supported at the moment.`);
+                    return [];
+            }
+
+            // Extract the actual shares array from the response
+            // API returns { value: [...] } structure
+            const entries = response?.value || [];
+
+            // Ensure entries is valid and is an array
+            if (!Array.isArray(entries)) {
+                log.warn(`[GetContentShares] Invalid entries response for ${contentType} ${contentId}:`, response);
+                return [];
+            }
+
+            // Process images for each entry
+            for (const entry of entries) {
+                if (entry?.image) {
+                    await LoadImage(entry.image, entry);
+                }
+            }
+
+            return entries;
+        } catch (error) {
+            log.error(`[GetContentShares] Error fetching shares for ${contentType} ${contentId}:`, error);
+            return [];
+        }
+    }
+
+    async AddContentShares(contentType, contentId, userId) {
+        switch (contentType) {
+            case PublicContentType.AVATARS:
+                return (await CVRHttp.AddAvatarShare(contentId, userId))?.message;
+            case PublicContentType.PROPS:
+                return (await CVRHttp.AddPropShare(contentId, userId))?.message;
+            default:
+                log.error(`[AddContentShares] ${contentType} content type is not supported at the moment.`);
+                break;
+        }
+    }
+
+    async RemoveContentShares(contentType, contentId, userId) {
+        switch (contentType) {
+            case PublicContentType.AVATARS:
+                return (await CVRHttp.RemoveAvatarShare(contentId, userId))?.message;
+            case PublicContentType.PROPS:
+                return (await CVRHttp.RemovePropShare(contentId, userId))?.message;
+            default:
+                log.error(`[RemoveContentShares] ${contentType} content type is not supported at the moment.`);
+                break;
+        }
+    }
+
+    async GetRandomContent(contentType, count) {
+        let entries;
+        switch (contentType) {
+            case PublicContentType.AVATARS:
+                entries = await CVRHttp.GetRandomAvatars(count);
+                break;
+            case PublicContentType.WORLDS:
+                entries = await CVRHttp.GetRandomWorlds(count);
+                break;
+            case PublicContentType.PROPS:
+                entries = await CVRHttp.GetRandomProps(count);
+                break;
+        }
+        for (const entry of entries) {
+            if (entry?.image) {
+                await LoadImage(entry.image, entry);
+            }
+        }
+        // Example:
+        // [
+        //     {
+        //         "platforms": [
+        //             "Pc_Standalone"
+        //         ],
+        //         "public": true,
+        //         "description": "A realistic club in the middle of the ocean, have fun\nVersion: 1.0",
+        //         "image": "https://files.abidata.io/user_content/worlds/f33fbbf6-5a42-4a0a-a817-e914b21fe929/f33fbbf6-5a42-4a0a-a817-e914b21fe929.png",
+        //         "id": "f33fbbf6-5a42-4a0a-a817-e914b21fe929",
+        //         "name": "Lost Ocean Club"
+        //     }
+        // ]
+        return entries;
+    }
+
+    async GetAvatarById(avatarId) {
+        const avatar = await CVRHttp.GetAvatarById(avatarId);
+        if (avatar?.imageUrl) {
+            await LoadImage(avatar.imageUrl, avatar);
+        }
+        // Load the creator/user images
+        if (avatar?.user) {
+            await LoadUserImages(avatar.user);
+        }
+        return avatar;
+    }
+
+    async GetPropById(propId) {
+        const prop = await CVRHttp.GetPropById(propId);
+        if (prop?.imageUrl) {
+            await LoadImage(prop.imageUrl, prop);
+        }
+        // Load the creator/author images
+        if (prop?.author) {
+            await LoadUserImages(prop.author);
+        }
+        return prop;
+    }
+
+    // Advanced Avatar Settings methods
+    async GetAvatarAdvancedSettings(avatarId) {
+        const fs = require('fs');
+        const path = require('path');
+        
+        try {
+            const advAvatarPath = this.#GetAdvAvatarFilePath(avatarId);
+            
+            if (!fs.existsSync(advAvatarPath)) {
+                return null; // No advanced settings file exists
+            }
+            
+            const fileContent = await fs.promises.readFile(advAvatarPath, 'utf8');
+            return JSON.parse(fileContent);
+        } catch (error) {
+            log.error(`[GetAvatarAdvancedSettings] Failed to read advanced settings for avatar ${avatarId}:`, error);
+            throw error;
+        }
+    }
+
+    async SaveAvatarAdvancedSettings(avatarId, settings) {
+        const fs = require('fs');
+        const path = require('path');
+        
+        try {
+            const advAvatarPath = this.#GetAdvAvatarFilePath(avatarId);
+            const advAvatarDir = path.dirname(advAvatarPath);
+            
+            // Ensure the directory exists
+            await fs.promises.mkdir(advAvatarDir, { recursive: true });
+            
+            // Write the settings to file
+            await fs.promises.writeFile(advAvatarPath, JSON.stringify(settings, null, 4), 'utf8');
+            
+            log.info(`[SaveAvatarAdvancedSettings] Successfully saved advanced settings for avatar ${avatarId}`);
+            return { success: true };
+        } catch (error) {
+            log.error(`[SaveAvatarAdvancedSettings] Failed to save advanced settings for avatar ${avatarId}:`, error);
+            throw error;
+        }
+    }
+
+    async HasAvatarAdvancedSettings(avatarId) {
+        const fs = require('fs');
+        
+        try {
+            const advAvatarPath = this.#GetAdvAvatarFilePath(avatarId);
+            log.debug(`[HasAvatarAdvancedSettings] Checking for avatar ${avatarId} at path: ${advAvatarPath}`);
+            
+            const exists = fs.existsSync(advAvatarPath);
+            log.debug(`[HasAvatarAdvancedSettings] File exists: ${exists}`);
+            
+            return exists;
+        } catch (error) {
+            log.error(`[HasAvatarAdvancedSettings] Failed to check advanced settings for avatar ${avatarId}:`, error);
+            return false;
+        }
+    }
+
+    #GetAdvAvatarFilePath(avatarId) {
+        const path = require('path');
+        
+        // Get the CVR path from config - using the correct method from config.js
+        const cvrPath = Config.GetCVRPath();
+        log.debug(`[GetAdvAvatarFilePath] CVR path from config: ${cvrPath}`);
+        
+        if (!cvrPath) {
+            throw new Error('ChilloutVR path not configured');
+        }
+        
+        // Build the path to the AvatarsAdvancedSettingsProfiles directory
+        const advAvatarDir = path.join(cvrPath, 'ChilloutVR_Data', 'AvatarsAdvancedSettingsProfiles');
+        const advAvatarPath = path.join(advAvatarDir, `${avatarId}.advavtr`);
+        
+        log.debug(`[GetAdvAvatarFilePath] Constructed path: ${advAvatarPath}`);
+        
+        return advAvatarPath;
+    }
+
+    async GetWorldsByCategory(categoryId, page = 0, sort = 'Default', direction = 'Ascending') {
+        try {
+            const reqResult = await CVRHttp.GetWorldsByCategory(categoryId, page, sort, direction);
+            
+            // Load images for all worlds
+            for (const world of reqResult.entries || []) {
+                if (world?.imageUrl) {
+                    await LoadImage(world.imageUrl, world);
+                }
+            }
+            
+            log.info(`[GetWorldsByCategory] Loaded ${reqResult.entries?.length || 0} worlds from category ${categoryId}, page ${page}`);
+            return reqResult.entries || [];
+        } catch (error) {
+            log.error(`[GetWorldsByCategory] Failed to get worlds from category ${categoryId}:`, error);
+            throw error;
+        }
+    }
 }
 
 module.exports = {

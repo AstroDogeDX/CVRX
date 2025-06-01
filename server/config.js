@@ -60,6 +60,8 @@ exports.Load = async () => {
         ActiveUserID: null,
         CacheMaxSizeInMegabytes: 1000,
         CloseToSystemTray: false,
+        ThumbnailShape: 'hexagonal',
+        OnlineFriendsThumbnailShape: 'rounded',
         CVRExecutable: path.join(CVRExecutableDefaultFolderPath, CVRExecutableName),
         UpdaterIgnoreVersion: null,
     };
@@ -265,6 +267,28 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.CloseToSystemTray = closeToTray;
     }
 
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'ThumbnailShape')) {
+        const thumbnailShape = newConfigSettings.ThumbnailShape;
+        const validShapes = ['hexagonal', 'square', 'rounded', 'circle'];
+
+        if (typeof thumbnailShape !== 'string' || !validShapes.includes(thumbnailShape)) {
+            throw new Error('[UpdateConfig] ThumbnailShape should be one of: hexagonal, square, rounded, circle.');
+        }
+
+        config.ThumbnailShape = thumbnailShape;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'OnlineFriendsThumbnailShape')) {
+        const onlineFriendsThumbnailShape = newConfigSettings.OnlineFriendsThumbnailShape;
+        const validShapes = ['hexagonal', 'square', 'rounded', 'circle'];
+
+        if (typeof onlineFriendsThumbnailShape !== 'string' || !validShapes.includes(onlineFriendsThumbnailShape)) {
+            throw new Error('[UpdateConfig] OnlineFriendsThumbnailShape should be one of: hexagonal, square, rounded, circle.');
+        }
+
+        config.OnlineFriendsThumbnailShape = onlineFriendsThumbnailShape;
+    }
+
     await UpdateJsonFile(FileType.CONFIG);
 
     return exports.GetConfig();
@@ -274,12 +298,16 @@ exports.UpdateConfig = async (newConfigSettings) => {
 exports.GetConfig = () => ({
     CacheMaxSizeInMegabytes: config.CacheMaxSizeInMegabytes,
     CloseToSystemTray: config.CloseToSystemTray,
+    ThumbnailShape: config.ThumbnailShape,
+    OnlineFriendsThumbnailShape: config.OnlineFriendsThumbnailShape,
 });
 
 
 exports.GetMaxCacheSize = () => config.CacheMaxSizeInMegabytes;
 
 exports.GetCloseToSystemTray = () => config.CloseToSystemTray;
+
+exports.GetCVRPath = GetCVRPath;
 
 exports.GetUpdaterIgnoreVersion = () => config.UpdaterIgnoreVersion;
 exports.SetUpdaterIgnoreVersion = async (versionToIgnore) => {
