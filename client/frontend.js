@@ -53,7 +53,8 @@ import {
     initializePropsPage,
     setupPropsTextFilter,
     applyPropFilter,
-    refreshContentAfterFavoritesUpdate
+    refreshContentAfterFavoritesUpdate,
+    resetUserContentCache
 } from './astrolib/user_content.js';
 import { loadCategoriesManager } from './astrolib/categories_manager.js';
 
@@ -485,6 +486,9 @@ document.querySelectorAll('.navbar-button').forEach((e) => {
 window.API.onGetActiveUser((_event, activeUser) => {
     log('Active User!');
     log(activeUser);
+
+    // Reset user content cache when switching users to prevent showing previous user's content
+    resetUserContentCache();
 
     // Store the current active user for filtering purposes
     currentActiveUser = activeUser;

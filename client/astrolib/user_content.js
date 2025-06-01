@@ -1265,6 +1265,95 @@ export function setupPropsTextFilter() {
 }
 
 // ===========
+// RESET UTILITY FOR USER SWITCHING
+// ===========
+
+/**
+ * Reset all user content caching when switching users
+ * This clears cached data and resets page loading states
+ */
+export function resetUserContentCache() {
+    log('Resetting user content cache for user switch');
+    
+    // Clear all cached data objects
+    Object.keys(friendsData).forEach(key => delete friendsData[key]);
+    Object.keys(avatarsData).forEach(key => delete avatarsData[key]);
+    Object.keys(worldsData).forEach(key => delete worldsData[key]);
+    Object.keys(propsData).forEach(key => delete propsData[key]);
+    
+    // Clear friend image cache
+    Object.keys(friendImageCache).forEach(key => delete friendImageCache[key]);
+    
+    // Clear friend categories
+    friendCategories = [];
+    avatarCategories = [];
+    worldCategories = [];
+    propCategories = [];
+    
+    // Clear all DOM content
+    const friendsListNode = document.querySelector('.friends-wrapper');
+    if (friendsListNode) friendsListNode.replaceChildren();
+    
+    const avatarsWrapper = document.querySelector('.avatars-wrapper');
+    if (avatarsWrapper) avatarsWrapper.replaceChildren();
+    
+    const worldsWrapper = document.querySelector('.worlds-wrapper');
+    if (worldsWrapper) worldsWrapper.replaceChildren();
+    
+    const propsWrapper = document.querySelector('.props-wrapper');
+    if (propsWrapper) propsWrapper.replaceChildren();
+    
+    const friendsBarNode = document.querySelector('.friends-sidebar-container');
+    if (friendsBarNode) friendsBarNode.replaceChildren();
+    
+    // Reset page loading attributes to force reload
+    const displayAvatars = document.querySelector('#display-avatars');
+    if (displayAvatars) displayAvatars.removeAttribute('loaded-avatars');
+    
+    const displayWorlds = document.querySelector('#display-worlds');
+    if (displayWorlds) displayWorlds.removeAttribute('loaded-worlds');
+    
+    const displayProps = document.querySelector('#display-props');
+    if (displayProps) displayProps.removeAttribute('loaded-props');
+    
+    // Reset filter states
+    const friendsFilter = document.querySelector('.friends-filter');
+    if (friendsFilter) friendsFilter.value = '';
+    
+    const avatarsFilter = document.querySelector('#avatars-filter');
+    if (avatarsFilter) avatarsFilter.value = '';
+    
+    const worldsFilter = document.querySelector('#worlds-filter');
+    if (worldsFilter) worldsFilter.value = '';
+    
+    const propsFilter = document.querySelector('#props-filter');
+    if (propsFilter) propsFilter.value = '';
+    
+    // Reset filter button states to default "All"/"My" buttons
+    const friendsFilterButtons = document.querySelectorAll('.friends-filter-controls .filter-button');
+    friendsFilterButtons.forEach(btn => btn.classList.remove('active'));
+    const friendsAllButton = document.querySelector('.friends-filter-controls .filter-button[data-filter="all"]');
+    if (friendsAllButton) friendsAllButton.classList.add('active');
+    
+    const avatarsFilterButtons = document.querySelectorAll('.avatars-filter-controls .filter-button');
+    avatarsFilterButtons.forEach(btn => btn.classList.remove('active'));
+    const avatarsMyButton = document.querySelector('.avatars-filter-controls .filter-button[data-filter="avtrmine"]');
+    if (avatarsMyButton) avatarsMyButton.classList.add('active');
+    
+    const worldsFilterButtons = document.querySelectorAll('.worlds-filter-controls .filter-button');
+    worldsFilterButtons.forEach(btn => btn.classList.remove('active'));
+    const worldsMyButton = document.querySelector('.worlds-filter-controls .filter-button[data-filter="wrldmine"]');
+    if (worldsMyButton) worldsMyButton.classList.add('active');
+    
+    const propsFilterButtons = document.querySelectorAll('.props-filter-controls .filter-button');
+    propsFilterButtons.forEach(btn => btn.classList.remove('active'));
+    const propsMyButton = document.querySelector('.props-filter-controls .filter-button[data-filter="propmine"]');
+    if (propsMyButton) propsMyButton.classList.add('active');
+    
+    log('User content cache reset complete');
+}
+
+// ===========
 // REFRESH UTILITY FOR FAVORITES
 // ===========
 
@@ -1297,5 +1386,19 @@ export function refreshContentAfterFavoritesUpdate(entityType, entityId) {
             break;
         default:
             log(`Unknown entity type for refresh: ${entityType}`);
+    }
+}
+
+/**
+ * Force reload a specific content page by clearing its loaded attribute
+ * @param {string} pageType - The page type ('avatars', 'worlds', 'props')
+ */
+export function forceReloadContentPage(pageType) {
+    log(`Forcing reload for ${pageType} page`);
+    
+    const displayElement = document.querySelector(`#display-${pageType}`);
+    if (displayElement) {
+        displayElement.removeAttribute(`loaded-${pageType}`);
+        log(`Removed loaded-${pageType} attribute`);
     }
 }
