@@ -1639,14 +1639,28 @@ window.API.onFriendRequests((_event, friendRequests) => {
             className: 'notification-action-button notification-accept',
             innerHTML: '<span class="material-symbols-outlined">check</span>',
             tooltip: 'Accept Friend Request',
-            onClick: () => window.API.acceptFriendRequest(friendRequest.id),
+            onClick: async () => {
+                try {
+                    await window.API.acceptFriendRequest(friendRequest.id);
+                    window.API.refreshFriendRequests();
+                } catch (error) {
+                    pushToast('Failed to accept friend request', 'error');
+                }
+            },
         });
 
         const declineButton = createElement('button', {
             className: 'notification-action-button notification-decline',
             innerHTML: '<span class="material-symbols-outlined">close</span>',
             tooltip: 'Decline Friend Request',
-            onClick: () => window.API.declineFriendRequest(friendRequest.id),
+            onClick: async () => {
+                try {
+                    await window.API.declineFriendRequest(friendRequest.id);
+                    window.API.refreshFriendRequests();
+                } catch (error) {
+                    pushToast('Failed to decline friend request', 'error');
+                }
+            },
         });
 
         const friendRequestNode = createElement('div', {
