@@ -1508,6 +1508,12 @@ document.querySelectorAll('.search-output-category h3').forEach(header => {
 // Set up Random discover button
 document.getElementById('discover-random').addEventListener('click', handleRandomDiscovery);
 
+// Set up New Content discover button
+document.getElementById('discover-new').addEventListener('click', handleNewContentDiscovery);
+
+// Set up Recently Updated discover button
+document.getElementById('discover-updated').addEventListener('click', handleRecentlyUpdatedDiscovery);
+
 // Janky Active Instances
 // -----------------------------
 window.API.onActiveInstancesUpdate((_event, activeInstancesData) => {
@@ -2335,6 +2341,454 @@ document.querySelector('#avatars-refresh')?.addEventListener('click', () => wind
 document.querySelector('#props-refresh')?.addEventListener('click', () => window.API.refreshGetActiveUserProps());
 
 // Props and World functions moved to user_content.js module
+
+// Function to handle new content discovery
+async function handleNewContentDiscovery() {
+    const searchBar = document.getElementById('search-bar');
+    const newButton = document.getElementById('discover-new');
+    
+    // Show loading state
+    document.querySelector('.search-status').classList.add('hidden');
+    document.querySelector('.search-no-results').classList.add('hidden');
+    document.querySelector('.search-loading').classList.remove('hidden');
+    hideAllSearchCategories();
+
+    // Disable the button and search bar while fetching
+    newButton.disabled = true;
+    searchBar.disabled = true;
+
+    try {
+        // Import the data objects from user_content module
+        const userContentModule = await import('./astrolib/user_content.js');
+        
+        // Get search output containers
+        const searchOutputUsers = document.querySelector('.search-output--users');
+        const searchOutputWorlds = document.querySelector('.search-output--worlds');
+        const searchOutputAvatars = document.querySelector('.search-output--avatars');
+        const searchOutputProps = document.querySelector('.search-output--props');
+
+        const userResults = []; // No new users available
+        const worldsResults = [];
+        const avatarResults = [];
+        const propsResults = [];
+
+        // Check if we have any data, if not, try to refresh content first
+        if (Object.keys(userContentModule.avatarsData).length === 0 && 
+            Object.keys(userContentModule.worldsData).length === 0 && 
+            Object.keys(userContentModule.propsData).length === 0) {
+            
+            log('No data found, refreshing content first...');
+            // Trigger refresh and wait for events to populate data
+            await Promise.all([
+                window.API.refreshGetActiveUserAvatars(),
+                window.API.refreshGetActiveUserWorlds(), 
+                window.API.refreshGetActiveUserProps()
+            ]);
+            
+            // Wait longer for the backend events to process and populate the data
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+
+        // Filter avatars for 'avtr_new' category
+        Object.values(userContentModule.avatarsData || {}).forEach(avatar => {
+            if (avatar.categories && avatar.categories.includes('avtr_new')) {
+                log(`Found new avatar: ${avatar.name} with categories: ${JSON.stringify(avatar.categories)}`);
+                
+                const creatorInfo = avatar.author ? 
+                    `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${avatar.author.name}</p>` : '';
+
+                const additionalInfo = `
+                    ${creatorInfo}
+                    <div class="search-result-detail">
+                        <span class="material-symbols-outlined">person_outline</span>Avatar
+                    </div>`;
+
+                let searchResult = createElement('div', {
+                    className: 'search-output--node',
+                    innerHTML: `
+                        <div class="thumbnail-container">
+                            <img src="img/ui/placeholder.png" data-hash="${avatar.imageHash}" class="hidden"/>
+                        </div>
+                        <div class="search-result-content">
+                            <p class="search-result-name">${avatar.name}</p>
+                            <p class="search-result-type">avatar</p>
+                            ${additionalInfo}
+                        </div>
+                    `,
+                    onClick: () => ShowDetailsWrapper(DetailsType.Avatar, avatar.id),
+                });
+
+                // Set placeholder background image
+                const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
+                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                thumbnailContainer.style.backgroundSize = 'cover';
+                thumbnailContainer.dataset.hash = avatar.imageHash;
+
+                avatarResults.push(searchResult);
+            }
+        });
+
+        // Filter worlds for 'wrldnew' category
+        Object.values(userContentModule.worldsData || {}).forEach(world => {
+            if (world.categories && world.categories.includes('wrldnew')) {
+                log(`Found new world: ${world.name} with categories: ${JSON.stringify(world.categories)}`);
+                
+                // Handle tags if available
+                let tagsList = '';
+                if (world.tags && world.tags.length > 0) {
+                    const tagElements = world.tags.slice(0, 3).map(tag =>
+                        `<span class="world-tag">${tag}</span>`
+                    ).join('');
+                    tagsList = `<div class="world-tags">${tagElements}</div>`;
+                }
+
+                const creatorInfo = world.author ? 
+                    `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${world.author.name}</p>` : '';
+
+                const additionalInfo = `
+                    ${creatorInfo}
+                    ${tagsList}
+                    <div class="search-result-detail">
+                        <span class="material-symbols-outlined">travel_explore</span>Explore
+                    </div>`;
+
+                let searchResult = createElement('div', {
+                    className: 'search-output--node',
+                    innerHTML: `
+                        <div class="thumbnail-container">
+                            <img src="img/ui/placeholder.png" data-hash="${world.imageHash}" class="hidden"/>
+                        </div>
+                        <div class="search-result-content">
+                            <p class="search-result-name">${world.name}</p>
+                            <p class="search-result-type">world</p>
+                            ${additionalInfo}
+                        </div>
+                    `,
+                    onClick: () => ShowDetailsWrapper(DetailsType.World, world.id),
+                });
+
+                // Set placeholder background image
+                const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
+                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                thumbnailContainer.style.backgroundSize = 'cover';
+                thumbnailContainer.dataset.hash = world.imageHash;
+
+                worldsResults.push(searchResult);
+            }
+        });
+
+        // Filter props for 'prop_new' category
+        Object.values(userContentModule.propsData || {}).forEach(prop => {
+            if (prop.categories && prop.categories.includes('prop_new')) {
+                log(`Found new prop: ${prop.name} with categories: ${JSON.stringify(prop.categories)}`);
+                
+                const creatorInfo = prop.author ? 
+                    `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${prop.author.name}</p>` : '';
+
+                const additionalInfo = `
+                    ${creatorInfo}
+                    <div class="search-result-detail">
+                        <span class="material-symbols-outlined">category</span>Prop
+                    </div>`;
+
+                let searchResult = createElement('div', {
+                    className: 'search-output--node',
+                    innerHTML: `
+                        <div class="thumbnail-container">
+                            <img src="img/ui/placeholder.png" data-hash="${prop.imageHash}" class="hidden"/>
+                        </div>
+                        <div class="search-result-content">
+                            <p class="search-result-name">${prop.name}</p>
+                            <p class="search-result-type">prop</p>
+                            ${additionalInfo}
+                        </div>
+                    `,
+                    onClick: () => ShowDetailsWrapper(DetailsType.Prop, prop.id),
+                });
+
+                // Set placeholder background image
+                const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
+                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                thumbnailContainer.style.backgroundSize = 'cover';
+                thumbnailContainer.dataset.hash = prop.imageHash;
+
+                propsResults.push(searchResult);
+            }
+        });
+
+        log(`New content discovery results: Avatars: ${avatarResults.length}, Worlds: ${worldsResults.length}, Props: ${propsResults.length}`);
+
+        // Replace previous search results with the new content results
+        searchOutputUsers.replaceChildren(...userResults);
+        searchOutputWorlds.replaceChildren(...worldsResults);
+        searchOutputAvatars.replaceChildren(...avatarResults);
+        searchOutputProps.replaceChildren(...propsResults);
+
+        // Show/hide categories based on results and uncollapse them
+        toggleCategoryVisibility('.users-category', userResults.length > 0);
+        toggleCategoryVisibility('.worlds-category', worldsResults.length > 0);
+        toggleCategoryVisibility('.avatars-category', avatarResults.length > 0);
+        toggleCategoryVisibility('.props-category', propsResults.length > 0);
+
+        // Uncollapse all visible categories after fetching new content
+        document.querySelectorAll('.search-output-category:not(.empty)').forEach(category => {
+            category.classList.remove('collapsed');
+        });
+
+        // Add category counts to headers
+        updateCategoryCount('.users-category', userResults.length);
+        updateCategoryCount('.worlds-category', worldsResults.length);
+        updateCategoryCount('.avatars-category', avatarResults.length);
+        updateCategoryCount('.props-category', propsResults.length);
+
+        // Clear the search bar to indicate this is discover content, not search results
+        searchBar.value = '';
+
+        // Show "no results" message if no results found
+        const totalResults = userResults.length + worldsResults.length + avatarResults.length + propsResults.length;
+        if (totalResults === 0) {
+            document.querySelector('.search-no-results').classList.remove('hidden');
+        } else {
+            document.querySelector('.search-no-results').classList.add('hidden');
+        }
+
+        pushToast(`New content loaded! Found ${totalResults} items.`, 'confirm');
+    } catch (error) {
+        pushToast('Error fetching new content', 'error');
+        log('Error fetching new content:', error);
+    } finally {
+        // Hide loading state and re-enable controls regardless of success/failure
+        document.querySelector('.search-loading').classList.add('hidden');
+        newButton.disabled = false;
+        searchBar.disabled = false;
+        applyTooltips();
+    }
+}
+
+// Function to handle recently updated content discovery
+async function handleRecentlyUpdatedDiscovery() {
+    const searchBar = document.getElementById('search-bar');
+    const updatedButton = document.getElementById('discover-updated');
+    
+    // Show loading state
+    document.querySelector('.search-status').classList.add('hidden');
+    document.querySelector('.search-no-results').classList.add('hidden');
+    document.querySelector('.search-loading').classList.remove('hidden');
+    hideAllSearchCategories();
+
+    // Disable the button and search bar while fetching
+    updatedButton.disabled = true;
+    searchBar.disabled = true;
+
+    try {
+        // Import the data objects from user_content module
+        const userContentModule = await import('./astrolib/user_content.js');
+        
+        // Get search output containers
+        const searchOutputUsers = document.querySelector('.search-output--users');
+        const searchOutputWorlds = document.querySelector('.search-output--worlds');
+        const searchOutputAvatars = document.querySelector('.search-output--avatars');
+        const searchOutputProps = document.querySelector('.search-output--props');
+
+        const userResults = []; // No recently updated users available
+        const worldsResults = [];
+        const avatarResults = [];
+        const propsResults = [];
+
+        // Check if we have any data, if not, try to refresh content first
+        if (Object.keys(userContentModule.avatarsData).length === 0 && 
+            Object.keys(userContentModule.worldsData).length === 0 && 
+            Object.keys(userContentModule.propsData).length === 0) {
+            
+            log('No data found, refreshing content first...');
+            // Trigger refresh and wait for events to populate data
+            await Promise.all([
+                window.API.refreshGetActiveUserAvatars(),
+                window.API.refreshGetActiveUserWorlds(), 
+                window.API.refreshGetActiveUserProps()
+            ]);
+            
+            // Wait longer for the backend events to process and populate the data
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+
+        // Filter avatars for 'avtr_recently' category
+        Object.values(userContentModule.avatarsData || {}).forEach(avatar => {
+            if (avatar.categories && avatar.categories.includes('avtr_recently')) {
+                log(`Found recently updated avatar: ${avatar.name} with categories: ${JSON.stringify(avatar.categories)}`);
+                
+                const creatorInfo = avatar.author ? 
+                    `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${avatar.author.name}</p>` : '';
+
+                const additionalInfo = `
+                    ${creatorInfo}
+                    <div class="search-result-detail">
+                        <span class="material-symbols-outlined">person_outline</span>Avatar
+                    </div>`;
+
+                let searchResult = createElement('div', {
+                    className: 'search-output--node',
+                    innerHTML: `
+                        <div class="thumbnail-container">
+                            <img src="img/ui/placeholder.png" data-hash="${avatar.imageHash}" class="hidden"/>
+                        </div>
+                        <div class="search-result-content">
+                            <p class="search-result-name">${avatar.name}</p>
+                            <p class="search-result-type">avatar</p>
+                            ${additionalInfo}
+                        </div>
+                    `,
+                    onClick: () => ShowDetailsWrapper(DetailsType.Avatar, avatar.id),
+                });
+
+                // Set placeholder background image
+                const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
+                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                thumbnailContainer.style.backgroundSize = 'cover';
+                thumbnailContainer.dataset.hash = avatar.imageHash;
+
+                avatarResults.push(searchResult);
+            }
+        });
+
+        // Filter worlds for 'wrldrecentlyupdated' category
+        Object.values(userContentModule.worldsData || {}).forEach(world => {
+            if (world.categories && world.categories.includes('wrldrecentlyupdated')) {
+                log(`Found recently updated world: ${world.name} with categories: ${JSON.stringify(world.categories)}`);
+                
+                // Handle tags if available
+                let tagsList = '';
+                if (world.tags && world.tags.length > 0) {
+                    const tagElements = world.tags.slice(0, 3).map(tag =>
+                        `<span class="world-tag">${tag}</span>`
+                    ).join('');
+                    tagsList = `<div class="world-tags">${tagElements}</div>`;
+                }
+
+                const creatorInfo = world.author ? 
+                    `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${world.author.name}</p>` : '';
+
+                const additionalInfo = `
+                    ${creatorInfo}
+                    ${tagsList}
+                    <div class="search-result-detail">
+                        <span class="material-symbols-outlined">travel_explore</span>Explore
+                    </div>`;
+
+                let searchResult = createElement('div', {
+                    className: 'search-output--node',
+                    innerHTML: `
+                        <div class="thumbnail-container">
+                            <img src="img/ui/placeholder.png" data-hash="${world.imageHash}" class="hidden"/>
+                        </div>
+                        <div class="search-result-content">
+                            <p class="search-result-name">${world.name}</p>
+                            <p class="search-result-type">world</p>
+                            ${additionalInfo}
+                        </div>
+                    `,
+                    onClick: () => ShowDetailsWrapper(DetailsType.World, world.id),
+                });
+
+                // Set placeholder background image
+                const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
+                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                thumbnailContainer.style.backgroundSize = 'cover';
+                thumbnailContainer.dataset.hash = world.imageHash;
+
+                worldsResults.push(searchResult);
+            }
+        });
+
+        // Filter props for 'prop_recently' category
+        Object.values(userContentModule.propsData || {}).forEach(prop => {
+            if (prop.categories && prop.categories.includes('prop_recently')) {
+                log(`Found recently updated prop: ${prop.name} with categories: ${JSON.stringify(prop.categories)}`);
+                
+                const creatorInfo = prop.author ? 
+                    `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${prop.author.name}</p>` : '';
+
+                const additionalInfo = `
+                    ${creatorInfo}
+                    <div class="search-result-detail">
+                        <span class="material-symbols-outlined">category</span>Prop
+                    </div>`;
+
+                let searchResult = createElement('div', {
+                    className: 'search-output--node',
+                    innerHTML: `
+                        <div class="thumbnail-container">
+                            <img src="img/ui/placeholder.png" data-hash="${prop.imageHash}" class="hidden"/>
+                        </div>
+                        <div class="search-result-content">
+                            <p class="search-result-name">${prop.name}</p>
+                            <p class="search-result-type">prop</p>
+                            ${additionalInfo}
+                        </div>
+                    `,
+                    onClick: () => ShowDetailsWrapper(DetailsType.Prop, prop.id),
+                });
+
+                // Set placeholder background image
+                const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
+                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                thumbnailContainer.style.backgroundSize = 'cover';
+                thumbnailContainer.dataset.hash = prop.imageHash;
+
+                propsResults.push(searchResult);
+            }
+        });
+
+        log(`Recently updated discovery results: Avatars: ${avatarResults.length}, Worlds: ${worldsResults.length}, Props: ${propsResults.length}`);
+
+        // Replace previous search results with the recently updated content results
+        searchOutputUsers.replaceChildren(...userResults);
+        searchOutputWorlds.replaceChildren(...worldsResults);
+        searchOutputAvatars.replaceChildren(...avatarResults);
+        searchOutputProps.replaceChildren(...propsResults);
+
+        // Show/hide categories based on results and uncollapse them
+        toggleCategoryVisibility('.users-category', userResults.length > 0);
+        toggleCategoryVisibility('.worlds-category', worldsResults.length > 0);
+        toggleCategoryVisibility('.avatars-category', avatarResults.length > 0);
+        toggleCategoryVisibility('.props-category', propsResults.length > 0);
+
+        // Uncollapse all visible categories after fetching recently updated content
+        document.querySelectorAll('.search-output-category:not(.empty)').forEach(category => {
+            category.classList.remove('collapsed');
+        });
+
+        // Add category counts to headers
+        updateCategoryCount('.users-category', userResults.length);
+        updateCategoryCount('.worlds-category', worldsResults.length);
+        updateCategoryCount('.avatars-category', avatarResults.length);
+        updateCategoryCount('.props-category', propsResults.length);
+
+        // Clear the search bar to indicate this is discover content, not search results
+        searchBar.value = '';
+
+        // Show "no results" message if no results found
+        const totalResults = userResults.length + worldsResults.length + avatarResults.length + propsResults.length;
+        if (totalResults === 0) {
+            document.querySelector('.search-no-results').classList.remove('hidden');
+        } else {
+            document.querySelector('.search-no-results').classList.add('hidden');
+        }
+
+        pushToast(`Recently updated content loaded! Found ${totalResults} items.`, 'confirm');
+    } catch (error) {
+        pushToast('Error fetching recently updated content', 'error');
+        log('Error fetching recently updated content:', error);
+    } finally {
+        // Hide loading state and re-enable controls regardless of success/failure
+        document.querySelector('.search-loading').classList.add('hidden');
+        updatedButton.disabled = false;
+        searchBar.disabled = false;
+        applyTooltips();
+    }
+}
+
+// Hide all search categories
 
 
 

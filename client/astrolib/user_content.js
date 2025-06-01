@@ -435,6 +435,9 @@ let avatarCategories = [];
 // Store avatars data for category filtering
 let avatarsData = {};
 
+// Export data objects for access by discover functions
+export { avatarsData };
+
 // Function to load avatar categories and update filter buttons
 export async function loadAvatarCategories() {
     try {
@@ -681,6 +684,9 @@ let worldCategories = [];
 
 // Store worlds data for category filtering
 let worldsData = {};
+
+// Export worlds data for access by discover functions
+export { worldsData };
 
 // Function to load world categories and update filter buttons
 export async function loadWorldCategories() {
@@ -1027,6 +1033,9 @@ let propCategories = [];
 
 // Store props data for category filtering
 let propsData = {};
+
+// Export props data for access by discover functions
+export { propsData };
 
 // Function to load prop categories and update filter buttons
 export async function loadPropCategories() {
