@@ -3,6 +3,7 @@ const overlay = document.querySelector('#tooltip-overlay');
 
 let isPackaged = false;
 let hideTooltipTimeout = null; // Store timeout ID
+let safetyCheckTimeout = null; // Store safety check timeout ID
 
 const log = (msg) => {
     if (!isPackaged) console.log(msg);
@@ -96,12 +97,43 @@ const hideTooltip = () => {
     }, 150);
 };
 
+// Safety mechanism to hide stuck tooltips
+const safetyCheck = (e) => {
+    // Clear any pending safety check
+    if (safetyCheckTimeout) {
+        clearTimeout(safetyCheckTimeout);
+    }
+    
+    // Set a new safety check with a small delay
+    safetyCheckTimeout = setTimeout(() => {
+        // Check if tooltip is currently visible
+        if (tooltip.style.visibility === 'visible' && tooltip.style.opacity === '1') {
+            // Check if the current mouse target has a tooltip
+            const hasTooltip = e.target && (
+                e.target.hasAttribute('data-tooltip') || 
+                e.target.closest('[data-tooltip]')
+            );
+            
+            // If no tooltip should be shown, hide it
+            if (!hasTooltip) {
+                log('[astrolib/tooltip.js] Safety check: hiding stuck tooltip');
+                hideTooltip();
+            }
+        }
+        safetyCheckTimeout = null;
+    }, 100); // 100ms delay to avoid excessive checks
+};
+
 function applyTooltips() {
     const TOOLTIPS_ENABLED = 'tooltips-enabled';
     const HAS_TOOLTIP = 'has-tooltip';
 
     if (!overlay.hasAttribute(TOOLTIPS_ENABLED)) {
-        window.addEventListener('mousemove', moveTooltip);
+        // Add both tooltip positioning and safety check to mousemove
+        window.addEventListener('mousemove', (e) => {
+            moveTooltip(e);
+            safetyCheck(e);
+        });
         overlay.setAttribute(TOOLTIPS_ENABLED, 'true');
         log('[astrolib/tooltip.js] Tooltips Enabled');
     }
