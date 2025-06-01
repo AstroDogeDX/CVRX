@@ -2198,6 +2198,11 @@ window.API.getVersion();
 
 window.API.receiveVersion((appVersion) => {
     document.querySelector('.navbar-version').innerHTML = `v${appVersion}`;
+    // Also update the login version if it exists
+    const loginVersion = document.querySelector('.login-version');
+    if (loginVersion) {
+        loginVersion.innerHTML = `v${appVersion}`;
+    }
 });
 
 window.API.onSocketDied((_event) => promptReconnect());
