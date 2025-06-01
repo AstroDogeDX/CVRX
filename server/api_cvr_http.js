@@ -159,6 +159,7 @@ exports.SetFriendNote = async (userId, note) => await Post(`/users/${userId}/not
 // Avatars
 exports.GetMyAvatars = async () => await Get('/avatars');
 exports.GetAvatarById = async (avatarId) => await Get(`/avatars/${avatarId}`);
+exports.SetCurrentAvatar = async (avatarId) => await Get(`/avatars/${avatarId}/switchAvatar`);
 exports.GetAvatarShares = async (avatarId) => await Get(`/avatars/${avatarId}/shares`);
 exports.AddAvatarShare = async (avatarId, userId) => await Post(`/avatars/${avatarId}/shares/${userId}`, {});
 exports.RemoveAvatarShare = async (avatarId, userId) => await Delete(`/avatars/${avatarId}/shares/${userId}`);
@@ -177,7 +178,7 @@ exports.ReorderCategories = async (type, newOrderedCategoryIds) => await Patch(`
 // Worlds
 exports.GetWorldById = async (worldId) => await Get(`/worlds/${worldId}`);
 exports.GetWorldMetaById = async (worldId) => await Get(`/worlds/${worldId}/meta`);
-exports.GetWorldsByCategory = async (worldCategoryId) => await Get(`/worlds/list/${worldCategoryId}?page=0&direction=0`, true, 2);
+exports.GetWorldsByCategory = async (worldCategoryId, page, sort, direction) => await Get(`/worlds/list/${worldCategoryId}?page=${page}&sort=${sort}&direction=${direction}`, true, 2);
 exports.GetWorldPortalById = async (worldId) => await Get(`/portals/world/${worldId}`);
 exports.SetWorldAsHome = async (worldId) => await Get(`/worlds/${worldId}/sethome`);
 
