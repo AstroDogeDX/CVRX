@@ -1108,10 +1108,75 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 });
             }
 
+            // Switch to Avatar button (only show if we have access to the avatar)
+            let switchAvatarButton = null;
+            if (hasAvatarAccess) {
+                switchAvatarButton = createElement('button', {
+                    className: 'avatar-details-action-button',
+                    innerHTML: '<span class="material-symbols-outlined">swap_horiz</span>Switch to Avatar',
+                    onClick: async () => {
+                        // Check if ChilloutVR is running and show warning modal if it is
+                        if (isChilloutVRRunning) {
+                            // Show warning modal
+                            const confirmShade = document.querySelector('.prompt-layer');
+                            const confirmPrompt = createElement('div', { className: 'prompt' });
+                            const confirmTitle = createElement('div', { className: 'prompt-title', textContent: 'Switch Avatar While Game Running' });
+                            const confirmText = createElement('div', {
+                                className: 'prompt-text',
+                                innerHTML: `Avatar switching while ChilloutVR is running can be inconsistent.<br><br>You may need to rejoin your current instance to see the changes in-game.<br><br>Do you want to continue?`,
+                            });
+                            const confirmButtons = createElement('div', { className: 'prompt-buttons' });
+
+                            const switchButton = createElement('button', {
+                                className: 'prompt-btn-confirm',
+                                textContent: 'Switch Avatar',
+                                onClick: async () => {
+                                    try {
+                                        await windowAPI.setCurrentAvatar(entityId);
+                                        pushToast(`Switched to "${entityInfo.name}"`, 'confirm');
+                                        confirmPrompt.remove();
+                                        confirmShade.style.display = 'none';
+                                    } catch (error) {
+                                        log('Failed to switch avatar:');
+                                        pushToast('Failed to switch avatar', 'error');
+                                    }
+                                },
+                            });
+
+                            const cancelButton = createElement('button', {
+                                className: 'prompt-btn-neutral',
+                                textContent: 'Cancel',
+                                onClick: () => {
+                                    confirmPrompt.remove();
+                                    confirmShade.style.display = 'none';
+                                },
+                            });
+
+                            confirmButtons.append(switchButton, cancelButton);
+                            confirmPrompt.append(confirmTitle, confirmText, confirmButtons);
+                            confirmShade.append(confirmPrompt);
+                            confirmShade.style.display = 'flex';
+                        } else {
+                            // Switch avatar directly if game is not running
+                            try {
+                                await windowAPI.setCurrentAvatar(entityId);
+                                pushToast(`Switched to "${entityInfo.name}"`, 'confirm');
+                            } catch (error) {
+                                log('Failed to switch avatar:');
+                                pushToast('Failed to switch avatar', 'error');
+                            }
+                        }
+                    },
+                });
+            }
+
             // Add buttons to container
             const buttonsToAdd = [];
             if (categoriesButton) {
                 buttonsToAdd.push(categoriesButton);
+            }
+            if (switchAvatarButton) {
+                buttonsToAdd.push(switchAvatarButton);
             }
             if (viewInGameButton) {
                 buttonsToAdd.unshift(viewInGameButton); // Add at the beginning
