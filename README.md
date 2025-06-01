@@ -1,28 +1,26 @@
-# CVRX - The X stands for 'Xtra Cool'
-A standalone companion app for ChilloutVR that expands the user experience!
+# CVRX
+
+A companion app for **ChilloutVR** that e**X**pands the user experience!
 
 ## Features
-* **Real Time** Friends List
-* **Live Instances** with Friend Count
-* See your **Friends, Avatars, Worlds & Props**
-* Get & Reply **Notifications** in Real Time
-* **Built on Electron** for Multiplatform Support
+* **Real Time Friends List** - Stay connected with your friends instantly
+* **Live Instance Tracking** - Monitor instances with player and friend counts
+* **Detailed Content Pages** - Comprehensive views for avatars, props, worlds, users, and instances
+* **Content Search** - Find exactly what you're looking for
+* **Content Discovery** - Explore new, recently updated, and random content
+* **User Content Management** - Organize your favourites and shares
+* **Advanced Avatar Configurator** - Fine-tune your avatar settings
+* **Favourites Categories** - Organize your favourites with custom categories
+* **And Much More!** - Continuously expanding features for the ultimate CVR experience
 
 ## Screenshots
-![CVRX Getting Credentials](https://i.imgur.com/tSnPiKH.gif)
+![CVRX Logging In](https://i.imgur.com/ftI2rGu.png)
 ---
-![CVRX Logging In](https://i.imgur.com/9uTEvbi.gif)
+![CVRX Home Page](https://i.imgur.com/snpUoEi.png)
 ---
-![CVRX Home Page](https://i.imgur.com/gy3HQzN.png)
+![CVRX Details Page](https://i.imgur.com/OJyn3tp.png)
 ---
-![CVRX Search Feature](https://i.imgur.com/cKW1mJH.gif)
-
-## Coming Soon™
-* Manage your friends and content in-app
-* Get additional stats and info, such as:
-  * Time spent with friends
-  * Last seen online
-  * ...and more!
+![CVRX Search Feature](https://i.imgur.com/ggSqj03.png)
 
 ## Build Instructions
 ### Windows
@@ -61,6 +59,6 @@ Other platform build instructions are probably the same with some variations, ho
 > ---
 > ⚠️ **Notice!**  
 >
-> This software is in no way associated with or supported by ChilloutVR or AB Interactive.
+> This software is in no way associated with or officially supported by the ChilloutVR Team.
 >
 > ---
