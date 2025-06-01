@@ -1274,6 +1274,205 @@ function updateCategoryCount(categorySelector, count) {
     }
 }
 
+// Function to handle random content discovery
+async function handleRandomDiscovery() {
+    const searchBar = document.getElementById('search-bar');
+    const randomButton = document.getElementById('discover-random');
+    
+    // Show loading state
+    document.querySelector('.search-status').classList.add('hidden');
+    document.querySelector('.search-no-results').classList.add('hidden');
+    document.querySelector('.search-loading').classList.remove('hidden');
+    hideAllSearchCategories();
+
+    // Disable the button and search bar while fetching
+    randomButton.disabled = true;
+    searchBar.disabled = true;
+
+    try {
+        // Fetch random content from all types with count of 16 each
+        const [randomAvatars, randomWorlds, randomProps] = await Promise.all([
+            window.API.getRandomAvatars(20),
+            window.API.getRandomWorlds(20),
+            window.API.getRandomProps(20)
+        ]);
+
+        log('Random content fetched!');
+        log({ avatars: randomAvatars, worlds: randomWorlds, props: randomProps });
+
+        // Get search output containers
+        const searchOutputUsers = document.querySelector('.search-output--users');
+        const searchOutputWorlds = document.querySelector('.search-output--worlds');
+        const searchOutputAvatars = document.querySelector('.search-output--avatars');
+        const searchOutputProps = document.querySelector('.search-output--props');
+
+        const userResults = []; // No random users available
+        const worldsResults = [];
+        const avatarResults = [];
+        const propsResults = [];
+
+        // Process random avatars (convert to search result format)
+        for (const avatar of randomAvatars) {
+            const creatorInfo = avatar.author ? 
+                `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${avatar.author.name}</p>` : '';
+
+            const additionalInfo = `
+                ${creatorInfo}
+                <div class="search-result-detail">
+                    <span class="material-symbols-outlined">person_outline</span>Avatar
+                </div>`;
+
+            let searchResult = createElement('div', {
+                className: 'search-output--node',
+                innerHTML: `
+                    <div class="thumbnail-container">
+                        <img src="img/ui/placeholder.png" data-hash="${avatar.imageHash}" class="hidden"/>
+                    </div>
+                    <div class="search-result-content">
+                        <p class="search-result-name">${avatar.name}</p>
+                        <p class="search-result-type">avatar</p>
+                        ${additionalInfo}
+                    </div>
+                `,
+                onClick: () => ShowDetailsWrapper(DetailsType.Avatar, avatar.id),
+            });
+
+            // Set placeholder background image
+            const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
+            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            thumbnailContainer.style.backgroundSize = 'cover';
+            thumbnailContainer.dataset.hash = avatar.imageHash;
+
+            avatarResults.push(searchResult);
+        }
+
+        // Process random worlds (convert to search result format)
+        for (const world of randomWorlds) {
+            // Handle tags if available
+            let tagsList = '';
+            if (world.tags && world.tags.length > 0) {
+                const tagElements = world.tags.slice(0, 3).map(tag =>
+                    `<span class="world-tag">${tag}</span>`
+                ).join('');
+                tagsList = `<div class="world-tags">${tagElements}</div>`;
+            }
+
+            const creatorInfo = world.author ? 
+                `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${world.author.name}</p>` : '';
+
+            const additionalInfo = `
+                ${creatorInfo}
+                ${tagsList}
+                <div class="search-result-detail">
+                    <span class="material-symbols-outlined">travel_explore</span>Explore
+                </div>`;
+
+            let searchResult = createElement('div', {
+                className: 'search-output--node',
+                innerHTML: `
+                    <div class="thumbnail-container">
+                        <img src="img/ui/placeholder.png" data-hash="${world.imageHash}" class="hidden"/>
+                    </div>
+                    <div class="search-result-content">
+                        <p class="search-result-name">${world.name}</p>
+                        <p class="search-result-type">world</p>
+                        ${additionalInfo}
+                    </div>
+                `,
+                onClick: () => ShowDetailsWrapper(DetailsType.World, world.id),
+            });
+
+            // Set placeholder background image
+            const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
+            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            thumbnailContainer.style.backgroundSize = 'cover';
+            thumbnailContainer.dataset.hash = world.imageHash;
+
+            worldsResults.push(searchResult);
+        }
+
+        // Process random props (convert to search result format)
+        for (const prop of randomProps) {
+            const creatorInfo = prop.author ? 
+                `<p class="creator-info"><span class="material-symbols-outlined">person</span>By: ${prop.author.name}</p>` : '';
+
+            const additionalInfo = `
+                ${creatorInfo}
+                <div class="search-result-detail">
+                    <span class="material-symbols-outlined">category</span>Prop
+                </div>`;
+
+            let searchResult = createElement('div', {
+                className: 'search-output--node',
+                innerHTML: `
+                    <div class="thumbnail-container">
+                        <img src="img/ui/placeholder.png" data-hash="${prop.imageHash}" class="hidden"/>
+                    </div>
+                    <div class="search-result-content">
+                        <p class="search-result-name">${prop.name}</p>
+                        <p class="search-result-type">prop</p>
+                        ${additionalInfo}
+                    </div>
+                `,
+                onClick: () => ShowDetailsWrapper(DetailsType.Prop, prop.id),
+            });
+
+            // Set placeholder background image
+            const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
+            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            thumbnailContainer.style.backgroundSize = 'cover';
+            thumbnailContainer.dataset.hash = prop.imageHash;
+
+            propsResults.push(searchResult);
+        }
+
+        // Replace previous search results with the random results
+        searchOutputUsers.replaceChildren(...userResults);
+        searchOutputWorlds.replaceChildren(...worldsResults);
+        searchOutputAvatars.replaceChildren(...avatarResults);
+        searchOutputProps.replaceChildren(...propsResults);
+
+        // Show/hide categories based on results and uncollapse them
+        toggleCategoryVisibility('.users-category', userResults.length > 0);
+        toggleCategoryVisibility('.worlds-category', worldsResults.length > 0);
+        toggleCategoryVisibility('.avatars-category', avatarResults.length > 0);
+        toggleCategoryVisibility('.props-category', propsResults.length > 0);
+
+        // Uncollapse all visible categories after fetching random content
+        document.querySelectorAll('.search-output-category:not(.empty)').forEach(category => {
+            category.classList.remove('collapsed');
+        });
+
+        // Add category counts to headers
+        updateCategoryCount('.users-category', userResults.length);
+        updateCategoryCount('.worlds-category', worldsResults.length);
+        updateCategoryCount('.avatars-category', avatarResults.length);
+        updateCategoryCount('.props-category', propsResults.length);
+
+        // Clear the search bar to indicate this is random content, not search results
+        searchBar.value = '';
+
+        // Show "no results" message if no results found (shouldn't happen for random content)
+        const totalResults = userResults.length + worldsResults.length + avatarResults.length + propsResults.length;
+        if (totalResults === 0) {
+            document.querySelector('.search-no-results').classList.remove('hidden');
+        } else {
+            document.querySelector('.search-no-results').classList.add('hidden');
+        }
+
+        pushToast('Random content loaded!', 'confirm');
+    } catch (error) {
+        pushToast('Error fetching random content', 'error');
+        log('Error fetching random content:', error);
+    } finally {
+        // Hide loading state and re-enable controls regardless of success/failure
+        document.querySelector('.search-loading').classList.add('hidden');
+        randomButton.disabled = false;
+        searchBar.disabled = false;
+        applyTooltips();
+    }
+}
+
 // Hide all search categories
 function hideAllSearchCategories() {
     document.querySelectorAll('.search-output-category').forEach(category => {
@@ -1305,6 +1504,9 @@ document.querySelectorAll('.search-output-category h3').forEach(header => {
         }
     });
 });
+
+// Set up Random discover button
+document.getElementById('discover-random').addEventListener('click', handleRandomDiscovery);
 
 // Janky Active Instances
 // -----------------------------
