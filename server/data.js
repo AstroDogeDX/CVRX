@@ -213,6 +213,7 @@ class Core {
         ipcMain.handle('get-world-by-id', async (_event, worldId) => EscapeHtml(await this.GetWorldById(worldId)));
         ipcMain.handle('get-world-meta-by-id', async (_event, worldId) => EscapeHtml(await CVRHttp.GetWorldMetaById(worldId)));
         ipcMain.handle('get-world-portal-by-id', async (_event, worldId) => EscapeHtml(await CVRHttp.GetWorldPortalById(worldId)));
+        ipcMain.handle('get-worlds-by-category', async (_event, categoryId, page, sort, direction) => EscapeHtml(await this.GetWorldsByCategory(categoryId, page, sort, direction)));
         ipcMain.handle('set-world-as-home', async (_event, worldId) => EscapeHtml(await CVRHttp.SetWorldAsHome(worldId)));
         ipcMain.handle('get-instance-by-id', async (_event, instanceId) => EscapeHtml(await this.GetInstanceById(instanceId)));
         ipcMain.handle('get-instance-portal-by-id', async (_event, instanceId) => EscapeHtml(await CVRHttp.GetInstancePortalById(instanceId)));
@@ -1376,6 +1377,25 @@ class Core {
         log.debug(`[GetAdvAvatarFilePath] Constructed path: ${advAvatarPath}`);
         
         return advAvatarPath;
+    }
+
+    async GetWorldsByCategory(categoryId, page = 0, sort = 'Default', direction = 'Ascending') {
+        try {
+            const reqResult = await CVRHttp.GetWorldsByCategory(categoryId, page, sort, direction);
+            
+            // Load images for all worlds
+            for (const world of reqResult.entries || []) {
+                if (world?.imageUrl) {
+                    await LoadImage(world.imageUrl, world);
+                }
+            }
+            
+            log.info(`[GetWorldsByCategory] Loaded ${reqResult.entries?.length || 0} worlds from category ${categoryId}, page ${page}`);
+            return reqResult.entries || [];
+        } catch (error) {
+            log.error(`[GetWorldsByCategory] Failed to get worlds from category ${categoryId}:`, error);
+            throw error;
+        }
     }
 }
 

@@ -567,7 +567,9 @@ export function handleAvatarsRefresh(ourAvatars) {
     log(ourAvatars);
 
     // Store avatars data globally for category filtering
-    avatarsData = {};
+    // Clear the existing object and repopulate it instead of reassigning
+    // This preserves the exported reference
+    Object.keys(avatarsData).forEach(key => delete avatarsData[key]);
     ourAvatars.forEach(avatar => {
         avatarsData[avatar.id] = avatar;
     });
@@ -829,7 +831,9 @@ export function handleWorldsRefresh(ourWorlds) {
     log(ourWorlds);
 
     // Store worlds data globally for category filtering
-    worldsData = {};
+    // Clear the existing object and repopulate it instead of reassigning
+    // This preserves the exported reference
+    Object.keys(worldsData).forEach(key => delete worldsData[key]);
     ourWorlds.forEach(world => {
         worldsData[world.id] = world;
     });
@@ -1162,7 +1166,9 @@ export function handlePropsRefresh(ourProps) {
     log(ourProps);
 
     // Store props data globally for category filtering
-    propsData = {};
+    // Clear the existing object and repopulate it instead of reassigning
+    // This preserves the exported reference
+    Object.keys(propsData).forEach(key => delete propsData[key]);
     ourProps.forEach(prop => {
         propsData[prop.id] = prop;
     });

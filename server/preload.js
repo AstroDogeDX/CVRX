@@ -50,6 +50,7 @@ contextBridge.exposeInMainWorld('API', {
     getWorldById: (worldId) => ipcRenderer.invoke('get-world-by-id', worldId),
     getWorldMetaById: (worldId) => ipcRenderer.invoke('get-world-meta-by-id', worldId),
     getWorldPortalById: (worldId) => ipcRenderer.invoke('get-world-portal-by-id', worldId),
+    getWorldsByCategory: (categoryId, page, sort, direction) => ipcRenderer.invoke('get-worlds-by-category', categoryId, page, sort, direction),
     setWorldAsHome: (worldId) => ipcRenderer.invoke('set-world-as-home', worldId),
     getInstanceById: (instanceId) => ipcRenderer.invoke('get-instance-by-id', instanceId),
     getInstancePortalById: (instanceId) => ipcRenderer.invoke('get-instance-portal-by-id', instanceId),

@@ -2378,15 +2378,45 @@ async function handleNewContentDiscovery() {
             Object.keys(userContentModule.propsData).length === 0) {
             
             log('No data found, refreshing content first...');
-            // Trigger refresh and wait for events to populate data
-            await Promise.all([
+            
+            // Create promises that resolve when the data is actually loaded
+            const avatarsPromise = new Promise((resolve) => {
+                const checkAvatarsData = () => {
+                    if (Object.keys(userContentModule.avatarsData).length > 0) {
+                        resolve();
+                    } else {
+                        setTimeout(checkAvatarsData, 100);
+                    }
+                };
+                checkAvatarsData();
+            });
+            
+            const propsPromise = new Promise((resolve) => {
+                const checkPropsData = () => {
+                    if (Object.keys(userContentModule.propsData).length > 0) {
+                        resolve();
+                    } else {
+                        setTimeout(checkPropsData, 100);
+                    }
+                };
+                checkPropsData();
+            });
+            
+            // Trigger refresh calls
+            const refreshPromises = Promise.all([
                 window.API.refreshGetActiveUserAvatars(),
                 window.API.refreshGetActiveUserWorlds(), 
                 window.API.refreshGetActiveUserProps()
             ]);
             
-            // Wait longer for the backend events to process and populate the data
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Wait for both refresh calls to complete AND data to be populated
+            await Promise.all([
+                refreshPromises,
+                avatarsPromise,
+                propsPromise
+            ]);
+            
+            log('Data refresh completed and populated');
         }
 
         // Filter avatars for 'avtr_new' category
@@ -2428,11 +2458,15 @@ async function handleNewContentDiscovery() {
             }
         });
 
-        // Filter worlds for 'wrldnew' category
-        Object.values(userContentModule.worldsData || {}).forEach(world => {
-            if (world.categories && world.categories.includes('wrldnew')) {
-                log(`Found new world: ${world.name} with categories: ${JSON.stringify(world.categories)}`);
-                
+        // For worlds, we need to fetch from the 'wrldnew' system category directly
+        // since these are not included in the user's regular world collection
+        try {
+            log('Fetching new worlds from wrldnew category...');
+            const newWorlds = await window.API.getWorldsByCategory('wrldnew', 0, 'Default', 'Ascending');
+            log(`Fetched ${newWorlds.length} new worlds from wrldnew category`);
+            
+            // Process new worlds
+            for (const world of newWorlds) {
                 // Handle tags if available
                 let tagsList = '';
                 if (world.tags && world.tags.length > 0) {
@@ -2475,7 +2509,10 @@ async function handleNewContentDiscovery() {
 
                 worldsResults.push(searchResult);
             }
-        });
+        } catch (error) {
+            log('Error fetching new worlds:', error);
+            pushToast('Error fetching new worlds', 'error');
+        }
 
         // Filter props for 'prop_new' category
         Object.values(userContentModule.propsData || {}).forEach(prop => {
@@ -2601,15 +2638,45 @@ async function handleRecentlyUpdatedDiscovery() {
             Object.keys(userContentModule.propsData).length === 0) {
             
             log('No data found, refreshing content first...');
-            // Trigger refresh and wait for events to populate data
-            await Promise.all([
+            
+            // Create promises that resolve when the data is actually loaded
+            const avatarsPromise = new Promise((resolve) => {
+                const checkAvatarsData = () => {
+                    if (Object.keys(userContentModule.avatarsData).length > 0) {
+                        resolve();
+                    } else {
+                        setTimeout(checkAvatarsData, 100);
+                    }
+                };
+                checkAvatarsData();
+            });
+            
+            const propsPromise = new Promise((resolve) => {
+                const checkPropsData = () => {
+                    if (Object.keys(userContentModule.propsData).length > 0) {
+                        resolve();
+                    } else {
+                        setTimeout(checkPropsData, 100);
+                    }
+                };
+                checkPropsData();
+            });
+            
+            // Trigger refresh calls
+            const refreshPromises = Promise.all([
                 window.API.refreshGetActiveUserAvatars(),
                 window.API.refreshGetActiveUserWorlds(), 
                 window.API.refreshGetActiveUserProps()
             ]);
             
-            // Wait longer for the backend events to process and populate the data
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Wait for both refresh calls to complete AND data to be populated
+            await Promise.all([
+                refreshPromises,
+                avatarsPromise,
+                propsPromise
+            ]);
+            
+            log('Data refresh completed and populated');
         }
 
         // Filter avatars for 'avtr_recently' category
@@ -2651,11 +2718,15 @@ async function handleRecentlyUpdatedDiscovery() {
             }
         });
 
-        // Filter worlds for 'wrldrecentlyupdated' category
-        Object.values(userContentModule.worldsData || {}).forEach(world => {
-            if (world.categories && world.categories.includes('wrldrecentlyupdated')) {
-                log(`Found recently updated world: ${world.name} with categories: ${JSON.stringify(world.categories)}`);
-                
+        // For worlds, we need to fetch from the 'wrldrecentlyupdated' system category directly
+        // since these are not included in the user's regular world collection
+        try {
+            log('Fetching recently updated worlds from wrldrecentlyupdated category...');
+            const recentlyUpdatedWorlds = await window.API.getWorldsByCategory('wrldrecentlyupdated', 0, 'Default', 'Ascending');
+            log(`Fetched ${recentlyUpdatedWorlds.length} recently updated worlds from wrldrecentlyupdated category`);
+            
+            // Process recently updated worlds
+            for (const world of recentlyUpdatedWorlds) {
                 // Handle tags if available
                 let tagsList = '';
                 if (world.tags && world.tags.length > 0) {
@@ -2698,7 +2769,10 @@ async function handleRecentlyUpdatedDiscovery() {
 
                 worldsResults.push(searchResult);
             }
-        });
+        } catch (error) {
+            log('Error fetching recently updated worlds:', error);
+            pushToast('Error fetching recently updated worlds', 'error');
+        }
 
         // Filter props for 'prop_recently' category
         Object.values(userContentModule.propsData || {}).forEach(prop => {
