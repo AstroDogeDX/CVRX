@@ -1330,9 +1330,18 @@ async function handleRandomDiscovery() {
                 onClick: () => ShowDetailsWrapper(DetailsType.Avatar, avatar.id),
             });
 
-            // Set placeholder background image
+            // Set background image - use cached image if available, otherwise placeholder
             const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            const cachedImage = friendImageCache[avatar.imageHash];
+            if (cachedImage) {
+                thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
+            } else {
+                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                // Trigger image loading if not already cached
+                window.API.getAvatarById(avatar.id).catch(error => {
+                    log('Error loading avatar image:', error);
+                });
+            }
             thumbnailContainer.style.backgroundSize = 'cover';
             thumbnailContainer.dataset.hash = avatar.imageHash;
 
@@ -1375,9 +1384,18 @@ async function handleRandomDiscovery() {
                 onClick: () => ShowDetailsWrapper(DetailsType.World, world.id),
             });
 
-            // Set placeholder background image
+            // Set background image - use cached image if available, otherwise placeholder
             const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            const cachedImage = friendImageCache[world.imageHash];
+            if (cachedImage) {
+                thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
+            } else {
+                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                // Trigger image loading if not already cached
+                window.API.getWorldById(world.id).catch(error => {
+                    log('Error loading world image:', error);
+                });
+            }
             thumbnailContainer.style.backgroundSize = 'cover';
             thumbnailContainer.dataset.hash = world.imageHash;
 
@@ -1410,9 +1428,18 @@ async function handleRandomDiscovery() {
                 onClick: () => ShowDetailsWrapper(DetailsType.Prop, prop.id),
             });
 
-            // Set placeholder background image
+            // Set background image - use cached image if available, otherwise placeholder
             const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            const cachedImage = friendImageCache[prop.imageHash];
+            if (cachedImage) {
+                thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
+            } else {
+                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                // Trigger image loading if not already cached
+                window.API.getPropById(prop.id).catch(error => {
+                    log('Error loading prop image:', error);
+                });
+            }
             thumbnailContainer.style.backgroundSize = 'cover';
             thumbnailContainer.dataset.hash = prop.imageHash;
 
