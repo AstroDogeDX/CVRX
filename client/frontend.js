@@ -516,12 +516,19 @@ window.API.onGetActiveUser((_event, activeUser) => {
 window.API.onImageLoaded((_event, imageData) => {
     const { imageHash, imageBase64 } = imageData;
 
+    // Cache the image when it's loaded
+    friendImageCache[imageHash] = imageBase64;
+
     // Update all elements with matching data-hash
     document.querySelectorAll(`[data-hash="${imageHash}"]`).forEach(element => {
         if (element.classList.contains('profile-navbar-button')) {
             element.style.backgroundImage = `url(${imageBase64})`;
         } else if (element.tagName === 'IMG') {
             element.src = imageBase64;
+        } else if (element.classList.contains('thumbnail-container')) {
+            // For thumbnail containers using background images
+            element.style.backgroundImage = `url('${imageBase64}')`;
+            element.style.backgroundSize = 'cover';
         }
     });
 });
@@ -973,24 +980,6 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
 });
 
 // Friends text filter is now handled by setupFriendsTextFilter in user_content module
-
-// returns .imageBase64, .imageHash, .imageUrl
-window.API.onImageLoaded((_event, image) => {
-    // Cache the image when it's loaded
-    friendImageCache[image.imageHash] = image.imageBase64;
-
-    document.querySelectorAll(`[data-hash="${image.imageHash}"]`).forEach((e) => {
-        if (e.tagName === 'IMG') {
-            // For regular image tags
-            e.src = image.imageBase64;
-        } else if (e.classList.contains('thumbnail-container')) {
-            // For thumbnail containers using background images
-            e.style.backgroundImage = `url('${image.imageBase64}')`;
-            e.style.backgroundSize = 'cover';
-        }
-    });
-});
-
 
 // Janky Search
 // -----------------------------
@@ -2457,9 +2446,20 @@ async function handleNewContentDiscovery() {
                     onClick: () => ShowDetailsWrapper(DetailsType.Avatar, avatar.id),
                 });
 
-                // Set placeholder background image
+                // Set background image - use cached image if available, otherwise placeholder
                 const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                const cachedImage = friendImageCache[avatar.imageHash];
+                if (cachedImage) {
+                    thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
+                } else {
+                    thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                    // Trigger image loading if not already cached and we have imageUrl
+                    if (avatar.imageUrl) {
+                        window.API.getAvatarById(avatar.id).catch(error => {
+                            log('Error loading avatar image:', error);
+                        });
+                    }
+                }
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = avatar.imageHash;
 
@@ -2552,9 +2552,20 @@ async function handleNewContentDiscovery() {
                     onClick: () => ShowDetailsWrapper(DetailsType.Prop, prop.id),
                 });
 
-                // Set placeholder background image
+                // Set background image - use cached image if available, otherwise placeholder
                 const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                const cachedImage = friendImageCache[prop.imageHash];
+                if (cachedImage) {
+                    thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
+                } else {
+                    thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                    // Trigger image loading if not already cached and we have imageUrl
+                    if (prop.imageUrl) {
+                        window.API.getPropById(prop.id).catch(error => {
+                            log('Error loading prop image:', error);
+                        });
+                    }
+                }
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = prop.imageHash;
 
@@ -2717,9 +2728,20 @@ async function handleRecentlyUpdatedDiscovery() {
                     onClick: () => ShowDetailsWrapper(DetailsType.Avatar, avatar.id),
                 });
 
-                // Set placeholder background image
+                // Set background image - use cached image if available, otherwise placeholder
                 const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                const cachedImage = friendImageCache[avatar.imageHash];
+                if (cachedImage) {
+                    thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
+                } else {
+                    thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                    // Trigger image loading if not already cached and we have imageUrl
+                    if (avatar.imageUrl) {
+                        window.API.getAvatarById(avatar.id).catch(error => {
+                            log('Error loading avatar image:', error);
+                        });
+                    }
+                }
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = avatar.imageHash;
 
@@ -2812,9 +2834,20 @@ async function handleRecentlyUpdatedDiscovery() {
                     onClick: () => ShowDetailsWrapper(DetailsType.Prop, prop.id),
                 });
 
-                // Set placeholder background image
+                // Set background image - use cached image if available, otherwise placeholder
                 const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                const cachedImage = friendImageCache[prop.imageHash];
+                if (cachedImage) {
+                    thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
+                } else {
+                    thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                    // Trigger image loading if not already cached and we have imageUrl
+                    if (prop.imageUrl) {
+                        window.API.getPropById(prop.id).catch(error => {
+                            log('Error loading prop image:', error);
+                        });
+                    }
+                }
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = prop.imageHash;
 

@@ -1258,6 +1258,8 @@ class Core {
         for (const entry of entries) {
             if (entry?.image) {
                 await LoadImage(entry.image, entry);
+                // Normalize the image property to imageUrl for consistency with other APIs
+                entry.imageUrl = entry.image;
             }
         }
         // Example:
