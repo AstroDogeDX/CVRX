@@ -27,8 +27,16 @@ const CVRWebsocket = require('./api_cvr_ws');
 const Cache = require('./cache');
 const Updater = require('./updater');
 
+// Is what platform
+const isMac = process.platform === 'darwin';
+const isWindows = process.platform === 'win32';
+const isLinux = process.platform ==='linux';
+
 // Remove the menu when the app is packaged
 if (app.isPackaged) Menu.setApplicationMenu(null);
+
+//determine window icon
+const iconFile = isWindows ? 'cvrx-ico.ico' : 'cvrx-logo-512.png' //linux appinage fails to load .ico files
 
 // Set the max limit for renderer process to 4092Mb
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4092');
@@ -38,11 +46,11 @@ const CreateWindow = async () => {
 
     // Create the browser window.
     const mainWindow = new BrowserWindow({
-        minWidth: 800,
-        minHeight: 600,
-        width: 1280,
-        height: 720,
-        icon: './client/img/cvrx-ico.ico',
+        minWidth: 1320,
+        minHeight: 820,
+        width: 1460,
+        height: 840,
+        icon: path.resolve(app.getAppPath(), "client", "img", iconFile),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             devTools: !app.isPackaged,
@@ -80,21 +88,19 @@ const CreateWindow = async () => {
 
 const BuildTray = async (mainWindow) => {
 
-    const isMac = process.platform === 'darwin';
-    const isWindows = process.platform === 'win32';
-
     // Skip tray on non-tested OS since it might crash the app
-    if (!isWindows && !isMac)
+    if (!isWindows && !isMac && !isLinux)
         return;
 
     // Pick which icon to use
-    let iconRelativePath = 'client/img/cvrx-logo-1028.png';
+    let trayIcon = app.isPackaged
+        ? path.resolve(app.getAppPath(), "client", "img", "cvrx-logo-1028.png")
+        : `./${iconRelativePath}`; //may not be necessary with path.resolve
+    
     if (isMac)
-        iconRelativePath = 'client/img/cvrx-tray-mac.png';
-
-    const trayIcon = app.isPackaged
-        ? path.join(process.resourcesPath, `app/${iconRelativePath}`)
-        : `./${iconRelativePath}`;
+        trayIcon = app.isPackaged
+            ? path.resolve(app.getAppPath(), "client", "img", "cvrx-tray-mac.png")
+            : `./${iconRelativePath}`; //may not be necessary with path.resolve
 
     // Prevent app from crashing by not initializing the tray
     if (!existsSync(trayIcon)) {
