@@ -271,6 +271,22 @@
             </div>
           </div>
           <div class="settings-page" id="settings-advanced">
+            <div class="settings-section" data-section="cvr-path">
+              <h3>ChilloutVR Path</h3>
+              <div class="settings-option">
+                <label for="setting-cvr-executable">
+                  ChilloutVR Executable
+                  <span class="setting-description">Set the path to your ChilloutVR.exe file for enhanced features</span>
+                </label>
+                <div class="cvr-path-controls">
+                  <input type="text" id="setting-cvr-executable" class="cvr-path-display" readonly placeholder="No path set">
+                  <button id="browse-cvr-executable" class="cvr-browse-button">
+                    <span class="material-symbols-outlined">folder_open</span>
+                    Browse
+                  </button>
+                </div>
+              </div>
+            </div>
             <div class="settings-section" data-section="cache">
               <h3>Cache</h3>
               <button id="clear-cached-images-button" class="settings-button">

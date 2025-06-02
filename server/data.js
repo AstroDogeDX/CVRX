@@ -277,6 +277,15 @@ class Core {
         ipcMain.handle('config-get', () => Config.GetConfig());
         ipcMain.handle('config-update', (_event, newConfigSettings) => Config.UpdateConfig(newConfigSettings));
 
+        // CVR Executable Selection
+        ipcMain.handle('select-cvr-executable', async (_event) => {
+            try {
+                return await Config.SelectCVRExecutable();
+            } catch (error) {
+                throw error;
+            }
+        });
+
         // Categories
         ipcMain.handle('get-categories', (_event) => EscapeHtml(this.categories));
         ipcMain.on('update-categories', (_event) => this.UpdateCategories());

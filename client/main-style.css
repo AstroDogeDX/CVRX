@@ -3144,11 +3144,6 @@ button {
     background: #607D8B;
 }
 
-.settings-page.active .settings-section:nth-child(1) { animation-delay: 0.05s; }
-.settings-page.active .settings-section:nth-child(2) { animation-delay: 0.1s; }
-.settings-page.active .settings-section:nth-child(3) { animation-delay: 0.15s; }
-.settings-page.active .settings-section:nth-child(4) { animation-delay: 0.2s; }
-
 /* NEW 3DS Instance Nodes Bros. U*/
 
 .active-instance-node {
@@ -6720,4 +6715,69 @@ button {
     font-size: 0.85rem;
     opacity: 0.8;
     font-style: italic;
+}
+
+.cvr-path-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
+}
+
+.cvr-path-display {
+    flex: 1;
+    min-width: 200px; /* Minimum width to prevent too much shrinking */
+    padding: 8px 12px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.8);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 13px;
+    cursor: not-allowed;
+}
+
+.cvr-browse-button {
+    padding: 8px 16px;
+    background-color: rgba(57, 192, 237, 0.2);
+    border: 1px solid rgba(57, 192, 237, 0.4);
+    border-radius: 4px;
+    color: rgba(57, 192, 237, 1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    white-space: nowrap;
+    flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+.cvr-browse-button:hover {
+    background-color: rgba(57, 192, 237, 0.3);
+    border-color: rgba(57, 192, 237, 0.6);
+}
+
+.cvr-browse-button:active {
+    transform: scale(0.98);
+}
+
+.cvr-browse-button .material-symbols-outlined {
+    font-size: 16px;
+}
+
+/* Adjust settings option layout for CVR path to prevent truncation */
+.settings-section[data-section="cvr-path"] .settings-option {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+
+.settings-section[data-section="cvr-path"] .settings-option label {
+    margin-bottom: 0;
+}
+
+.settings-button .material-symbols-outlined {
+    font-size: 20px;
 }

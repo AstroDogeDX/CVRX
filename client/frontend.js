@@ -2270,6 +2270,10 @@ const thumbnailShapeDropdown = document.getElementById('setting-thumbnail-shape'
 // Handle "Online Friends Thumbnail Shape" setting
 const onlineFriendsThumbnailShapeDropdown = document.getElementById('setting-online-friends-thumbnail-shape');
 
+// Handle "CVR Executable" setting
+const cvrExecutableInput = document.getElementById('setting-cvr-executable');
+const browseCvrExecutableButton = document.getElementById('browse-cvr-executable');
+
 // Function to apply thumbnail shape to all existing thumbnail containers
 function applyThumbnailShape(shape) {
     const thumbnailContainers = document.querySelectorAll('.details-thumbnail-container');
@@ -2308,6 +2312,9 @@ window.API.getConfig().then(config => {
         // Default to 'rounded' if not set
         onlineFriendsThumbnailShapeDropdown.value = 'rounded';
         applyOnlineFriendsThumbnailShape('rounded');
+    }
+    if (config && config.CVRExecutable !== undefined) {
+        cvrExecutableInput.value = config.CVRExecutable;
     }
 });
 
@@ -2358,6 +2365,24 @@ onlineFriendsThumbnailShapeDropdown.addEventListener('change', () => {
                 onlineFriendsThumbnailShapeDropdown.value = config.OnlineFriendsThumbnailShape || 'rounded';
             });
         });
+});
+
+// Handle CVR Executable browse button
+browseCvrExecutableButton.addEventListener('click', async () => {
+    const button = browseCvrExecutableButton;
+    button.disabled = true;
+    
+    try {
+        const selectedPath = await window.API.selectCVRExecutable();
+        cvrExecutableInput.value = selectedPath;
+        pushToast('CVR executable path updated', 'confirm');
+    } catch (error) {
+        if (error.message !== 'User canceled CVR executable selection') {
+            pushToast(`Error selecting CVR executable: ${error.message}`, 'error');
+        }
+    }
+    
+    button.disabled = false;
 });
 
 // Set up refresh button event listeners (only once to prevent stacking)
