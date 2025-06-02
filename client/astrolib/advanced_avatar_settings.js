@@ -774,21 +774,130 @@ export async function loadAdvancedAvatarSettings(avatarId) {
     aasContainer.innerHTML = '<div class="loading-indicator">Loading advanced avatar settings...</div>';
     
     try {
-        // Check if settings exist
-        const hasSettings = await window.API.hasAvatarAdvancedSettings(avatarId);
+        // Check if settings exist (now returns detailed information)
+        const settingsCheck = await window.API.hasAvatarAdvancedSettings(avatarId);
         
-        if (!hasSettings) {
-            aasContainer.innerHTML = `
-                <div class="aas-no-settings">
-                    <div class="aas-no-settings-icon">
-                        <span class="material-symbols-outlined">tune</span>
-                    </div>
-                    <h3>No Advanced Avatar Settings Found</h3>
-                    <p>This avatar doesn't have any advanced settings (.advavtr file) in your ChilloutVR installation.</p>
-                    <small>Advanced avatar settings are created when you customize avatar parameters in-game.</small>
-                </div>
-            `;
-            return;
+        if (!settingsCheck.hasSettings) {
+            // Handle different reasons for not having settings
+            switch (settingsCheck.reason) {
+                case 'cvr_path_not_configured':
+                case 'cvr_directory_not_found':
+                    aasContainer.innerHTML = `
+                        <div class="aas-no-settings">
+                            <div class="aas-no-settings-icon">
+                                <span class="material-symbols-outlined">folder_off</span>
+                            </div>
+                            <h3>ChilloutVR Installation Not Found</h3>
+                            <p>Your ChilloutVR installation directory needs to be configured to use advanced avatar settings.</p>
+                            <small>Expected directory: <code>..\\ChilloutVR\\ChilloutVR.exe</code></small>
+                            <div class="aas-setup-actions">
+                                <button class="aas-setup-cvr-btn">
+                                    <span class="material-symbols-outlined">folder_open</span>
+                                    Configure ChilloutVR Path
+                                </button>
+                                <p class="aas-setup-note">You can also configure this in<br /><span class="aas-settings-link">Settings → Advanced → ChilloutVR Path</span></p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add click handler for the setup button
+                    const setupBtn = aasContainer.querySelector('.aas-setup-cvr-btn');
+                    setupBtn.addEventListener('click', async () => {
+                        try {
+                            setupBtn.disabled = true;
+                            setupBtn.innerHTML = '<span class="material-symbols-outlined">hourglass_empty</span>Selecting...';
+                            
+                            const selectedPath = await window.API.selectCVRExecutable();
+                            
+                            // Show success message and reload
+                            pushToast('ChilloutVR path configured successfully! Reloading...', 'confirm');
+                            
+                            // Reload the advanced avatar settings
+                            setTimeout(() => {
+                                loadAdvancedAvatarSettings(avatarId);
+                            }, 1000);
+                            
+                        } catch (error) {
+                            setupBtn.disabled = false;
+                            setupBtn.innerHTML = '<span class="material-symbols-outlined">folder_open</span>Configure ChilloutVR Path';
+                            
+                            if (error.message !== 'User canceled CVR executable selection') {
+                                pushToast(`Error configuring CVR path: ${error.message}`, 'error');
+                            }
+                        }
+                    });
+                    
+                    // Add click handler for settings link
+                    const settingsLink = aasContainer.querySelector('.aas-settings-link');
+                    settingsLink.addEventListener('click', () => {
+                        // Close the details window and navigate to settings
+                        const detailsShade = document.querySelector('.details-shade');
+                        if (detailsShade) {
+                            detailsShade.style.display = 'none';
+                        }
+                        
+                        // Switch to settings (assuming it's a navbar page)
+                        const settingsButton = document.querySelector('.navbar-button[data-page="settings"]');
+                        if (settingsButton) {
+                            settingsButton.click();
+                            
+                            // After navigating to settings, switch to the Advanced tab
+                            setTimeout(() => {
+                                // Remove active class from all settings tabs and pages
+                                document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+                                document.querySelectorAll('.settings-page').forEach(p => p.classList.remove('active'));
+                                
+                                // Activate the Advanced tab and page
+                                const advancedTab = document.querySelector('.settings-tab[data-tab="advanced"]');
+                                const advancedPage = document.getElementById('settings-advanced');
+                                
+                                if (advancedTab && advancedPage) {
+                                    advancedTab.classList.add('active');
+                                    advancedPage.classList.add('active');
+                                }
+                            }, 100); // Small delay to ensure settings page has loaded
+                        }
+                        
+                        pushToast('Please configure your ChilloutVR executable path in Settings', 'info');
+                    });
+                    
+                    return;
+                    
+                case 'aas_directory_not_found':
+                    aasContainer.innerHTML = `
+                        <div class="aas-no-settings">
+                            <div class="aas-no-settings-icon">
+                                <span class="material-symbols-outlined">folder_off</span>
+                            </div>
+                            <h3>Advanced Avatar Settings Directory Not Found</h3>
+                            <p>The Advanced Avatar Settings directory was not found in your ChilloutVR installation.</p>
+                            <small>Expected directory: <code>..\ChilloutVR\ChilloutVR.exe</code></small>
+                            <div class="aas-setup-info">
+                                <p><strong>This directory is created automatically when you:</strong></p>
+                                <ul>
+                                    <li>Launch ChilloutVR at least once</li>
+                                    <li>Customize avatar parameters in-game</li>
+                                </ul>
+                                <p>Try launching ChilloutVR and customizing an avatar's parameters, then reload this page.</p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                    
+                case 'file_not_found':
+                default:
+                    aasContainer.innerHTML = `
+                        <div class="aas-no-settings">
+                            <div class="aas-no-settings-icon">
+                                <span class="material-symbols-outlined">tune</span>
+                            </div>
+                            <h3>No Advanced Avatar Settings Found</h3>
+                            <p>This avatar doesn't have any advanced settings (.advavtr file) in your ChilloutVR installation.</p>
+                            <small>Advanced avatar settings are created when you customize avatar parameters in-game.</small>
+                        </div>
+                    `;
+                    return;
+            }
         }
         
         // Load the settings

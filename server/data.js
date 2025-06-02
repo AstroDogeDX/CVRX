@@ -6,6 +6,7 @@ const Config = require('./config');
 const Updater = require('./updater');
 const Utils = require('./utils');
 const {CategoryType} = require('./api_cvr_http');
+const path = require('path');
 
 const log = require('./logger').GetLogger('Data');
 const logRenderer = require('../server/logger').GetLogger('Renderer');
@@ -368,7 +369,11 @@ class Core {
                 return await this.HasAvatarAdvancedSettings(avatarId);
             } catch (error) {
                 log.error(`Failed to check avatar advanced settings for ${avatarId}:`, error);
-                return false;
+                return { 
+                    hasSettings: false, 
+                    reason: 'error',
+                    message: error.message
+                };
             }
         });
     }
@@ -1357,16 +1362,57 @@ class Core {
         const fs = require('fs');
         
         try {
+            // First check if CVR path is configured
+            const cvrPath = Config.GetCVRPath();
+            if (!cvrPath) {
+                return { 
+                    hasSettings: false, 
+                    reason: 'cvr_path_not_configured',
+                    message: 'ChilloutVR path not configured'
+                };
+            }
+            
+            // Check if CVR directory exists
+            const cvrDataPath = path.join(cvrPath, 'ChilloutVR_Data');
+            if (!fs.existsSync(cvrDataPath)) {
+                return { 
+                    hasSettings: false, 
+                    reason: 'cvr_directory_not_found',
+                    message: 'ChilloutVR directory not found',
+                    expectedPath: cvrDataPath
+                };
+            }
+            
+            // Check if AAS directory exists
+            const aasDirectory = path.join(cvrDataPath, 'AvatarsAdvancedSettingsProfiles');
+            if (!fs.existsSync(aasDirectory)) {
+                return { 
+                    hasSettings: false, 
+                    reason: 'aas_directory_not_found',
+                    message: 'Advanced Avatar Settings directory not found',
+                    expectedPath: aasDirectory
+                };
+            }
+            
+            // Finally check if the specific avatar settings file exists
             const advAvatarPath = this.#GetAdvAvatarFilePath(avatarId);
             log.debug(`[HasAvatarAdvancedSettings] Checking for avatar ${avatarId} at path: ${advAvatarPath}`);
             
             const exists = fs.existsSync(advAvatarPath);
             log.debug(`[HasAvatarAdvancedSettings] File exists: ${exists}`);
             
-            return exists;
+            return { 
+                hasSettings: exists, 
+                reason: exists ? 'found' : 'file_not_found',
+                message: exists ? 'Advanced settings found' : 'No advanced settings file found'
+            };
         } catch (error) {
             log.error(`[HasAvatarAdvancedSettings] Failed to check advanced settings for avatar ${avatarId}:`, error);
-            return false;
+            return { 
+                hasSettings: false, 
+                reason: 'error',
+                message: error.message
+            };
         }
     }
 
