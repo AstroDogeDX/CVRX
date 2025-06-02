@@ -138,6 +138,9 @@ contextBridge.exposeInMainWorld('API', {
     getConfig: () => ipcRenderer.invoke('config-get'),
     updateConfig: (newConfigSettings) => ipcRenderer.invoke('config-update', newConfigSettings),
 
+    // CVR Executable Selection
+    selectCVRExecutable: () => ipcRenderer.invoke('select-cvr-executable'),
+
     // Categories
     // Returns the last retrieved categories (this does not do an API request)
     getCategories: () => ipcRenderer.invoke('get-categories'),

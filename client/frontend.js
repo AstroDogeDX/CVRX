@@ -27,7 +27,9 @@ import {
 } from './astrolib/details_constructor.js';
 import { loadShares } from './astrolib/shares.js';
 import { 
-    friendImageCache,
+    imageCache,
+    getCachedImage,
+    setImageSource,
     initializeFriendsModule,
     updateCurrentActiveUser,
     createFriendsListCategory,
@@ -61,6 +63,8 @@ import { loadCategoriesManager } from './astrolib/categories_manager.js';
 // ===========
 // GLOBAL VARS
 // ===========
+
+// Image cache and helper functions are imported from user_content.js
 
 // Store the current active user for filtering purposes
 let currentActiveUser = null;
@@ -516,12 +520,19 @@ window.API.onGetActiveUser((_event, activeUser) => {
 window.API.onImageLoaded((_event, imageData) => {
     const { imageHash, imageBase64 } = imageData;
 
+    // Cache the image when it's loaded
+    imageCache[imageHash] = imageBase64;
+
     // Update all elements with matching data-hash
     document.querySelectorAll(`[data-hash="${imageHash}"]`).forEach(element => {
         if (element.classList.contains('profile-navbar-button')) {
             element.style.backgroundImage = `url(${imageBase64})`;
         } else if (element.tagName === 'IMG') {
             element.src = imageBase64;
+        } else if (element.classList.contains('thumbnail-container')) {
+            // For thumbnail containers using background images
+            element.style.backgroundImage = `url('${imageBase64}')`;
+            element.style.backgroundSize = 'cover';
         }
     });
 });
@@ -874,7 +885,7 @@ async function loadTabContent(tab, entityId) {
                     
                     userIconsHtml = `<div class="instance-card-user-icons">`;
                     visibleMembers.forEach(member => {
-                        const memberImgSrc = friendImageCache[member.imageHash] || 'img/ui/placeholder.png';
+                        const memberImgSrc = getCachedImage(member.imageHash);
                         const memberClasses = member.isFriend ? 'instance-user-icon friend' : 'instance-user-icon';
                         const blockedClass = member.isBlocked ? ' blocked' : '';
                         userIconsHtml += `<img src="${memberImgSrc}" class="${memberClasses}${blockedClass}" data-hash="${member.imageHash}" data-tooltip="${member.name}" />`;
@@ -906,7 +917,7 @@ async function loadTabContent(tab, entityId) {
 
                 // Set blurred world background for instance cards
                 const thumbnailContainer = itemNode.querySelector('.thumbnail-container');
-                const worldImgSrc = friendImageCache[item.world?.imageHash] || 'img/ui/placeholder.png';
+                const worldImgSrc = getCachedImage(item.world?.imageHash);
                 thumbnailContainer.style.backgroundImage = `url('${worldImgSrc}')`;
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = item.world?.imageHash;
@@ -946,9 +957,7 @@ async function loadTabContent(tab, entityId) {
 
                 // Set placeholder background image
                 const thumbnailContainer = itemNode.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
-                thumbnailContainer.style.backgroundSize = 'cover';
-                thumbnailContainer.dataset.hash = item.imageHash;
+                setImageSource(thumbnailContainer, item.imageHash, true);
 
                 grid.appendChild(itemNode);
             }
@@ -973,24 +982,6 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
 });
 
 // Friends text filter is now handled by setupFriendsTextFilter in user_content module
-
-// returns .imageBase64, .imageHash, .imageUrl
-window.API.onImageLoaded((_event, image) => {
-    // Cache the image when it's loaded
-    friendImageCache[image.imageHash] = image.imageBase64;
-
-    document.querySelectorAll(`[data-hash="${image.imageHash}"]`).forEach((e) => {
-        if (e.tagName === 'IMG') {
-            // For regular image tags
-            e.src = image.imageBase64;
-        } else if (e.classList.contains('thumbnail-container')) {
-            // For thumbnail containers using background images
-            e.style.backgroundImage = `url('${image.imageBase64}')`;
-            e.style.backgroundSize = 'cover';
-        }
-    });
-});
-
 
 // Janky Search
 // -----------------------------
@@ -1341,9 +1332,10 @@ async function handleRandomDiscovery() {
                 onClick: () => ShowDetailsWrapper(DetailsType.Avatar, avatar.id),
             });
 
-            // Set placeholder background image
+            // Set background image - use cached image if available, otherwise placeholder
             const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            const cachedImage = getCachedImage(avatar.imageHash);
+            thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
             thumbnailContainer.style.backgroundSize = 'cover';
             thumbnailContainer.dataset.hash = avatar.imageHash;
 
@@ -1386,9 +1378,10 @@ async function handleRandomDiscovery() {
                 onClick: () => ShowDetailsWrapper(DetailsType.World, world.id),
             });
 
-            // Set placeholder background image
+            // Set background image - use cached image if available, otherwise placeholder
             const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            const cachedImage = getCachedImage(world.imageHash);
+            thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
             thumbnailContainer.style.backgroundSize = 'cover';
             thumbnailContainer.dataset.hash = world.imageHash;
 
@@ -1421,9 +1414,10 @@ async function handleRandomDiscovery() {
                 onClick: () => ShowDetailsWrapper(DetailsType.Prop, prop.id),
             });
 
-            // Set placeholder background image
+            // Set background image - use cached image if available, otherwise placeholder
             const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            const cachedImage = getCachedImage(prop.imageHash);
+            thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
             thumbnailContainer.style.backgroundSize = 'cover';
             thumbnailContainer.dataset.hash = prop.imageHash;
 
@@ -2101,7 +2095,7 @@ document.querySelector('#clear-cached-images-button').addEventListener('click', 
         if (result.success) {
             pushToast(result.message, 'confirm');
             // Clear the in-memory cache as well
-            Object.keys(friendImageCache).forEach(key => delete friendImageCache[key]);
+            Object.keys(imageCache).forEach(key => delete imageCache[key]);
         } else {
             pushToast(result.message, 'error');
         }
@@ -2254,6 +2248,10 @@ const thumbnailShapeDropdown = document.getElementById('setting-thumbnail-shape'
 // Handle "Online Friends Thumbnail Shape" setting
 const onlineFriendsThumbnailShapeDropdown = document.getElementById('setting-online-friends-thumbnail-shape');
 
+// Handle "CVR Executable" setting
+const cvrExecutableInput = document.getElementById('setting-cvr-executable');
+const browseCvrExecutableButton = document.getElementById('browse-cvr-executable');
+
 // Function to apply thumbnail shape to all existing thumbnail containers
 function applyThumbnailShape(shape) {
     const thumbnailContainers = document.querySelectorAll('.details-thumbnail-container');
@@ -2292,6 +2290,9 @@ window.API.getConfig().then(config => {
         // Default to 'rounded' if not set
         onlineFriendsThumbnailShapeDropdown.value = 'rounded';
         applyOnlineFriendsThumbnailShape('rounded');
+    }
+    if (config && config.CVRExecutable !== undefined) {
+        cvrExecutableInput.value = config.CVRExecutable;
     }
 });
 
@@ -2342,6 +2343,24 @@ onlineFriendsThumbnailShapeDropdown.addEventListener('change', () => {
                 onlineFriendsThumbnailShapeDropdown.value = config.OnlineFriendsThumbnailShape || 'rounded';
             });
         });
+});
+
+// Handle CVR Executable browse button
+browseCvrExecutableButton.addEventListener('click', async () => {
+    const button = browseCvrExecutableButton;
+    button.disabled = true;
+    
+    try {
+        const selectedPath = await window.API.selectCVRExecutable();
+        cvrExecutableInput.value = selectedPath;
+        pushToast('CVR executable path updated', 'confirm');
+    } catch (error) {
+        if (error.message !== 'User canceled CVR executable selection') {
+            pushToast(`Error selecting CVR executable: ${error.message}`, 'error');
+        }
+    }
+    
+    button.disabled = false;
 });
 
 // Set up refresh button event listeners (only once to prevent stacking)
@@ -2426,6 +2445,17 @@ async function handleNewContentDiscovery() {
             ]);
             
             log('Data refresh completed and populated');
+            
+            // Set loading flags to prevent duplicate loading when navigating to My Content pages
+            const displayAvatars = document.querySelector('#display-avatars');
+            const displayWorlds = document.querySelector('#display-worlds');
+            const displayProps = document.querySelector('#display-props');
+            
+            if (displayAvatars) displayAvatars.setAttribute('loaded-avatars', '');
+            if (displayWorlds) displayWorlds.setAttribute('loaded-worlds', '');
+            if (displayProps) displayProps.setAttribute('loaded-props', '');
+            
+            log('Set loading flags for avatars, worlds, and props pages');
         }
 
         // Filter avatars for 'avtr_new' category
@@ -2457,9 +2487,10 @@ async function handleNewContentDiscovery() {
                     onClick: () => ShowDetailsWrapper(DetailsType.Avatar, avatar.id),
                 });
 
-                // Set placeholder background image
+                // Set background image - use cached image if available, otherwise placeholder
                 const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                const cachedImage = getCachedImage(avatar.imageHash);
+                thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = avatar.imageHash;
 
@@ -2552,9 +2583,10 @@ async function handleNewContentDiscovery() {
                     onClick: () => ShowDetailsWrapper(DetailsType.Prop, prop.id),
                 });
 
-                // Set placeholder background image
+                // Set background image - use cached image if available, otherwise placeholder
                 const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                const cachedImage = getCachedImage(prop.imageHash);
+                thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = prop.imageHash;
 
@@ -2686,6 +2718,17 @@ async function handleRecentlyUpdatedDiscovery() {
             ]);
             
             log('Data refresh completed and populated');
+            
+            // Set loading flags to prevent duplicate loading when navigating to My Content pages
+            const displayAvatars = document.querySelector('#display-avatars');
+            const displayWorlds = document.querySelector('#display-worlds');
+            const displayProps = document.querySelector('#display-props');
+            
+            if (displayAvatars) displayAvatars.setAttribute('loaded-avatars', '');
+            if (displayWorlds) displayWorlds.setAttribute('loaded-worlds', '');
+            if (displayProps) displayProps.setAttribute('loaded-props', '');
+            
+            log('Set loading flags for avatars, worlds, and props pages');
         }
 
         // Filter avatars for 'avtr_recently' category
@@ -2717,9 +2760,10 @@ async function handleRecentlyUpdatedDiscovery() {
                     onClick: () => ShowDetailsWrapper(DetailsType.Avatar, avatar.id),
                 });
 
-                // Set placeholder background image
+                // Set background image - use cached image if available, otherwise placeholder
                 const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                const cachedImage = getCachedImage(avatar.imageHash);
+                thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = avatar.imageHash;
 
@@ -2812,9 +2856,10 @@ async function handleRecentlyUpdatedDiscovery() {
                     onClick: () => ShowDetailsWrapper(DetailsType.Prop, prop.id),
                 });
 
-                // Set placeholder background image
+                // Set background image - use cached image if available, otherwise placeholder
                 const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                const cachedImage = getCachedImage(prop.imageHash);
+                thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = prop.imageHash;
 
@@ -2870,9 +2915,3 @@ async function handleRecentlyUpdatedDiscovery() {
         applyTooltips();
     }
 }
-
-// Hide all search categories
-
-
-
-

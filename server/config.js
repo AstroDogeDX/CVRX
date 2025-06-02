@@ -289,6 +289,26 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.OnlineFriendsThumbnailShape = onlineFriendsThumbnailShape;
     }
 
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'CVRExecutable')) {
+        const cvrExecutable = newConfigSettings.CVRExecutable;
+
+        if (typeof cvrExecutable !== 'string' || cvrExecutable.trim() === '') {
+            throw new Error('[UpdateConfig] CVRExecutable should be a non-empty string path.');
+        }
+
+        // Validate that the path ends with ChilloutVR.exe
+        if (path.basename(cvrExecutable) !== CVRExecutableName) {
+            throw new Error(`[UpdateConfig] CVRExecutable should point to ${CVRExecutableName}.`);
+        }
+
+        // Validate that the file exists
+        if (!fs.existsSync(cvrExecutable)) {
+            throw new Error('[UpdateConfig] CVRExecutable path does not exist.');
+        }
+
+        config.CVRExecutable = cvrExecutable;
+    }
+
     await UpdateJsonFile(FileType.CONFIG);
 
     return exports.GetConfig();
@@ -300,6 +320,7 @@ exports.GetConfig = () => ({
     CloseToSystemTray: config.CloseToSystemTray,
     ThumbnailShape: config.ThumbnailShape,
     OnlineFriendsThumbnailShape: config.OnlineFriendsThumbnailShape,
+    CVRExecutable: config.CVRExecutable,
 });
 
 
@@ -313,4 +334,38 @@ exports.GetUpdaterIgnoreVersion = () => config.UpdaterIgnoreVersion;
 exports.SetUpdaterIgnoreVersion = async (versionToIgnore) => {
     config.UpdaterIgnoreVersion = versionToIgnore;
     await UpdateJsonFile(FileType.CONFIG);
+};
+
+exports.SelectCVRExecutable = async () => {
+    log.debug('[SelectCVRExecutable] Prompting for CVR Executable path...');
+
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+        title: `Select ${CVRExecutableName}`,
+        message: `Please select your ${CVRExecutableName} file`,
+        defaultPath: config.CVRExecutable || path.join(CVRExecutableDefaultFolderPath, CVRExecutableName),
+        filters: [{ name: 'ChilloutVR Executable', extensions: ['exe'] }],
+        properties: ['openFile'],
+    });
+
+    if (canceled) {
+        const err = 'User canceled CVR executable selection';
+        log.info(`[SelectCVRExecutable] ${err}`);
+        throw new Error(err);
+    }
+
+    const providedPath = filePaths[0];
+    
+    // Check if the user provided the path to ChilloutVR.exe and not something else
+    if (path.basename(providedPath) !== CVRExecutableName) {
+        const err = `Selected file is not ${CVRExecutableName}`;
+        log.error(`[SelectCVRExecutable] ${err}: ${providedPath}`);
+        throw new Error(err);
+    }
+
+    // Update the config
+    config.CVRExecutable = providedPath;
+    await UpdateJsonFile(FileType.CONFIG);
+    
+    log.info(`[SelectCVRExecutable] CVR executable path updated to: ${providedPath}`);
+    return providedPath;
 };
