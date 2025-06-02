@@ -48,9 +48,39 @@ contextBridge.exposeInMainWorld('API', {
     setFriendNote: (userId, note) => ipcRenderer.invoke('set-friend-note', userId, note),
 
     getWorldById: (worldId) => ipcRenderer.invoke('get-world-by-id', worldId),
+    getWorldMetaById: (worldId) => ipcRenderer.invoke('get-world-meta-by-id', worldId),
+    getWorldPortalById: (worldId) => ipcRenderer.invoke('get-world-portal-by-id', worldId),
+    getWorldsByCategory: (categoryId, page, sort, direction) => ipcRenderer.invoke('get-worlds-by-category', categoryId, page, sort, direction),
+    setWorldAsHome: (worldId) => ipcRenderer.invoke('set-world-as-home', worldId),
     getInstanceById: (instanceId) => ipcRenderer.invoke('get-instance-by-id', instanceId),
+    getInstancePortalById: (instanceId) => ipcRenderer.invoke('get-instance-portal-by-id', instanceId),
+    joinInstance: (instanceId) => ipcRenderer.invoke('join-instance', instanceId),
+    getAvatarById: (avatarId) => ipcRenderer.invoke('get-avatar-by-id', avatarId),
+    getPropById: (propId) => ipcRenderer.invoke('get-prop-by-id', propId),
+    getProps: () => ipcRenderer.invoke('get-props'),
+
+    // Avatar
+    setCurrentAvatar: (avatarId) => ipcRenderer.invoke('set-current-avatar', avatarId),
 
     search: (term) => ipcRenderer.invoke('search', term),
+
+
+    // Get Random Content
+    getRandomAvatars: (count) => ipcRenderer.invoke('get-random-avatars', count),
+    getRandomWorlds: (count) => ipcRenderer.invoke('get-random-worlds', count),
+    getRandomProps: (count) => ipcRenderer.invoke('get-random-props', count),
+
+
+    // Content Shares (Get)
+    getAvatarShares: (avatarId) => ipcRenderer.invoke('get-avatar-shares', avatarId),
+    getPropShares: (propId) => ipcRenderer.invoke('get-prop-shares', propId),
+    // Content Shares (Add)
+    addAvatarShares: (avatarId, userId) => ipcRenderer.invoke('add-avatar-share', avatarId, userId),
+    addPropShares: (propId, userId) => ipcRenderer.invoke('add-prop-share', propId, userId),
+    // Content Shares (Remove)
+    removeAvatarShares: (avatarId, userId) => ipcRenderer.invoke('remove-avatar-share', avatarId, userId),
+    removePropShares: (propId, userId) => ipcRenderer.invoke('remove-prop-share', propId, userId),
+
 
     onInvites: (callback) => ipcRenderer.on('invites', callback),
     onInviteRequests: (callback) => ipcRenderer.on('invite-requests', callback),
@@ -64,7 +94,7 @@ contextBridge.exposeInMainWorld('API', {
     onUserStats: (callback) => ipcRenderer.on('user-stats', callback),
 
     refreshFriendRequests: () => ipcRenderer.send('refresh-friend-requests'),
-    refreshWorldsCategory: (worldCategoryId) => ipcRenderer.send('refresh-worlds-category', worldCategoryId),
+    // refreshWorldsCategory: (worldCategoryId) => ipcRenderer.send('refresh-worlds-category', worldCategoryId),
 
     // Recent Activity Updates
     onRecentActivityUpdate: (callback) => ipcRenderer.on('recent-activity-update', callback),
@@ -94,7 +124,7 @@ contextBridge.exposeInMainWorld('API', {
     // Updater
     checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
     onUpdateAvailable: (callback) => ipcRenderer.on('update-available', callback),
-    updateAction: (updateAction) => ipcRenderer.send('update-action', updateAction),
+    updateAction: (action, updateInfo) => ipcRenderer.invoke('update-action', action, updateInfo),
 
     // Websocket
     reconnectWebSocket: () => ipcRenderer.send('reconnect-web-socket'),
@@ -107,6 +137,52 @@ contextBridge.exposeInMainWorld('API', {
     // Config
     getConfig: () => ipcRenderer.invoke('config-get'),
     updateConfig: (newConfigSettings) => ipcRenderer.invoke('config-update', newConfigSettings),
+
+    // Categories
+    // Returns the last retrieved categories (this does not do an API request)
+    getCategories: () => ipcRenderer.invoke('get-categories'),
+    // Fetches current categories, and will trigger an update on update-categories
+    // Only useful if the categories changed outside CVRX, and we want to fetch the current categories
+    updateCategories: () => ipcRenderer.send('update-categories'),
+    // Will trigger when we fetch the current categories
+    // Will happen when: updateCategories, createCategoryX, deleteCategoryX, reorderCategoriesX
+    onCategoriesUpdated: (callback) => ipcRenderer.on('categories-updated', callback),
+    // Categories - Assign
+    setFriendCategories: (userId, categoryIds) => ipcRenderer.invoke('assign-categories-friend', userId, categoryIds),
+    setAvatarCategories: (avatarId, categoryIds) => ipcRenderer.invoke('assign-categories-avatar', avatarId, categoryIds),
+    setPropCategories: (propId, categoryIds) => ipcRenderer.invoke('assign-categories-prop', propId, categoryIds),
+    setWorldCategories: (worldId, categoryIds) => ipcRenderer.invoke('assign-categories-world', worldId, categoryIds),
+    // Categories - Create
+    createFriendCategory: (categoryName) => ipcRenderer.invoke('create-category-friend', categoryName),
+    createAvatarCategory: (categoryName) => ipcRenderer.invoke('create-category-avatar', categoryName),
+    createPropCategory: (categoryName) => ipcRenderer.invoke('create-category-prop', categoryName),
+    createWorldCategory: (categoryName) => ipcRenderer.invoke('create-category-world', categoryName),
+    // Categories - Delete
+    deleteFriendCategory: (categoryId) => ipcRenderer.invoke('delete-category-friend', categoryId),
+    deleteAvatarCategory: (categoryId) => ipcRenderer.invoke('delete-category-avatar', categoryId),
+    deletePropCategory: (categoryId) => ipcRenderer.invoke('delete-category-prop', categoryId),
+    deleteWorldCategory: (categoryId) => ipcRenderer.invoke('delete-category-world', categoryId),
+    // Categories - Reorder Categories (only needs the ids for the custom user categories to be sent)
+    reorderFriendCategories: (newOrderedCategoryIds) => ipcRenderer.invoke('reorder-categories-friend', newOrderedCategoryIds),
+    reorderAvatarCategories: (newOrderedCategoryIds) => ipcRenderer.invoke('reorder-categories-avatar', newOrderedCategoryIds),
+    reorderPropCategories: (newOrderedCategoryIds) => ipcRenderer.invoke('reorder-categories-prop', newOrderedCategoryIds),
+    reorderWorldCategories: (newOrderedCategoryIds) => ipcRenderer.invoke('reorder-categories-world', newOrderedCategoryIds),
+
+
+    // Cache
+    clearCachedImages: () => ipcRenderer.invoke('clear-cached-images'),
+
+    // External Links
+    openExternal: (url) => ipcRenderer.invoke('open-external', url),
+    openLogsFolder: () => ipcRenderer.send('open-logs-folder'),
+
+    // Process Detection
+    isChilloutVRRunning: () => ipcRenderer.invoke('is-chilloutvr-running'),
+
+    // Advanced Avatar Settings
+    hasAvatarAdvancedSettings: (avatarId) => ipcRenderer.invoke('has-avatar-advanced-settings', avatarId),
+    getAvatarAdvancedSettings: (avatarId) => ipcRenderer.invoke('get-avatar-advanced-settings', avatarId),
+    saveAvatarAdvancedSettings: (avatarId, settings) => ipcRenderer.invoke('save-avatar-advanced-settings', avatarId, settings),
 
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; img-src 'self' data:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline';">
   <link rel="stylesheet" href="fonts/material-symbols.css">
   <link rel="stylesheet" href="main-style.css">
   <script type="module" src="frontend.js" defer></script>
@@ -15,14 +15,21 @@
   <div class="cvrx-main">
     <div class="cvrx-navbar">
       <div class="navbar-seg">
+        <div data-tooltip="My Profile" class="navbar-button profile-navbar-button">
+          &nbsp;
+        </div>
+        <div class="navbar-separator">
+          &nbsp;
+        </div>
         <div data-tooltip="Home" data-page="home" class="navbar-button material-symbols-outlined">
           home
         </div>
-        <div data-tooltip="Search" data-page="search" class="navbar-button material-symbols-outlined">
+        <div data-tooltip="Search & Discover" data-page="search" class="navbar-button material-symbols-outlined">
           search
         </div>
-      </div>
-      <div class="navbar-seg">
+        <div class="navbar-separator">
+          &nbsp;
+        </div>
         <div data-tooltip="My Friends" data-page="friends" class="navbar-button material-symbols-outlined">
           groups
         </div>
@@ -46,73 +53,153 @@
     <div class="cvrx-display">
       <!-- HOME -->
       <div class="display-wrapper" id="display-home">
-        <div class="home-user">
-          <img src="img/ui/placeholder.png" class="home-user--user-icon"></img>
-          <div class="home-user--user-name">...</div>
-          <div class="home-user--user-extra">
-            <div class="user-extra--user-avatar">
-              <img src="img/ui/placeholder.png">
-              ...
+        <div class="home-content">
+          <div class="home-main-section">
+            <div class="home-activity">
+              <div class="home-section-header">
+                <h2>
+                  <span class="material-symbols-outlined">public</span>
+                  Active Instances
+                </h2>
+                <div class="home-section-controls">
+                  <span class="home-activity--user-count">User Count</span>
+                  <button id="instances-refresh" class="home-activity--refresh material-symbols-outlined"
+                    data-tooltip="Refresh Instances">sync</button>
+                </div>
+              </div>
+              <div class="home-activity--activity-wrapper">
+              </div>
             </div>
-            <div class="user-extra--user-badge">
-              <img src="img/ui/placeholder.png">
-              ...
-            </div>
-            <div class="user-extra--user-rank">
-              <img src="img/ui/rank.png">
-              ...
+            
+            <div class="home-requests">
+              <div class="home-section-header">
+                <h2>
+                  <span class="material-symbols-outlined">notifications</span>
+                  Notifications
+                </h2>
+              </div>
+              <div class="home-requests-wrapper">
+              </div>
             </div>
           </div>
-        </div>
-        <div class="home-requests"></div>
-        <div class="home-activity">
-          <h2>Instances
-            <button id="instances-refresh" class="home-activity--refresh material-symbols-outlined"
-              data-tooltip="Refresh Instances">refresh</button>
-            <span class="home-activity--user-count">User Count</span>
-          </h2>
-          <div class="home-activity--activity-wrapper">
+          
+          <div class="home-sidebar-section">
+            <div class="home-history">
+              <div class="home-section-header">
+                <h2>
+                  <span class="material-symbols-outlined">history</span>
+                  Friend Activity
+                </h2>
+              </div>
+              <div class="home-history--history-wrapper"></div>
+            </div>
           </div>
-        </div>
-        <div class="home-history">
-          <h2>Friend History</h2>
-          <div class="home-history--history-wrapper"></div>
         </div>
       </div>
       <!-- SEARCH -->
       <div class="display-wrapper" id="display-search">
         <input id="search-bar" type="text" placeholder="Type to Search">
+        <div class="search-discover-controls">
+          <button class="discover-button" id="discover-new">
+            <span class="material-symbols-outlined">new_releases</span>New Content
+          </button>
+          <button class="discover-button" id="discover-updated">
+            <span class="material-symbols-outlined">update</span>Recently Updated
+          </button>
+          <button class="discover-button" id="discover-random">
+            <span class="material-symbols-outlined">shuffle</span>Random
+          </button>
+        </div>
         <div class="search-output">
-          <h3>Users</h3>
-          <div class="search-output--users"></div>
-          <h3>Worlds</h3>
-          <div class="search-output--worlds"></div>
-          <h3>Avatars</h3>
-          <div class="search-output--avatars"></div>
-          <h3>Props</h3>
-          <div class="search-output--props"></div>
+          <div class="search-status">Enter at least 3 characters to search<br><small>Or use prefixes for direct GUID access:<br>a+ for avatars, p+ for props,<br>i+ for instances, u+ for users</small></div>
+          <div class="search-loading hidden">
+            <span class="material-symbols-outlined spinner">refresh</span>
+            <span>Searching...</span>
+          </div>
+          <div class="search-no-results hidden">No search results found</div>
+          
+          <div class="search-output-category users-category">
+            <h3>
+              <div class="category-title"><span class="material-symbols-outlined">person</span>Users</div>
+              <span class="toggle-indicator material-symbols-outlined">expand_more</span>
+            </h3>
+            <div class="search-output--users"></div>
+          </div>
+          
+          <div class="search-output-category worlds-category">
+            <h3>
+              <div class="category-title"><span class="material-symbols-outlined">language</span>Worlds</div>
+              <span class="toggle-indicator material-symbols-outlined">expand_more</span>
+            </h3>
+            <div class="search-output--worlds"></div>
+          </div>
+          
+          <div class="search-output-category avatars-category">
+            <h3>
+              <div class="category-title"><span class="material-symbols-outlined">emoji_people</span>Avatars</div>
+              <span class="toggle-indicator material-symbols-outlined">expand_more</span>
+            </h3>
+            <div class="search-output--avatars"></div>
+          </div>
+          
+          <div class="search-output-category props-category">
+            <h3>
+              <div class="category-title"><span class="material-symbols-outlined">view_in_ar</span>Props</div>
+              <span class="toggle-indicator material-symbols-outlined">expand_more</span>
+            </h3>
+            <div class="search-output--props"></div>
+          </div>
         </div>
       </div>
       <!-- FRIENDS -->
       <div class="display-wrapper" id="display-friends">
         <input class="friends-filter" type="text" placeholder="Type to Filter">
+        <div class="friends-filter-controls">
+          <button class="filter-button active" data-filter="all">
+            <span class="material-symbols-outlined">group</span>All
+          </button>
+          <button class="filter-button" data-filter="online">
+            <span class="material-symbols-outlined">circle</span>Online
+          </button>
+        </div>
         <div class="friends-wrapper"></div>
       </div>
       <!-- AVATARS -->
       <div class="display-wrapper" id="display-avatars">
         <input id="avatars-filter" type="text" placeholder="Type to Filter">
+        <div class="avatars-filter-controls">
+          <button class="filter-button active" data-filter="avtrmine">
+            <span class="material-symbols-outlined">emoji_people</span>My Avatars
+          </button>
+          <button class="filter-button" data-filter="avtrshared">
+            <span class="material-symbols-outlined">share</span>Shared With Me
+          </button>
+        </div>
         <button id="avatars-refresh" class="material-symbols-outlined">refresh</button>
         <div class="avatars-wrapper"></div>
       </div>
       <!-- WORLDS -->
       <div class="display-wrapper" id="display-worlds">
         <input id="worlds-filter" type="text" placeholder="Type to Filter">
+        <div class="worlds-filter-controls">
+          <button class="filter-button active" data-filter="wrldmine">
+            <span class="material-symbols-outlined">language</span>My Worlds
+          </button>
+        </div>
         <button id="worlds-refresh" class="material-symbols-outlined">refresh</button>
         <div class="worlds-wrapper"></div>
       </div>
       <!-- PROPS -->
       <div class="display-wrapper" id="display-props">
         <input id="props-filter" type="text" placeholder="Type to Filter">
+        <div class="props-filter-controls">
+          <button class="filter-button active" data-filter="propmine">
+            <span class="material-symbols-outlined">view_in_ar</span>My Props
+          </button>
+          <button class="filter-button" data-filter="propshared">
+            <span class="material-symbols-outlined">share</span>Shared With Me
+          </button>
+        </div>
         <button id="props-refresh" class="material-symbols-outlined">refresh</button>
         <div class="props-wrapper"></div>
       </div>
@@ -122,8 +209,84 @@
       </div>
       <!-- SETTINGS -->
       <div class="display-wrapper" id="display-settings">
-        <input id="check-updates-button" type="button" value="Check for Updates" />
-        <input id="logout-button" type="button" value="Logout" />
+        <div class="settings-tabs">
+          <button class="settings-tab active" data-tab="general">General</button>
+          <button class="settings-tab" data-tab="appearance">Appearance</button>
+          <button class="settings-tab" data-tab="advanced">Advanced</button>
+        </div>
+        <div class="settings-content">
+          <div class="settings-page active" id="settings-general">
+            <div class="settings-section" data-section="updates">
+              <h3>Updates</h3>
+              <button id="check-updates-button" class="settings-button">
+                <span class="material-symbols-outlined">system_update</span>
+                Check for Updates
+              </button>
+            </div>
+            <div class="settings-section" data-section="system">
+              <h3>System</h3>
+              <div class="settings-option">
+                <input type="checkbox" id="setting-close-to-tray">
+                <label for="setting-close-to-tray">
+                  Close to System Tray
+                  <span class="setting-description">Keep CVRX running in the system tray when closing the window</span>
+                </label>
+              </div>
+            </div>
+            <div class="settings-section" data-section="account">
+              <h3>Account</h3>
+              <button id="logout-button" class="settings-button">
+                <span class="material-symbols-outlined">logout</span>
+                Logout
+              </button>
+            </div>
+          </div>
+          <div class="settings-page" id="settings-appearance">
+            <div class="settings-section" data-section="appearance">
+              <h3>Thumbnail Shapes</h3>
+              <div class="settings-option">
+                <label for="setting-thumbnail-shape">
+                  Details View Thumbnail Shape
+                  <span class="setting-description">Choose how thumbnails appear in detail views</span>
+                </label>
+                <select id="setting-thumbnail-shape" class="settings-dropdown">
+                  <option value="hexagonal">Hexagonal</option>
+                  <option value="square">Square</option>
+                  <option value="rounded">Rounded</option>
+                  <option value="circle">Circle</option>
+                </select>
+              </div>
+              <div class="settings-option">
+                <label for="setting-online-friends-thumbnail-shape">
+                  Online Friends Thumbnail Shape
+                  <span class="setting-description">Choose how thumbnails appear in the online friends list</span>
+                </label>
+                <select id="setting-online-friends-thumbnail-shape" class="settings-dropdown">
+                  <option value="hexagonal">Hexagonal</option>
+                  <option value="square">Square</option>
+                  <option value="rounded">Rounded</option>
+                  <option value="circle">Circle</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="settings-page" id="settings-advanced">
+            <div class="settings-section" data-section="cache">
+              <h3>Cache</h3>
+              <button id="clear-cached-images-button" class="settings-button">
+                <span class="material-symbols-outlined">delete_sweep</span>
+                Clear Cached Images
+              </button>
+            </div>
+            <div class="settings-section" data-section="debugging">
+              <h3>Debugging</h3>
+              <button id="open-logs-folder-button" class="settings-button">
+                <span class="material-symbols-outlined">folder_open</span>
+                Open Logs Folder
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="friends-sidebar">
@@ -137,31 +300,87 @@
   <!-- OVERLAYS -->
   <div class="overlay">
     <!-- LOADING SPLASH -->
-    <div class="loading-shade"><span>CVRX is Loading</span></div>
+    <div class="loading-shade">
+      <div class="loading-container">
+        <div class="loading-logo">
+          <img src="img/cvrx-tray-mac.png" alt="CVRX Logo">
+        </div>
+        <div class="loading-progress">
+          <div class="loading-bar"></div>
+        </div>
+        <div class="loading-status">Loading...</div>
+      </div>
+    </div>
     <!-- OBJECT DETAILS CARDS -->
     <div class="details-shade">
       <div class="details-window">
-        <div class="details-window--name">USER NAME</div>
-        <img class="details-window--img" src="./img/ui/placeholder.png"></img>
-        <div class="details-window--avatar"><img src="./img/ui/placeholder.png">AVATAR</div>
-        <div class="details-window--badge"><img src="./img/ui/placeholder.png">BADGE</div>
-        <div class="details-window--rank"><img src="./img/ui/rank.png">RANK</div>
+        <div class="details-header">
+          <!-- Dynamic content will be created here -->
+        </div>
+        <div class="details-content">
+          <div class="details-tabs">
+            <div class="details-tabs-left">
+            </div>
+            <div class="details-tabs-right">
+            </div>
+          </div>
+          <div class="details-tab-content">
+          </div>
+        </div>
       </div>
     </div>
     <!-- LOGIN SCREEN -->
     <div class="login-shade">
       <div class="login-window">
-        <input id="login-import-game-credentials" type="button" value="Import Game Credentials" />
-        <div id="login-available-credentials-wrapper"></div>
-        <label for="login-use-access-key" id="login-use-access-key-label">Use Username/Access Key
-          <span id="login-access-key-helper"
-            data-tooltip="Your ABI Game Access Master Key can be found at hub.abinteractive.net in your Profile Settings">(?)</span></label>
-        <input id="login-use-access-key" type="checkbox" />
-        <input id="login-username" type="text" placeholder="CVR Email" />
-        <input id="login-password" type="password" placeholder="CVR Password" />
-        <input id="login-authenticate" type="button" value="Login" />
-        <label for="login-save-credentials" id="login-save-credentials-label">Save Credentials</label>
-        <input id="login-save-credentials" type="checkbox" checked />
+        <div class="login-left-panel">
+          <div class="login-logo">
+            <img src="img/cvrx-tray-mac.png" alt="CVRX Logo">
+          </div>
+          <h1 class="login-title">Welcome to CVRX</h1>
+          <p class="login-subtitle">Your gateway to ChilloutVR</p>
+        </div>
+        
+        <div class="login-right-panel">
+          <p class="login-saved-credentials-title">Saved accounts</p>
+          <div id="login-available-credentials-wrapper"></div>
+          
+          <div class="login-or-divider">OR</div>
+          
+          <button id="login-import-game-credentials">Import Game Credentials</button>
+          
+          <div class="login-or-divider">OR</div>
+          
+          <div class="login-form">
+            <div class="login-input-group">
+              <span class="material-symbols-outlined">person</span>
+              <input id="login-username" type="text" placeholder="CVR Email" />
+            </div>
+            
+            <div class="login-input-group">
+              <span class="material-symbols-outlined">lock</span>
+              <input id="login-password" type="password" placeholder="CVR Password" />
+            </div>
+            
+            <div class="login-options-row">
+              <div class="login-option">
+                <input id="login-save-credentials" type="checkbox" checked />
+                <label for="login-save-credentials">Save Credentials</label>
+              </div>
+              
+              <div class="login-option">
+                <input id="login-use-access-key" type="checkbox" />
+                <label for="login-use-access-key">Use Access Key
+                  <span id="login-access-key-helper"
+                    data-tooltip="Your ABI Game Access Master Key can be found at hub.abinteractive.net in your Profile Settings">(?)</span>
+                </label>
+              </div>
+            </div>
+            
+            <button id="login-authenticate">Login</button>
+          </div>
+        </div>
+        
+        <div class="login-version">####</div>
       </div>
     </div>
     <!-- PROMPT LAYER -->
