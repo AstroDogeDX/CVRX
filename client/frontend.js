@@ -2445,6 +2445,17 @@ async function handleNewContentDiscovery() {
             ]);
             
             log('Data refresh completed and populated');
+            
+            // Set loading flags to prevent duplicate loading when navigating to My Content pages
+            const displayAvatars = document.querySelector('#display-avatars');
+            const displayWorlds = document.querySelector('#display-worlds');
+            const displayProps = document.querySelector('#display-props');
+            
+            if (displayAvatars) displayAvatars.setAttribute('loaded-avatars', '');
+            if (displayWorlds) displayWorlds.setAttribute('loaded-worlds', '');
+            if (displayProps) displayProps.setAttribute('loaded-props', '');
+            
+            log('Set loading flags for avatars, worlds, and props pages');
         }
 
         // Filter avatars for 'avtr_new' category
@@ -2707,6 +2718,17 @@ async function handleRecentlyUpdatedDiscovery() {
             ]);
             
             log('Data refresh completed and populated');
+            
+            // Set loading flags to prevent duplicate loading when navigating to My Content pages
+            const displayAvatars = document.querySelector('#display-avatars');
+            const displayWorlds = document.querySelector('#display-worlds');
+            const displayProps = document.querySelector('#display-props');
+            
+            if (displayAvatars) displayAvatars.setAttribute('loaded-avatars', '');
+            if (displayWorlds) displayWorlds.setAttribute('loaded-worlds', '');
+            if (displayProps) displayProps.setAttribute('loaded-props', '');
+            
+            log('Set loading flags for avatars, worlds, and props pages');
         }
 
         // Filter avatars for 'avtr_recently' category
