@@ -374,7 +374,7 @@ export function handleFriendsRefresh(friends, isRefresh) {
 
         // Set placeholder background image and data-hash directly on the container
         const thumbnailContainer = friendCard.querySelector('.thumbnail-container');
-        setImageSource(thumbnailContainer, friend.imageHash);
+        setImageSource(thumbnailContainer, friend.imageHash, true);
 
         friendCards.push(friendCard);
     }
@@ -620,7 +620,7 @@ export function handleAvatarsRefresh(ourAvatars) {
 
         // Set placeholder background image and data-hash directly on the container
         const thumbnailContainer = avatarNode.querySelector('.thumbnail-container');
-        setImageSource(thumbnailContainer, ourAvatar.imageHash);
+        setImageSource(thumbnailContainer, ourAvatar.imageHash, true);
 
         docFragment.appendChild(avatarNode);
     }
@@ -889,7 +889,7 @@ export function handleWorldsRefresh(ourWorlds) {
 
         // Set placeholder background image and data-hash directly on the container
         const thumbnailContainer = worldNode.querySelector('.thumbnail-container');
-        setImageSource(thumbnailContainer, ourWorld.imageHash);
+        setImageSource(thumbnailContainer, ourWorld.imageHash, true);
 
         docFragment.appendChild(worldNode);
     }
@@ -960,7 +960,7 @@ export function handleWorldsByCategoryRefresh(categoryId, worlds) {
 
         // Set placeholder background image and data-hash directly on the container
         const thumbnailContainer = worldNode.querySelector('.thumbnail-container');
-        setImageSource(thumbnailContainer, world.imageHash);
+        setImageSource(thumbnailContainer, world.imageHash, true);
 
         docFragment.appendChild(worldNode);
     }
@@ -1211,7 +1211,7 @@ export function handlePropsRefresh(ourProps) {
 
         // Set placeholder background image and data-hash directly on the container
         const thumbnailContainer = propNode.querySelector('.thumbnail-container');
-        setImageSource(thumbnailContainer, ourProp.imageHash);
+        setImageSource(thumbnailContainer, ourProp.imageHash, true);
 
         docFragment.appendChild(propNode);
     }
