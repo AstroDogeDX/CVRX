@@ -397,11 +397,62 @@ function deleteParameter(profileIndex, paramIndex) {
     const profile = currentSettings.savedSettings[profileIndex];
     const paramName = profile.values[paramIndex].name;
     
-    // Remove the parameter
+    // Find the parameter element to remove
+    const parametersContainer = document.querySelector('.aas-parameters-container');
+    const paramItems = parametersContainer.querySelectorAll('.aas-parameter-item');
+    const paramToDelete = paramItems[paramIndex];
+    
+    // Remove the parameter from data
     profile.values.splice(paramIndex, 1);
     
+    // Remove the DOM element with a smooth animation
+    if (paramToDelete) {
+        paramToDelete.style.transition = 'opacity 0.2s ease-out, transform 0.2s ease-out';
+        paramToDelete.style.opacity = '0';
+        paramToDelete.style.transform = 'translateX(-20px)';
+        
+        setTimeout(() => {
+            paramToDelete.remove();
+            
+            // Update parameter indices for remaining elements
+            const remainingParams = parametersContainer.querySelectorAll('.aas-parameter-item');
+            remainingParams.forEach((paramItem, newIndex) => {
+                const slider = paramItem.querySelector('.aas-parameter-slider');
+                const numberInput = paramItem.querySelector('.aas-parameter-value');
+                
+                if (slider) {
+                    slider.dataset.paramIndex = newIndex;
+                }
+                if (numberInput) {
+                    numberInput.dataset.paramIndex = newIndex;
+                }
+            });
+            
+            // Update profile parameter count in the profiles list
+            const profileItem = document.querySelector(`[data-profile-index="${profileIndex}"]`);
+            if (profileItem) {
+                const paramCountElement = profileItem.querySelector('.aas-profile-param-count');
+                if (paramCountElement) {
+                    paramCountElement.textContent = `${profile.values.length} parameters`;
+                }
+            }
+            
+            // Show empty state if no parameters left
+            if (profile.values.length === 0) {
+                parametersContainer.innerHTML = `
+                    <div class="aas-no-parameters">
+                        <div class="aas-no-parameters-icon">
+                            <span class="material-symbols-outlined">tune</span>
+                        </div>
+                        <p>No parameters in this profile</p>
+                        <small>Click "Add Parameter" to create one</small>
+                    </div>
+                `;
+            }
+        }, 200);
+    }
+    
     markAsModified();
-    renderParameters(profileIndex);
     pushToast(`Parameter "${paramName}" deleted`, 'confirm');
 }
 
