@@ -91,17 +91,12 @@ const BuildTray = async (mainWindow) => {
     // Skip tray on non-tested OS since it might crash the app
     if (!isWindows && !isMac && !isLinux)
         return;
-
-    // Pick which icon to use
-    let trayIcon = app.isPackaged
-        ? path.resolve(app.getAppPath(), "client", "img", "cvrx-logo-1028.png")
-        : `./${iconRelativePath}`; //may not be necessary with path.resolve
     
-    if (isMac)
-        trayIcon = app.isPackaged
-            ? path.resolve(app.getAppPath(), "client", "img", "cvrx-tray-mac.png")
-            : `./${iconRelativePath}`; //may not be necessary with path.resolve
-
+    // Pick which icon to use
+    const trayIcon = isMac
+        ? path.resolve(app.getAppPath(), "client", "img", "cvrx-tray-mac.png")
+        : path.resolve(app.getAppPath(), "client", "img", "cvrx-logo-1028.png")
+    
     // Prevent app from crashing by not initializing the tray
     if (!existsSync(trayIcon)) {
         log.error(`Icon file does not exist at path: ${trayIcon}. Skipping initializing tray icon`);
