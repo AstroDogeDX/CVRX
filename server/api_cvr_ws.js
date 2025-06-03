@@ -231,7 +231,6 @@ function ConnectWebsocket(username, accessKey) {
                 'Username': username,
                 'AccessKey': accessKey,
                 'User-Agent': Utils.GetUserAgent(),
-                'MatureContentDlc': 'true',
                 'Platform': 'pc_standalone',
                 'CompatibleVersions': '0,1,2',
             },
