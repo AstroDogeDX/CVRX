@@ -125,6 +125,11 @@ contextBridge.exposeInMainWorld('API', {
     checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
     onUpdateAvailable: (callback) => ipcRenderer.on('update-available', callback),
     updateAction: (action, updateInfo) => ipcRenderer.invoke('update-action', action, updateInfo),
+    
+    // Download progress events
+    onUpdateDownloadStarted: (callback) => ipcRenderer.on('update-download-started', callback),
+    onUpdateDownloadProgress: (callback) => ipcRenderer.on('update-download-progress', callback),
+    onUpdateDownloadComplete: (callback) => ipcRenderer.on('update-download-complete', callback),
 
     // Websocket
     reconnectWebSocket: () => ipcRenderer.send('reconnect-web-socket'),

@@ -2,6 +2,9 @@
 export function parseMarkdown(text) {
     if (!text) return '';
 
+    // Normalize line endings - convert \r\n to \n and remove any stray \r characters
+    text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
     // Helper function to escape HTML
     const escapeHtml = (unsafe) => {
         return unsafe
@@ -45,12 +48,10 @@ export function parseMarkdown(text) {
     const lines = text.split('\n');
     let output = [];
     let inCodeBlock = false;
-    let inList = false;
-    let listType = '';
-    let listIndent = 0;
     let inBlockquote = false;
     let blockquoteContent = [];
     let lastWasHeader = false;
+    let currentList = null; // Track current list state: { type: 'ul'|'ol', indent: number }
 
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
@@ -109,29 +110,35 @@ export function parseMarkdown(text) {
             continue;
         }
 
-        // Handle lists
+        // Handle lists (both bulleted and numbered)
         const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s+(.+)$/);
         if (listMatch) {
             const [, indent, marker, content] = listMatch;
-            const currentIndent = indent.length;
+            const indentLevel = indent.length;
             const isOrdered = /^\d+\.$/.test(marker);
+            const listType = isOrdered ? 'ol' : 'ul';
 
-            if (!inList || currentIndent !== listIndent) {
-                if (inList) {
-                    output.push(`</${listType}>`);
-                }
-                inList = true;
-                listType = isOrdered ? 'ol' : 'ul';
-                listIndent = currentIndent;
+            // Close current list if changing type or indent level
+            if (currentList && (currentList.type !== listType || currentList.indent !== indentLevel)) {
+                output.push(`</${currentList.type}>`);
+                currentList = null;
+            }
+
+            // Start new list if needed
+            if (!currentList) {
+                currentList = { type: listType, indent: indentLevel };
                 output.push(`<${listType}>`);
             }
 
             const processedContent = processInlineFormatting(content);
             output.push(`<li>${processedContent}</li>`);
             continue;
-        } else if (inList) {
-            inList = false;
-            output.push(`</${listType}>`);
+        }
+        
+        // If we have an open list and encounter non-list content, close it
+        if (currentList) {
+            output.push(`</${currentList.type}>`);
+            currentList = null;
         }
 
         // Handle task lists
@@ -142,7 +149,7 @@ export function parseMarkdown(text) {
             continue;
         }
 
-        // Handle paragraphs
+        // Handle paragraphs and empty lines
         if (trimmedLine) {
             output.push(`<p style="margin: 0.25em 0;">${processInlineFormatting(trimmedLine)}</p>`);
         } else {
@@ -151,8 +158,8 @@ export function parseMarkdown(text) {
     }
 
     // Close any open blocks
-    if (inList) {
-        output.push(`</${listType}>`);
+    if (currentList) {
+        output.push(`</${currentList.type}>`);
     }
     if (inBlockquote) {
         output.push(`<blockquote>${processInlineFormatting(blockquoteContent.join('\n'))}</blockquote>`);
@@ -161,11 +168,9 @@ export function parseMarkdown(text) {
         output.push('</code></pre>');
     }
 
-    // Clean up empty paragraphs and fix nested lists
+    // Clean up empty paragraphs
     let result = output.join('\n')
         .replace(/<p><\/p>/g, '')
-        .replace(/<\/ul>\s*<ul>/g, '')
-        .replace(/<\/ol>\s*<ol>/g, '')
         .replace(/<br>\n{2,}/g, '<br>\n')
         .replace(/\n{2,}<br>/g, '\n<br>')
         .replace(/\n{3,}/g, '\n\n');

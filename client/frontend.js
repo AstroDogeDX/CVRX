@@ -271,11 +271,15 @@ function promptUpdate(updateInfo) {
         textContent: 'Download and Install',
         onClick: async () => {
             try {
-                // Show toast notification to inform user about the download process
-                pushToast('Downloading update... The app will restart automatically once installation begins.', 'info');
-                await window.API.updateAction('download', updateInfo);
+                // Close the modal immediately when user clicks download
                 newPrompt.remove();
                 promptShade.style.display = 'none';
+                
+                // Show toast notification to inform user about the download process
+                pushToast('Downloading update... The app will restart automatically once installation begins.', 'info');
+                
+                // Start the download (progress modal will appear automatically)
+                await window.API.updateAction('download', updateInfo);
             } catch (error) {
                 pushToast('Failed to download update', 'error');
             }
@@ -399,6 +403,115 @@ window.API.onUpdateAvailable((_event, updateInfo) => {
     log('Update available notification received from backend');
     log(updateInfo);
     promptUpdate(updateInfo);
+});
+
+// Download progress modal variables
+let downloadProgressModal = null;
+let downloadProgressBar = null;
+let downloadProgressText = null;
+let downloadProgressSize = null;
+let downloadProgressStatus = null;
+
+// Helper function to format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+// Create download progress modal
+function createDownloadProgressModal(fileName) {
+    const promptShade = document.querySelector('.prompt-layer');
+    downloadProgressModal = createElement('div', { className: 'prompt download-progress-modal' });
+    
+    const modalTitle = createElement('div', { 
+        className: 'prompt-title', 
+        textContent: 'Downloading Update' 
+    });
+    
+    const modalContent = createElement('div', { className: 'prompt-text download-progress-content' });
+    
+    // File name display
+    const fileNameDisplay = createElement('div', {
+        className: 'download-progress-file',
+        textContent: `Downloading: ${fileName}`
+    });
+    
+    // Progress bar container
+    const progressContainer = createElement('div', { className: 'download-progress-bar-container' });
+    downloadProgressBar = createElement('div', { 
+        className: 'download-progress-bar',
+        textContent: '0%'
+    });
+    progressContainer.appendChild(downloadProgressBar);
+    
+    // Progress details
+    const progressDetails = createElement('div', { className: 'download-progress-details' });
+    downloadProgressSize = createElement('div', { 
+        className: 'download-progress-size',
+        textContent: '0 B / 0 B'
+    });
+    downloadProgressStatus = createElement('div', { 
+        className: 'download-progress-status',
+        textContent: 'Preparing download...'
+    });
+    progressDetails.append(downloadProgressSize, downloadProgressStatus);
+    
+    modalContent.append(fileNameDisplay, progressContainer, progressDetails);
+    downloadProgressModal.append(modalTitle, modalContent);
+    promptShade.append(downloadProgressModal);
+    promptShade.style.display = 'flex';
+}
+
+// Update download progress
+function updateDownloadProgress(progressData) {
+    if (!downloadProgressBar || !downloadProgressModal) return;
+    
+    const { downloadedSize, totalSize, progress, fileName } = progressData;
+    
+    // Update progress bar
+    downloadProgressBar.style.width = `${Math.round(progress)}%`;
+    downloadProgressBar.textContent = `${Math.round(progress)}%`;
+    
+    // Update size display
+    if (downloadProgressSize) {
+        const downloadedFormatted = formatFileSize(downloadedSize || 0);
+        const totalFormatted = formatFileSize(totalSize || 0);
+        downloadProgressSize.textContent = `${downloadedFormatted} / ${totalFormatted}`;
+    }
+    
+    // Update status
+    if (downloadProgressStatus) {
+        if (progress >= 100) {
+            downloadProgressStatus.textContent = 'Download complete! Installing...';
+            downloadProgressStatus.classList.add('download-progress-complete');
+        } else {
+            downloadProgressStatus.textContent = 'Downloading...';
+        }
+    }
+}
+
+// Handle download started event
+window.API.onUpdateDownloadStarted((_event, data) => {
+    log('Update download started:', data);
+    createDownloadProgressModal(data.fileName);
+});
+
+// Handle download progress event
+window.API.onUpdateDownloadProgress((_event, progressData) => {
+    updateDownloadProgress(progressData);
+});
+
+// Handle download complete event
+window.API.onUpdateDownloadComplete((_event, data) => {
+    log('Update download complete:', data);
+    if (downloadProgressStatus) {
+        downloadProgressStatus.textContent = 'Installing update...';
+        downloadProgressStatus.classList.add('download-progress-complete');
+    }
+    // Modal will be closed when app restarts
 });
 
 // Pages handling
