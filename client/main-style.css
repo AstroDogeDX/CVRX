@@ -2845,6 +2845,32 @@ button {
     z-index: 1;
 }
 
+/* Parameter Name Input Field Styling */
+#parameter-name {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--color-background-dark);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radii);
+    color: var(--color-text);
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+#parameter-name:focus {
+    border-color: var(--color-accent);
+    background: var(--color-background-darker);
+    box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.2);
+}
+
+#parameter-name::placeholder {
+    color: var(--color-text-secondary);
+    font-style: italic;
+    opacity: 0.8;
+}
+
 /* Settings styles */
 #display-settings {
     display: flex;
