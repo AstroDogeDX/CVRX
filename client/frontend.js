@@ -152,10 +152,33 @@ function removeFilteredItemClass(selector) {
 
 function loadAndFilterPageContent(page, elementSelector, loadFunction, filterSelector) {
     const element = document.querySelector(elementSelector);
+    const loadingElement = document.querySelector(`.${page}-loading`);
+    const wrapperElement = document.querySelector(`.${page}-wrapper`);
+    
     if (!element.hasAttribute(`loaded-${page}`)) {
-        element.setAttribute(`loaded-${page}`, '');
+        // Show loading state
+        if (loadingElement) {
+            loadingElement.classList.remove('hidden');
+        }
+        // Hide wrapper during loading
+        if (wrapperElement) {
+            wrapperElement.style.display = 'none';
+        }
+        
+        // Set a loading flag but not the loaded flag yet
+        element.setAttribute(`loading-${page}`, '');
         loadFunction();
+    } else {
+        // Content already loaded, hide loading state immediately
+        if (loadingElement) {
+            loadingElement.classList.add('hidden');
+        }
+        // Show wrapper if content exists
+        if (wrapperElement) {
+            wrapperElement.style.display = '';
+        }
     }
+    
     setInputValueAndFocus(filterSelector, '');
     removeFilteredItemClass(`.${page}-wrapper--${page}-node`);
 }
@@ -2477,9 +2500,44 @@ browseCvrExecutableButton.addEventListener('click', async () => {
 });
 
 // Set up refresh button event listeners (only once to prevent stacking)
-document.querySelector('#worlds-refresh')?.addEventListener('click', () => window.API.refreshGetActiveUserWorlds());
-document.querySelector('#avatars-refresh')?.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
-document.querySelector('#props-refresh')?.addEventListener('click', () => window.API.refreshGetActiveUserProps());
+document.querySelector('#worlds-refresh')?.addEventListener('click', () => {
+    // Show loading state for manual refresh
+    const loadingElement = document.querySelector('.worlds-loading');
+    const wrapperElement = document.querySelector('.worlds-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.remove('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = 'none';
+    }
+    window.API.refreshGetActiveUserWorlds();
+});
+
+document.querySelector('#avatars-refresh')?.addEventListener('click', () => {
+    // Show loading state for manual refresh
+    const loadingElement = document.querySelector('.avatars-loading');
+    const wrapperElement = document.querySelector('.avatars-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.remove('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = 'none';
+    }
+    window.API.refreshGetActiveUserAvatars();
+});
+
+document.querySelector('#props-refresh')?.addEventListener('click', () => {
+    // Show loading state for manual refresh
+    const loadingElement = document.querySelector('.props-loading');
+    const wrapperElement = document.querySelector('.props-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.remove('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = 'none';
+    }
+    window.API.refreshGetActiveUserProps();
+});
 
 // Props and World functions moved to user_content.js module
 

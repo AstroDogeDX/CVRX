@@ -1469,6 +1469,25 @@ button {
     cursor: pointer;
 }
 
+.avatars-loading {
+    grid-area: avatars-list;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    gap: 10px;
+}
+
+.avatars-loading.hidden {
+    display: none;
+}
+
+.avatars-loading .spinner {
+    animation: rotate 1.5s linear infinite;
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
 .avatars-wrapper {
     grid-area: avatars-list;
     overflow-y: auto;
@@ -1557,6 +1576,25 @@ button {
     cursor: pointer;
 }
 
+.worlds-loading {
+    grid-area: worlds-list;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    gap: 10px;
+}
+
+.worlds-loading.hidden {
+    display: none;
+}
+
+.worlds-loading .spinner {
+    animation: rotate 1.5s linear infinite;
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
 .worlds-wrapper {
     grid-area: worlds-list;
     overflow-y: auto;
@@ -1643,6 +1681,25 @@ button {
     color: black;
     border: none;
     cursor: pointer;
+}
+
+.props-loading {
+    grid-area: props-list;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    gap: 10px;
+}
+
+.props-loading.hidden {
+    display: none;
+}
+
+.props-loading .spinner {
+    animation: rotate 1.5s linear infinite;
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .props-wrapper {

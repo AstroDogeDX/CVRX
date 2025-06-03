@@ -629,6 +629,23 @@ export function handleAvatarsRefresh(ourAvatars) {
     
     log(`Created ${ourAvatars.length} avatar cards in DOM`);
     
+    // Hide loading state and show wrapper
+    const loadingElement = document.querySelector('.avatars-loading');
+    const wrapperElement = document.querySelector('.avatars-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.add('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = '';
+    }
+    
+    // Set loaded attribute and remove loading attribute
+    const displayElement = document.querySelector('#display-avatars');
+    if (displayElement) {
+        displayElement.setAttribute('loaded-avatars', '');
+        displayElement.removeAttribute('loading-avatars');
+    }
+    
     // Apply the current active filter after loading avatars, but only if filter buttons exist
     const activeFilterButton = document.querySelector('.avatars-filter-controls .filter-button.active');
     if (activeFilterButton) {
@@ -657,6 +674,19 @@ export function initializeAvatarsPage() {
         e.classList.remove('filtered-item');
         e.style.display = '';
     });
+    
+    // Only hide loading state and show wrapper if content has been loaded before
+    const displayElement = document.querySelector('#display-avatars');
+    if (displayElement && displayElement.hasAttribute('loaded-avatars') && !displayElement.hasAttribute('loading-avatars')) {
+        const loadingElement = document.querySelector('.avatars-loading');
+        const wrapperElement = document.querySelector('.avatars-wrapper');
+        if (loadingElement) {
+            loadingElement.classList.add('hidden');
+        }
+        if (wrapperElement && wrapperElement.children.length > 0) {
+            wrapperElement.style.display = '';
+        }
+    }
     
     // Load avatar categories and reset filter controls
     loadAvatarCategories().then(() => {
@@ -898,6 +928,23 @@ export function handleWorldsRefresh(ourWorlds) {
     
     log(`Created ${docFragment.children.length} world cards in DOM`);
     
+    // Hide loading state and show wrapper
+    const loadingElement = document.querySelector('.worlds-loading');
+    const wrapperElement = document.querySelector('.worlds-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.add('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = '';
+    }
+    
+    // Set loaded attribute and remove loading attribute
+    const displayElement = document.querySelector('#display-worlds');
+    if (displayElement) {
+        displayElement.setAttribute('loaded-worlds', '');
+        displayElement.removeAttribute('loading-worlds');
+    }
+    
     // Apply the current active filter after loading worlds, but only if filter buttons exist
     const activeFilterButton = document.querySelector('.worlds-filter-controls .filter-button.active');
     if (activeFilterButton) {
@@ -969,6 +1016,23 @@ export function handleWorldsByCategoryRefresh(categoryId, worlds) {
     
     log(`Created ${worlds.length} world cards for category ${categoryId}`);
     
+    // Hide loading state and show wrapper
+    const loadingElement = document.querySelector('.worlds-loading');
+    const wrapperElement = document.querySelector('.worlds-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.add('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = '';
+    }
+    
+    // Set loaded attribute and remove loading attribute
+    const displayElement = document.querySelector('#display-worlds');
+    if (displayElement) {
+        displayElement.setAttribute('loaded-worlds', '');
+        displayElement.removeAttribute('loading-worlds');
+    }
+    
     // Apply text filter if there's any text in the filter input
     const filterText = document.querySelector('#worlds-filter').value.toLowerCase();
     if (filterText) {
@@ -1004,6 +1068,19 @@ export function initializeWorldsPage() {
         e.classList.remove('filtered-item');
         e.style.display = '';
     });
+    
+    // Only hide loading state and show wrapper if content has been loaded before
+    const displayElement = document.querySelector('#display-worlds');
+    if (displayElement && displayElement.hasAttribute('loaded-worlds') && !displayElement.hasAttribute('loading-worlds')) {
+        const loadingElement = document.querySelector('.worlds-loading');
+        const wrapperElement = document.querySelector('.worlds-wrapper');
+        if (loadingElement) {
+            loadingElement.classList.add('hidden');
+        }
+        if (wrapperElement && wrapperElement.children.length > 0) {
+            wrapperElement.style.display = '';
+        }
+    }
     
     // Load world categories and reset filter controls
     loadWorldCategories().then(() => {
@@ -1218,6 +1295,23 @@ export function handlePropsRefresh(ourProps) {
 
     propDisplayNode.replaceChildren(docFragment);
     
+    // Hide loading state and show wrapper
+    const loadingElement = document.querySelector('.props-loading');
+    const wrapperElement = document.querySelector('.props-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.add('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = '';
+    }
+    
+    // Set loaded attribute and remove loading attribute
+    const displayElement = document.querySelector('#display-props');
+    if (displayElement) {
+        displayElement.setAttribute('loaded-props', '');
+        displayElement.removeAttribute('loading-props');
+    }
+    
     // Apply the current active filter after loading props
     const activeFilterButton = document.querySelector('.props-filter-controls .filter-button.active');
     if (activeFilterButton) {
@@ -1238,6 +1332,19 @@ export function initializePropsPage() {
         e.classList.remove('filtered-item');
         e.style.display = '';
     });
+    
+    // Only hide loading state and show wrapper if content has been loaded before
+    const displayElement = document.querySelector('#display-props');
+    if (displayElement && displayElement.hasAttribute('loaded-props') && !displayElement.hasAttribute('loading-props')) {
+        const loadingElement = document.querySelector('.props-loading');
+        const wrapperElement = document.querySelector('.props-wrapper');
+        if (loadingElement) {
+            loadingElement.classList.add('hidden');
+        }
+        if (wrapperElement && wrapperElement.children.length > 0) {
+            wrapperElement.style.display = '';
+        }
+    }
     
     // Load prop categories and reset filter controls
     loadPropCategories().then(() => {
