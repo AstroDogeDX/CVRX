@@ -222,7 +222,7 @@ function createDetailsSegment(options = {}) {
 }
 
 // Create universal details header structure
-function createDetailsHeaderStructure(entityInfo, entityType) {
+function createDetailsHeaderStructure(entityInfo, entityType, entityId) {
     const detailsHeader = document.querySelector('.details-header');
     
     // Clear existing content
@@ -256,6 +256,17 @@ function createDetailsHeaderStructure(entityInfo, entityType) {
     thumbnail.className = 'details-thumbnail';
     thumbnail.src = 'img/ui/placeholder.png';
     thumbnail.dataset.hash = entityInfo.imageHash || '';
+    
+    // Add double-click event listener to copy GUID to clipboard
+    thumbnail.addEventListener('dblclick', async () => {
+        try {
+            await navigator.clipboard.writeText(entityId);
+            pushToast(`Copied GUID to clipboard: ${entityId}`, 'confirm');
+        } catch (error) {
+            log('Failed to copy GUID to clipboard:');
+            pushToast('Failed to copy GUID to clipboard', 'error');
+        }
+    });
     
     thumbnailContainer.appendChild(thumbnail);
     
@@ -544,7 +555,7 @@ function addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, load
 }
 
 // Create user-specific header structure using universal details-segment system
-function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
+function createUserDetailsHeader(entityInfo, ShowDetailsCallback, entityId) {
     const detailsHeader = document.querySelector('.details-header');
     
     // Clear existing content
@@ -578,6 +589,18 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
     thumbnail.className = 'details-thumbnail';
     thumbnail.src = 'img/ui/placeholder.png';
     thumbnail.dataset.hash = entityInfo.imageHash;
+    
+    // Add double-click event listener to copy GUID to clipboard
+    thumbnail.addEventListener('dblclick', async () => {
+        try {
+            await navigator.clipboard.writeText(entityId);
+            pushToast(`Copied GUID to clipboard: ${entityId}`, 'confirm');
+        } catch (error) {
+            log('Failed to copy GUID to clipboard:');
+            pushToast('Failed to copy GUID to clipboard', 'error');
+        }
+    });
+    
     thumbnailContainer.appendChild(thumbnail);
     
     // Create entity name
@@ -778,7 +801,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const isMyProfile = currentActiveUser && entityId === currentActiveUser.id;
             
             // Create the custom user header structure
-            const headerElements = createUserDetailsHeader(entityInfo, showDetailsWithDependencies);
+            const headerElements = createUserDetailsHeader(entityInfo, showDetailsWithDependencies, entityId);
 
             // Show tabs and content for user details
             detailsTabs.style.display = 'flex';
@@ -981,7 +1004,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
             entityInfo = await windowAPI.getAvatarById(entityId);
             
             // Create the universal header structure
-            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
+            const headerElements = createDetailsHeaderStructure(entityInfo, entityType, entityId);
             
             // Update the thumbnail for the avatar image
             headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
@@ -1198,7 +1221,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
             entityInfo = await windowAPI.getPropById(entityId);
             
             // Create the universal header structure
-            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
+            const headerElements = createDetailsHeaderStructure(entityInfo, entityType, entityId);
             
             // Update the thumbnail for the prop image
             headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
@@ -1350,7 +1373,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
             entityInfo = await windowAPI.getWorldById(entityId);
             
             // Create the universal header structure
-            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
+            const headerElements = createDetailsHeaderStructure(entityInfo, entityType, entityId);
             
             // Update the thumbnail for the world image
             headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
@@ -1486,7 +1509,7 @@ async function ShowDetails(entityType, entityId, dependencies) {
             entityInfo = await windowAPI.getInstanceById(entityId);
             
             // Create the universal header structure
-            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
+            const headerElements = createDetailsHeaderStructure(entityInfo, entityType, entityId);
             
             // Clean the entity name by removing the instance ID portion
             let cleanName = entityInfo.name || 'Unknown Instance';
