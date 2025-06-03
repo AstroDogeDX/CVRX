@@ -287,6 +287,10 @@ class Core {
             }
         });
 
+        // Account
+        ipcMain.handle('get-mature-content-config', (_event) => EscapeHtml(this.matureContentConfig));
+        ipcMain.handle('set-mature-content-visibility', async (_event, enabled) => await this.SetMatureContentVisibility(enabled));
+
         // Categories
         ipcMain.handle('get-categories', (_event) => EscapeHtml(this.categories));
         ipcMain.on('update-categories', (_event) => this.UpdateCategories());
@@ -345,6 +349,9 @@ class Core {
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.MENU_POPUP, (_data, msg) => this.SendToRenderer('notification', msg, ToastTypes.INFO));
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.HUD_MESSAGE, (_data, msg) => this.SendToRenderer('notification', msg, ToastTypes.INFO));
 
+        // Mature Content
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.MATURE_CONTENT_UPDATE, (matureContentInfo) => this.UpdateMatureContentConfigWs(matureContentInfo));
+
         // Advanced Avatar Settings
         ipcMain.handle('get-avatar-advanced-settings', async (_event, avatarId) => {
             try {
@@ -369,10 +376,10 @@ class Core {
                 return await this.HasAvatarAdvancedSettings(avatarId);
             } catch (error) {
                 log.error(`Failed to check avatar advanced settings for ${avatarId}:`, error);
-                return { 
-                    hasSettings: false, 
+                return {
+                    hasSettings: false,
                     reason: 'error',
-                    message: error.message
+                    message: error.message,
                 };
             }
         });
@@ -429,6 +436,7 @@ class Core {
                 this.RefreshFriendRequests(),
                 this.ActiveInstancesUpdate(true),
                 this.UpdateCategories(),
+                this.UpdateMatureContentConfig(),
             ]);
 
             // Initialize the websocket
@@ -752,6 +760,21 @@ class Core {
         //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
         // }]
         this.SendToRenderer('invite-requests', requestInvites);
+    }
+
+    async UpdateMatureContentConfig() {
+        this.remoteConfig = await CVRHttp.GetRemoteConfig();
+        this.matureContentConfig = CVRWebsocket.MapMatureContentConfig(this.remoteConfig.matureContent);
+        this.SendToRenderer('mature-content-update', EscapeHtml(this.matureContentConfig));
+    }
+
+    async UpdateMatureContentConfigWs(matureContentInfo) {
+        this.matureContentConfig = matureContentInfo;
+        this.SendToRenderer('mature-content-config-update', EscapeHtml(matureContentInfo));
+    }
+
+    async SetMatureContentVisibility(enabled) {
+        return (await CVRHttp.SetMatureContentVisibility(enabled))?.message;
     }
 
     async UpdateCategories() {

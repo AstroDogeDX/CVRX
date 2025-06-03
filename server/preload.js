@@ -115,6 +115,14 @@ contextBridge.exposeInMainWorld('API', {
     // Notifications
     onNotification: (callback) => ipcRenderer.on('notification', callback),
 
+    // Mature content update
+    // Gets the current cached state for the mature content (this will always be up to date)
+    getMatureContentConfig: () => ipcRenderer.invoke('get-mature-content-config'),
+    // Sets the visibility for the mature content (requires mature content to be enabled to work)
+    setMatureContentVisibility: (enabled) => ipcRenderer.invoke('set-mature-content-visibility', enabled),
+    // Listener that will trigger when the mature content visibility state changes (and triggered 1 time after authentication)
+    onMatureContentConfigUpdate: (callback) => ipcRenderer.on('mature-content-config-update', callback),
+
     // Logging
     logDebug: (msg, optionalData) => ipcRenderer.send('log-debug', msg, optionalData),
     logInfo: (msg, optionalData) => ipcRenderer.send('log-info', msg, optionalData),
@@ -125,7 +133,7 @@ contextBridge.exposeInMainWorld('API', {
     checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
     onUpdateAvailable: (callback) => ipcRenderer.on('update-available', callback),
     updateAction: (action, updateInfo) => ipcRenderer.invoke('update-action', action, updateInfo),
-    
+
     // Download progress events
     onUpdateDownloadStarted: (callback) => ipcRenderer.on('update-download-started', callback),
     onUpdateDownloadProgress: (callback) => ipcRenderer.on('update-download-progress', callback),
