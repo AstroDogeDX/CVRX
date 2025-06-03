@@ -56,6 +56,11 @@ Other platform build instructions are probably the same with some variations, ho
 - Logs: `~/Library/Application\ Support/CVRX/CVRLogs/`
 - Images Cache: `~/Library/Application\ Support/CVRX/CVRCache/`
 
+### Linux
+- Root: `~/.config/CVRX/`
+- Logs: `~/.config/CVRX/CVRLogs/`
+- Images Cache: `~/config/CVRX/CVRCache/Images/`
+
 ## Disclaimer
 > ---
 > ⚠️ **Notice!**  
