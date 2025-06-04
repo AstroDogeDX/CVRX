@@ -3193,6 +3193,10 @@ button {
     background: #f44336;
 }
 
+.settings-section[data-section="mature-content"] h3::before {
+    background: #9C27B0;
+}
+
 .settings-section[data-section="appearance"] h3::before {
     background: #9C27B0;
 }

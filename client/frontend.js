@@ -419,6 +419,9 @@ window.API.onHomePage((_event) => {
         // Fallback to default shape if config fails
         applyOnlineFriendsThumbnailShape('rounded');
     });
+    
+    // Update mature content setting after authentication
+    updateMatureContentSetting();
 });
 
 // Handle automatic update notifications from backend
@@ -596,6 +599,9 @@ window.API.onHomePage((_event) => {
         // Fallback to default shape if config fails
         applyOnlineFriendsThumbnailShape('rounded');
     });
+    
+    // Update mature content setting after authentication
+    updateMatureContentSetting();
 });
 
 
@@ -2360,6 +2366,27 @@ window.API.onNotification((_event, message, type) => {
     pushToast(message, toastType);
 });
 
+// Handle real-time mature content config updates
+window.API.onMatureContentConfigUpdate((_event, matureConfig) => {
+    log('Mature content config updated:', matureConfig);
+    
+    // Check if DOM elements exist
+    if (!matureContentSetting || !matureContentCheckbox) {
+        log('Mature content setting DOM elements not found during update');
+        return;
+    }
+    
+    // Update the setting visibility and state
+    if (matureConfig.unlocked && !matureConfig.terminated) {
+        log('Real-time update: showing mature content setting - unlocked:', matureConfig.unlocked, 'terminated:', matureConfig.terminated);
+        matureContentSetting.style.display = 'flex';
+        matureContentCheckbox.checked = matureConfig.enabled;
+    } else {
+        log('Real-time update: hiding mature content setting - unlocked:', matureConfig.unlocked, 'terminated:', matureConfig.terminated);
+        matureContentSetting.style.display = 'none';
+    }
+});
+
 applyTooltips();
 
 // Settings page tab switching
@@ -2388,6 +2415,10 @@ const onlineFriendsThumbnailShapeDropdown = document.getElementById('setting-onl
 const cvrExecutableInput = document.getElementById('setting-cvr-executable');
 const browseCvrExecutableButton = document.getElementById('browse-cvr-executable');
 
+// Handle "Mature Content Visibility" setting
+const matureContentCheckbox = document.getElementById('setting-mature-content-visibility');
+const matureContentSetting = document.getElementById('mature-content-setting');
+
 // Function to apply thumbnail shape to all existing thumbnail containers
 function applyThumbnailShape(shape) {
     const thumbnailContainers = document.querySelectorAll('.details-thumbnail-container');
@@ -2410,6 +2441,33 @@ function applyOnlineFriendsThumbnailShape(shape) {
     });
 }
 
+// Function to update mature content setting visibility and state
+async function updateMatureContentSetting() {
+    // Check if DOM elements exist
+    if (!matureContentSetting || !matureContentCheckbox) {
+        log('Mature content setting DOM elements not found');
+        return;
+    }
+    
+    try {
+        const matureConfig = await window.API.getMatureContentConfig();
+        log('Mature content config received:', matureConfig);
+        
+        // Show the setting only if unlocked is true and terminated is false
+        if (matureConfig.unlocked && !matureConfig.terminated) {
+            log('Showing mature content setting - unlocked:', matureConfig.unlocked, 'terminated:', matureConfig.terminated);
+            matureContentSetting.style.display = 'flex';
+            matureContentCheckbox.checked = matureConfig.enabled;
+        } else {
+            log('Hiding mature content setting - unlocked:', matureConfig.unlocked, 'terminated:', matureConfig.terminated);
+            matureContentSetting.style.display = 'none';
+        }
+    } catch (error) {
+        log('Failed to get mature content config:', error);
+        matureContentSetting.style.display = 'none';
+    }
+}
+
 // Load initial settings from config
 window.API.getConfig().then(config => {
     if (config && config.CloseToSystemTray !== undefined) {
@@ -2430,6 +2488,9 @@ window.API.getConfig().then(config => {
     if (config && config.CVRExecutable !== undefined) {
         cvrExecutableInput.value = config.CVRExecutable;
     }
+    
+    // Load mature content setting
+    updateMatureContentSetting();
 });
 
 // Update config when "Close to System Tray" setting is changed
@@ -2497,6 +2558,25 @@ browseCvrExecutableButton.addEventListener('click', async () => {
     }
     
     button.disabled = false;
+});
+
+// Update mature content visibility when setting is changed
+matureContentCheckbox.addEventListener('change', async () => {
+    const checkbox = matureContentCheckbox;
+    const originalState = checkbox.checked;
+    
+    try {
+        checkbox.disabled = true;
+        await window.API.setMatureContentVisibility(checkbox.checked);
+        pushToast('Mature content visibility updated', 'confirm');
+    } catch (error) {
+        log('Failed to update mature content visibility:', error);
+        pushToast(`Error updating mature content visibility: ${error.message}`, 'error');
+        // Revert checkbox state if save failed
+        checkbox.checked = !originalState;
+    } finally {
+        checkbox.disabled = false;
+    }
 });
 
 // Set up refresh button event listeners (only once to prevent stacking)
