@@ -52,6 +52,8 @@ const WorldCategories = Object.freeze({
 
 const ActivityUpdatesType = Object.freeze({
     Friends: 'friends',
+    Invites: 'invites',
+    InviteRequests: 'inviteRequests',
 });
 
 const htmlEscapeMap =  Object.freeze({
@@ -144,6 +146,8 @@ class Core {
         this.recentActivity = [];
         this.recentActivityCache = {
             [ActivityUpdatesType.Friends]: {},
+            [ActivityUpdatesType.Invites]: {},
+            [ActivityUpdatesType.InviteRequests]: {},
         };
         this.recentActivityInitialFriends = false;
 
@@ -642,6 +646,36 @@ class Core {
 
                 break;
             }
+            case ActivityUpdatesType.Invites: {
+                // For invites, updateInfo is the array of new invites
+                for (const invite of updateInfo) {
+                    // Only add invites we haven't seen before to prevent duplicates
+                    if (!this.recentActivityCache[ActivityUpdatesType.Invites][invite.id]) {
+                        this.recentActivity.unshift({
+                            timestamp: Date.now(),
+                            type: ActivityUpdatesType.Invites,
+                            invite: invite,
+                        });
+                        this.recentActivityCache[ActivityUpdatesType.Invites][invite.id] = true;
+                    }
+                }
+                break;
+            }
+            case ActivityUpdatesType.InviteRequests: {
+                // For invite requests, updateInfo is the array of new invite requests
+                for (const inviteRequest of updateInfo) {
+                    // Only add invite requests we haven't seen before to prevent duplicates
+                    if (!this.recentActivityCache[ActivityUpdatesType.InviteRequests][inviteRequest.id]) {
+                        this.recentActivity.unshift({
+                            timestamp: Date.now(),
+                            type: ActivityUpdatesType.InviteRequests,
+                            inviteRequest: inviteRequest,
+                        });
+                        this.recentActivityCache[ActivityUpdatesType.InviteRequests][inviteRequest.id] = true;
+                    }
+                }
+                break;
+            }
         }
 
         // Keep the recent activity capped at 25 elements
@@ -740,6 +774,13 @@ class Core {
         //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
         // }]
         this.SendToRenderer('invites', invites);
+        
+        // Add invites to recent activity
+        try {
+            await this.UpdateRecentActivity(ActivityUpdatesType.Invites, invites);
+        } catch (err) {
+            log.error('[InvitesUpdate]', err);
+        }
     }
 
     async RequestInvitesUpdate(requestInvites) {
@@ -760,6 +801,13 @@ class Core {
         //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
         // }]
         this.SendToRenderer('invite-requests', requestInvites);
+        
+        // Add invite requests to recent activity
+        try {
+            await this.UpdateRecentActivity(ActivityUpdatesType.InviteRequests, requestInvites);
+        } catch (err) {
+            log.error('[RequestInvitesUpdate]', err);
+        }
     }
 
     async UpdateMatureContentConfig() {

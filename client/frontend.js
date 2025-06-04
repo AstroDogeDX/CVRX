@@ -109,6 +109,8 @@ const PropCategories = Object.freeze({
 
 const ActivityUpdatesType = Object.freeze({
     Friends: 'friends',
+    Invites: 'invites',
+    InviteRequests: 'inviteRequests',
 });
 
 // Grab the isPackaged and save it
@@ -2179,6 +2181,46 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
                 });
 
                 newNodes.push(activityUpdateNode);
+                break;
+            }
+
+            case ActivityUpdatesType.Invites: {
+                // Get invite information
+                const invite = recentActivity.invite;
+                
+                // Use cached image if available, otherwise use placeholder
+                const userImgSrc = getCachedImage(invite.user.imageHash);
+
+                let inviteHistoryNode = createElement('div', {
+                    className: 'friend-history-node invite-history-node',
+                    innerHTML:
+                        `<img src="${userImgSrc}" data-hash="${invite.user.imageHash}"/>
+                        <p class="friend-name-history">${invite.user.name} <small>(${dateStr})</small></p>
+                        <p class="friend-status-history">invited you to <strong>${invite.instanceName}</strong></p>`,
+                    onClick: () => ShowDetailsWrapper(DetailsType.User, invite.user.id),
+                });
+
+                newNodes.push(inviteHistoryNode);
+                break;
+            }
+
+            case ActivityUpdatesType.InviteRequests: {
+                // Get invite request information
+                const inviteRequest = recentActivity.inviteRequest;
+                
+                // Use cached image if available, otherwise use placeholder
+                const userImgSrc = getCachedImage(inviteRequest.sender.imageHash);
+
+                let inviteRequestHistoryNode = createElement('div', {
+                    className: 'friend-history-node invite-request-history-node',
+                    innerHTML:
+                        `<img src="${userImgSrc}" data-hash="${inviteRequest.sender.imageHash}"/>
+                        <p class="friend-name-history">${inviteRequest.sender.name} <small>(${dateStr})</small></p>
+                        <p class="friend-status-history">requested an invite from you</p>`,
+                    onClick: () => ShowDetailsWrapper(DetailsType.User, inviteRequest.sender.id),
+                });
+
+                newNodes.push(inviteRequestHistoryNode);
                 break;
             }
         }

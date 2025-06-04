@@ -1423,6 +1423,56 @@ button {
     background: var(--node-nth-color);
 }
 
+/* Invite History Node - special styling for invite entries */
+.invite-history-node::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #FF9800, #F57C00);
+    border-radius: 0 2px 2px 0;
+    opacity: 0.7;
+}
+
+.invite-history-node {
+    position: relative;
+    padding-left: 8px; /* Add extra padding to account for the colored border */
+}
+
+.invite-history-node .friend-status-history {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.invite-history-node .friend-status-history strong {
+    color: #FF9800;
+    font-weight: 600;
+}
+
+/* Invite Request History Node - special styling for invite request entries */
+.invite-request-history-node::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #2196F3, #1565C0);
+    border-radius: 0 2px 2px 0;
+    opacity: 0.7;
+}
+
+.invite-request-history-node {
+    position: relative;
+    padding-left: 8px; /* Add extra padding to account for the colored border */
+}
+
+.invite-request-history-node .friend-status-history {
+    color: rgba(255, 255, 255, 0.9);
+    font-style: italic;
+}
+
 .old-history {
     font-style: italic;
     filter: brightness(0.5);
