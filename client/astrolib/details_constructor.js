@@ -768,37 +768,50 @@ async function ShowDetails(entityType, entityId, dependencies) {
         isChilloutVRRunning = false;
     }
 
-    // Update the window classes based on entity type
-    updateDetailsWindowClasses(entityType);
-
-    // Show the details window
-    const detailsShade = document.querySelector('.details-shade');
-    detailsShade.style.display = 'flex';
-
-    // Handle clicking outside to close
-    detailsShade.onclick = (event) => {
-        if (event.target === detailsShade) {
-            detailsShade.style.display = 'none';
-            // Call onClose callback if provided
-            if (dependencies.onClose) {
-                dependencies.onClose();
-            }
-        }
-    };
-
-    // Clear all existing tabs
-    clearAllTabs();
-
-    // Hide tabs and content by default
-    detailsTabs.style.display = 'none';
-    detailsContent.style.display = 'none';
-
+    // First, try to fetch the entity data before showing any UI
     switch (entityType) {
         case DetailsType.User: {
-            entityInfo = await windowAPI.getUserById(entityId);
+            try {
+                entityInfo = await windowAPI.getUserById(entityId);
+            } catch (error) {
+                log('Failed to get user by ID:', error);
+                // Extract the meaningful part of the error message
+                const errorText = error.message.includes('Error: ') ? 
+                    error.message.substring(error.message.lastIndexOf('Error: ')) : 
+                    `Error: ${error.message}`;
+                // Show error toast
+                pushToast(`Failed to view content. ${errorText}`, 'error');
+                return;
+            }
             
             // Check if this is the current user viewing their own profile
             const isMyProfile = currentActiveUser && entityId === currentActiveUser.id;
+            
+            // Data fetching successful, now set up the UI
+            // Update the window classes based on entity type
+            updateDetailsWindowClasses(entityType);
+
+            // Show the details window
+            const detailsShade = document.querySelector('.details-shade');
+            detailsShade.style.display = 'flex';
+
+            // Handle clicking outside to close
+            detailsShade.onclick = (event) => {
+                if (event.target === detailsShade) {
+                    detailsShade.style.display = 'none';
+                    // Call onClose callback if provided
+                    if (dependencies.onClose) {
+                        dependencies.onClose();
+                    }
+                }
+            };
+
+            // Clear all existing tabs
+            clearAllTabs();
+
+            // Hide tabs and content by default
+            detailsTabs.style.display = 'none';
+            detailsContent.style.display = 'none';
             
             // Create the custom user header structure
             const headerElements = createUserDetailsHeader(entityInfo, showDetailsWithDependencies, entityId);
@@ -1001,7 +1014,44 @@ async function ShowDetails(entityType, entityId, dependencies) {
             break;
         }
         case DetailsType.Avatar: {
-            entityInfo = await windowAPI.getAvatarById(entityId);
+            try {
+                entityInfo = await windowAPI.getAvatarById(entityId);
+            } catch (error) {
+                log('Failed to get avatar by ID:', error);
+                // Extract the meaningful part of the error message
+                const errorText = error.message.includes('Error: ') ? 
+                    error.message.substring(error.message.lastIndexOf('Error: ')) : 
+                    `Error: ${error.message}`;
+                // Show error toast
+                pushToast(`Failed to view content. ${errorText}`, 'error');
+                return;
+            }
+            
+            // Data fetching successful, now set up the UI
+            // Update the window classes based on entity type
+            updateDetailsWindowClasses(entityType);
+
+            // Show the details window
+            const detailsShade = document.querySelector('.details-shade');
+            detailsShade.style.display = 'flex';
+
+            // Handle clicking outside to close
+            detailsShade.onclick = (event) => {
+                if (event.target === detailsShade) {
+                    detailsShade.style.display = 'none';
+                    // Call onClose callback if provided
+                    if (dependencies.onClose) {
+                        dependencies.onClose();
+                    }
+                }
+            };
+
+            // Clear all existing tabs
+            clearAllTabs();
+
+            // Hide tabs and content by default
+            detailsTabs.style.display = 'none';
+            detailsContent.style.display = 'none';
             
             // Create the universal header structure
             const headerElements = createDetailsHeaderStructure(entityInfo, entityType, entityId);
@@ -1218,7 +1268,44 @@ async function ShowDetails(entityType, entityId, dependencies) {
             break;
         }
         case DetailsType.Prop: {
-            entityInfo = await windowAPI.getPropById(entityId);
+            try {
+                entityInfo = await windowAPI.getPropById(entityId);
+            } catch (error) {
+                log('Failed to get prop by ID:', error);
+                // Extract the meaningful part of the error message
+                const errorText = error.message.includes('Error: ') ? 
+                    error.message.substring(error.message.lastIndexOf('Error: ')) : 
+                    `Error: ${error.message}`;
+                // Show error toast
+                pushToast(`Failed to view content. ${errorText}`, 'error');
+                return;
+            }
+            
+            // Data fetching successful, now set up the UI
+            // Update the window classes based on entity type
+            updateDetailsWindowClasses(entityType);
+
+            // Show the details window
+            const detailsShade = document.querySelector('.details-shade');
+            detailsShade.style.display = 'flex';
+
+            // Handle clicking outside to close
+            detailsShade.onclick = (event) => {
+                if (event.target === detailsShade) {
+                    detailsShade.style.display = 'none';
+                    // Call onClose callback if provided
+                    if (dependencies.onClose) {
+                        dependencies.onClose();
+                    }
+                }
+            };
+
+            // Clear all existing tabs
+            clearAllTabs();
+
+            // Hide tabs and content by default
+            detailsTabs.style.display = 'none';
+            detailsContent.style.display = 'none';
             
             // Create the universal header structure
             const headerElements = createDetailsHeaderStructure(entityInfo, entityType, entityId);
@@ -1370,7 +1457,44 @@ async function ShowDetails(entityType, entityId, dependencies) {
             break;
         }
         case DetailsType.World: {
-            entityInfo = await windowAPI.getWorldById(entityId);
+            try {
+                entityInfo = await windowAPI.getWorldById(entityId);
+            } catch (error) {
+                log('Failed to get world by ID:', error);
+                // Extract the meaningful part of the error message
+                const errorText = error.message.includes('Error: ') ? 
+                    error.message.substring(error.message.lastIndexOf('Error: ')) : 
+                    `Error: ${error.message}`;
+                // Show error toast
+                pushToast(`Failed to view content. ${errorText}`, 'error');
+                return;
+            }
+            
+            // Data fetching successful, now set up the UI
+            // Update the window classes based on entity type
+            updateDetailsWindowClasses(entityType);
+
+            // Show the details window
+            const detailsShade = document.querySelector('.details-shade');
+            detailsShade.style.display = 'flex';
+
+            // Handle clicking outside to close
+            detailsShade.onclick = (event) => {
+                if (event.target === detailsShade) {
+                    detailsShade.style.display = 'none';
+                    // Call onClose callback if provided
+                    if (dependencies.onClose) {
+                        dependencies.onClose();
+                    }
+                }
+            };
+
+            // Clear all existing tabs
+            clearAllTabs();
+
+            // Hide tabs and content by default
+            detailsTabs.style.display = 'none';
+            detailsContent.style.display = 'none';
             
             // Create the universal header structure
             const headerElements = createDetailsHeaderStructure(entityInfo, entityType, entityId);
@@ -1506,7 +1630,44 @@ async function ShowDetails(entityType, entityId, dependencies) {
             break;
         }
         case DetailsType.Instance: {
-            entityInfo = await windowAPI.getInstanceById(entityId);
+            try {
+                entityInfo = await windowAPI.getInstanceById(entityId);
+            } catch (error) {
+                log('Failed to get instance by ID:', error);
+                // Extract the meaningful part of the error message
+                const errorText = error.message.includes('Error: ') ? 
+                    error.message.substring(error.message.lastIndexOf('Error: ')) : 
+                    `Error: ${error.message}`;
+                // Show error toast
+                pushToast(`Failed to view content. ${errorText}`, 'error');
+                return;
+            }
+            
+            // Data fetching successful, now set up the UI
+            // Update the window classes based on entity type
+            updateDetailsWindowClasses(entityType);
+
+            // Show the details window
+            const detailsShade = document.querySelector('.details-shade');
+            detailsShade.style.display = 'flex';
+
+            // Handle clicking outside to close
+            detailsShade.onclick = (event) => {
+                if (event.target === detailsShade) {
+                    detailsShade.style.display = 'none';
+                    // Call onClose callback if provided
+                    if (dependencies.onClose) {
+                        dependencies.onClose();
+                    }
+                }
+            };
+
+            // Clear all existing tabs
+            clearAllTabs();
+
+            // Hide tabs and content by default
+            detailsTabs.style.display = 'none';
+            detailsContent.style.display = 'none';
             
             // Create the universal header structure
             const headerElements = createDetailsHeaderStructure(entityInfo, entityType, entityId);
