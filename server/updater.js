@@ -23,6 +23,7 @@ let ignoredForNow = false;
 let dialogOpened = false;
 let activelyCheckForUpdatesTimeout = null;
 let mainWindowRef = null; // Add reference to main window for progress events
+let isInstallingUpdate = false; // Flag to track if update installation is in progress
 
 exports.Setup = async (mainWindow) => {
     // Store reference to main window for progress events
@@ -242,6 +243,13 @@ async function InstallLatestRelease(assetName) {
 
     const filepath = path.join(UpdaterPath, assetName);
     log.info(`[InstallLatestRelease] Quitting and installing: ${filepath}`);
+    
+    // Set the flag to indicate update installation is in progress
+    isInstallingUpdate = true;
+    
     app.relaunch({execPath: filepath});
     app.quit();
 }
+
+// Export function to check if update installation is in progress
+exports.IsInstallingUpdate = () => isInstallingUpdate;
