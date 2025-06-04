@@ -434,6 +434,7 @@ window.API.onUpdateAvailable((_event, updateInfo) => {
 // Download progress modal variables
 let downloadProgressModal = null;
 let downloadProgressBar = null;
+let downloadProgressContainer = null;
 let downloadProgressText = null;
 let downloadProgressSize = null;
 let downloadProgressStatus = null;
@@ -466,12 +467,14 @@ function createDownloadProgressModal(fileName) {
     });
     
     // Progress bar container
-    const progressContainer = createElement('div', { className: 'download-progress-bar-container' });
-    downloadProgressBar = createElement('div', { 
-        className: 'download-progress-bar',
-        textContent: '0%'
+    downloadProgressContainer = createElement('div', { 
+        className: 'download-progress-bar-container',
+        'data-progress': '0%'
     });
-    progressContainer.appendChild(downloadProgressBar);
+    downloadProgressBar = createElement('div', { 
+        className: 'download-progress-bar'
+    });
+    downloadProgressContainer.appendChild(downloadProgressBar);
     
     // Progress details
     const progressDetails = createElement('div', { className: 'download-progress-details' });
@@ -485,7 +488,7 @@ function createDownloadProgressModal(fileName) {
     });
     progressDetails.append(downloadProgressSize, downloadProgressStatus);
     
-    modalContent.append(fileNameDisplay, progressContainer, progressDetails);
+    modalContent.append(fileNameDisplay, downloadProgressContainer, progressDetails);
     downloadProgressModal.append(modalTitle, modalContent);
     promptShade.append(downloadProgressModal);
     promptShade.style.display = 'flex';
@@ -497,9 +500,17 @@ function updateDownloadProgress(progressData) {
     
     const { downloadedSize, totalSize, progress, fileName } = progressData;
     
-    // Update progress bar
-    downloadProgressBar.style.width = `${Math.round(progress)}%`;
-    downloadProgressBar.textContent = `${Math.round(progress)}%`;
+    // Ensure progress is properly clamped between 0 and 100
+    const clampedProgress = Math.min(Math.max(progress || 0, 0), 100);
+    const roundedProgress = Math.round(clampedProgress);
+    
+    // Update progress bar width - use exact percentage for smoother animation
+    downloadProgressBar.style.width = `${clampedProgress}%`;
+    
+    // Update the fixed percentage text in the center
+    if (downloadProgressContainer) {
+        downloadProgressContainer.setAttribute('data-progress', `${roundedProgress}%`);
+    }
     
     // Update size display
     if (downloadProgressSize) {
@@ -510,7 +521,7 @@ function updateDownloadProgress(progressData) {
     
     // Update status
     if (downloadProgressStatus) {
-        if (progress >= 100) {
+        if (clampedProgress >= 100) {
             downloadProgressStatus.textContent = 'Download complete! Installing...';
             downloadProgressStatus.classList.add('download-progress-complete');
         } else {
