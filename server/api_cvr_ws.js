@@ -39,6 +39,7 @@ const RESPONSE_TYPE = Object.freeze({
     INVITES: 15,
     REQUEST_INVITES: 20,
     FRIEND_REQUESTS: 25,
+    MATURE_CONTENT_UPDATE: 30,
 });
 exports.ResponseType = RESPONSE_TYPE;
 const GetResponseTypeName = (value) => Object.keys(RESPONSE_TYPE).find(key => RESPONSE_TYPE[key] === value);
@@ -51,6 +52,7 @@ function preProcessEntities(responseType, data) {
         case RESPONSE_TYPE.INVITES: return Utils.MapEntity(data, MAP_INVITE);
         case RESPONSE_TYPE.REQUEST_INVITES: return Utils.MapEntity(data, MAP_REQUEST_INVITE);
         case RESPONSE_TYPE.FRIEND_REQUESTS: return Utils.MapEntity(data, MAP_USER);
+        case RESPONSE_TYPE.MATURE_CONTENT_UPDATE: return Utils.MapEntity(data, MAP_MATURE_CONTENT_UPDATE);
     }
     return data;
 }
@@ -106,6 +108,14 @@ const MAP_REQUEST_INVITE = Object.freeze({
     },
     'ReceiverId': 'receiverId',
 });
+
+const MAP_MATURE_CONTENT_UPDATE = Object.freeze({
+    'Unlocked': 'unlocked',
+    'Enabled': 'enabled',
+    'Terminated': 'terminated',
+});
+
+exports.MapMatureContentConfig = (config) => Utils.MapEntity(config, MAP_MATURE_CONTENT_UPDATE);
 
 
 const heartbeatInterval = 60 * 1000;
