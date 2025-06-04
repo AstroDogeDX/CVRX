@@ -1654,6 +1654,26 @@ document.getElementById('discover-new').addEventListener('click', handleNewConte
 // Set up Recently Updated discover button
 document.getElementById('discover-updated').addEventListener('click', handleRecentlyUpdatedDiscovery);
 
+// Set up notifications section collapse toggle
+document.querySelector('.home-requests .home-section-header').addEventListener('click', () => {
+    const notificationsSection = document.querySelector('.home-requests');
+    notificationsSection.classList.toggle('collapsed');
+});
+
+// Function to update notification count
+function updateNotificationCount() {
+    const notificationElements = document.querySelectorAll('.notification-item');
+    const count = notificationElements.length;
+    const countElement = document.getElementById('notification-count');
+    
+    if (count > 0) {
+        countElement.textContent = count;
+        countElement.style.display = 'inline-block';
+    } else {
+        countElement.style.display = 'none';
+    }
+}
+
 // Janky Active Instances
 // -----------------------------
 window.API.onActiveInstancesUpdate((_event, activeInstancesData) => {
@@ -1937,6 +1957,9 @@ window.API.onInvites((_event, invites) => {
 
         homeRequests.prepend(inviteNode);
     }
+    
+    // Update notification count
+    updateNotificationCount();
 });
 
 // Janky invite request listener
@@ -1988,6 +2011,9 @@ window.API.onInviteRequests((_event, requestInvites) => {
 
         homeRequests.prepend(requestInviteNode);
     }
+    
+    // Update notification count
+    updateNotificationCount();
 });
 
 // Janky friend request listener
@@ -2018,6 +2044,7 @@ window.API.onFriendRequests((_event, friendRequests) => {
                 try {
                     await window.API.acceptFriendRequest(friendRequest.id);
                     window.API.refreshFriendRequests();
+                    // The count will be updated when the new friend requests are received
                 } catch (error) {
                     pushToast('Failed to accept friend request', 'error');
                 }
@@ -2032,6 +2059,7 @@ window.API.onFriendRequests((_event, friendRequests) => {
                 try {
                     await window.API.declineFriendRequest(friendRequest.id);
                     window.API.refreshFriendRequests();
+                    // The count will be updated when the new friend requests are received
                 } catch (error) {
                     pushToast('Failed to decline friend request', 'error');
                 }
@@ -2072,6 +2100,9 @@ window.API.onFriendRequests((_event, friendRequests) => {
         homeRequests.prepend(friendRequestNode);
         applyTooltips();
     }
+    
+    // Update notification count
+    updateNotificationCount();
 });
 
 // Janky active user worlds
