@@ -3326,6 +3326,10 @@ button {
     background: #607D8B;
 }
 
+.settings-section[data-section="friend-activity"] h3::before {
+    background: #2196F3;
+}
+
 /* NEW 3DS Instance Nodes Bros. U*/
 
 .active-instance-node {

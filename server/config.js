@@ -64,6 +64,7 @@ exports.Load = async () => {
         OnlineFriendsThumbnailShape: 'rounded',
         CVRExecutable: path.join(CVRExecutableDefaultFolderPath, CVRExecutableName),
         UpdaterIgnoreVersion: null,
+        RecentActivityMaxCount: 25,
     };
     config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, defaultObjectConfig);
     MergeDefaultConfig(config, defaultObjectConfig);
@@ -309,6 +310,17 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.CVRExecutable = cvrExecutable;
     }
 
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'RecentActivityMaxCount')) {
+        const maxCount = newConfigSettings.RecentActivityMaxCount;
+        const validCounts = [25, 50, 75, 100];
+
+        if (!Number.isInteger(maxCount) || !validCounts.includes(maxCount)) {
+            throw new Error('[UpdateConfig] RecentActivityMaxCount should be one of: 25, 50, 75, 100.');
+        }
+
+        config.RecentActivityMaxCount = maxCount;
+    }
+
     await UpdateJsonFile(FileType.CONFIG);
 
     return exports.GetConfig();
@@ -321,6 +333,7 @@ exports.GetConfig = () => ({
     ThumbnailShape: config.ThumbnailShape,
     OnlineFriendsThumbnailShape: config.OnlineFriendsThumbnailShape,
     CVRExecutable: config.CVRExecutable,
+    RecentActivityMaxCount: config.RecentActivityMaxCount,
 });
 
 
@@ -329,6 +342,8 @@ exports.GetMaxCacheSize = () => config.CacheMaxSizeInMegabytes;
 exports.GetCloseToSystemTray = () => config.CloseToSystemTray;
 
 exports.GetCVRPath = GetCVRPath;
+
+exports.GetRecentActivityMaxCount = () => config.RecentActivityMaxCount;
 
 exports.GetUpdaterIgnoreVersion = () => config.UpdaterIgnoreVersion;
 exports.SetUpdaterIgnoreVersion = async (versionToIgnore) => {

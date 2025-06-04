@@ -2495,6 +2495,9 @@ const thumbnailShapeDropdown = document.getElementById('setting-thumbnail-shape'
 // Handle "Online Friends Thumbnail Shape" setting
 const onlineFriendsThumbnailShapeDropdown = document.getElementById('setting-online-friends-thumbnail-shape');
 
+// Handle "Recent Activity Max Count" setting
+const recentActivityMaxCountDropdown = document.getElementById('setting-recent-activity-max-count');
+
 // Handle "CVR Executable" setting
 const cvrExecutableInput = document.getElementById('setting-cvr-executable');
 const browseCvrExecutableButton = document.getElementById('browse-cvr-executable');
@@ -2569,6 +2572,12 @@ window.API.getConfig().then(config => {
         onlineFriendsThumbnailShapeDropdown.value = 'rounded';
         applyOnlineFriendsThumbnailShape('rounded');
     }
+    if (config && config.RecentActivityMaxCount !== undefined) {
+        recentActivityMaxCountDropdown.value = config.RecentActivityMaxCount.toString();
+    } else {
+        // Default to 25 if not set
+        recentActivityMaxCountDropdown.value = '25';
+    }
     if (config && config.CVRExecutable !== undefined) {
         cvrExecutableInput.value = config.CVRExecutable;
     }
@@ -2622,6 +2631,22 @@ onlineFriendsThumbnailShapeDropdown.addEventListener('change', () => {
             // Revert dropdown state if save failed
             window.API.getConfig().then(config => {
                 onlineFriendsThumbnailShapeDropdown.value = config.OnlineFriendsThumbnailShape || 'rounded';
+            });
+        });
+});
+
+// Update config when "Recent Activity Max Count" setting is changed
+recentActivityMaxCountDropdown.addEventListener('change', () => {
+    const selectedCount = parseInt(recentActivityMaxCountDropdown.value);
+    window.API.updateConfig({ RecentActivityMaxCount: selectedCount })
+        .then(() => {
+            pushToast('Recent activity max count updated', 'confirm');
+        })
+        .catch(err => {
+            pushToast(`Error saving setting: ${err}`, 'error');
+            // Revert dropdown state if save failed
+            window.API.getConfig().then(config => {
+                recentActivityMaxCountDropdown.value = (config.RecentActivityMaxCount || 25).toString();
             });
         });
 });

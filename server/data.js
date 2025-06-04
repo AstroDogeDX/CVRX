@@ -678,8 +678,9 @@ class Core {
             }
         }
 
-        // Keep the recent activity capped at 25 elements
-        this.recentActivity = this.recentActivity.slice(0,25);
+        // Keep the recent activity capped at the configured max count
+        const maxCount = Config.GetRecentActivityMaxCount();
+        this.recentActivity = this.recentActivity.slice(0, maxCount);
 
         // Send recent activities update to the view
         this.SendToRenderer('recent-activity-update', this.recentActivity);
