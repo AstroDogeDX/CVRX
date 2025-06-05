@@ -27,7 +27,9 @@ import {
 } from './astrolib/details_constructor.js';
 import { loadShares } from './astrolib/shares.js';
 import { 
-    friendImageCache,
+    imageCache,
+    getCachedImage,
+    setImageSource,
     initializeFriendsModule,
     updateCurrentActiveUser,
     createFriendsListCategory,
@@ -61,6 +63,8 @@ import { loadCategoriesManager } from './astrolib/categories_manager.js';
 // ===========
 // GLOBAL VARS
 // ===========
+
+// Image cache and helper functions are imported from user_content.js
 
 // Store the current active user for filtering purposes
 let currentActiveUser = null;
@@ -105,6 +109,8 @@ const PropCategories = Object.freeze({
 
 const ActivityUpdatesType = Object.freeze({
     Friends: 'friends',
+    Invites: 'invites',
+    InviteRequests: 'inviteRequests',
 });
 
 // Grab the isPackaged and save it
@@ -148,10 +154,33 @@ function removeFilteredItemClass(selector) {
 
 function loadAndFilterPageContent(page, elementSelector, loadFunction, filterSelector) {
     const element = document.querySelector(elementSelector);
+    const loadingElement = document.querySelector(`.${page}-loading`);
+    const wrapperElement = document.querySelector(`.${page}-wrapper`);
+    
     if (!element.hasAttribute(`loaded-${page}`)) {
-        element.setAttribute(`loaded-${page}`, '');
+        // Show loading state
+        if (loadingElement) {
+            loadingElement.classList.remove('hidden');
+        }
+        // Hide wrapper during loading
+        if (wrapperElement) {
+            wrapperElement.style.display = 'none';
+        }
+        
+        // Set a loading flag but not the loaded flag yet
+        element.setAttribute(`loading-${page}`, '');
         loadFunction();
+    } else {
+        // Content already loaded, hide loading state immediately
+        if (loadingElement) {
+            loadingElement.classList.add('hidden');
+        }
+        // Show wrapper if content exists
+        if (wrapperElement) {
+            wrapperElement.style.display = '';
+        }
     }
+    
     setInputValueAndFocus(filterSelector, '');
     removeFilteredItemClass(`.${page}-wrapper--${page}-node`);
 }
@@ -267,11 +296,15 @@ function promptUpdate(updateInfo) {
         textContent: 'Download and Install',
         onClick: async () => {
             try {
-                // Show toast notification to inform user about the download process
-                pushToast('Downloading update... The app will restart automatically once installation begins.', 'info');
-                await window.API.updateAction('download', updateInfo);
+                // Close the modal immediately when user clicks download
                 newPrompt.remove();
                 promptShade.style.display = 'none';
+                
+                // Show toast notification to inform user about the download process
+                pushToast('Downloading update... The app will restart automatically once installation begins.', 'info');
+                
+                // Start the download (progress modal will appear automatically)
+                await window.API.updateAction('download', updateInfo);
             } catch (error) {
                 pushToast('Failed to download update', 'error');
             }
@@ -388,6 +421,9 @@ window.API.onHomePage((_event) => {
         // Fallback to default shape if config fails
         applyOnlineFriendsThumbnailShape('rounded');
     });
+    
+    // Update mature content setting after authentication
+    updateMatureContentSetting();
 });
 
 // Handle automatic update notifications from backend
@@ -395,6 +431,126 @@ window.API.onUpdateAvailable((_event, updateInfo) => {
     log('Update available notification received from backend');
     log(updateInfo);
     promptUpdate(updateInfo);
+});
+
+// Download progress modal variables
+let downloadProgressModal = null;
+let downloadProgressBar = null;
+let downloadProgressContainer = null;
+let downloadProgressText = null;
+let downloadProgressSize = null;
+let downloadProgressStatus = null;
+
+// Helper function to format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+// Create download progress modal
+function createDownloadProgressModal(fileName) {
+    const promptShade = document.querySelector('.prompt-layer');
+    downloadProgressModal = createElement('div', { className: 'prompt download-progress-modal' });
+    
+    const modalTitle = createElement('div', { 
+        className: 'prompt-title', 
+        textContent: 'Downloading Update' 
+    });
+    
+    const modalContent = createElement('div', { className: 'prompt-text download-progress-content' });
+    
+    // File name display
+    const fileNameDisplay = createElement('div', {
+        className: 'download-progress-file',
+        textContent: `Downloading: ${fileName}`
+    });
+    
+    // Progress bar container
+    downloadProgressContainer = createElement('div', { 
+        className: 'download-progress-bar-container',
+        'data-progress': '0%'
+    });
+    downloadProgressBar = createElement('div', { 
+        className: 'download-progress-bar'
+    });
+    downloadProgressContainer.appendChild(downloadProgressBar);
+    
+    // Progress details
+    const progressDetails = createElement('div', { className: 'download-progress-details' });
+    downloadProgressSize = createElement('div', { 
+        className: 'download-progress-size',
+        textContent: '0 B / 0 B'
+    });
+    downloadProgressStatus = createElement('div', { 
+        className: 'download-progress-status',
+        textContent: 'Preparing download...'
+    });
+    progressDetails.append(downloadProgressSize, downloadProgressStatus);
+    
+    modalContent.append(fileNameDisplay, downloadProgressContainer, progressDetails);
+    downloadProgressModal.append(modalTitle, modalContent);
+    promptShade.append(downloadProgressModal);
+    promptShade.style.display = 'flex';
+}
+
+// Update download progress
+function updateDownloadProgress(progressData) {
+    if (!downloadProgressBar || !downloadProgressModal) return;
+    
+    const { downloadedSize, totalSize, progress, fileName } = progressData;
+    
+    // Ensure progress is properly clamped between 0 and 100
+    const clampedProgress = Math.min(Math.max(progress || 0, 0), 100);
+    const roundedProgress = Math.round(clampedProgress);
+    
+    // Update progress bar width - use exact percentage for smoother animation
+    downloadProgressBar.style.width = `${clampedProgress}%`;
+    
+    // Update the fixed percentage text in the center
+    if (downloadProgressContainer) {
+        downloadProgressContainer.setAttribute('data-progress', `${roundedProgress}%`);
+    }
+    
+    // Update size display
+    if (downloadProgressSize) {
+        const downloadedFormatted = formatFileSize(downloadedSize || 0);
+        const totalFormatted = formatFileSize(totalSize || 0);
+        downloadProgressSize.textContent = `${downloadedFormatted} / ${totalFormatted}`;
+    }
+    
+    // Update status
+    if (downloadProgressStatus) {
+        if (clampedProgress >= 100) {
+            downloadProgressStatus.textContent = 'Download complete! Installing...';
+            downloadProgressStatus.classList.add('download-progress-complete');
+        } else {
+            downloadProgressStatus.textContent = 'Downloading...';
+        }
+    }
+}
+
+// Handle download started event
+window.API.onUpdateDownloadStarted((_event, data) => {
+    log('Update download started:', data);
+    createDownloadProgressModal(data.fileName);
+});
+
+// Handle download progress event
+window.API.onUpdateDownloadProgress((_event, progressData) => {
+    updateDownloadProgress(progressData);
+});
+
+// Handle download complete event
+window.API.onUpdateDownloadComplete((_event, data) => {
+    log('Update download complete:', data);
+    if (downloadProgressStatus) {
+        downloadProgressStatus.textContent = 'Installing update...';
+        downloadProgressStatus.classList.add('download-progress-complete');
+    }
+    // Modal will be closed when app restarts
 });
 
 // Pages handling
@@ -456,6 +612,9 @@ window.API.onHomePage((_event) => {
         // Fallback to default shape if config fails
         applyOnlineFriendsThumbnailShape('rounded');
     });
+    
+    // Update mature content setting after authentication
+    updateMatureContentSetting();
 });
 
 
@@ -516,12 +675,19 @@ window.API.onGetActiveUser((_event, activeUser) => {
 window.API.onImageLoaded((_event, imageData) => {
     const { imageHash, imageBase64 } = imageData;
 
+    // Cache the image when it's loaded
+    imageCache[imageHash] = imageBase64;
+
     // Update all elements with matching data-hash
     document.querySelectorAll(`[data-hash="${imageHash}"]`).forEach(element => {
         if (element.classList.contains('profile-navbar-button')) {
             element.style.backgroundImage = `url(${imageBase64})`;
         } else if (element.tagName === 'IMG') {
             element.src = imageBase64;
+        } else if (element.classList.contains('thumbnail-container')) {
+            // For thumbnail containers using background images
+            element.style.backgroundImage = `url('${imageBase64}')`;
+            element.style.backgroundSize = 'cover';
         }
     });
 });
@@ -874,7 +1040,7 @@ async function loadTabContent(tab, entityId) {
                     
                     userIconsHtml = `<div class="instance-card-user-icons">`;
                     visibleMembers.forEach(member => {
-                        const memberImgSrc = friendImageCache[member.imageHash] || 'img/ui/placeholder.png';
+                        const memberImgSrc = getCachedImage(member.imageHash);
                         const memberClasses = member.isFriend ? 'instance-user-icon friend' : 'instance-user-icon';
                         const blockedClass = member.isBlocked ? ' blocked' : '';
                         userIconsHtml += `<img src="${memberImgSrc}" class="${memberClasses}${blockedClass}" data-hash="${member.imageHash}" data-tooltip="${member.name}" />`;
@@ -906,7 +1072,7 @@ async function loadTabContent(tab, entityId) {
 
                 // Set blurred world background for instance cards
                 const thumbnailContainer = itemNode.querySelector('.thumbnail-container');
-                const worldImgSrc = friendImageCache[item.world?.imageHash] || 'img/ui/placeholder.png';
+                const worldImgSrc = getCachedImage(item.world?.imageHash);
                 thumbnailContainer.style.backgroundImage = `url('${worldImgSrc}')`;
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = item.world?.imageHash;
@@ -946,9 +1112,7 @@ async function loadTabContent(tab, entityId) {
 
                 // Set placeholder background image
                 const thumbnailContainer = itemNode.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
-                thumbnailContainer.style.backgroundSize = 'cover';
-                thumbnailContainer.dataset.hash = item.imageHash;
+                setImageSource(thumbnailContainer, item.imageHash, true);
 
                 grid.appendChild(itemNode);
             }
@@ -973,24 +1137,6 @@ window.API.onFriendsRefresh((_event, friends, isRefresh) => {
 });
 
 // Friends text filter is now handled by setupFriendsTextFilter in user_content module
-
-// returns .imageBase64, .imageHash, .imageUrl
-window.API.onImageLoaded((_event, image) => {
-    // Cache the image when it's loaded
-    friendImageCache[image.imageHash] = image.imageBase64;
-
-    document.querySelectorAll(`[data-hash="${image.imageHash}"]`).forEach((e) => {
-        if (e.tagName === 'IMG') {
-            // For regular image tags
-            e.src = image.imageBase64;
-        } else if (e.classList.contains('thumbnail-container')) {
-            // For thumbnail containers using background images
-            e.style.backgroundImage = `url('${image.imageBase64}')`;
-            e.style.backgroundSize = 'cover';
-        }
-    });
-});
-
 
 // Janky Search
 // -----------------------------
@@ -1341,9 +1487,10 @@ async function handleRandomDiscovery() {
                 onClick: () => ShowDetailsWrapper(DetailsType.Avatar, avatar.id),
             });
 
-            // Set placeholder background image
+            // Set background image - use cached image if available, otherwise placeholder
             const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            const cachedImage = getCachedImage(avatar.imageHash);
+            thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
             thumbnailContainer.style.backgroundSize = 'cover';
             thumbnailContainer.dataset.hash = avatar.imageHash;
 
@@ -1386,9 +1533,10 @@ async function handleRandomDiscovery() {
                 onClick: () => ShowDetailsWrapper(DetailsType.World, world.id),
             });
 
-            // Set placeholder background image
+            // Set background image - use cached image if available, otherwise placeholder
             const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            const cachedImage = getCachedImage(world.imageHash);
+            thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
             thumbnailContainer.style.backgroundSize = 'cover';
             thumbnailContainer.dataset.hash = world.imageHash;
 
@@ -1421,9 +1569,10 @@ async function handleRandomDiscovery() {
                 onClick: () => ShowDetailsWrapper(DetailsType.Prop, prop.id),
             });
 
-            // Set placeholder background image
+            // Set background image - use cached image if available, otherwise placeholder
             const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-            thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+            const cachedImage = getCachedImage(prop.imageHash);
+            thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
             thumbnailContainer.style.backgroundSize = 'cover';
             thumbnailContainer.dataset.hash = prop.imageHash;
 
@@ -1517,6 +1666,26 @@ document.getElementById('discover-new').addEventListener('click', handleNewConte
 
 // Set up Recently Updated discover button
 document.getElementById('discover-updated').addEventListener('click', handleRecentlyUpdatedDiscovery);
+
+// Set up notifications section collapse toggle
+document.querySelector('.home-requests .home-section-header').addEventListener('click', () => {
+    const notificationsSection = document.querySelector('.home-requests');
+    notificationsSection.classList.toggle('collapsed');
+});
+
+// Function to update notification count
+function updateNotificationCount() {
+    const notificationElements = document.querySelectorAll('.notification-item');
+    const count = notificationElements.length;
+    const countElement = document.getElementById('notification-count');
+    
+    if (count > 0) {
+        countElement.textContent = count;
+        countElement.style.display = 'inline-block';
+    } else {
+        countElement.style.display = 'none';
+    }
+}
 
 // Janky Active Instances
 // -----------------------------
@@ -1801,6 +1970,9 @@ window.API.onInvites((_event, invites) => {
 
         homeRequests.prepend(inviteNode);
     }
+    
+    // Update notification count
+    updateNotificationCount();
 });
 
 // Janky invite request listener
@@ -1852,6 +2024,9 @@ window.API.onInviteRequests((_event, requestInvites) => {
 
         homeRequests.prepend(requestInviteNode);
     }
+    
+    // Update notification count
+    updateNotificationCount();
 });
 
 // Janky friend request listener
@@ -1882,6 +2057,7 @@ window.API.onFriendRequests((_event, friendRequests) => {
                 try {
                     await window.API.acceptFriendRequest(friendRequest.id);
                     window.API.refreshFriendRequests();
+                    // The count will be updated when the new friend requests are received
                 } catch (error) {
                     pushToast('Failed to accept friend request', 'error');
                 }
@@ -1896,6 +2072,7 @@ window.API.onFriendRequests((_event, friendRequests) => {
                 try {
                     await window.API.declineFriendRequest(friendRequest.id);
                     window.API.refreshFriendRequests();
+                    // The count will be updated when the new friend requests are received
                 } catch (error) {
                     pushToast('Failed to decline friend request', 'error');
                 }
@@ -1936,6 +2113,9 @@ window.API.onFriendRequests((_event, friendRequests) => {
         homeRequests.prepend(friendRequestNode);
         applyTooltips();
     }
+    
+    // Update notification count
+    updateNotificationCount();
 });
 
 // Janky active user worlds
@@ -2001,6 +2181,46 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
                 });
 
                 newNodes.push(activityUpdateNode);
+                break;
+            }
+
+            case ActivityUpdatesType.Invites: {
+                // Get invite information
+                const invite = recentActivity.invite;
+                
+                // Use cached image if available, otherwise use placeholder
+                const userImgSrc = getCachedImage(invite.user.imageHash);
+
+                let inviteHistoryNode = createElement('div', {
+                    className: 'friend-history-node invite-history-node',
+                    innerHTML:
+                        `<img src="${userImgSrc}" data-hash="${invite.user.imageHash}"/>
+                        <p class="friend-name-history">${invite.user.name} <small>(${dateStr})</small></p>
+                        <p class="friend-status-history">invited you to <strong>${invite.instanceName}</strong></p>`,
+                    onClick: () => ShowDetailsWrapper(DetailsType.User, invite.user.id),
+                });
+
+                newNodes.push(inviteHistoryNode);
+                break;
+            }
+
+            case ActivityUpdatesType.InviteRequests: {
+                // Get invite request information
+                const inviteRequest = recentActivity.inviteRequest;
+                
+                // Use cached image if available, otherwise use placeholder
+                const userImgSrc = getCachedImage(inviteRequest.sender.imageHash);
+
+                let inviteRequestHistoryNode = createElement('div', {
+                    className: 'friend-history-node invite-request-history-node',
+                    innerHTML:
+                        `<img src="${userImgSrc}" data-hash="${inviteRequest.sender.imageHash}"/>
+                        <p class="friend-name-history">${inviteRequest.sender.name} <small>(${dateStr})</small></p>
+                        <p class="friend-status-history">requested an invite from you</p>`,
+                    onClick: () => ShowDetailsWrapper(DetailsType.User, inviteRequest.sender.id),
+                });
+
+                newNodes.push(inviteRequestHistoryNode);
                 break;
             }
         }
@@ -2101,7 +2321,7 @@ document.querySelector('#clear-cached-images-button').addEventListener('click', 
         if (result.success) {
             pushToast(result.message, 'confirm');
             // Clear the in-memory cache as well
-            Object.keys(friendImageCache).forEach(key => delete friendImageCache[key]);
+            Object.keys(imageCache).forEach(key => delete imageCache[key]);
         } else {
             pushToast(result.message, 'error');
         }
@@ -2230,6 +2450,27 @@ window.API.onNotification((_event, message, type) => {
     pushToast(message, toastType);
 });
 
+// Handle real-time mature content config updates
+window.API.onMatureContentConfigUpdate((_event, matureConfig) => {
+    log('Mature content config updated:', matureConfig);
+    
+    // Check if DOM elements exist
+    if (!matureContentSetting || !matureContentCheckbox) {
+        log('Mature content setting DOM elements not found during update');
+        return;
+    }
+    
+    // Update the setting visibility and state
+    if (matureConfig.unlocked && !matureConfig.terminated) {
+        log('Real-time update: showing mature content setting - unlocked:', matureConfig.unlocked, 'terminated:', matureConfig.terminated);
+        matureContentSetting.style.display = 'flex';
+        matureContentCheckbox.checked = matureConfig.enabled;
+    } else {
+        log('Real-time update: hiding mature content setting - unlocked:', matureConfig.unlocked, 'terminated:', matureConfig.terminated);
+        matureContentSetting.style.display = 'none';
+    }
+});
+
 applyTooltips();
 
 // Settings page tab switching
@@ -2254,6 +2495,17 @@ const thumbnailShapeDropdown = document.getElementById('setting-thumbnail-shape'
 // Handle "Online Friends Thumbnail Shape" setting
 const onlineFriendsThumbnailShapeDropdown = document.getElementById('setting-online-friends-thumbnail-shape');
 
+// Handle "Recent Activity Max Count" setting
+const recentActivityMaxCountDropdown = document.getElementById('setting-recent-activity-max-count');
+
+// Handle "CVR Executable" setting
+const cvrExecutableInput = document.getElementById('setting-cvr-executable');
+const browseCvrExecutableButton = document.getElementById('browse-cvr-executable');
+
+// Handle "Mature Content Visibility" setting
+const matureContentCheckbox = document.getElementById('setting-mature-content-visibility');
+const matureContentSetting = document.getElementById('mature-content-setting');
+
 // Function to apply thumbnail shape to all existing thumbnail containers
 function applyThumbnailShape(shape) {
     const thumbnailContainers = document.querySelectorAll('.details-thumbnail-container');
@@ -2276,6 +2528,33 @@ function applyOnlineFriendsThumbnailShape(shape) {
     });
 }
 
+// Function to update mature content setting visibility and state
+async function updateMatureContentSetting() {
+    // Check if DOM elements exist
+    if (!matureContentSetting || !matureContentCheckbox) {
+        log('Mature content setting DOM elements not found');
+        return;
+    }
+    
+    try {
+        const matureConfig = await window.API.getMatureContentConfig();
+        log('Mature content config received:', matureConfig);
+        
+        // Show the setting only if unlocked is true and terminated is false
+        if (matureConfig.unlocked && !matureConfig.terminated) {
+            log('Showing mature content setting - unlocked:', matureConfig.unlocked, 'terminated:', matureConfig.terminated);
+            matureContentSetting.style.display = 'flex';
+            matureContentCheckbox.checked = matureConfig.enabled;
+        } else {
+            log('Hiding mature content setting - unlocked:', matureConfig.unlocked, 'terminated:', matureConfig.terminated);
+            matureContentSetting.style.display = 'none';
+        }
+    } catch (error) {
+        log('Failed to get mature content config:', error);
+        matureContentSetting.style.display = 'none';
+    }
+}
+
 // Load initial settings from config
 window.API.getConfig().then(config => {
     if (config && config.CloseToSystemTray !== undefined) {
@@ -2293,6 +2572,18 @@ window.API.getConfig().then(config => {
         onlineFriendsThumbnailShapeDropdown.value = 'rounded';
         applyOnlineFriendsThumbnailShape('rounded');
     }
+    if (config && config.RecentActivityMaxCount !== undefined) {
+        recentActivityMaxCountDropdown.value = config.RecentActivityMaxCount.toString();
+    } else {
+        // Default to 25 if not set
+        recentActivityMaxCountDropdown.value = '25';
+    }
+    if (config && config.CVRExecutable !== undefined) {
+        cvrExecutableInput.value = config.CVRExecutable;
+    }
+    
+    // Load mature content setting
+    updateMatureContentSetting();
 });
 
 // Update config when "Close to System Tray" setting is changed
@@ -2344,10 +2635,98 @@ onlineFriendsThumbnailShapeDropdown.addEventListener('change', () => {
         });
 });
 
+// Update config when "Recent Activity Max Count" setting is changed
+recentActivityMaxCountDropdown.addEventListener('change', () => {
+    const selectedCount = parseInt(recentActivityMaxCountDropdown.value);
+    window.API.updateConfig({ RecentActivityMaxCount: selectedCount })
+        .then(() => {
+            pushToast('Recent activity max count updated', 'confirm');
+        })
+        .catch(err => {
+            pushToast(`Error saving setting: ${err}`, 'error');
+            // Revert dropdown state if save failed
+            window.API.getConfig().then(config => {
+                recentActivityMaxCountDropdown.value = (config.RecentActivityMaxCount || 25).toString();
+            });
+        });
+});
+
+// Handle CVR Executable browse button
+browseCvrExecutableButton.addEventListener('click', async () => {
+    const button = browseCvrExecutableButton;
+    button.disabled = true;
+    
+    try {
+        const selectedPath = await window.API.selectCVRExecutable();
+        cvrExecutableInput.value = selectedPath;
+        pushToast('CVR executable path updated', 'confirm');
+    } catch (error) {
+        if (error.message !== 'User canceled CVR executable selection') {
+            pushToast(`Error selecting CVR executable: ${error.message}`, 'error');
+        }
+    }
+    
+    button.disabled = false;
+});
+
+// Update mature content visibility when setting is changed
+matureContentCheckbox.addEventListener('change', async () => {
+    const checkbox = matureContentCheckbox;
+    const originalState = checkbox.checked;
+    
+    try {
+        checkbox.disabled = true;
+        await window.API.setMatureContentVisibility(checkbox.checked);
+        pushToast('Mature content visibility updated', 'confirm');
+    } catch (error) {
+        log('Failed to update mature content visibility:', error);
+        pushToast(`Error updating mature content visibility: ${error.message}`, 'error');
+        // Revert checkbox state if save failed
+        checkbox.checked = !originalState;
+    } finally {
+        checkbox.disabled = false;
+    }
+});
+
 // Set up refresh button event listeners (only once to prevent stacking)
-document.querySelector('#worlds-refresh')?.addEventListener('click', () => window.API.refreshGetActiveUserWorlds());
-document.querySelector('#avatars-refresh')?.addEventListener('click', () => window.API.refreshGetActiveUserAvatars());
-document.querySelector('#props-refresh')?.addEventListener('click', () => window.API.refreshGetActiveUserProps());
+document.querySelector('#worlds-refresh')?.addEventListener('click', () => {
+    // Show loading state for manual refresh
+    const loadingElement = document.querySelector('.worlds-loading');
+    const wrapperElement = document.querySelector('.worlds-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.remove('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = 'none';
+    }
+    window.API.refreshGetActiveUserWorlds();
+});
+
+document.querySelector('#avatars-refresh')?.addEventListener('click', () => {
+    // Show loading state for manual refresh
+    const loadingElement = document.querySelector('.avatars-loading');
+    const wrapperElement = document.querySelector('.avatars-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.remove('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = 'none';
+    }
+    window.API.refreshGetActiveUserAvatars();
+});
+
+document.querySelector('#props-refresh')?.addEventListener('click', () => {
+    // Show loading state for manual refresh
+    const loadingElement = document.querySelector('.props-loading');
+    const wrapperElement = document.querySelector('.props-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.remove('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = 'none';
+    }
+    window.API.refreshGetActiveUserProps();
+});
 
 // Props and World functions moved to user_content.js module
 
@@ -2426,6 +2805,17 @@ async function handleNewContentDiscovery() {
             ]);
             
             log('Data refresh completed and populated');
+            
+            // Set loading flags to prevent duplicate loading when navigating to My Content pages
+            const displayAvatars = document.querySelector('#display-avatars');
+            const displayWorlds = document.querySelector('#display-worlds');
+            const displayProps = document.querySelector('#display-props');
+            
+            if (displayAvatars) displayAvatars.setAttribute('loaded-avatars', '');
+            if (displayWorlds) displayWorlds.setAttribute('loaded-worlds', '');
+            if (displayProps) displayProps.setAttribute('loaded-props', '');
+            
+            log('Set loading flags for avatars, worlds, and props pages');
         }
 
         // Filter avatars for 'avtr_new' category
@@ -2457,9 +2847,10 @@ async function handleNewContentDiscovery() {
                     onClick: () => ShowDetailsWrapper(DetailsType.Avatar, avatar.id),
                 });
 
-                // Set placeholder background image
+                // Set background image - use cached image if available, otherwise placeholder
                 const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                const cachedImage = getCachedImage(avatar.imageHash);
+                thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = avatar.imageHash;
 
@@ -2552,9 +2943,10 @@ async function handleNewContentDiscovery() {
                     onClick: () => ShowDetailsWrapper(DetailsType.Prop, prop.id),
                 });
 
-                // Set placeholder background image
+                // Set background image - use cached image if available, otherwise placeholder
                 const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                const cachedImage = getCachedImage(prop.imageHash);
+                thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = prop.imageHash;
 
@@ -2686,6 +3078,17 @@ async function handleRecentlyUpdatedDiscovery() {
             ]);
             
             log('Data refresh completed and populated');
+            
+            // Set loading flags to prevent duplicate loading when navigating to My Content pages
+            const displayAvatars = document.querySelector('#display-avatars');
+            const displayWorlds = document.querySelector('#display-worlds');
+            const displayProps = document.querySelector('#display-props');
+            
+            if (displayAvatars) displayAvatars.setAttribute('loaded-avatars', '');
+            if (displayWorlds) displayWorlds.setAttribute('loaded-worlds', '');
+            if (displayProps) displayProps.setAttribute('loaded-props', '');
+            
+            log('Set loading flags for avatars, worlds, and props pages');
         }
 
         // Filter avatars for 'avtr_recently' category
@@ -2717,9 +3120,10 @@ async function handleRecentlyUpdatedDiscovery() {
                     onClick: () => ShowDetailsWrapper(DetailsType.Avatar, avatar.id),
                 });
 
-                // Set placeholder background image
+                // Set background image - use cached image if available, otherwise placeholder
                 const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                const cachedImage = getCachedImage(avatar.imageHash);
+                thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = avatar.imageHash;
 
@@ -2812,9 +3216,10 @@ async function handleRecentlyUpdatedDiscovery() {
                     onClick: () => ShowDetailsWrapper(DetailsType.Prop, prop.id),
                 });
 
-                // Set placeholder background image
+                // Set background image - use cached image if available, otherwise placeholder
                 const thumbnailContainer = searchResult.querySelector('.thumbnail-container');
-                thumbnailContainer.style.backgroundImage = 'url(\'img/ui/placeholder.png\')';
+                const cachedImage = getCachedImage(prop.imageHash);
+                thumbnailContainer.style.backgroundImage = `url('${cachedImage}')`;
                 thumbnailContainer.style.backgroundSize = 'cover';
                 thumbnailContainer.dataset.hash = prop.imageHash;
 
@@ -2870,9 +3275,3 @@ async function handleRecentlyUpdatedDiscovery() {
         applyTooltips();
     }
 }
-
-// Hide all search categories
-
-
-
-

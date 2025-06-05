@@ -222,7 +222,7 @@ function createDetailsSegment(options = {}) {
 }
 
 // Create universal details header structure
-function createDetailsHeaderStructure(entityInfo, entityType) {
+function createDetailsHeaderStructure(entityInfo, entityType, entityId) {
     const detailsHeader = document.querySelector('.details-header');
     
     // Clear existing content
@@ -256,6 +256,17 @@ function createDetailsHeaderStructure(entityInfo, entityType) {
     thumbnail.className = 'details-thumbnail';
     thumbnail.src = 'img/ui/placeholder.png';
     thumbnail.dataset.hash = entityInfo.imageHash || '';
+    
+    // Add double-click event listener to copy GUID to clipboard
+    thumbnail.addEventListener('dblclick', async () => {
+        try {
+            await navigator.clipboard.writeText(entityId);
+            pushToast(`Copied GUID to clipboard: ${entityId}`, 'confirm');
+        } catch (error) {
+            log('Failed to copy GUID to clipboard:');
+            pushToast('Failed to copy GUID to clipboard', 'error');
+        }
+    });
     
     thumbnailContainer.appendChild(thumbnail);
     
@@ -544,7 +555,7 @@ function addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, load
 }
 
 // Create user-specific header structure using universal details-segment system
-function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
+function createUserDetailsHeader(entityInfo, ShowDetailsCallback, entityId) {
     const detailsHeader = document.querySelector('.details-header');
     
     // Clear existing content
@@ -578,6 +589,18 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback) {
     thumbnail.className = 'details-thumbnail';
     thumbnail.src = 'img/ui/placeholder.png';
     thumbnail.dataset.hash = entityInfo.imageHash;
+    
+    // Add double-click event listener to copy GUID to clipboard
+    thumbnail.addEventListener('dblclick', async () => {
+        try {
+            await navigator.clipboard.writeText(entityId);
+            pushToast(`Copied GUID to clipboard: ${entityId}`, 'confirm');
+        } catch (error) {
+            log('Failed to copy GUID to clipboard:');
+            pushToast('Failed to copy GUID to clipboard', 'error');
+        }
+    });
+    
     thumbnailContainer.appendChild(thumbnail);
     
     // Create entity name
@@ -745,40 +768,53 @@ async function ShowDetails(entityType, entityId, dependencies) {
         isChilloutVRRunning = false;
     }
 
-    // Update the window classes based on entity type
-    updateDetailsWindowClasses(entityType);
-
-    // Show the details window
-    const detailsShade = document.querySelector('.details-shade');
-    detailsShade.style.display = 'flex';
-
-    // Handle clicking outside to close
-    detailsShade.onclick = (event) => {
-        if (event.target === detailsShade) {
-            detailsShade.style.display = 'none';
-            // Call onClose callback if provided
-            if (dependencies.onClose) {
-                dependencies.onClose();
-            }
-        }
-    };
-
-    // Clear all existing tabs
-    clearAllTabs();
-
-    // Hide tabs and content by default
-    detailsTabs.style.display = 'none';
-    detailsContent.style.display = 'none';
-
+    // First, try to fetch the entity data before showing any UI
     switch (entityType) {
         case DetailsType.User: {
-            entityInfo = await windowAPI.getUserById(entityId);
+            try {
+                entityInfo = await windowAPI.getUserById(entityId);
+            } catch (error) {
+                log('Failed to get user by ID:', error);
+                // Extract the meaningful part of the error message
+                const errorText = error.message.includes('Error: ') ? 
+                    error.message.substring(error.message.lastIndexOf('Error: ')) : 
+                    `Error: ${error.message}`;
+                // Show error toast
+                pushToast(`Failed to view content. ${errorText}`, 'error');
+                return;
+            }
             
             // Check if this is the current user viewing their own profile
             const isMyProfile = currentActiveUser && entityId === currentActiveUser.id;
             
+            // Data fetching successful, now set up the UI
+            // Update the window classes based on entity type
+            updateDetailsWindowClasses(entityType);
+
+            // Show the details window
+            const detailsShade = document.querySelector('.details-shade');
+            detailsShade.style.display = 'flex';
+
+            // Handle clicking outside to close
+            detailsShade.onclick = (event) => {
+                if (event.target === detailsShade) {
+                    detailsShade.style.display = 'none';
+                    // Call onClose callback if provided
+                    if (dependencies.onClose) {
+                        dependencies.onClose();
+                    }
+                }
+            };
+
+            // Clear all existing tabs
+            clearAllTabs();
+
+            // Hide tabs and content by default
+            detailsTabs.style.display = 'none';
+            detailsContent.style.display = 'none';
+            
             // Create the custom user header structure
-            const headerElements = createUserDetailsHeader(entityInfo, showDetailsWithDependencies);
+            const headerElements = createUserDetailsHeader(entityInfo, showDetailsWithDependencies, entityId);
 
             // Show tabs and content for user details
             detailsTabs.style.display = 'flex';
@@ -978,10 +1014,47 @@ async function ShowDetails(entityType, entityId, dependencies) {
             break;
         }
         case DetailsType.Avatar: {
-            entityInfo = await windowAPI.getAvatarById(entityId);
+            try {
+                entityInfo = await windowAPI.getAvatarById(entityId);
+            } catch (error) {
+                log('Failed to get avatar by ID:', error);
+                // Extract the meaningful part of the error message
+                const errorText = error.message.includes('Error: ') ? 
+                    error.message.substring(error.message.lastIndexOf('Error: ')) : 
+                    `Error: ${error.message}`;
+                // Show error toast
+                pushToast(`Failed to view content. ${errorText}`, 'error');
+                return;
+            }
+            
+            // Data fetching successful, now set up the UI
+            // Update the window classes based on entity type
+            updateDetailsWindowClasses(entityType);
+
+            // Show the details window
+            const detailsShade = document.querySelector('.details-shade');
+            detailsShade.style.display = 'flex';
+
+            // Handle clicking outside to close
+            detailsShade.onclick = (event) => {
+                if (event.target === detailsShade) {
+                    detailsShade.style.display = 'none';
+                    // Call onClose callback if provided
+                    if (dependencies.onClose) {
+                        dependencies.onClose();
+                    }
+                }
+            };
+
+            // Clear all existing tabs
+            clearAllTabs();
+
+            // Hide tabs and content by default
+            detailsTabs.style.display = 'none';
+            detailsContent.style.display = 'none';
             
             // Create the universal header structure
-            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
+            const headerElements = createDetailsHeaderStructure(entityInfo, entityType, entityId);
             
             // Update the thumbnail for the avatar image
             headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
@@ -1195,10 +1268,47 @@ async function ShowDetails(entityType, entityId, dependencies) {
             break;
         }
         case DetailsType.Prop: {
-            entityInfo = await windowAPI.getPropById(entityId);
+            try {
+                entityInfo = await windowAPI.getPropById(entityId);
+            } catch (error) {
+                log('Failed to get prop by ID:', error);
+                // Extract the meaningful part of the error message
+                const errorText = error.message.includes('Error: ') ? 
+                    error.message.substring(error.message.lastIndexOf('Error: ')) : 
+                    `Error: ${error.message}`;
+                // Show error toast
+                pushToast(`Failed to view content. ${errorText}`, 'error');
+                return;
+            }
+            
+            // Data fetching successful, now set up the UI
+            // Update the window classes based on entity type
+            updateDetailsWindowClasses(entityType);
+
+            // Show the details window
+            const detailsShade = document.querySelector('.details-shade');
+            detailsShade.style.display = 'flex';
+
+            // Handle clicking outside to close
+            detailsShade.onclick = (event) => {
+                if (event.target === detailsShade) {
+                    detailsShade.style.display = 'none';
+                    // Call onClose callback if provided
+                    if (dependencies.onClose) {
+                        dependencies.onClose();
+                    }
+                }
+            };
+
+            // Clear all existing tabs
+            clearAllTabs();
+
+            // Hide tabs and content by default
+            detailsTabs.style.display = 'none';
+            detailsContent.style.display = 'none';
             
             // Create the universal header structure
-            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
+            const headerElements = createDetailsHeaderStructure(entityInfo, entityType, entityId);
             
             // Update the thumbnail for the prop image
             headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
@@ -1347,10 +1457,47 @@ async function ShowDetails(entityType, entityId, dependencies) {
             break;
         }
         case DetailsType.World: {
-            entityInfo = await windowAPI.getWorldById(entityId);
+            try {
+                entityInfo = await windowAPI.getWorldById(entityId);
+            } catch (error) {
+                log('Failed to get world by ID:', error);
+                // Extract the meaningful part of the error message
+                const errorText = error.message.includes('Error: ') ? 
+                    error.message.substring(error.message.lastIndexOf('Error: ')) : 
+                    `Error: ${error.message}`;
+                // Show error toast
+                pushToast(`Failed to view content. ${errorText}`, 'error');
+                return;
+            }
+            
+            // Data fetching successful, now set up the UI
+            // Update the window classes based on entity type
+            updateDetailsWindowClasses(entityType);
+
+            // Show the details window
+            const detailsShade = document.querySelector('.details-shade');
+            detailsShade.style.display = 'flex';
+
+            // Handle clicking outside to close
+            detailsShade.onclick = (event) => {
+                if (event.target === detailsShade) {
+                    detailsShade.style.display = 'none';
+                    // Call onClose callback if provided
+                    if (dependencies.onClose) {
+                        dependencies.onClose();
+                    }
+                }
+            };
+
+            // Clear all existing tabs
+            clearAllTabs();
+
+            // Hide tabs and content by default
+            detailsTabs.style.display = 'none';
+            detailsContent.style.display = 'none';
             
             // Create the universal header structure
-            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
+            const headerElements = createDetailsHeaderStructure(entityInfo, entityType, entityId);
             
             // Update the thumbnail for the world image
             headerElements.thumbnail.dataset.hash = entityInfo.imageHash;
@@ -1483,10 +1630,47 @@ async function ShowDetails(entityType, entityId, dependencies) {
             break;
         }
         case DetailsType.Instance: {
-            entityInfo = await windowAPI.getInstanceById(entityId);
+            try {
+                entityInfo = await windowAPI.getInstanceById(entityId);
+            } catch (error) {
+                log('Failed to get instance by ID:', error);
+                // Extract the meaningful part of the error message
+                const errorText = error.message.includes('Error: ') ? 
+                    error.message.substring(error.message.lastIndexOf('Error: ')) : 
+                    `Error: ${error.message}`;
+                // Show error toast
+                pushToast(`Failed to view content. ${errorText}`, 'error');
+                return;
+            }
+            
+            // Data fetching successful, now set up the UI
+            // Update the window classes based on entity type
+            updateDetailsWindowClasses(entityType);
+
+            // Show the details window
+            const detailsShade = document.querySelector('.details-shade');
+            detailsShade.style.display = 'flex';
+
+            // Handle clicking outside to close
+            detailsShade.onclick = (event) => {
+                if (event.target === detailsShade) {
+                    detailsShade.style.display = 'none';
+                    // Call onClose callback if provided
+                    if (dependencies.onClose) {
+                        dependencies.onClose();
+                    }
+                }
+            };
+
+            // Clear all existing tabs
+            clearAllTabs();
+
+            // Hide tabs and content by default
+            detailsTabs.style.display = 'none';
+            detailsContent.style.display = 'none';
             
             // Create the universal header structure
-            const headerElements = createDetailsHeaderStructure(entityInfo, entityType);
+            const headerElements = createDetailsHeaderStructure(entityInfo, entityType, entityId);
             
             // Clean the entity name by removing the instance ID portion
             let cleanName = entityInfo.name || 'Unknown Instance';

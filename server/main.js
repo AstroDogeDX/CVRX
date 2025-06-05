@@ -195,6 +195,13 @@ app.whenReady().then(async () => {
 
         log.info('Received a close event...');
 
+        // Check if we're in the middle of an update installation
+        // If so, allow the app to quit properly regardless of tray settings
+        if (Updater.IsInstallingUpdate()) {
+            log.info('Update installation in progress, allowing app to quit properly...');
+            return; // Don't prevent default action, let the app quit
+        }
+
         // Prevent default action
         event.preventDefault();
 

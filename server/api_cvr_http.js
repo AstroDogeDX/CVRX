@@ -24,7 +24,7 @@ async function Get(url, authenticated = true, apiVersion = 1) {
         return response.data.data;
     }
     catch (error) {
-        log.error(`[GET] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack);
+        log.error(`[GET] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack, error?.response?.data);
         if (error?.response?.data?.message) {
             throw new Error(error.response.data.message);
         }
@@ -39,7 +39,7 @@ async function Post(url, data, authenticated = true, apiVersion = 1) {
         return response.data;
     }
     catch (error) {
-        log.error(`[Post] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack);
+        log.error(`[Post] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack, error?.response?.data);
         if (error?.response?.data?.message) {
             throw new Error(error.response.data.message);
         }
@@ -54,7 +54,7 @@ async function Patch(url, data, authenticated = true, apiVersion = 1) {
         return response.data;
     }
     catch (error) {
-        log.error(`[Patch] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack);
+        log.error(`[Patch] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack, error?.response?.data);
         if (error?.response?.data?.message) {
             throw new Error(error.response.data.message);
         }
@@ -69,7 +69,7 @@ async function Delete(url, authenticated = true, apiVersion = 1) {
         return response.data;
     }
     catch (error) {
-        log.error(`[DELETE] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack);
+        log.error(`[DELETE] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack, error?.response?.data);
         if (error?.response?.data?.message) {
             throw new Error(error.response.data.message);
         }
@@ -121,7 +121,6 @@ async function Authenticate(authType, credentialUser, credentialSecret) {
             'Username': authentication.username,
             'AccessKey': authentication.accessKey,
             'User-Agent': utils.GetUserAgent(),
-            'MatureContentDlc': 'true',
             'Platform': 'pc_standalone',
             'CompatibleVersions': '0,1,2',
             'Content-Type': 'application/json',
@@ -133,7 +132,6 @@ async function Authenticate(authType, credentialUser, credentialSecret) {
             'Username': authentication.username,
             'AccessKey': authentication.accessKey,
             'User-Agent': utils.GetUserAgent(),
-            'MatureContentDlc': 'true',
             'Platform': 'pc_standalone',
             'CompatibleVersions': '0,1,2',
             'Content-Type': 'application/json',
@@ -144,6 +142,10 @@ async function Authenticate(authType, credentialUser, credentialSecret) {
 
 // Get Stats
 exports.GetUserStats = async () => await Get('/public/userstats', false);
+
+// Account
+exports.GetRemoteConfig = async () => await Get('/remoteconfig');
+exports.SetMatureContentVisibility = async (enabled) => await Post('/account/settings/matureContent', { enabled: enabled });
 
 // Friends
 exports.GetMyFriends = async () => await Get('/friends');

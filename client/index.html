@@ -71,12 +71,16 @@
               </div>
             </div>
             
-            <div class="home-requests">
+            <div class="home-requests collapsed">
               <div class="home-section-header">
                 <h2>
                   <span class="material-symbols-outlined">notifications</span>
                   Notifications
+                  <span class="notification-count" id="notification-count" style="display: none;">0</span>
                 </h2>
+                <div class="home-section-controls">
+                  <span class="toggle-indicator material-symbols-outlined">expand_more</span>
+                </div>
               </div>
               <div class="home-requests-wrapper">
               </div>
@@ -176,6 +180,10 @@
           </button>
         </div>
         <button id="avatars-refresh" class="material-symbols-outlined">refresh</button>
+        <div class="avatars-loading hidden">
+          <span class="material-symbols-outlined spinner">refresh</span>
+          <span>Loading avatars...</span>
+        </div>
         <div class="avatars-wrapper"></div>
       </div>
       <!-- WORLDS -->
@@ -187,6 +195,10 @@
           </button>
         </div>
         <button id="worlds-refresh" class="material-symbols-outlined">refresh</button>
+        <div class="worlds-loading hidden">
+          <span class="material-symbols-outlined spinner">refresh</span>
+          <span>Loading worlds...</span>
+        </div>
         <div class="worlds-wrapper"></div>
       </div>
       <!-- PROPS -->
@@ -201,6 +213,10 @@
           </button>
         </div>
         <button id="props-refresh" class="material-symbols-outlined">refresh</button>
+        <div class="props-loading hidden">
+          <span class="material-symbols-outlined spinner">refresh</span>
+          <span>Loading props...</span>
+        </div>
         <div class="props-wrapper"></div>
       </div>
       <!-- DEBUG -->
@@ -235,6 +251,13 @@
             </div>
             <div class="settings-section" data-section="account">
               <h3>Account</h3>
+              <div class="settings-option" id="mature-content-setting" style="display: none;">
+                <input type="checkbox" id="setting-mature-content-visibility">
+                <label for="setting-mature-content-visibility">
+                  Show Mature Content
+                  <span class="setting-description">Toggle visibility of mature content (requires mature content to be unlocked)</span>
+                </label>
+              </div>
               <button id="logout-button" class="settings-button">
                 <span class="material-symbols-outlined">logout</span>
                 Logout
@@ -269,8 +292,39 @@
                 </select>
               </div>
             </div>
+            <div class="settings-section" data-section="friend-activity">
+              <h3>Friend Activity</h3>
+              <div class="settings-option">
+                <label for="setting-recent-activity-max-count">
+                  Recent Activity Max Count
+                  <span class="setting-description">Maximum number of recent activities to display in the activity list</span>
+                </label>
+                <select id="setting-recent-activity-max-count" class="settings-dropdown">
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="75">75</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+            </div>
           </div>
           <div class="settings-page" id="settings-advanced">
+            <div class="settings-section" data-section="cvr-path">
+              <h3>ChilloutVR Path</h3>
+              <div class="settings-option">
+                <label for="setting-cvr-executable">
+                  ChilloutVR Executable
+                  <span class="setting-description">Set the path to your ChilloutVR.exe file for enhanced features</span>
+                </label>
+                <div class="cvr-path-controls">
+                  <input type="text" id="setting-cvr-executable" class="cvr-path-display" readonly placeholder="No path set">
+                  <button id="browse-cvr-executable" class="cvr-browse-button">
+                    <span class="material-symbols-outlined">folder_open</span>
+                    Browse
+                  </button>
+                </div>
+              </div>
+            </div>
             <div class="settings-section" data-section="cache">
               <h3>Cache</h3>
               <button id="clear-cached-images-button" class="settings-button">

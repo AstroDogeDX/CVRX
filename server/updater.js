@@ -22,8 +22,12 @@ const activelyCheckRateLimit = 2 * 60 * 1000;
 let ignoredForNow = false;
 let dialogOpened = false;
 let activelyCheckForUpdatesTimeout = null;
+let mainWindowRef = null; // Add reference to main window for progress events
+let isInstallingUpdate = false; // Flag to track if update installation is in progress
 
 exports.Setup = async (mainWindow) => {
+    // Store reference to main window for progress events
+    mainWindowRef = mainWindow;
 
     // Ensure we have the directory created
     await fs.promises.mkdir(UpdaterPath, {recursive: true});
@@ -185,10 +189,46 @@ async function DownloadFile(assetUrl, assetName) {
 
     await fs.promises.mkdir(UpdaterPath, {recursive: true});
     log.info(`[DownloadFile] Downloading ${assetUrl} to ${UpdaterPath}...`);
+    
+    // Show download progress modal
+    if (mainWindowRef && mainWindowRef.webContents) {
+        mainWindowRef.webContents.send('update-download-started', { fileName: assetName });
+    }
+    
     const response = await axios.get(assetUrl, {responseType: 'stream'});
     const filepath = path.join(UpdaterPath, assetName);
-    await pipeline(response.data, fs.createWriteStream(filepath));
+    
+    // Get total file size from response headers
+    const totalSize = parseInt(response.headers['content-length'], 10);
+    let downloadedSize = 0;
+    
+    const writeStream = fs.createWriteStream(filepath);
+    
+    // Track download progress
+    response.data.on('data', (chunk) => {
+        downloadedSize += chunk.length;
+        const progress = totalSize ? (downloadedSize / totalSize) * 100 : 0;
+        
+        // Send progress update to frontend
+        if (mainWindowRef && mainWindowRef.webContents) {
+            mainWindowRef.webContents.send('update-download-progress', {
+                downloadedSize,
+                totalSize,
+                progress,
+                fileName: assetName
+            });
+        }
+    });
+    
+    // Use pipeline for streaming download with progress tracking
+    await pipeline(response.data, writeStream);
+    
     log.info(`[DownloadFile] Finished downloading to: ${filepath}`);
+    
+    // Send download complete event
+    if (mainWindowRef && mainWindowRef.webContents) {
+        mainWindowRef.webContents.send('update-download-complete', { fileName: assetName });
+    }
 
     await InstallLatestRelease(assetName);
 }
@@ -203,6 +243,13 @@ async function InstallLatestRelease(assetName) {
 
     const filepath = path.join(UpdaterPath, assetName);
     log.info(`[InstallLatestRelease] Quitting and installing: ${filepath}`);
+    
+    // Set the flag to indicate update installation is in progress
+    isInstallingUpdate = true;
+    
     app.relaunch({execPath: filepath});
     app.quit();
 }
+
+// Export function to check if update installation is in progress
+exports.IsInstallingUpdate = () => isInstallingUpdate;

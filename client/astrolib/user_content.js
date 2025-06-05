@@ -20,8 +20,28 @@ const log = (msg) => {
 // FRIENDS SECTION
 // ===============
 
-// Cache for friend images to prevent losing loaded images on refresh
-export const friendImageCache = {};
+// Image cache for all image types (renamed from friendImageCache)
+export const imageCache = {};
+
+// Helper function to get cached image or placeholder
+export function getCachedImage(imageHash) {
+    return imageCache[imageHash] || 'img/ui/placeholder.png';
+}
+
+// Helper function to set image source with cache check
+export function setImageSource(element, imageHash, isBackgroundImage = false) {
+    const imageSrc = getCachedImage(imageHash);
+    
+    if (isBackgroundImage) {
+        element.style.backgroundImage = `url('${imageSrc}')`;
+        element.style.backgroundSize = 'cover';
+    } else {
+        element.src = imageSrc;
+    }
+    
+    // Always set the hash for future updates
+    element.dataset.hash = imageHash;
+}
 
 // Store friend categories for filtering
 let friendCategories = [];
@@ -277,10 +297,10 @@ export function handleFriendsRefresh(friends, isRefresh) {
         // Use cached image if available, otherwise use placeholder
         if (friend.imageBase64) {
             // If we received the image with this update, cache it
-            friendImageCache[friend.imageHash] = friend.imageBase64;
+            imageCache[friend.imageHash] = friend.imageBase64;
         }
         // Use cached image or fall back to placeholder
-        const friendImgSrc = friendImageCache[friend.imageHash] || 'img/ui/placeholder.png';
+        const friendImgSrc = getCachedImage(friend.imageHash);
 
         // Setting up the HTMLElement used for the Online Friends panel.
         if (friend.isOnline) {
@@ -354,9 +374,7 @@ export function handleFriendsRefresh(friends, isRefresh) {
 
         // Set placeholder background image and data-hash directly on the container
         const thumbnailContainer = friendCard.querySelector('.thumbnail-container');
-        thumbnailContainer.style.backgroundImage = `url('${friendImgSrc}')`;
-        thumbnailContainer.style.backgroundSize = 'cover';
-        thumbnailContainer.dataset.hash = friend.imageHash;
+        setImageSource(thumbnailContainer, friend.imageHash, true);
 
         friendCards.push(friendCard);
     }
@@ -581,7 +599,7 @@ export function handleAvatarsRefresh(ourAvatars) {
 
     for (const ourAvatar of ourAvatars) {
         // Use cached image or placeholder
-        const imgSrc = friendImageCache[ourAvatar.imageHash] || 'img/ui/placeholder.png';
+        const imgSrc = getCachedImage(ourAvatar.imageHash);
 
         // Create card similar to search and friends layout
         const avatarNode = createElement('div', {
@@ -602,9 +620,7 @@ export function handleAvatarsRefresh(ourAvatars) {
 
         // Set placeholder background image and data-hash directly on the container
         const thumbnailContainer = avatarNode.querySelector('.thumbnail-container');
-        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
-        thumbnailContainer.style.backgroundSize = 'cover';
-        thumbnailContainer.dataset.hash = ourAvatar.imageHash;
+        setImageSource(thumbnailContainer, ourAvatar.imageHash, true);
 
         docFragment.appendChild(avatarNode);
     }
@@ -612,6 +628,23 @@ export function handleAvatarsRefresh(ourAvatars) {
     avatarDisplayNode.replaceChildren(docFragment);
     
     log(`Created ${ourAvatars.length} avatar cards in DOM`);
+    
+    // Hide loading state and show wrapper
+    const loadingElement = document.querySelector('.avatars-loading');
+    const wrapperElement = document.querySelector('.avatars-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.add('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = '';
+    }
+    
+    // Set loaded attribute and remove loading attribute
+    const displayElement = document.querySelector('#display-avatars');
+    if (displayElement) {
+        displayElement.setAttribute('loaded-avatars', '');
+        displayElement.removeAttribute('loading-avatars');
+    }
     
     // Apply the current active filter after loading avatars, but only if filter buttons exist
     const activeFilterButton = document.querySelector('.avatars-filter-controls .filter-button.active');
@@ -641,6 +674,19 @@ export function initializeAvatarsPage() {
         e.classList.remove('filtered-item');
         e.style.display = '';
     });
+    
+    // Only hide loading state and show wrapper if content has been loaded before
+    const displayElement = document.querySelector('#display-avatars');
+    if (displayElement && displayElement.hasAttribute('loaded-avatars') && !displayElement.hasAttribute('loading-avatars')) {
+        const loadingElement = document.querySelector('.avatars-loading');
+        const wrapperElement = document.querySelector('.avatars-wrapper');
+        if (loadingElement) {
+            loadingElement.classList.add('hidden');
+        }
+        if (wrapperElement && wrapperElement.children.length > 0) {
+            wrapperElement.style.display = '';
+        }
+    }
     
     // Load avatar categories and reset filter controls
     loadAvatarCategories().then(() => {
@@ -845,7 +891,7 @@ export function handleWorldsRefresh(ourWorlds) {
 
     for (const ourWorld of ourWorlds) {
         // Use cached image or placeholder
-        const imgSrc = friendImageCache[ourWorld.imageHash] || 'img/ui/placeholder.png';
+        const imgSrc = getCachedImage(ourWorld.imageHash);
 
         // Player count indicator for worlds
         const playerCount = ourWorld.playerCount?
@@ -873,9 +919,7 @@ export function handleWorldsRefresh(ourWorlds) {
 
         // Set placeholder background image and data-hash directly on the container
         const thumbnailContainer = worldNode.querySelector('.thumbnail-container');
-        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
-        thumbnailContainer.style.backgroundSize = 'cover';
-        thumbnailContainer.dataset.hash = ourWorld.imageHash;
+        setImageSource(thumbnailContainer, ourWorld.imageHash, true);
 
         docFragment.appendChild(worldNode);
     }
@@ -883,6 +927,23 @@ export function handleWorldsRefresh(ourWorlds) {
     worldDisplayNode.replaceChildren(docFragment);
     
     log(`Created ${docFragment.children.length} world cards in DOM`);
+    
+    // Hide loading state and show wrapper
+    const loadingElement = document.querySelector('.worlds-loading');
+    const wrapperElement = document.querySelector('.worlds-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.add('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = '';
+    }
+    
+    // Set loaded attribute and remove loading attribute
+    const displayElement = document.querySelector('#display-worlds');
+    if (displayElement) {
+        displayElement.setAttribute('loaded-worlds', '');
+        displayElement.removeAttribute('loading-worlds');
+    }
     
     // Apply the current active filter after loading worlds, but only if filter buttons exist
     const activeFilterButton = document.querySelector('.worlds-filter-controls .filter-button.active');
@@ -918,7 +979,7 @@ export function handleWorldsByCategoryRefresh(categoryId, worlds) {
 
     for (const world of worlds) {
         // Use cached image or placeholder
-        const imgSrc = friendImageCache[world.imageHash] || 'img/ui/placeholder.png';
+        const imgSrc = getCachedImage(world.imageHash);
 
         // Player count indicator for worlds
         const playerCount = world.playerCount?
@@ -946,9 +1007,7 @@ export function handleWorldsByCategoryRefresh(categoryId, worlds) {
 
         // Set placeholder background image and data-hash directly on the container
         const thumbnailContainer = worldNode.querySelector('.thumbnail-container');
-        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
-        thumbnailContainer.style.backgroundSize = 'cover';
-        thumbnailContainer.dataset.hash = world.imageHash;
+        setImageSource(thumbnailContainer, world.imageHash, true);
 
         docFragment.appendChild(worldNode);
     }
@@ -956,6 +1015,23 @@ export function handleWorldsByCategoryRefresh(categoryId, worlds) {
     worldDisplayNode.replaceChildren(docFragment);
     
     log(`Created ${worlds.length} world cards for category ${categoryId}`);
+    
+    // Hide loading state and show wrapper
+    const loadingElement = document.querySelector('.worlds-loading');
+    const wrapperElement = document.querySelector('.worlds-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.add('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = '';
+    }
+    
+    // Set loaded attribute and remove loading attribute
+    const displayElement = document.querySelector('#display-worlds');
+    if (displayElement) {
+        displayElement.setAttribute('loaded-worlds', '');
+        displayElement.removeAttribute('loading-worlds');
+    }
     
     // Apply text filter if there's any text in the filter input
     const filterText = document.querySelector('#worlds-filter').value.toLowerCase();
@@ -992,6 +1068,19 @@ export function initializeWorldsPage() {
         e.classList.remove('filtered-item');
         e.style.display = '';
     });
+    
+    // Only hide loading state and show wrapper if content has been loaded before
+    const displayElement = document.querySelector('#display-worlds');
+    if (displayElement && displayElement.hasAttribute('loaded-worlds') && !displayElement.hasAttribute('loading-worlds')) {
+        const loadingElement = document.querySelector('.worlds-loading');
+        const wrapperElement = document.querySelector('.worlds-wrapper');
+        if (loadingElement) {
+            loadingElement.classList.add('hidden');
+        }
+        if (wrapperElement && wrapperElement.children.length > 0) {
+            wrapperElement.style.display = '';
+        }
+    }
     
     // Load world categories and reset filter controls
     loadWorldCategories().then(() => {
@@ -1178,7 +1267,7 @@ export function handlePropsRefresh(ourProps) {
 
     for (const ourProp of ourProps) {
         // Use cached image or placeholder
-        const imgSrc = friendImageCache[ourProp.imageHash] || 'img/ui/placeholder.png';
+        const imgSrc = getCachedImage(ourProp.imageHash);
 
         // Create card similar to search and friends layout
         const propNode = createElement('div', {
@@ -1199,14 +1288,29 @@ export function handlePropsRefresh(ourProps) {
 
         // Set placeholder background image and data-hash directly on the container
         const thumbnailContainer = propNode.querySelector('.thumbnail-container');
-        thumbnailContainer.style.backgroundImage = `url('${imgSrc}')`;
-        thumbnailContainer.style.backgroundSize = 'cover';
-        thumbnailContainer.dataset.hash = ourProp.imageHash;
+        setImageSource(thumbnailContainer, ourProp.imageHash, true);
 
         docFragment.appendChild(propNode);
     }
 
     propDisplayNode.replaceChildren(docFragment);
+    
+    // Hide loading state and show wrapper
+    const loadingElement = document.querySelector('.props-loading');
+    const wrapperElement = document.querySelector('.props-wrapper');
+    if (loadingElement) {
+        loadingElement.classList.add('hidden');
+    }
+    if (wrapperElement) {
+        wrapperElement.style.display = '';
+    }
+    
+    // Set loaded attribute and remove loading attribute
+    const displayElement = document.querySelector('#display-props');
+    if (displayElement) {
+        displayElement.setAttribute('loaded-props', '');
+        displayElement.removeAttribute('loading-props');
+    }
     
     // Apply the current active filter after loading props
     const activeFilterButton = document.querySelector('.props-filter-controls .filter-button.active');
@@ -1228,6 +1332,19 @@ export function initializePropsPage() {
         e.classList.remove('filtered-item');
         e.style.display = '';
     });
+    
+    // Only hide loading state and show wrapper if content has been loaded before
+    const displayElement = document.querySelector('#display-props');
+    if (displayElement && displayElement.hasAttribute('loaded-props') && !displayElement.hasAttribute('loading-props')) {
+        const loadingElement = document.querySelector('.props-loading');
+        const wrapperElement = document.querySelector('.props-wrapper');
+        if (loadingElement) {
+            loadingElement.classList.add('hidden');
+        }
+        if (wrapperElement && wrapperElement.children.length > 0) {
+            wrapperElement.style.display = '';
+        }
+    }
     
     // Load prop categories and reset filter controls
     loadPropCategories().then(() => {
@@ -1282,7 +1399,7 @@ export function resetUserContentCache() {
     Object.keys(propsData).forEach(key => delete propsData[key]);
     
     // Clear friend image cache
-    Object.keys(friendImageCache).forEach(key => delete friendImageCache[key]);
+    Object.keys(imageCache).forEach(key => delete imageCache[key]);
     
     // Clear friend categories
     friendCategories = [];
