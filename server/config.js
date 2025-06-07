@@ -312,7 +312,7 @@ exports.UpdateConfig = async (newConfigSettings) => {
 
     if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'RecentActivityMaxCount')) {
         const maxCount = newConfigSettings.RecentActivityMaxCount;
-        const validCounts = [25, 50, 75, 100];
+        const validCounts = [25, 50, 75, 100, 500, 1000];
 
         if (!Number.isInteger(maxCount) || !validCounts.includes(maxCount)) {
             throw new Error('[UpdateConfig] RecentActivityMaxCount should be one of: 25, 50, 75, 100.');
