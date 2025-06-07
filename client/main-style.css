@@ -564,6 +564,7 @@ button {
     flex-grow: 0; /* Don't grow to fill space */
     flex-shrink: 0; /* Don't shrink below content size */
     flex-basis: auto; /* Use content size as basis */
+    height: 60px;
 }
 
 
