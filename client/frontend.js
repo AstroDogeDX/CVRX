@@ -190,6 +190,14 @@ function swapNavPages(page) {
     document.getElementById(`display-${page}`).style.display = 'grid';
     setPageTitle(page);
 
+    // Clear friend activity filter when navigating away from home
+    if (page !== 'home') {
+        const friendActivityFilter = document.querySelector('#friend-activity-filter');
+        if (friendActivityFilter) {
+            friendActivityFilter.value = '';
+        }
+    }
+
     switch (page) {
         case 'search':
             setInputValueAndFocus('#search-bar', '');
@@ -412,6 +420,8 @@ window.API.onHomePage((_event) => {
     setupWorldsTextFilter();
     // Setup props text filter
     setupPropsTextFilter();
+    // Setup friend activity filter
+    setupFriendActivityFilter();
     
     // Apply the current online friends thumbnail shape on initial load
     window.API.getConfig().then(config => {
@@ -603,6 +613,14 @@ window.API.onHomePage((_event) => {
     setupAvatarsTextFilter();
     // Setup worlds text filter
     setupWorldsTextFilter();
+    // Setup friend activity filter
+    setupFriendActivityFilter();
+    
+    // Clear friend activity filter on home page load
+    const friendActivityFilter = document.querySelector('#friend-activity-filter');
+    if (friendActivityFilter) {
+        friendActivityFilter.value = '';
+    }
     
     // Apply the current online friends thumbnail shape on initial load
     window.API.getConfig().then(config => {
@@ -1687,6 +1705,44 @@ function updateNotificationCount() {
     }
 }
 
+// Function to setup friend activity filter event listener
+function setupFriendActivityFilter() {
+    const friendActivityFilter = document.querySelector('#friend-activity-filter');
+    if (friendActivityFilter) {
+        friendActivityFilter.addEventListener('input', () => {
+            applyFriendActivityFilter();
+        });
+    }
+}
+
+// Function to apply friend activity filtering
+function applyFriendActivityFilter() {
+    const filterInput = document.querySelector('#friend-activity-filter');
+    if (!filterInput) return;
+    
+    const filterText = filterInput.value.toLowerCase();
+    const activityNodes = document.querySelectorAll('.friend-history-node');
+    
+    activityNodes.forEach(node => {
+        // Get the friend name from the activity node
+        const friendNameElement = node.querySelector('.friend-name-history');
+        if (friendNameElement) {
+            const friendName = friendNameElement.textContent.toLowerCase();
+            
+            // Check if the friend name includes the filter text
+            const matchesFilter = filterText === '' || friendName.includes(filterText);
+            
+            if (matchesFilter) {
+                node.style.display = '';
+                node.classList.remove('filtered-item');
+            } else {
+                node.style.display = 'none';
+                node.classList.add('filtered-item');
+            }
+        }
+    });
+}
+
 // Janky Active Instances
 // -----------------------------
 window.API.onActiveInstancesUpdate((_event, activeInstancesData) => {
@@ -2227,6 +2283,9 @@ window.API.onRecentActivityUpdate((_event, recentActivities) => {
     }
 
     historyWrapperNode.replaceChildren(...newNodes);
+    
+    // Apply current filter if any
+    applyFriendActivityFilter();
 });
 
 // function getMemory() {

@@ -608,6 +608,36 @@ button {
     /* No hover effect on panel itself */
 }
 
+.home-history--activity-filter {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.9);
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    white-space: nowrap;
+    min-width: 140px;
+    transition: all 0.3s ease;
+}
+
+.home-history--activity-filter:focus {
+    outline: none;
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--color-text);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.home-history--activity-filter::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+}
+
 .home-history--history-wrapper {
     flex: 1;
     overflow-y: auto;
