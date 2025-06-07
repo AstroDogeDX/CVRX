@@ -45,6 +45,7 @@ module.exports = {
             config: {
                 overwrite: true,
                 icon: 'icon/cvrx-logo.icns',
+                name: `CVRX-v${version}-MacOS-Universal`,
             },
         },
     ],

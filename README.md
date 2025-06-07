@@ -31,7 +31,7 @@ A companion app for **ChilloutVR** that e**X**pands the user experience!
 4. `npm install`
 5. `npm run make`
 
-This should create the `CVRX-x.x.x Setup.exe` in the folder: `out/make/squirrel.windows/x64/`
+This should create the `CVRX-vx.x.x-Windows.exe` in the folder: `out/make/squirrel.windows/x64/`
 
 ### MacOS
 1. Ensure the electron pre-requisites are met: https://www.electronjs.org/docs/latest/development/build-instructions-macos#prerequisites
@@ -40,7 +40,7 @@ This should create the `CVRX-x.x.x Setup.exe` in the folder: `out/make/squirrel.
 4. `npm install`
 5. `npm run make-mac`
 
-This should create the `CVRX-x.x.x-universal.dmg` in the folder: `out/make/`
+This should create the `CVRX-vx.x.x-MacOS-Universal.dmg` in the folder: `out/make/`
 
 ### Others
 Other platform build instructions are probably the same with some variations, however they haven't been tested.
