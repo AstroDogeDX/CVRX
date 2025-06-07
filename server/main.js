@@ -152,10 +152,12 @@ app.whenReady().then(async () => {
 
     app.on('second-instance', () => {
         // Someone tried to run a second instance, we should focus our window.
-        if (mainWindow) {
-            if (mainWindow.isMinimized()) mainWindow.restore();
-            mainWindow.focus();
-        }
+
+        log.info('Received a second instance event... ');
+
+        // Show if it's hidden (tray) or minimized
+        if (mainWindow && !mainWindow.isDestroyed())
+            mainWindow.show();
     });
     app.on('activate', () => {
         // On macOS, it's common to re-create a window in the app when the
