@@ -490,10 +490,16 @@ button {
     flex: 1;
     min-height: 0;
     max-height: 40%;
-    display: flex;
-    flex-direction: column;
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    
+    /* Smooth collapse animation using grid */
+    display: grid;
+    grid-template-rows: auto 1fr;
+    transition: grid-template-rows 0.4s ease,
+                flex-grow 0.4s ease,
+                flex-basis 0.4s ease;
+    overflow: hidden;
 }
 
 .home-requests:hover {
@@ -501,14 +507,24 @@ button {
 }
 
 .home-requests-wrapper {
-    flex: 1;
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
     margin-top: 4px;
     padding: 4px;
     gap: 5px;
+    
+    /* Smooth collapse animations */
+    overflow: hidden;
+    transition: opacity 0.4s ease,
+                transform 0.4s ease;
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Enable scrolling when not collapsed */
+.home-requests:not(.collapsed) .home-requests-wrapper {
+    overflow-y: auto;
 }
 
 .home-requests-wrapper:empty {
@@ -532,36 +548,41 @@ button {
 
 .home-requests .home-section-header .toggle-indicator {
     font-size: 20px;
-    transition: transform 0.2s ease;
+    transition: transform 0.4s ease;
     opacity: 0.7;
+    transform-origin: center;
 }
 
 .home-requests.collapsed .toggle-indicator {
     transform: rotate(-90deg);
 }
 
+
+
 .home-requests.collapsed {
-    flex: 0 0 auto;
-    overflow: hidden;
+    grid-template-rows: auto 0fr;
+    flex-grow: 0; /* Don't grow to fill space */
+    flex-shrink: 0; /* Don't shrink below content size */
+    flex-basis: auto; /* Use content size as basis */
 }
+
+
 
 .home-requests.collapsed .home-requests-wrapper {
-    max-height: 0 !important;
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-top: 0;
-    padding-bottom: 0;
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
+    transition: opacity 0.4s ease,
+                transform 0.4s ease;
 }
 
-.home-requests .home-requests-wrapper {
-    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                opacity 0.25s ease, 
-                margin 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                padding 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: translateY(0);
+/* Inner content wrapper for proper animation */
+.home-requests-wrapper > * {
+    transition: opacity 0.4s ease;
+}
+
+.home-requests.collapsed .home-requests-wrapper > * {
+    opacity: 0;
+    transition: opacity 0.2s ease;
 }
 
 /* Notification counter styling */
@@ -4771,7 +4792,7 @@ button {
 }
 
 .notification-item {
-    animation: notificationSlideIn 0.4s ease-out;
+    animation: notificationSlideIn 0.2s ease-out;
 }
 
 /* Ensure text elements don't inherit hover effects */
