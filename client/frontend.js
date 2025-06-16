@@ -1988,6 +1988,20 @@ window.API.onInvites((_event, invites) => {
         // Add both buttons to the split button container
         joinSplitButton.append(joinDesktopButton, joinVRButton);
 
+        // Create dismiss button for invites
+        const dismissInviteButton = createElement('button', {
+            className: 'notification-action-button notification-dismiss',
+            innerHTML: '<span class="material-symbols-outlined">close</span>',
+            tooltip: 'Dismiss Invite',
+            onClick: () => {
+                // Remove the notification from DOM
+                inviteNode.remove();
+                // Update notification count
+                updateNotificationCount();
+                pushToast('Invite dismissed', 'info');
+            },
+        });
+
         const inviteNode = createElement('div', {
             className: 'notification-item notification-invite',
             innerHTML: `
@@ -2013,9 +2027,10 @@ window.API.onInvites((_event, invites) => {
         const senderElement = inviteNode.querySelector('.notification-sender');
         senderElement.addEventListener('click', () => ShowDetailsWrapper(DetailsType.User, invite.user.id));
 
-        // Add the split button to the action area
+        // Add the split button and dismiss button to the action area
         const actionArea = inviteNode.querySelector('.notification-action');
         actionArea.appendChild(joinSplitButton);
+        actionArea.appendChild(dismissInviteButton);
 
         // Prepend the images
         const notificationContent = inviteNode.querySelector('.notification-content');
@@ -2050,6 +2065,20 @@ window.API.onInviteRequests((_event, requestInvites) => {
         });
         userImageNode.dataset.hash = requestInvite.sender.imageHash;
 
+        // Create dismiss button for invite requests
+        const dismissInviteRequestButton = createElement('button', {
+            className: 'notification-action-button notification-dismiss',
+            innerHTML: '<span class="material-symbols-outlined">close</span>',
+            tooltip: 'Dismiss Invite Request',
+            onClick: () => {
+                // Remove the notification from DOM
+                requestInviteNode.remove();
+                // Update notification count
+                updateNotificationCount();
+                pushToast('Invite request dismissed', 'info');
+            },
+        });
+
         const requestInviteNode = createElement('div', {
             className: 'notification-item notification-invite-request',
             innerHTML: `
@@ -2065,6 +2094,8 @@ window.API.onInviteRequests((_event, requestInvites) => {
                             <span class="material-symbols-outlined">videogame_asset</span>
                             Accept In Game
                         </span>
+                        <div class="notification-action-buttons">
+                        </div>
                     </div>
                 </div>
             `,
@@ -2073,6 +2104,10 @@ window.API.onInviteRequests((_event, requestInvites) => {
         // Add click handler for sender name
         const senderElement = requestInviteNode.querySelector('.notification-sender');
         senderElement.addEventListener('click', () => ShowDetailsWrapper(DetailsType.User, requestInvite.sender.id));
+
+        // Add the dismiss button to the action buttons area
+        const actionButtons = requestInviteNode.querySelector('.notification-action-buttons');
+        actionButtons.appendChild(dismissInviteRequestButton);
 
         // Prepend the user image
         const notificationContent = requestInviteNode.querySelector('.notification-content');

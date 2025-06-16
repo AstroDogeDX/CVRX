@@ -4693,6 +4693,12 @@ button {
     background: transparent;
 }
 
+/* Special styling for invite notifications with both split button and dismiss button */
+.notification-invite .notification-action {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 .notification-action-text {
     display: flex;
     align-items: center;
@@ -4773,6 +4779,18 @@ button {
     background: linear-gradient(135deg, rgba(244, 67, 54, 0.9), rgba(198, 40, 40, 0.7));
     transform: scale(1.05);
     box-shadow: 0 4px 16px rgba(244, 67, 54, 0.3);
+}
+
+.notification-dismiss {
+    background: linear-gradient(135deg, rgba(108, 117, 125, 0.8), rgba(73, 80, 87, 0.6));
+    border: 1px solid rgba(108, 117, 125, 0.4);
+    color: white;
+}
+
+.notification-dismiss:hover {
+    background: linear-gradient(135deg, rgba(108, 117, 125, 0.9), rgba(73, 80, 87, 0.7));
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(108, 117, 125, 0.3);
 }
 
 .notification-action-button .material-symbols-outlined {
