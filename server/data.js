@@ -138,6 +138,9 @@ class Core {
 
     #ResetCachingObjects() {
 
+        this.ourUserId = '';
+        this.ourUser = {};
+
         this.friends = {};
         this.categories = {};
 
@@ -251,7 +254,6 @@ class Core {
         ipcMain.handle('friend-request-accept', async (_event, userId) => {
             try { await CVRWebsocket.AcceptFriendRequest(userId); } catch (err) { log.error('[#SetupHandlers] [friend-request-accept] [AcceptFriendRequest]', err); }
             this.RefreshFriendRequests().then().catch((err) => log.error('[#SetupHandlers] [friend-request-accept] [RefreshFriendRequests]', err));
-            this.FriendsUpdate(true).then().catch((err) => log.error('[#SetupHandlers] [friend-request-accept] [FriendsUpdate]', err));
         });
         ipcMain.handle('friend-request-decline', async (_event, userId) => {
             await CVRWebsocket.DeclineFriendRequest(userId);
@@ -259,7 +261,6 @@ class Core {
         });
         ipcMain.handle('unfriend', async (_event, userId) => {
             try { await CVRWebsocket.Unfriend(userId); } catch (err) { log.error('[#SetupHandlers] [unfriend] [CVRWebsocket.Unfriend]', err); }
-            this.FriendsUpdate(true).then().catch((err) => log.error('[#SetupHandlers] [unfriend] [FriendsUpdate]', err));
         });
 
         // Credentials Management
@@ -283,13 +284,7 @@ class Core {
         ipcMain.handle('config-update', (_event, newConfigSettings) => Config.UpdateConfig(newConfigSettings));
 
         // CVR Executable Selection
-        ipcMain.handle('select-cvr-executable', async (_event) => {
-            try {
-                return await Config.SelectCVRExecutable();
-            } catch (error) {
-                throw error;
-            }
-        });
+        ipcMain.handle('select-cvr-executable', async (_event) => await Config.SelectCVRExecutable());
 
         // Account
         ipcMain.handle('get-mature-content-config', (_event) => EscapeHtml(this.matureContentConfig));
@@ -345,6 +340,7 @@ class Core {
 
         // Setup Handlers for the websocket
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.ONLINE_FRIENDS, (friendsInfo) => this.FriendsUpdate(false, friendsInfo));
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.FRIEND_LIST_UPDATED, () => this.FriendListUpdate());
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.INVITES, (invites) => this.InvitesUpdate(invites));
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.REQUEST_INVITES, (requestInvites) => this.RequestInvitesUpdate(requestInvites));
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.FRIEND_REQUESTS, (friendRequests) => this.UpdateFriendRequests(friendRequests, false));
@@ -427,11 +423,12 @@ class Core {
             // Reset and stop image processing queue
             cache.ResetProcessQueue();
 
+            this.ourUserId = authentication.userId;
             this.blockedUserIds = authentication.blockedUsers;
 
             // Call more events to update the initial state
             await Promise.allSettled([
-                this.GetOurUserInfo(authentication.userId),
+                this.GetOurUserInfo(),
                 // this.GetOurUserAvatars(),
                 // this.GetOurUserProps(),
                 // this.GetOurUserWorlds(),
@@ -508,10 +505,10 @@ class Core {
         this.SendToRenderer('page-login', availableCredentials);
     }
 
-    async GetOurUserInfo(ourUserID) {
-        const ourUser = await this.GetUserById(ourUserID);
-        await Config.SetActiveUserImage(ourUser?.imageUrl);
-        this.SendToRenderer('active-user-load', ourUser);
+    async GetOurUserInfo() {
+        this.ourUser = await this.GetUserById(this.ourUserId);
+        await Config.SetActiveUserImage(this.ourUser?.imageUrl);
+        this.SendToRenderer('active-user-load', this.ourUser);
     }
 
     async GetOurUserAvatars() {
@@ -625,11 +622,23 @@ class Core {
 
                     // If it is the initial sync, let's just update the current state but not sending as an update
                     if (isInitial) {
-                        this.recentActivityCache[friendUpdate.id] = JSON.parse(JSON.stringify(this.friends[friendUpdate.id]));
+                        if (friendUpdate.id === this.ourUserId){
+                            this.recentActivityCache[this.ourUserId] = JSON.parse(JSON.stringify(this.ourUser));
+                        }
+                        else {
+                            this.recentActivityCache[friendUpdate.id] = JSON.parse(JSON.stringify(this.friends[friendUpdate.id]));
+                        }
                         continue;
                     }
 
-                    const current = JSON.parse(JSON.stringify(this.friends[friendUpdate.id]));
+                    let current;
+                    if (friendUpdate.id === this.ourUserId){
+                        current = JSON.parse(JSON.stringify(this.ourUser));
+                    }
+                    else {
+                        current = JSON.parse(JSON.stringify(this.friends[friendUpdate.id]));
+                    }
+
                     const previous = this.recentActivityCache[friendUpdate.id] ?? null;
 
                     // Ignore updates if they are the same as the previous state
@@ -708,23 +717,35 @@ class Core {
         for (let friendInfo of friendsInfo) {
             if (!friendInfo || !friendInfo.id) continue;
 
-            if (!isRefresh && !this.friends[friendInfo.id]) {
-                // We got a friend update from someone that's not on our cache. Let's refresh the friends list!
-                await this.FriendsUpdate(true);
-                return;
+            // Handle if it's our own user
+            if (friendInfo.id === this.ourUserId) {
+                // Merge the new properties we're getting from the usersOnlineChange
+                Object.assign(this.ourUser, friendInfo);
+
+                // Queue the images grabbing (if available)
+                await LoadUserImages(this.ourUser);
             }
 
-            // Grab the previous friend info we don't lose previous socket updates
-            const friendInstance = this.friends[friendInfo.id] ??= {};
+            // Handle if it's not our user
+            else {
+                if (!isRefresh && !this.friends[friendInfo.id]) {
+                    // We got a friend update from someone that's not on our cache. Let's refresh the friends list!
+                    await this.FriendsUpdate(true);
+                    return;
+                }
 
-            // Merge the new properties we're getting from the usersOnlineChange
-            Object.assign(friendInstance, friendInfo);
+                // Grab the previous friend info we don't lose previous socket updates
+                const friendInstance = this.friends[friendInfo.id] ??= {};
 
-            // Queue the images grabbing (if available)
-            await LoadUserImages(friendInstance);
+                // Merge the new properties we're getting from the usersOnlineChange
+                Object.assign(friendInstance, friendInfo);
 
-            // Add the friend info to our cache
-            newFriendsObject[friendInstance.id] = friendInstance;
+                // Queue the images grabbing (if available)
+                await LoadUserImages(friendInstance);
+
+                // Add the friend info to our cache
+                newFriendsObject[friendInstance.id] = friendInstance;
+            }
         }
 
         // Overwrite our cache if it's a refresh
@@ -745,6 +766,17 @@ class Core {
 
         // Handle active instances update (to update our friend's info). So don't trigger a full refresh!
         await this.ActiveInstancesUpdate(false);
+    }
+
+    async FriendListUpdate(){
+
+        try {
+            await this.FriendsUpdate(true);
+            await this.RefreshFriendRequests();
+        }
+        catch (e) {
+            log.error('[FriendListUpdate]', e);
+        }
     }
 
     async InvitesUpdate(invites) {
@@ -775,7 +807,7 @@ class Core {
         //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
         // }]
         this.SendToRenderer('invites', invites);
-        
+
         // Add invites to recent activity
         try {
             await this.UpdateRecentActivity(ActivityUpdatesType.Invites, invites);
@@ -802,7 +834,7 @@ class Core {
         //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
         // }]
         this.SendToRenderer('invite-requests', requestInvites);
-        
+
         // Add invite requests to recent activity
         try {
             await this.UpdateRecentActivity(ActivityUpdatesType.InviteRequests, requestInvites);
@@ -1025,8 +1057,10 @@ class Core {
                 this.activeInstancesDetails = await this.ActiveInstancesRefresh();
             }
 
+            const friendsAndUs = [this.ourUser, ...Object.values(this.friends)];
+
             // Let's go through our friends and add any instances our friends are in, but didn't show up
-            for (const friend of Object.values(this.friends)) {
+            for (const friend of friendsAndUs) {
                 if (!friend?.instance?.id) continue;
 
                 // If the instance doesn't exist already, lets fetch it
@@ -1045,19 +1079,21 @@ class Core {
             for (const activeInstanceDetails of Object.values(this.activeInstancesDetails)) {
                 const membersToDelete = [];
 
-                // Remove all friends from members, we're going to add them after (with extra info)
+                // Remove us and all friends from members, we're going to add them after (with extra info)
                 for (const member of activeInstanceDetails.members) {
+                    if (member.id === this.ourUserId) member.isUs = true;
                     if (this.blockedUserIds.includes(member.id)) member.isBlocked = true;
-                    if (Object.prototype.hasOwnProperty.call(this.friends, member.id)) membersToDelete.push(member);
+                    if (member.id === this.ourUserId || Object.prototype.hasOwnProperty.call(this.friends, member.id)) membersToDelete.push(member);
                 }
                 activeInstanceDetails.members = activeInstanceDetails.members.filter(item => !membersToDelete.includes(item));
 
-                // If a friend is in this instance, lets add them to the members! Keep the same order as this.friends
+                // If us or a friend is in this instance, lets add them to the members! Keep the same order as this.friends
                 let insertIndex = 0;
-                for (const friend of Object.values(this.friends)) {
+                for (const friend of friendsAndUs) {
                     if (friend?.instance?.id !== activeInstanceDetails.id) continue;
                     activeInstanceDetails.members.splice(insertIndex++, 0, ({
                         ...friend,
+                        isUs: friend.id === this.ourUserId,
                         isFriend: true,
                         isBlocked: this.blockedUserIds.includes(friend.id),
                     }));
