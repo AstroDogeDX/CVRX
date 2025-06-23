@@ -67,6 +67,8 @@ exports.Load = async () => {
         RecentActivityMaxCount: 25,
         FriendNotificationsEnabled: false,
         FriendNotificationsList: {},
+        InviteNotificationsEnabled: false,
+        InviteRequestNotificationsEnabled: false,
     };
     config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, defaultObjectConfig);
     MergeDefaultConfig(config, defaultObjectConfig);
@@ -343,6 +345,26 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.FriendNotificationsList = friendsList;
     }
 
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'InviteNotificationsEnabled')) {
+        const enabled = newConfigSettings.InviteNotificationsEnabled;
+
+        if (typeof enabled !== 'boolean') {
+            throw new Error('[UpdateConfig] InviteNotificationsEnabled should be a boolean value.');
+        }
+
+        config.InviteNotificationsEnabled = enabled;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'InviteRequestNotificationsEnabled')) {
+        const enabled = newConfigSettings.InviteRequestNotificationsEnabled;
+
+        if (typeof enabled !== 'boolean') {
+            throw new Error('[UpdateConfig] InviteRequestNotificationsEnabled should be a boolean value.');
+        }
+
+        config.InviteRequestNotificationsEnabled = enabled;
+    }
+
     await UpdateJsonFile(FileType.CONFIG);
 
     return exports.GetConfig();
@@ -358,6 +380,8 @@ exports.GetConfig = () => ({
     RecentActivityMaxCount: config.RecentActivityMaxCount,
     FriendNotificationsEnabled: config.FriendNotificationsEnabled,
     FriendNotificationsList: config.FriendNotificationsList,
+    InviteNotificationsEnabled: config.InviteNotificationsEnabled,
+    InviteRequestNotificationsEnabled: config.InviteRequestNotificationsEnabled,
 });
 
 
@@ -386,7 +410,12 @@ exports.IsFriendNotificationEnabled = (userId) => {
     return config.FriendNotificationsEnabled && config.FriendNotificationsList[userId] === true;
 };
 
+exports.GetInviteNotificationsEnabled = () => config.InviteNotificationsEnabled;
+
+exports.GetInviteRequestNotificationsEnabled = () => config.InviteRequestNotificationsEnabled;
+
 exports.GetUpdaterIgnoreVersion = () => config.UpdaterIgnoreVersion;
+
 exports.SetUpdaterIgnoreVersion = async (versionToIgnore) => {
     config.UpdaterIgnoreVersion = versionToIgnore;
     await UpdateJsonFile(FileType.CONFIG);

@@ -848,6 +848,89 @@ class Core {
         // }]
         this.SendToRenderer('invites', invites);
 
+        // Send system notifications for new invites if enabled
+        if (Config.GetInviteNotificationsEnabled() && invites.length > 0) {
+            for (const invite of invites) {
+                try {
+                    const { Notification } = require('electron');
+                    const userName = invite.user?.name || 'Someone';
+                    const worldName = invite.world?.name || 'Unknown World';
+                    
+                    // Create notification with action buttons for Windows/Linux
+                    const notificationOptions = {
+                        title: 'ChilloutVR Invite',
+                        body: `${userName} invited you to ${worldName}`,
+                        silent: false,
+                    };
+
+                    // Add action buttons if supported (Windows 10 Anniversary Update+)
+                    if (process.platform === 'win32') {
+                        notificationOptions.actions = [
+                            {
+                                type: 'button',
+                                text: 'Join in Desktop'
+                            },
+                            {
+                                type: 'button', 
+                                text: 'Join in VR'
+                            }
+                        ];
+                    }
+
+                    const notification = new Notification(notificationOptions);
+                    
+                    // Handle action button clicks
+                    notification.on('action', (event, index) => {
+                        try {
+                            if (!invite.instanceId) {
+                                log.warn('[InviteNotification] No instance ID available for invite');
+                                return;
+                            }
+
+                            const isVR = index === 1; // Second button is VR
+                            
+                            // Generate join link similar to frontend logic
+                            const generateInstanceJoinLink = (instanceId, startInVR = false) => {
+                                let formattedInstanceId = instanceId;
+                                if (!instanceId.startsWith('i+')) {
+                                    formattedInstanceId = `i+${instanceId}`;
+                                }
+                                
+                                const baseUrl = 'chilloutvr://instance/join';
+                                const params = new URLSearchParams({
+                                    instanceId: formattedInstanceId,
+                                    startInVR: startInVR.toString()
+                                });
+                                
+                                return `${baseUrl}?${params.toString()}`;
+                            };
+
+                            const deepLink = generateInstanceJoinLink(invite.instanceId, isVR);
+                            shell.openExternal(deepLink);
+                            
+                            log.info(`[InviteNotification] Opened join link: ${deepLink}`);
+                        } catch (error) {
+                            log.error('[InviteNotification] Failed to handle action click:', error);
+                        }
+                    });
+
+                    // Handle regular notification click (opens CVRX to show invite)
+                    notification.on('click', () => {
+                        // Bring CVRX window to front
+                        if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+                            this.mainWindow.show();
+                            this.mainWindow.focus();
+                        }
+                    });
+
+                    notification.show();
+                    log.info(`[InviteNotification] Sent notification for invite from ${userName} to ${worldName}`);
+                } catch (error) {
+                    log.error('[InviteNotification] Failed to send notification:', error);
+                }
+            }
+        }
+
         // Add invites to recent activity
         try {
             await this.UpdateRecentActivity(ActivityUpdatesType.Invites, invites);
@@ -874,6 +957,36 @@ class Core {
         //     "receiverId": "4a1661f1-2eeb-426e-92ec-1b2f08e609b3"
         // }]
         this.SendToRenderer('invite-requests', requestInvites);
+
+        // Send system notifications for new invite requests if enabled
+        if (Config.GetInviteRequestNotificationsEnabled() && requestInvites.length > 0) {
+            for (const requestInvite of requestInvites) {
+                try {
+                    const { Notification } = require('electron');
+                    const senderName = requestInvite.sender?.name || 'Someone';
+                    
+                    const notification = new Notification({
+                        title: 'ChilloutVR Invite Request',
+                        body: `${senderName} requested an invite from you`,
+                        silent: false,
+                    });
+
+                    // Handle notification click (opens CVRX to show invite request)
+                    notification.on('click', () => {
+                        // Bring CVRX window to front
+                        if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+                            this.mainWindow.show();
+                            this.mainWindow.focus();
+                        }
+                    });
+
+                    notification.show();
+                    log.info(`[InviteRequestNotification] Sent notification for invite request from ${senderName}`);
+                } catch (error) {
+                    log.error('[InviteRequestNotification] Failed to send notification:', error);
+                }
+            }
+        }
 
         // Add invite requests to recent activity
         try {

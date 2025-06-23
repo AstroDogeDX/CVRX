@@ -2603,6 +2603,10 @@ const matureContentSetting = document.getElementById('mature-content-setting');
 // Handle "Friend Notifications" setting
 const friendNotificationsCheckbox = document.getElementById('setting-friend-notifications-enabled');
 
+// Handle "Invite Notifications" settings
+const inviteNotificationsCheckbox = document.getElementById('setting-invite-notifications-enabled');
+const inviteRequestNotificationsCheckbox = document.getElementById('setting-invite-request-notifications-enabled');
+
 // Function to apply thumbnail shape to all existing thumbnail containers
 function applyThumbnailShape(shape) {
     const thumbnailContainers = document.querySelectorAll('.details-thumbnail-container');
@@ -2681,6 +2685,14 @@ window.API.getConfig().then(config => {
     
     if (config && config.FriendNotificationsEnabled !== undefined) {
         friendNotificationsCheckbox.checked = config.FriendNotificationsEnabled;
+    }
+    
+    if (config && config.InviteNotificationsEnabled !== undefined) {
+        inviteNotificationsCheckbox.checked = config.InviteNotificationsEnabled;
+    }
+    
+    if (config && config.InviteRequestNotificationsEnabled !== undefined) {
+        inviteRequestNotificationsCheckbox.checked = config.InviteRequestNotificationsEnabled;
     }
     
     // Load mature content setting
@@ -2801,6 +2813,38 @@ friendNotificationsCheckbox.addEventListener('change', () => {
             // Revert checkbox state if save failed
             window.API.getConfig().then(config => {
                 friendNotificationsCheckbox.checked = config.FriendNotificationsEnabled || false;
+            });
+        });
+});
+
+// Update config when "Invite Notifications" setting is changed
+inviteNotificationsCheckbox.addEventListener('change', () => {
+    window.API.updateConfig({ InviteNotificationsEnabled: inviteNotificationsCheckbox.checked })
+        .then(() => {
+            const statusText = inviteNotificationsCheckbox.checked ? 'enabled' : 'disabled';
+            pushToast(`Invite notifications ${statusText}`, 'confirm');
+        })
+        .catch(err => {
+            pushToast(`Error saving setting: ${err}`, 'error');
+            // Revert checkbox state if save failed
+            window.API.getConfig().then(config => {
+                inviteNotificationsCheckbox.checked = config.InviteNotificationsEnabled || false;
+            });
+        });
+});
+
+// Update config when "Invite Request Notifications" setting is changed
+inviteRequestNotificationsCheckbox.addEventListener('change', () => {
+    window.API.updateConfig({ InviteRequestNotificationsEnabled: inviteRequestNotificationsCheckbox.checked })
+        .then(() => {
+            const statusText = inviteRequestNotificationsCheckbox.checked ? 'enabled' : 'disabled';
+            pushToast(`Invite request notifications ${statusText}`, 'confirm');
+        })
+        .catch(err => {
+            pushToast(`Error saving setting: ${err}`, 'error');
+            // Revert checkbox state if save failed
+            window.API.getConfig().then(config => {
+                inviteRequestNotificationsCheckbox.checked = config.InviteRequestNotificationsEnabled || false;
             });
         });
 });
