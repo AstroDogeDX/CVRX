@@ -7270,3 +7270,58 @@ button {
     font-size: 1.4rem;
     font-weight: 600;
 }
+
+/* Ensure text elements don't inherit hover effects */
+.notification-item .notification-message,
+.notification-item .notification-world-name,
+.notification-item .material-symbols-outlined {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    transform: none !important;
+}
+
+/* Override any inherited transform from parent hover for specific elements */
+.notification-item:hover .notification-message,
+.notification-item:hover .notification-world-name,
+.notification-item:hover .notification-action-text,
+.notification-item:hover .notification-world-info {
+    transform: none !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Override any inherited transform from parent hover for specific elements */
+.notification-item:hover .notification-message,
+.notification-item:hover .notification-world-name {
+    transform: none !important;
+    background: transparent !important;
+}
+
+/* Friend Notification Button Styles */
+.friend-notification-button {
+    transition: all 0.3s ease;
+}
+
+.friend-notification-button.notification-enabled {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(56, 142, 60, 0.1));
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    color: #4caf50;
+}
+
+.friend-notification-button.notification-enabled:hover {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(56, 142, 60, 0.2));
+    border: 1px solid rgba(76, 175, 80, 0.5);
+    transform: translateY(-1px);
+}
+
+.friend-notification-button:not(.notification-enabled) {
+    background: linear-gradient(135deg, rgba(108, 117, 125, 0.2), rgba(73, 80, 87, 0.1));
+    border: 1px solid rgba(108, 117, 125, 0.3);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.friend-notification-button:not(.notification-enabled):hover {
+    background: linear-gradient(135deg, rgba(108, 117, 125, 0.3), rgba(73, 80, 87, 0.2));
+    border: 1px solid rgba(108, 117, 125, 0.5);
+    transform: translateY(-1px);
+}

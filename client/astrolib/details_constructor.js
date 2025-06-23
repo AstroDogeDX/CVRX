@@ -926,6 +926,44 @@ async function ShowDetails(entityType, entityId, dependencies) {
                     });
                 }
 
+                // Friend Notification Toggle button (only show for friends)
+                let notificationButton = null;
+                if (entityInfo.isFriend) {
+                    // Check current notification status
+                    let isNotificationEnabled = false;
+                    windowAPI.isFriendNotificationEnabled(entityId).then(enabled => {
+                        isNotificationEnabled = enabled;
+                        updateNotificationButtonState();
+                    }).catch(error => {
+                        log('Failed to check friend notification status:', error);
+                    });
+
+                    const updateNotificationButtonState = () => {
+                        const icon = isNotificationEnabled ? 'notifications' : 'notifications_off';
+                        const text = isNotificationEnabled ? 'Notifications On' : 'Notifications Off';
+                        notificationButton.innerHTML = `<span class="material-symbols-outlined">${icon}</span>${text}`;
+                        notificationButton.classList.toggle('notification-enabled', isNotificationEnabled);
+                    };
+
+                    notificationButton = createElement('button', {
+                        className: 'user-details-action-button friend-notification-button',
+                        innerHTML: '<span class="material-symbols-outlined">notifications_off</span>Notifications Off',
+                        onClick: async () => {
+                            try {
+                                const newState = !isNotificationEnabled;
+                                await windowAPI.setFriendNotification(entityId, newState);
+                                isNotificationEnabled = newState;
+                                updateNotificationButtonState();
+                                const statusText = newState ? 'enabled' : 'disabled';
+                                pushToast(`Friend notifications ${statusText} for ${entityInfo.name}`, 'confirm');
+                            } catch (error) {
+                                log('Failed to toggle friend notification:', error);
+                                pushToast('Failed to update notification settings', 'error');
+                            }
+                        },
+                    });
+                }
+
                 // Block/Unblock button
                 const blockButton = createElement('button', {
                     className: 'user-details-action-button',
@@ -996,6 +1034,10 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 const buttonsToAdd = [friendActionButton, blockButton];
                 if (categoriesButton) {
                     buttonsToAdd.splice(1, 0, categoriesButton); // Insert after friendActionButton
+                }
+                if (notificationButton) {
+                    const insertIndex = categoriesButton ? 2 : 1; // Insert after categoriesButton if it exists, otherwise after friendActionButton
+                    buttonsToAdd.splice(insertIndex, 0, notificationButton);
                 }
                 if (viewInGameButton) {
                     buttonsToAdd.unshift(viewInGameButton); // Add at the beginning

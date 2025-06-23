@@ -143,6 +143,12 @@ contextBridge.exposeInMainWorld('API', {
     reconnectWebSocket: () => ipcRenderer.send('reconnect-web-socket'),
     onSocketDied: (callback) => ipcRenderer.on('socket-died', callback),
 
+    // Friend Notifications
+    setFriendNotification: (userId, enabled) => ipcRenderer.invoke('set-friend-notification', userId, enabled),
+    isFriendNotificationEnabled: (userId) => ipcRenderer.invoke('is-friend-notification-enabled', userId),
+
+    // System info
+
     // App Version
     getVersion: () => ipcRenderer.send('get-app-version'),
     receiveVersion: (callback) => ipcRenderer.on('app-version', (event, arg) => callback(arg)),

@@ -2600,6 +2600,9 @@ const browseCvrExecutableButton = document.getElementById('browse-cvr-executable
 const matureContentCheckbox = document.getElementById('setting-mature-content-visibility');
 const matureContentSetting = document.getElementById('mature-content-setting');
 
+// Handle "Friend Notifications" setting
+const friendNotificationsCheckbox = document.getElementById('setting-friend-notifications-enabled');
+
 // Function to apply thumbnail shape to all existing thumbnail containers
 function applyThumbnailShape(shape) {
     const thumbnailContainers = document.querySelectorAll('.details-thumbnail-container');
@@ -2674,6 +2677,10 @@ window.API.getConfig().then(config => {
     }
     if (config && config.CVRExecutable !== undefined) {
         cvrExecutableInput.value = config.CVRExecutable;
+    }
+    
+    if (config && config.FriendNotificationsEnabled !== undefined) {
+        friendNotificationsCheckbox.checked = config.FriendNotificationsEnabled;
     }
     
     // Load mature content setting
@@ -2780,6 +2787,22 @@ matureContentCheckbox.addEventListener('change', async () => {
     } finally {
         checkbox.disabled = false;
     }
+});
+
+// Update config when "Friend Notifications" setting is changed
+friendNotificationsCheckbox.addEventListener('change', () => {
+    window.API.updateConfig({ FriendNotificationsEnabled: friendNotificationsCheckbox.checked })
+        .then(() => {
+            const statusText = friendNotificationsCheckbox.checked ? 'enabled' : 'disabled';
+            pushToast(`Friend online notifications ${statusText}`, 'confirm');
+        })
+        .catch(err => {
+            pushToast(`Error saving setting: ${err}`, 'error');
+            // Revert checkbox state if save failed
+            window.API.getConfig().then(config => {
+                friendNotificationsCheckbox.checked = config.FriendNotificationsEnabled || false;
+            });
+        });
 });
 
 // Set up refresh button event listeners (only once to prevent stacking)

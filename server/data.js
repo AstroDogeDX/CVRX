@@ -383,6 +383,26 @@ class Core {
                 };
             }
         });
+
+        // Friend Notifications
+        ipcMain.handle('set-friend-notification', async (_event, userId, enabled) => {
+            try {
+                await Config.SetFriendNotificationForUser(userId, enabled);
+                return { success: true };
+            } catch (error) {
+                log.error(`Failed to set friend notification for ${userId}:`, error);
+                throw error;
+            }
+        });
+
+        ipcMain.handle('is-friend-notification-enabled', async (_event, userId) => {
+            try {
+                return Config.IsFriendNotificationEnabled(userId);
+            } catch (error) {
+                log.error(`Failed to check friend notification for ${userId}:`, error);
+                return false;
+            }
+        });
     }
 
     SendToRenderer(channel, ...args) {
@@ -643,6 +663,26 @@ class Core {
 
                     // Ignore updates if they are the same as the previous state
                     if (IsObjectEqualExcept(current, previous, ['imageBase64'])) continue;
+
+                    // Check for friend coming online and send notification if enabled
+                    if (previous && !isInitial && Config.IsFriendNotificationEnabled(friendUpdate.id)) {
+                        const wasOffline = !previous.isOnline;
+                        const isNowOnline = current.isOnline;
+                        
+                        if (wasOffline && isNowOnline) {
+                            // Friend came online, send system notification
+                            const { Notification } = require('electron');
+                            const friendName = current.name || 'Friend';
+                            const notification = new Notification({
+                                title: 'Friend Online',
+                                body: `${friendName} is now online`,
+                                silent: false,
+                            });
+                            notification.show();
+                            
+                            log.info(`[FriendNotification] ${friendName} came online, notification sent`);
+                        }
+                    }
 
                     this.recentActivity.unshift({
                         timestamp: Date.now(),

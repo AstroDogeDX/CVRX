@@ -65,6 +65,8 @@ exports.Load = async () => {
         CVRExecutable: path.join(CVRExecutableDefaultFolderPath, CVRExecutableName),
         UpdaterIgnoreVersion: null,
         RecentActivityMaxCount: 25,
+        FriendNotificationsEnabled: false,
+        FriendNotificationsList: {},
     };
     config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, defaultObjectConfig);
     MergeDefaultConfig(config, defaultObjectConfig);
@@ -321,6 +323,26 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.RecentActivityMaxCount = maxCount;
     }
 
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'FriendNotificationsEnabled')) {
+        const enabled = newConfigSettings.FriendNotificationsEnabled;
+
+        if (typeof enabled !== 'boolean') {
+            throw new Error('[UpdateConfig] FriendNotificationsEnabled should be a boolean value.');
+        }
+
+        config.FriendNotificationsEnabled = enabled;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'FriendNotificationsList')) {
+        const friendsList = newConfigSettings.FriendNotificationsList;
+
+        if (typeof friendsList !== 'object' || friendsList === null || Array.isArray(friendsList)) {
+            throw new Error('[UpdateConfig] FriendNotificationsList should be an object.');
+        }
+
+        config.FriendNotificationsList = friendsList;
+    }
+
     await UpdateJsonFile(FileType.CONFIG);
 
     return exports.GetConfig();
@@ -334,6 +356,8 @@ exports.GetConfig = () => ({
     OnlineFriendsThumbnailShape: config.OnlineFriendsThumbnailShape,
     CVRExecutable: config.CVRExecutable,
     RecentActivityMaxCount: config.RecentActivityMaxCount,
+    FriendNotificationsEnabled: config.FriendNotificationsEnabled,
+    FriendNotificationsList: config.FriendNotificationsList,
 });
 
 
@@ -344,6 +368,23 @@ exports.GetCloseToSystemTray = () => config.CloseToSystemTray;
 exports.GetCVRPath = GetCVRPath;
 
 exports.GetRecentActivityMaxCount = () => config.RecentActivityMaxCount;
+
+exports.GetFriendNotificationsEnabled = () => config.FriendNotificationsEnabled;
+
+exports.GetFriendNotificationsList = () => config.FriendNotificationsList;
+
+exports.SetFriendNotificationForUser = async (userId, enabled) => {
+    if (enabled) {
+        config.FriendNotificationsList[userId] = true;
+    } else {
+        delete config.FriendNotificationsList[userId];
+    }
+    await UpdateJsonFile(FileType.CONFIG);
+};
+
+exports.IsFriendNotificationEnabled = (userId) => {
+    return config.FriendNotificationsEnabled && config.FriendNotificationsList[userId] === true;
+};
 
 exports.GetUpdaterIgnoreVersion = () => config.UpdaterIgnoreVersion;
 exports.SetUpdaterIgnoreVersion = async (versionToIgnore) => {
