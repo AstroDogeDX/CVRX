@@ -3436,3 +3436,165 @@ async function handleRecentlyUpdatedDiscovery() {
         applyTooltips();
     }
 }
+
+// Handle "Manage Friend Notifications" button
+const manageFriendNotificationsButton = document.getElementById('manage-friend-notifications-button');
+
+manageFriendNotificationsButton.addEventListener('click', async () => {
+    try {
+        // Get list of friends with notifications enabled
+        const friendsWithNotifications = await window.API.getFriendsWithNotifications();
+        
+        // Show the manage friend notifications modal
+        showManageFriendNotificationsModal(friendsWithNotifications);
+    } catch (error) {
+        console.error('Failed to get friends with notifications:', error);
+        pushToast('Failed to load friend notifications list', 'error');
+    }
+});
+
+// Function to show the manage friend notifications modal
+function showManageFriendNotificationsModal(friendsWithNotifications) {
+    const modalShade = document.querySelector('.prompt-layer');
+    const modal = createElement('div', { className: 'prompt manage-notifications-modal' });
+    
+    // Modal title
+    const modalTitle = createElement('div', { 
+        className: 'prompt-title', 
+        textContent: 'Manage Friend Notifications' 
+    });
+    
+    // Modal content
+    const modalContent = createElement('div', { className: 'prompt-text' });
+    
+    // Instructions
+    const instructions = createElement('p', {
+        textContent: `Friends with notifications enabled (${friendsWithNotifications.length}):`,
+        className: 'manage-notifications-instructions'
+    });
+    modalContent.appendChild(instructions);
+    
+    // Friends container
+    const friendsContainer = createElement('div', { className: 'manage-notifications-friends-container' });
+    
+    if (friendsWithNotifications.length === 0) {
+        const noFriendsMessage = createElement('div', {
+            className: 'manage-notifications-no-friends',
+            textContent: 'No friends have notifications enabled. You can enable notifications for individual friends by viewing their profile.'
+        });
+        friendsContainer.appendChild(noFriendsMessage);
+    } else {
+        // Create list items for each friend
+        friendsWithNotifications.forEach(friend => {
+            const friendItem = createElement('div', { className: 'manage-notifications-friend-item' });
+            
+            // Friend avatar
+            const friendAvatar = createElement('img', {
+                className: 'manage-notifications-friend-avatar',
+                src: 'img/ui/placeholder.png'
+            });
+            // Use the proper image loading system
+            setImageSource(friendAvatar, friend.imageHash);
+            
+            // Friend info
+            const friendInfo = createElement('div', { className: 'manage-notifications-friend-info' });
+            
+            const friendName = createElement('div', {
+                className: 'manage-notifications-friend-name',
+                textContent: friend.name
+            });
+            
+            const friendStatus = createElement('div', {
+                className: `manage-notifications-friend-status ${friend.isOnline ? 'online' : 'offline'}`,
+                textContent: friend.isOnline ? 'Online' : 'Offline'
+            });
+            
+            friendInfo.appendChild(friendName);
+            friendInfo.appendChild(friendStatus);
+            
+            // Remove button
+            const removeButton = createElement('button', {
+                className: 'manage-notifications-remove-button',
+                innerHTML: '<span class="material-symbols-outlined">notifications_off</span>',
+                title: 'Disable notifications for this friend',
+                onClick: async () => {
+                    try {
+                        await window.API.setFriendNotification(friend.id, false);
+                        pushToast(`Disabled notifications for ${friend.name}`, 'confirm');
+                        
+                        // Remove the friend item from the list
+                        friendItem.remove();
+                        
+                        // Update the counter
+                        const remainingCount = friendsContainer.querySelectorAll('.manage-notifications-friend-item').length;
+                        instructions.textContent = `Friends with notifications enabled (${remainingCount}):`;
+                        
+                        // Show "no friends" message if list is now empty
+                        if (remainingCount === 0) {
+                            const noFriendsMessage = createElement('div', {
+                                className: 'manage-notifications-no-friends',
+                                textContent: 'No friends have notifications enabled. You can enable notifications for individual friends by viewing their profile.'
+                            });
+                            friendsContainer.appendChild(noFriendsMessage);
+                        }
+                    } catch (error) {
+                        console.error('Failed to disable friend notification:', error);
+                        pushToast('Failed to disable notification', 'error');
+                    }
+                }
+            });
+            
+            // View profile button
+            const viewProfileButton = createElement('button', {
+                className: 'manage-notifications-view-profile-button',
+                innerHTML: '<span class="material-symbols-outlined">person</span>',
+                title: 'View friend profile',
+                onClick: () => {
+                    // Close the modal first
+                    modal.remove();
+                    modalShade.style.display = 'none';
+                    
+                    // Open the friend's profile
+                    ShowDetailsWrapper(DetailsType.User, friend.id);
+                }
+            });
+            
+            // Actions container
+            const actionsContainer = createElement('div', { className: 'manage-notifications-friend-actions' });
+            actionsContainer.appendChild(viewProfileButton);
+            actionsContainer.appendChild(removeButton);
+            
+            // Assemble friend item
+            friendItem.appendChild(friendAvatar);
+            friendItem.appendChild(friendInfo);
+            friendItem.appendChild(actionsContainer);
+            
+            friendsContainer.appendChild(friendItem);
+        });
+    }
+    
+    modalContent.appendChild(friendsContainer);
+    
+    // Modal buttons
+    const modalButtons = createElement('div', { className: 'prompt-buttons' });
+    
+    // Close button
+    const closeButton = createElement('button', {
+        className: 'prompt-btn-neutral',
+        textContent: 'Close',
+        onClick: () => {
+            modal.remove();
+            modalShade.style.display = 'none';
+        }
+    });
+    
+    modalButtons.appendChild(closeButton);
+    
+    // Assemble modal
+    modal.append(modalTitle, modalContent, modalButtons);
+    modalShade.append(modal);
+    modalShade.style.display = 'flex';
+    
+    // Apply tooltips to newly created elements
+    applyTooltips();
+}

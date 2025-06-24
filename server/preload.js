@@ -146,6 +146,7 @@ contextBridge.exposeInMainWorld('API', {
     // Friend Notifications
     setFriendNotification: (userId, enabled) => ipcRenderer.invoke('set-friend-notification', userId, enabled),
     isFriendNotificationEnabled: (userId) => ipcRenderer.invoke('is-friend-notification-enabled', userId),
+    getFriendsWithNotifications: () => ipcRenderer.invoke('get-friends-with-notifications'),
 
     // System info
 

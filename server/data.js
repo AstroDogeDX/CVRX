@@ -403,6 +403,45 @@ class Core {
                 return false;
             }
         });
+
+        ipcMain.handle('get-friends-with-notifications', async (_event) => {
+            try {
+                const friendNotificationsList = Config.GetFriendNotificationsList();
+                const friendsWithNotifications = [];
+                
+                // Get friend info for each user ID that has notifications enabled
+                for (const userId of Object.keys(friendNotificationsList)) {
+                    if (friendNotificationsList[userId] === true) {
+                        try {
+                            // Get friend info from our friends cache
+                            const friendInfo = this.friends[userId];
+                            if (friendInfo) {
+                                friendsWithNotifications.push({
+                                    id: userId,
+                                    name: friendInfo.name || 'Unknown',
+                                    imageHash: friendInfo.imageHash || '',
+                                    isOnline: friendInfo.isOnline || false
+                                });
+                            }
+                        } catch (error) {
+                            log.warn(`Failed to get friend info for ${userId}:`, error);
+                            // Still add to list with minimal info
+                            friendsWithNotifications.push({
+                                id: userId,
+                                name: 'Unknown Friend',
+                                imageHash: '',
+                                isOnline: false
+                            });
+                        }
+                    }
+                }
+                
+                return friendsWithNotifications;
+            } catch (error) {
+                log.error('Failed to get friends with notifications:', error);
+                throw error;
+            }
+        });
     }
 
     SendToRenderer(channel, ...args) {

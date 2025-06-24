@@ -7328,26 +7328,21 @@ button {
 
 /* Details Loading Spinner */
 .details-loading {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    right: 0;
+    bottom: 0;
     background: rgba(0, 0, 0, 0.8);
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 1001;
-    gap: 1.5rem;
-    opacity: 1;
-    transition: opacity 0.2s ease-in-out;
+    z-index: 100;
+    backdrop-filter: blur(2px);
 }
 
 .details-loading.hidden {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s ease-in-out;
+    display: none;
 }
 
 .details-loading-content {
@@ -7355,24 +7350,146 @@ button {
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 1rem;
-    padding: 2rem;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    color: var(--color-text);
 }
 
-.details-loading .spinner {
-    width: 48px;
-    height: 48px;
-    font-size: 48px !important;
-    animation: rotate 1s linear infinite;
-    color: var(--color-accent);
+.details-loading-content .spinner {
+    font-size: 2rem;
+    animation: spin 1s linear infinite;
 }
 
 .details-loading-text {
     font-size: 1rem;
-    color: rgba(255, 255, 255, 0.9);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 500;
+    opacity: 0.8;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Manage Friend Notifications Modal Styles */
+.manage-notifications-modal {
+    min-width: 500px;
+    max-width: 600px;
+}
+
+.manage-notifications-instructions {
+    margin-bottom: 15px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
+
+.manage-notifications-friends-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radii);
+    background: var(--color-background-dark);
+}
+
+.manage-notifications-no-friends {
+    padding: 20px;
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-style: italic;
+    line-height: 1.4;
+}
+
+.manage-notifications-friend-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    transition: background-color 0.2s ease;
+    gap: 15px;
+}
+
+.manage-notifications-friend-item:last-child {
+    border-bottom: none;
+}
+
+.manage-notifications-friend-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.manage-notifications-friend-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.manage-notifications-friend-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.manage-notifications-friend-name {
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 14px;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.manage-notifications-friend-status {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.manage-notifications-friend-status.online {
+    color: #4CAF50;
+}
+
+.manage-notifications-friend-status.offline {
+    color: #f44336;
+}
+
+.manage-notifications-friend-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.manage-notifications-view-profile-button,
+.manage-notifications-remove-button {
+    padding: 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-background);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+}
+
+.manage-notifications-view-profile-button:hover {
+    background: var(--color-background-hover);
+    border-color: var(--color-border-hover);
+}
+
+.manage-notifications-remove-button {
+    background: rgba(244, 67, 54, 0.1);
+    border-color: rgba(244, 67, 54, 0.3);
+    color: #f44336;
+}
+
+.manage-notifications-remove-button:hover {
+    background: rgba(244, 67, 54, 0.2);
+    border-color: rgba(244, 67, 54, 0.5);
+    transform: translateY(-1px);
+}
+
+.manage-notifications-view-profile-button .material-symbols-outlined,
+.manage-notifications-remove-button .material-symbols-outlined {
+    font-size: 18px;
 }
