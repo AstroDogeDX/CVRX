@@ -755,6 +755,26 @@ async function ShowDetails(entityType, entityId, dependencies) {
     let detailsTabs = document.querySelector('.details-tabs');
     let detailsContent = document.querySelector('.details-content');
     let detailsHeader = document.querySelector('.details-header');
+    
+    // Get loading and shade elements
+    const detailsShade = document.querySelector('.details-shade');
+    const detailsLoading = document.querySelector('.details-loading');
+
+    // Show the details shade immediately with loading spinner
+    detailsShade.style.display = 'flex';
+    detailsLoading.classList.remove('hidden');
+
+    // Handle clicking outside to close
+    detailsShade.onclick = (event) => {
+        if (event.target === detailsShade) {
+            detailsShade.style.display = 'none';
+            detailsLoading.classList.add('hidden');
+            // Call onClose callback if provided
+            if (dependencies.onClose) {
+                dependencies.onClose();
+            }
+        }
+    };
 
     let entityInfo;
     
@@ -775,6 +795,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 entityInfo = await windowAPI.getUserById(entityId);
             } catch (error) {
                 log('Failed to get user by ID:', error);
+                // Hide loading spinner and modal on error
+                detailsLoading.classList.add('hidden');
+                detailsShade.style.display = 'none';
                 // Extract the meaningful part of the error message
                 const errorText = error.message.includes('Error: ') ? 
                     error.message.substring(error.message.lastIndexOf('Error: ')) : 
@@ -788,23 +811,11 @@ async function ShowDetails(entityType, entityId, dependencies) {
             const isMyProfile = currentActiveUser && entityId === currentActiveUser.id;
             
             // Data fetching successful, now set up the UI
+            // Hide loading spinner since we have the data
+            detailsLoading.classList.add('hidden');
+            
             // Update the window classes based on entity type
             updateDetailsWindowClasses(entityType);
-
-            // Show the details window
-            const detailsShade = document.querySelector('.details-shade');
-            detailsShade.style.display = 'flex';
-
-            // Handle clicking outside to close
-            detailsShade.onclick = (event) => {
-                if (event.target === detailsShade) {
-                    detailsShade.style.display = 'none';
-                    // Call onClose callback if provided
-                    if (dependencies.onClose) {
-                        dependencies.onClose();
-                    }
-                }
-            };
 
             // Clear all existing tabs
             clearAllTabs();
@@ -1060,6 +1071,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 entityInfo = await windowAPI.getAvatarById(entityId);
             } catch (error) {
                 log('Failed to get avatar by ID:', error);
+                // Hide loading spinner and modal on error
+                detailsLoading.classList.add('hidden');
+                detailsShade.style.display = 'none';
                 // Extract the meaningful part of the error message
                 const errorText = error.message.includes('Error: ') ? 
                     error.message.substring(error.message.lastIndexOf('Error: ')) : 
@@ -1070,6 +1084,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
             }
             
             // Data fetching successful, now set up the UI
+            // Hide loading spinner since we have the data
+            detailsLoading.classList.add('hidden');
+            
             // Update the window classes based on entity type
             updateDetailsWindowClasses(entityType);
 
@@ -1314,6 +1331,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 entityInfo = await windowAPI.getPropById(entityId);
             } catch (error) {
                 log('Failed to get prop by ID:', error);
+                // Hide loading spinner and modal on error
+                detailsLoading.classList.add('hidden');
+                detailsShade.style.display = 'none';
                 // Extract the meaningful part of the error message
                 const errorText = error.message.includes('Error: ') ? 
                     error.message.substring(error.message.lastIndexOf('Error: ')) : 
@@ -1324,6 +1344,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
             }
             
             // Data fetching successful, now set up the UI
+            // Hide loading spinner since we have the data
+            detailsLoading.classList.add('hidden');
+            
             // Update the window classes based on entity type
             updateDetailsWindowClasses(entityType);
 
@@ -1503,6 +1526,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 entityInfo = await windowAPI.getWorldById(entityId);
             } catch (error) {
                 log('Failed to get world by ID:', error);
+                // Hide loading spinner and modal on error
+                detailsLoading.classList.add('hidden');
+                detailsShade.style.display = 'none';
                 // Extract the meaningful part of the error message
                 const errorText = error.message.includes('Error: ') ? 
                     error.message.substring(error.message.lastIndexOf('Error: ')) : 
@@ -1513,6 +1539,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
             }
             
             // Data fetching successful, now set up the UI
+            // Hide loading spinner since we have the data
+            detailsLoading.classList.add('hidden');
+            
             // Update the window classes based on entity type
             updateDetailsWindowClasses(entityType);
 
@@ -1676,6 +1705,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 entityInfo = await windowAPI.getInstanceById(entityId);
             } catch (error) {
                 log('Failed to get instance by ID:', error);
+                // Hide loading spinner and modal on error
+                detailsLoading.classList.add('hidden');
+                detailsShade.style.display = 'none';
                 // Extract the meaningful part of the error message
                 const errorText = error.message.includes('Error: ') ? 
                     error.message.substring(error.message.lastIndexOf('Error: ')) : 
@@ -1686,6 +1718,9 @@ async function ShowDetails(entityType, entityId, dependencies) {
             }
             
             // Data fetching successful, now set up the UI
+            // Hide loading spinner since we have the data
+            detailsLoading.classList.add('hidden');
+            
             // Update the window classes based on entity type
             updateDetailsWindowClasses(entityType);
 
