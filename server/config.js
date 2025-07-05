@@ -407,7 +407,17 @@ exports.SetFriendNotificationForUser = async (userId, enabled) => {
 };
 
 exports.IsFriendNotificationEnabled = (userId) => {
-    return config.ShowFriendNotifications && config.FriendNotificationsList[userId] === true;
+    const globalEnabled = config.ShowFriendNotifications;
+    const userEnabled = config.FriendNotificationsList[userId] === true;
+    const result = globalEnabled && userEnabled;
+    
+    log.info(`[IsFriendNotificationEnabled] Checking for userId: ${userId}`);
+    log.info(`[IsFriendNotificationEnabled] Global notifications enabled: ${globalEnabled}`);
+    log.info(`[IsFriendNotificationEnabled] User in notification list: ${userEnabled}`);
+    log.info(`[IsFriendNotificationEnabled] Result: ${result}`);
+    log.info(`[IsFriendNotificationEnabled] Full notification list: ${JSON.stringify(config.FriendNotificationsList)}`);
+    
+    return result;
 };
 
 exports.GetInviteNotificationsEnabled = () => config.ShowInviteNotifications;

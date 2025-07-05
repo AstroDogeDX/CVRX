@@ -664,7 +664,8 @@ class Core {
     }
 
     async UpdateRecentActivity(updateType, updateInfo) {
-
+        log.info(`[UpdateRecentActivity] Called with type: ${updateType}, updateInfo count: ${Array.isArray(updateInfo) ? updateInfo.length : 1}`);
+        
         switch (updateType) {
             case ActivityUpdatesType.Friends: {
 
@@ -703,23 +704,94 @@ class Core {
                     // Ignore updates if they are the same as the previous state
                     if (IsObjectEqualExcept(current, previous, ['imageBase64'])) continue;
 
+                    // Log friend update for debugging
+                    log.info(`[FriendNotification] Processing friend update for ID: ${friendUpdate.id}`);
+                    log.info(`[FriendNotification] Friend name: ${current.name || 'Unknown'}`);
+                    log.info(`[FriendNotification] Is initial update: ${isInitial}`);
+                    
+                    // Check if we have notification settings for this user
+                    const notificationEnabled = Config.IsFriendNotificationEnabled(friendUpdate.id);
+                    log.info(`[FriendNotification] Notification enabled for ${friendUpdate.id}: ${notificationEnabled}`);
+                    
+                    // Log previous and current states
+                    if (previous) {
+                        log.info(`[FriendNotification] Previous state - isOnline: ${previous.isOnline}, isConnected: ${previous.isConnected}, hasInstance: ${!!previous.instance}`);
+                    } else {
+                        log.info(`[FriendNotification] No previous state (first time seeing this friend)`);
+                    }
+                    log.info(`[FriendNotification] Current state - isOnline: ${current.isOnline}, isConnected: ${current.isConnected}, hasInstance: ${!!current.instance}`);
+                    
                     // Check for friend coming online and send notification if enabled
-                    if (previous && !isInitial && Config.IsFriendNotificationEnabled(friendUpdate.id)) {
-                        const wasOffline = !previous.isOnline;
-                        const isNowOnline = current.isOnline;
+                    if (!isInitial && notificationEnabled) {
+                        // Friend states explained:
+                        // - Offline: isOnline = false (user is not connected to CVR servers)
+                        // - Offline Instance: isOnline = true, isConnected = false (connected to CVR but in an offline instance)
+                        // - Private Instance: isOnline = true, isConnected = true, instance = null
+                        // - Public/Friends Instance: isOnline = true, isConnected = true, instance = {...}
                         
-                        if (wasOffline && isNowOnline) {
+                        let shouldNotify = false;
+                        let notificationReason = '';
+                        
+                        if (previous) {
+                            // We have a previous state - check for offline to online transition
+                            const wasTrulyOffline = !previous.isOnline;
+                            const isNowInAnyOnlineState = current.isOnline;
+                            
+                            log.info(`[FriendNotification] Was truly offline: ${wasTrulyOffline}, Is now in any online state: ${isNowInAnyOnlineState}`);
+                            
+                            if (wasTrulyOffline && isNowInAnyOnlineState) {
+                                shouldNotify = true;
+                                notificationReason = 'Friend came online from offline state';
+                            }
+                        } else {
+                            // No previous state - if friend is currently online, assume they just came online
+                            // This handles the case where we're seeing this friend for the first time
+                            if (current.isOnline) {
+                                shouldNotify = true;
+                                notificationReason = 'Friend is online (first time tracking)';
+                                log.info(`[FriendNotification] No previous state but friend is online - assuming they just came online`);
+                            }
+                        }
+                        
+                        if (shouldNotify) {
+                            log.info(`[FriendNotification] ${notificationReason} - SENDING NOTIFICATION`);
+                            
                             // Friend came online, send system notification
                             const { Notification } = require('electron');
                             const friendName = current.name || 'Friend';
+                            
+                            // Determine what kind of instance they joined
+                            let instanceType = 'online';
+                            if (!current.isConnected) {
+                                instanceType = 'an Offline Instance';
+                            } else if (!current.instance) {
+                                instanceType = 'a Private Instance';
+                            } else if (current.instance.name) {
+                                instanceType = current.instance.name;
+                            }
+                            
+                            log.info(`[FriendNotification] Instance type determined: ${instanceType}`);
+                            
                             const notification = new Notification({
                                 title: 'Friend Online',
-                                body: `${friendName} is now online`,
+                                body: `${friendName} is now online${instanceType !== 'online' ? ' in ' + instanceType : ''}`,
                                 silent: false,
                             });
                             notification.show();
                             
-                            log.info(`[FriendNotification] ${friendName} came online, notification sent`);
+                            log.info(`[FriendNotification] ${friendName} notification sent successfully`);
+                        } else {
+                            if (previous) {
+                                log.info(`[FriendNotification] No notification sent - Friend was already online or didn't come online`);
+                            } else {
+                                log.info(`[FriendNotification] No notification sent - Friend is offline (first time tracking)`);
+                            }
+                        }
+                    } else {
+                        if (isInitial) {
+                            log.info(`[FriendNotification] No notification sent - Initial update`);
+                        } else if (!notificationEnabled) {
+                            log.info(`[FriendNotification] No notification sent - Notifications not enabled for this friend`);
                         }
                     }
 
@@ -786,6 +858,11 @@ class Core {
         // }
         // }]'
 
+        log.info(`[FriendsUpdate] Called with isRefresh: ${isRefresh}, friendsInfo count: ${friendsInfo ? friendsInfo.length : 0}`);
+        if (!isRefresh && friendsInfo) {
+            log.info(`[FriendsUpdate] Websocket update received for friends: ${friendsInfo.map(f => f.id).join(', ')}`);
+        }
+
         // If it's a refresh actually get the friends info
         if (isRefresh) {
             friendsInfo = await CVRHttp.GetMyFriends();
@@ -809,6 +886,8 @@ class Core {
             else {
                 if (!isRefresh && !this.friends[friendInfo.id]) {
                     // We got a friend update from someone that's not on our cache. Let's refresh the friends list!
+                    log.info(`[FriendsUpdate] Friend ID ${friendInfo.id} not found in cache! Triggering full refresh.`);
+                    log.info(`[FriendsUpdate] Current friends in cache: ${Object.keys(this.friends).join(', ')}`);
                     await this.FriendsUpdate(true);
                     return;
                 }
