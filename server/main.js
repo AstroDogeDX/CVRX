@@ -3,6 +3,8 @@ dotenv.config();
 
 const { app, BrowserWindow, Menu, ipcMain, nativeImage, Tray, Notification } = require('electron');
 
+app.setAppUserModelId('com.squirrel.CVRX.CVRX');
+
 // Prevent app launching multiple times during the installation
 if (require('electron-squirrel-startup')) {
     app.quit();
