@@ -2683,16 +2683,16 @@ window.API.getConfig().then(config => {
         cvrExecutableInput.value = config.CVRExecutable;
     }
     
-    if (config && config.FriendNotificationsEnabled !== undefined) {
-        friendNotificationsCheckbox.checked = config.FriendNotificationsEnabled;
+    if (config && config.ShowFriendNotifications !== undefined) {
+        friendNotificationsCheckbox.checked = config.ShowFriendNotifications;
     }
     
-    if (config && config.InviteNotificationsEnabled !== undefined) {
-        inviteNotificationsCheckbox.checked = config.InviteNotificationsEnabled;
+    if (config && config.ShowInviteNotifications !== undefined) {
+        inviteNotificationsCheckbox.checked = config.ShowInviteNotifications;
     }
     
-    if (config && config.InviteRequestNotificationsEnabled !== undefined) {
-        inviteRequestNotificationsCheckbox.checked = config.InviteRequestNotificationsEnabled;
+    if (config && config.ShowInviteRequestNotifications !== undefined) {
+        inviteRequestNotificationsCheckbox.checked = config.ShowInviteRequestNotifications;
     }
     
     // Load mature content setting
@@ -2803,7 +2803,7 @@ matureContentCheckbox.addEventListener('change', async () => {
 
 // Update config when "Friend Notifications" setting is changed
 friendNotificationsCheckbox.addEventListener('change', () => {
-    window.API.updateConfig({ FriendNotificationsEnabled: friendNotificationsCheckbox.checked })
+    window.API.updateConfig({ ShowFriendNotifications: friendNotificationsCheckbox.checked })
         .then(() => {
             const statusText = friendNotificationsCheckbox.checked ? 'enabled' : 'disabled';
             pushToast(`Friend online notifications ${statusText}`, 'confirm');
@@ -2812,14 +2812,14 @@ friendNotificationsCheckbox.addEventListener('change', () => {
             pushToast(`Error saving setting: ${err}`, 'error');
             // Revert checkbox state if save failed
             window.API.getConfig().then(config => {
-                friendNotificationsCheckbox.checked = config.FriendNotificationsEnabled || false;
+                friendNotificationsCheckbox.checked = config.ShowFriendNotifications || false;
             });
         });
 });
 
 // Update config when "Invite Notifications" setting is changed
 inviteNotificationsCheckbox.addEventListener('change', () => {
-    window.API.updateConfig({ InviteNotificationsEnabled: inviteNotificationsCheckbox.checked })
+    window.API.updateConfig({ ShowInviteNotifications: inviteNotificationsCheckbox.checked })
         .then(() => {
             const statusText = inviteNotificationsCheckbox.checked ? 'enabled' : 'disabled';
             pushToast(`Invite notifications ${statusText}`, 'confirm');
@@ -2828,14 +2828,14 @@ inviteNotificationsCheckbox.addEventListener('change', () => {
             pushToast(`Error saving setting: ${err}`, 'error');
             // Revert checkbox state if save failed
             window.API.getConfig().then(config => {
-                inviteNotificationsCheckbox.checked = config.InviteNotificationsEnabled || false;
+                inviteNotificationsCheckbox.checked = config.ShowInviteNotifications || false;
             });
         });
 });
 
 // Update config when "Invite Request Notifications" setting is changed
 inviteRequestNotificationsCheckbox.addEventListener('change', () => {
-    window.API.updateConfig({ InviteRequestNotificationsEnabled: inviteRequestNotificationsCheckbox.checked })
+    window.API.updateConfig({ ShowInviteRequestNotifications: inviteRequestNotificationsCheckbox.checked })
         .then(() => {
             const statusText = inviteRequestNotificationsCheckbox.checked ? 'enabled' : 'disabled';
             pushToast(`Invite request notifications ${statusText}`, 'confirm');
@@ -2844,7 +2844,7 @@ inviteRequestNotificationsCheckbox.addEventListener('change', () => {
             pushToast(`Error saving setting: ${err}`, 'error');
             // Revert checkbox state if save failed
             window.API.getConfig().then(config => {
-                inviteRequestNotificationsCheckbox.checked = config.InviteRequestNotificationsEnabled || false;
+                inviteRequestNotificationsCheckbox.checked = config.ShowInviteRequestNotifications || false;
             });
         });
 });

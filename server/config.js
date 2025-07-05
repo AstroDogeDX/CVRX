@@ -65,10 +65,10 @@ exports.Load = async () => {
         CVRExecutable: path.join(CVRExecutableDefaultFolderPath, CVRExecutableName),
         UpdaterIgnoreVersion: null,
         RecentActivityMaxCount: 25,
-        FriendNotificationsEnabled: false,
+        ShowFriendNotifications: true,
         FriendNotificationsList: {},
-        InviteNotificationsEnabled: false,
-        InviteRequestNotificationsEnabled: false,
+        ShowInviteNotifications: true,
+        ShowInviteRequestNotifications: true,
     };
     config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, defaultObjectConfig);
     MergeDefaultConfig(config, defaultObjectConfig);
@@ -325,14 +325,14 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.RecentActivityMaxCount = maxCount;
     }
 
-    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'FriendNotificationsEnabled')) {
-        const enabled = newConfigSettings.FriendNotificationsEnabled;
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'ShowFriendNotifications')) {
+        const enabled = newConfigSettings.ShowFriendNotifications;
 
         if (typeof enabled !== 'boolean') {
-            throw new Error('[UpdateConfig] FriendNotificationsEnabled should be a boolean value.');
+            throw new Error('[UpdateConfig] ShowFriendNotifications should be a boolean value.');
         }
 
-        config.FriendNotificationsEnabled = enabled;
+        config.ShowFriendNotifications = enabled;
     }
 
     if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'FriendNotificationsList')) {
@@ -345,24 +345,24 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.FriendNotificationsList = friendsList;
     }
 
-    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'InviteNotificationsEnabled')) {
-        const enabled = newConfigSettings.InviteNotificationsEnabled;
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'ShowInviteNotifications')) {
+        const enabled = newConfigSettings.ShowInviteNotifications;
 
         if (typeof enabled !== 'boolean') {
-            throw new Error('[UpdateConfig] InviteNotificationsEnabled should be a boolean value.');
+            throw new Error('[UpdateConfig] ShowInviteNotifications should be a boolean value.');
         }
 
-        config.InviteNotificationsEnabled = enabled;
+        config.ShowInviteNotifications = enabled;
     }
 
-    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'InviteRequestNotificationsEnabled')) {
-        const enabled = newConfigSettings.InviteRequestNotificationsEnabled;
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'ShowInviteRequestNotifications')) {
+        const enabled = newConfigSettings.ShowInviteRequestNotifications;
 
         if (typeof enabled !== 'boolean') {
-            throw new Error('[UpdateConfig] InviteRequestNotificationsEnabled should be a boolean value.');
+            throw new Error('[UpdateConfig] ShowInviteRequestNotifications should be a boolean value.');
         }
 
-        config.InviteRequestNotificationsEnabled = enabled;
+        config.ShowInviteRequestNotifications = enabled;
     }
 
     await UpdateJsonFile(FileType.CONFIG);
@@ -378,10 +378,10 @@ exports.GetConfig = () => ({
     OnlineFriendsThumbnailShape: config.OnlineFriendsThumbnailShape,
     CVRExecutable: config.CVRExecutable,
     RecentActivityMaxCount: config.RecentActivityMaxCount,
-    FriendNotificationsEnabled: config.FriendNotificationsEnabled,
+    ShowFriendNotifications: config.ShowFriendNotifications,
     FriendNotificationsList: config.FriendNotificationsList,
-    InviteNotificationsEnabled: config.InviteNotificationsEnabled,
-    InviteRequestNotificationsEnabled: config.InviteRequestNotificationsEnabled,
+    ShowInviteNotifications: config.ShowInviteNotifications,
+    ShowInviteRequestNotifications: config.ShowInviteRequestNotifications,
 });
 
 
@@ -393,7 +393,7 @@ exports.GetCVRPath = GetCVRPath;
 
 exports.GetRecentActivityMaxCount = () => config.RecentActivityMaxCount;
 
-exports.GetFriendNotificationsEnabled = () => config.FriendNotificationsEnabled;
+exports.GetFriendNotificationsEnabled = () => config.ShowFriendNotifications;
 
 exports.GetFriendNotificationsList = () => config.FriendNotificationsList;
 
@@ -407,12 +407,12 @@ exports.SetFriendNotificationForUser = async (userId, enabled) => {
 };
 
 exports.IsFriendNotificationEnabled = (userId) => {
-    return config.FriendNotificationsEnabled && config.FriendNotificationsList[userId] === true;
+    return config.ShowFriendNotifications && config.FriendNotificationsList[userId] === true;
 };
 
-exports.GetInviteNotificationsEnabled = () => config.InviteNotificationsEnabled;
+exports.GetInviteNotificationsEnabled = () => config.ShowInviteNotifications;
 
-exports.GetInviteRequestNotificationsEnabled = () => config.InviteRequestNotificationsEnabled;
+exports.GetInviteRequestNotificationsEnabled = () => config.ShowInviteRequestNotifications;
 
 exports.GetUpdaterIgnoreVersion = () => config.UpdaterIgnoreVersion;
 
