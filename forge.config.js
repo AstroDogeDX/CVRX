@@ -9,6 +9,9 @@ module.exports = {
         {
             name: '@electron-forge/maker-squirrel',
             config: {
+                name: 'CVRX',
+                authors: 'CVRX',
+                description: 'CVRX Desktop App',
                 // URL to an ICO file to use as the application icon (displayed in Control Panel > Programs and Features).
                 iconUrl: 'https://raw.githubusercontent.com/AstroDogeDX/CVRX/main/icon/cvrx-logo.ico',
                 // The ICO file to use as the icon for the generated Setup.exe
