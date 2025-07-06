@@ -5,6 +5,7 @@ const CVRWebsocket = require('./api_cvr_ws');
 const Config = require('./config');
 const Updater = require('./updater');
 const Utils = require('./utils');
+const NotificationHelper = require('./notification-helper');
 const {CategoryType} = require('./api_cvr_http');
 const path = require('path');
 
@@ -129,6 +130,9 @@ class Core {
 
         this.#SetupHandlers();
 
+        // Clean up dismissed and notified entries every 5 minutes
+        setInterval(() => this.#CleanupDismissedAndNotifiedEntries(), 5 * 60 * 1000);
+
         // Expose core and api on globals for debugging
         if (!app.isPackaged){
             global.Core = this;
@@ -159,6 +163,51 @@ class Core {
         this.nextInstancesRefreshAvailableExecuteTime = 0;
 
         this.blockedUserIds = [];
+
+        // Dismissed invites tracking (shared from frontend)
+        this.dismissedInvites = new Map(); // Map<inviteId, timestamp>
+        this.dismissedInviteRequests = new Map(); // Map<inviteRequestId, timestamp>
+        
+        // Notification tracking (server-side)
+        this.notifiedInvites = new Map(); // Map<inviteId, timestamp>
+        this.notifiedInviteRequests = new Map(); // Map<inviteRequestId, timestamp>
+        
+        // Cleanup timeout (10 minutes, same as client)
+        this.DISMISS_TIMEOUT = 10 * 60 * 1000;
+    }
+
+    #CleanupDismissedAndNotifiedEntries() {
+        const now = Date.now();
+        
+        // Clean up dismissed invites
+        for (const [inviteId, timestamp] of this.dismissedInvites.entries()) {
+            if (now - timestamp > this.DISMISS_TIMEOUT) {
+                this.dismissedInvites.delete(inviteId);
+            }
+        }
+        
+        // Clean up dismissed invite requests
+        for (const [inviteRequestId, timestamp] of this.dismissedInviteRequests.entries()) {
+            if (now - timestamp > this.DISMISS_TIMEOUT) {
+                this.dismissedInviteRequests.delete(inviteRequestId);
+            }
+        }
+        
+        // Clean up notified invites
+        for (const [inviteId, timestamp] of this.notifiedInvites.entries()) {
+            if (now - timestamp > this.DISMISS_TIMEOUT) {
+                this.notifiedInvites.delete(inviteId);
+            }
+        }
+        
+        // Clean up notified invite requests
+        for (const [inviteRequestId, timestamp] of this.notifiedInviteRequests.entries()) {
+            if (now - timestamp > this.DISMISS_TIMEOUT) {
+                this.notifiedInviteRequests.delete(inviteRequestId);
+            }
+        }
+        
+        log.debug(`[CleanupDismissedAndNotified] Cleanup completed. Dismissed invites: ${this.dismissedInvites.size}, Dismissed requests: ${this.dismissedInviteRequests.size}, Notified invites: ${this.notifiedInvites.size}, Notified requests: ${this.notifiedInviteRequests.size}`);
     }
 
     #SetupHandlers() {
@@ -441,6 +490,25 @@ class Core {
                 log.error('Failed to get friends with notifications:', error);
                 throw error;
             }
+        });
+
+        // Dismissed Invites Tracking (shared from frontend)
+        ipcMain.handle('mark-invite-dismissed', (_event, inviteId) => {
+            this.dismissedInvites.set(inviteId, Date.now());
+            log.debug(`[MarkInviteDismissed] Marked invite ${inviteId} as dismissed on server`);
+        });
+
+        ipcMain.handle('mark-invite-request-dismissed', (_event, inviteRequestId) => {
+            this.dismissedInviteRequests.set(inviteRequestId, Date.now());
+            log.debug(`[MarkInviteRequestDismissed] Marked invite request ${inviteRequestId} as dismissed on server`);
+        });
+
+        ipcMain.handle('is-invite-dismissed', (_event, inviteId) => {
+            return this.dismissedInvites.has(inviteId);
+        });
+
+        ipcMain.handle('is-invite-request-dismissed', (_event, inviteRequestId) => {
+            return this.dismissedInviteRequests.has(inviteRequestId);
         });
     }
 
@@ -772,14 +840,8 @@ class Core {
                             
                             log.info(`[FriendNotification] Instance type determined: ${instanceType}`);
                             
-                            const notification = new Notification({
-                                title: 'Friend Online',
-                                body: `${friendName} is now online${instanceType !== 'online' ? ' in ' + instanceType : ''}`,
-                                silent: false,
-                            });
-                            notification.show();
-                            
-                            log.info(`[FriendNotification] ${friendName} notification sent successfully`);
+                            // Use custom notification system instead of native notifications
+                            log.info(`[FriendNotification] ${friendName} notification will be sent via NotificationHelper`);
                         } else {
                             if (previous) {
                                 log.info(`[FriendNotification] No notification sent - Friend was already online or didn't come online`);
@@ -892,14 +954,31 @@ class Core {
                     return;
                 }
 
-                // Grab the previous friend info we don't lose previous socket updates
+                // Grab the previous friend info so we don't lose previous socket updates
                 const friendInstance = this.friends[friendInfo.id] ??= {};
-
+                
+                // Check for friend online status change for notifications
+                const wasOnline = friendInstance.isOnline;
+                const isNowOnline = friendInfo.isOnline;
+                
                 // Merge the new properties we're getting from the usersOnlineChange
                 Object.assign(friendInstance, friendInfo);
 
                 // Queue the images grabbing (if available)
                 await LoadUserImages(friendInstance);
+
+                // Send friend online notification if friend just came online and notifications are enabled
+                if (!isRefresh && // Don't send notifications during refresh/initial load
+                    !wasOnline && isNowOnline && // Friend went from offline to online
+                    Config.IsFriendNotificationEnabled(friendInstance.id)) { // Notifications enabled for this friend
+                    
+                    try {
+                        await NotificationHelper.showFriendOnlineNotification(friendInstance);
+                        log.info(`[FriendOnlineNotification] Sent notification for ${friendInstance.name || 'Unknown'} coming online`);
+                    } catch (error) {
+                        log.error('[FriendOnlineNotification] Failed to send notification:', error);
+                    }
+                }
 
                 // Add the friend info to our cache
                 newFriendsObject[friendInstance.id] = friendInstance;
@@ -968,81 +1047,21 @@ class Core {
 
         // Send system notifications for new invites if enabled
         if (Config.GetInviteNotificationsEnabled() && invites.length > 0) {
-            for (const invite of invites) {
+            // Filter out dismissed invites and invites we've already notified about
+            const newInvitesToNotify = invites.filter(invite => {
+                const isDismissed = this.dismissedInvites.has(invite.id);
+                const alreadyNotified = this.notifiedInvites.has(invite.id);
+                return !isDismissed && !alreadyNotified;
+            });
+
+            log.debug(`[InviteNotification] Processing ${invites.length} total invites, ${newInvitesToNotify.length} new ones to notify`);
+
+            for (const invite of newInvitesToNotify) {
                 try {
-                    const { Notification } = require('electron');
-                    const userName = invite.user?.name || 'Someone';
-                    const worldName = invite.world?.name || 'Unknown World';
-                    
-                    // Create notification with action buttons for Windows/Linux
-                    const notificationOptions = {
-                        title: 'ChilloutVR Invite',
-                        body: `${userName} invited you to ${worldName}`,
-                        silent: false,
-                    };
-
-                    // Add action buttons if supported (Windows 10 Anniversary Update+)
-                    if (process.platform === 'win32') {
-                        notificationOptions.actions = [
-                            {
-                                type: 'button',
-                                text: 'Join in Desktop'
-                            },
-                            {
-                                type: 'button', 
-                                text: 'Join in VR'
-                            }
-                        ];
-                    }
-
-                    const notification = new Notification(notificationOptions);
-                    
-                    // Handle action button clicks
-                    notification.on('action', (event, index) => {
-                        try {
-                            if (!invite.instanceId) {
-                                log.warn('[InviteNotification] No instance ID available for invite');
-                                return;
-                            }
-
-                            const isVR = index === 1; // Second button is VR
-                            
-                            // Generate join link similar to frontend logic
-                            const generateInstanceJoinLink = (instanceId, startInVR = false) => {
-                                let formattedInstanceId = instanceId;
-                                if (!instanceId.startsWith('i+')) {
-                                    formattedInstanceId = `i+${instanceId}`;
-                                }
-                                
-                                const baseUrl = 'chilloutvr://instance/join';
-                                const params = new URLSearchParams({
-                                    instanceId: formattedInstanceId,
-                                    startInVR: startInVR.toString()
-                                });
-                                
-                                return `${baseUrl}?${params.toString()}`;
-                            };
-
-                            const deepLink = generateInstanceJoinLink(invite.instanceId, isVR);
-                            shell.openExternal(deepLink);
-                            
-                            log.info(`[InviteNotification] Opened join link: ${deepLink}`);
-                        } catch (error) {
-                            log.error('[InviteNotification] Failed to handle action click:', error);
-                        }
-                    });
-
-                    // Handle regular notification click (opens CVRX to show invite)
-                    notification.on('click', () => {
-                        // Bring CVRX window to front
-                        if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-                            this.mainWindow.show();
-                            this.mainWindow.focus();
-                        }
-                    });
-
-                    notification.show();
-                    log.info(`[InviteNotification] Sent notification for invite from ${userName} to ${worldName}`);
+                    await NotificationHelper.showInviteNotification(invite);
+                    // Mark this invite as notified
+                    this.notifiedInvites.set(invite.id, Date.now());
+                    log.info(`[InviteNotification] Sent notification for invite from ${invite.user?.name || 'Someone'}`);
                 } catch (error) {
                     log.error('[InviteNotification] Failed to send notification:', error);
                 }
@@ -1078,28 +1097,21 @@ class Core {
 
         // Send system notifications for new invite requests if enabled
         if (Config.GetInviteRequestNotificationsEnabled() && requestInvites.length > 0) {
-            for (const requestInvite of requestInvites) {
+            // Filter out dismissed invite requests and invite requests we've already notified about
+            const newInviteRequestsToNotify = requestInvites.filter(requestInvite => {
+                const isDismissed = this.dismissedInviteRequests.has(requestInvite.id);
+                const alreadyNotified = this.notifiedInviteRequests.has(requestInvite.id);
+                return !isDismissed && !alreadyNotified;
+            });
+
+            log.debug(`[InviteRequestNotification] Processing ${requestInvites.length} total invite requests, ${newInviteRequestsToNotify.length} new ones to notify`);
+
+            for (const requestInvite of newInviteRequestsToNotify) {
                 try {
-                    const { Notification } = require('electron');
-                    const senderName = requestInvite.sender?.name || 'Someone';
-                    
-                    const notification = new Notification({
-                        title: 'ChilloutVR Invite Request',
-                        body: `${senderName} requested an invite from you`,
-                        silent: false,
-                    });
-
-                    // Handle notification click (opens CVRX to show invite request)
-                    notification.on('click', () => {
-                        // Bring CVRX window to front
-                        if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-                            this.mainWindow.show();
-                            this.mainWindow.focus();
-                        }
-                    });
-
-                    notification.show();
-                    log.info(`[InviteRequestNotification] Sent notification for invite request from ${senderName}`);
+                    await NotificationHelper.showInviteRequestNotification(requestInvite);
+                    // Mark this invite request as notified
+                    this.notifiedInviteRequests.set(requestInvite.id, Date.now());
+                    log.info(`[InviteRequestNotification] Sent notification for invite request from ${requestInvite.sender?.name || 'Someone'}`);
                 } catch (error) {
                     log.error('[InviteRequestNotification] Failed to send notification:', error);
                 }

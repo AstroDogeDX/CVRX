@@ -6,6 +6,7 @@ const {app, dialog} = require('electron');
 const {pipeline} = require('stream/promises');
 
 const Config = require('./config');
+const NotificationHelper = require('./notification-helper');
 const log = require('./logger').GetLogger('Updater');
 
 const AppDataPath = app.getPath('userData');
@@ -128,6 +129,15 @@ exports.CheckLatestRelease = async (mainWindow, bypassIgnores = false) => {
                 log.info(`[CheckLatestRelease] Automatically showing update modal for version ${tagName}`);
                 try {
                     mainWindow.webContents.send('update-available', updateInfo);
+                    
+                    // Also send a custom notification
+                    await NotificationHelper.showUpdateNotification({
+                        version: tagName,
+                        changeLogs,
+                        downloadUrl: asset.browser_download_url,
+                        fileName: asset.name
+                    });
+                    log.info(`[CheckLatestRelease] Sent custom notification for update ${tagName}`);
                 } catch (sendError) {
                     log.error(`[CheckLatestRelease] Failed to send update-available event: ${sendError}`);
                     dialogOpened = false; // Reset flag if sending fails

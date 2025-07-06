@@ -69,6 +69,10 @@ exports.Load = async () => {
         FriendNotificationsList: {},
         ShowInviteNotifications: true,
         ShowInviteRequestNotifications: true,
+        UseCustomNotifications: true,
+        CustomNotificationTimeout: 5000,
+        CustomNotificationMaxCount: 5,
+        NotificationSoundsEnabled: true,
     };
     config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, defaultObjectConfig);
     MergeDefaultConfig(config, defaultObjectConfig);
@@ -365,6 +369,46 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.ShowInviteRequestNotifications = enabled;
     }
 
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'UseCustomNotifications')) {
+        const enabled = newConfigSettings.UseCustomNotifications;
+
+        if (typeof enabled !== 'boolean') {
+            throw new Error('[UpdateConfig] UseCustomNotifications should be a boolean value.');
+        }
+
+        config.UseCustomNotifications = enabled;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'CustomNotificationTimeout')) {
+        const timeout = newConfigSettings.CustomNotificationTimeout;
+
+        if (!Number.isInteger(timeout) || timeout < 1000 || timeout > 30000) {
+            throw new Error('[UpdateConfig] CustomNotificationTimeout should be an integer between 1000 and 30000 milliseconds.');
+        }
+
+        config.CustomNotificationTimeout = timeout;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'CustomNotificationMaxCount')) {
+        const maxCount = newConfigSettings.CustomNotificationMaxCount;
+
+        if (!Number.isInteger(maxCount) || maxCount < 1 || maxCount > 10) {
+            throw new Error('[UpdateConfig] CustomNotificationMaxCount should be an integer between 1 and 10.');
+        }
+
+        config.CustomNotificationMaxCount = maxCount;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'NotificationSoundsEnabled')) {
+        const enabled = newConfigSettings.NotificationSoundsEnabled;
+
+        if (typeof enabled !== 'boolean') {
+            throw new Error('[UpdateConfig] NotificationSoundsEnabled should be a boolean value.');
+        }
+
+        config.NotificationSoundsEnabled = enabled;
+    }
+
     await UpdateJsonFile(FileType.CONFIG);
 
     return exports.GetConfig();
@@ -382,6 +426,10 @@ exports.GetConfig = () => ({
     FriendNotificationsList: config.FriendNotificationsList,
     ShowInviteNotifications: config.ShowInviteNotifications,
     ShowInviteRequestNotifications: config.ShowInviteRequestNotifications,
+    UseCustomNotifications: config.UseCustomNotifications,
+    CustomNotificationTimeout: config.CustomNotificationTimeout,
+    CustomNotificationMaxCount: config.CustomNotificationMaxCount,
+    NotificationSoundsEnabled: config.NotificationSoundsEnabled,
 });
 
 
@@ -423,6 +471,14 @@ exports.IsFriendNotificationEnabled = (userId) => {
 exports.GetInviteNotificationsEnabled = () => config.ShowInviteNotifications;
 
 exports.GetInviteRequestNotificationsEnabled = () => config.ShowInviteRequestNotifications;
+
+exports.GetCustomNotificationsEnabled = () => config.UseCustomNotifications;
+
+exports.GetCustomNotificationTimeout = () => config.CustomNotificationTimeout;
+
+exports.GetCustomNotificationMaxCount = () => config.CustomNotificationMaxCount;
+
+exports.GetNotificationSoundsEnabled = () => config.NotificationSoundsEnabled;
 
 exports.GetUpdaterIgnoreVersion = () => config.UpdaterIgnoreVersion;
 

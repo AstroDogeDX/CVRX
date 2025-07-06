@@ -1,0 +1,5 @@
+"friend-online.ogg"
+"instance-invite.ogg"
+"update-available.ogg"
+Adapted from sound effects provided royalty-free by Universfield
+https://pixabay.com/users/universfield-28281460/

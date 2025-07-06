@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVRX Notification</title>
+    <link rel="stylesheet" href="notification.css">
+    <link rel="stylesheet" href="../fonts/material-symbols.css">
+</head>
+<body>
+    <div class="notification-container">
+        <div class="notification-content">
+            <!-- Main notification area -->
+            <div class="notification-main">
+                <!-- Optional image/avatar area (positioned on left) -->
+                <div class="notification-image" id="notification-image" style="display: none;">
+                    <img id="notification-img" src="" alt="" />
+                </div>
+                
+                <div class="notification-icon">
+                    <span class="material-symbols-outlined" id="notification-icon-symbol">info</span>
+                </div>
+                
+                <div class="notification-text">
+                    <div class="notification-title" id="notification-title">
+                        Notification Title
+                    </div>
+                    <div class="notification-message" id="notification-message">
+                        Notification message content goes here...
+                    </div>
+                </div>
+                
+                <div class="notification-close">
+                    <button class="notification-close-btn" id="notification-close-btn">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Optional action buttons area -->
+            <div class="notification-actions" id="notification-actions" style="display: none;">
+                <!-- Action buttons will be dynamically added here -->
+            </div>
+            
+            <!-- Progress bar for notifications with progress -->
+            <div class="notification-progress" id="notification-progress" style="display: none;">
+                <div class="notification-progress-bar" id="notification-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="notification.js"></script>
+</body>
+</html> 

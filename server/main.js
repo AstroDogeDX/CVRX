@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-const { app, BrowserWindow, Menu, ipcMain, nativeImage, Tray, Notification } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, nativeImage, Tray } = require('electron');
 
 app.setAppUserModelId('com.squirrel.CVRX.CVRX');
 
@@ -28,6 +28,8 @@ const { Core } = require('./data');
 const CVRWebsocket = require('./api_cvr_ws');
 const Cache = require('./cache');
 const Updater = require('./updater');
+const NotificationManager = require('./notification-manager');
+const NotificationHelper = require('./notification-helper');
 
 // Is what platform
 const isMac = process.platform === 'darwin';
@@ -43,11 +45,14 @@ const iconFile = isWindows ? 'cvrx-ico.ico' : 'cvrx-logo-512.png' //linux appina
 // Set the max limit for renderer process to 4092Mb
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4092');
 
+// Store reference to main window for access in IPC handlers
+let mainWindow = null;
+
 const CreateWindow = async () => {
     log.info(`Starting CVRX... Version: ${app.getVersion()}`);
 
     // Create the browser window.
-    const mainWindow = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         minWidth: 1320,
         minHeight: 820,
         width: 1460,
@@ -148,7 +153,7 @@ const BuildTray = async (mainWindow) => {
 };
 
 app.whenReady().then(async () => {
-    const mainWindow = await CreateWindow();
+    await CreateWindow();
 
     await BuildTray(mainWindow, app);
 
@@ -217,7 +222,7 @@ app.whenReady().then(async () => {
         // Check if we should close to taskbar
         if (Config.GetCloseToSystemTray()) {
             mainWindow.hide();
-            new Notification(minimizeNotification).show();
+            NotificationHelper.showMinimizeNotification();
         } else {
             mainWindow.destroy();
         }
@@ -232,12 +237,185 @@ app.on('ready', () => {
     ipcMain.on('get-app-version', (event) => {
         event.sender.send('app-version', appVersion);
     });
+
+    // Custom notification system IPC handlers
+    ipcMain.handle('custom-notification-show', async (event, notificationData) => {
+        try {
+            const window = await NotificationManager.showNotification(notificationData);
+            return { success: true, windowId: window ? window.id : null };
+        } catch (error) {
+            log.error('Failed to show custom notification:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('custom-notification-close-all', async (event) => {
+        try {
+            NotificationManager.closeAllNotifications();
+            return { success: true };
+        } catch (error) {
+            log.error('Failed to close all notifications:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('custom-notification-get-count', async (event) => {
+        try {
+            return {
+                success: true,
+                active: NotificationManager.getActiveNotificationCount(),
+                queued: NotificationManager.getQueuedNotificationCount()
+            };
+        } catch (error) {
+            log.error('Failed to get notification count:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
+    // Handle notification window events
+    ipcMain.on('notification-close', (event) => {
+        try {
+            const window = BrowserWindow.fromWebContents(event.sender);
+            if (window) {
+                NotificationManager.closeNotification(window);
+            }
+        } catch (error) {
+            log.error('Failed to handle notification close:', error);
+        }
+    });
+
+    ipcMain.on('notification-mouse-enter', (event) => {
+        try {
+            const window = BrowserWindow.fromWebContents(event.sender);
+            if (window) {
+                NotificationManager.handleMouseEnter(window);
+            }
+        } catch (error) {
+            log.error('Failed to handle notification mouse enter:', error);
+        }
+    });
+
+    ipcMain.on('notification-mouse-leave', (event) => {
+        try {
+            const window = BrowserWindow.fromWebContents(event.sender);
+            if (window) {
+                NotificationManager.handleMouseLeave(window);
+            }
+        } catch (error) {
+            log.error('Failed to handle notification mouse leave:', error);
+        }
+    });
+
+    ipcMain.on('notification-click', (event, actionData) => {
+        try {
+            log.info('Notification clicked:', actionData);
+            
+            // Bring CVRX window to front when notification is clicked
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.show();
+                mainWindow.focus();
+            }
+        } catch (error) {
+            log.error('Failed to handle notification click:', error);
+        }
+    });
+
+    ipcMain.on('notification-action', (event, actionType, actionData) => {
+        try {
+            log.info('Notification action performed:', { actionType, actionData });
+            
+            // Handle specific notification actions
+            switch (actionType) {
+                case 'join-desktop':
+                case 'join-vr':
+                    if (actionData.instanceId) {
+                        const isVR = actionType === 'join-vr';
+                        
+                        // Generate join link similar to frontend logic  
+                        let formattedInstanceId = actionData.instanceId;
+                        if (!actionData.instanceId.startsWith('i+')) {
+                            formattedInstanceId = `i+${actionData.instanceId}`;
+                        }
+                        
+                        const baseUrl = 'chilloutvr://instance/join';
+                        const params = new URLSearchParams({
+                            instanceId: formattedInstanceId,
+                            startInVR: isVR.toString()
+                        });
+                        
+                        const deepLink = `${baseUrl}?${params.toString()}`;
+                        
+                        // Open the deep link
+                        require('electron').shell.openExternal(deepLink);
+                        log.info(`[NotificationAction] Opened join link: ${deepLink}`);
+                    }
+                    break;
+                    
+                case 'download-update':
+                    if (actionData.version) {
+                        // Dismiss the update prompt in the main window to avoid UI conflicts
+                        if (mainWindow && !mainWindow.isDestroyed()) {
+                            mainWindow.webContents.send('dismiss-update-prompt');
+                        }
+                        
+                        // Trigger update download
+                        Updater.HandleUpdateAction('download', actionData);
+                        log.info(`[NotificationAction] Started download for version ${actionData.version}`);
+                    }
+                    break;
+                    
+                case 'dismiss-update':
+                case 'later':
+                    // Treat notification "Later" as "Ignore Until Restart" from main UI
+                    if (actionData.tagName) {
+                        // Dismiss the update prompt in the main window
+                        if (mainWindow && !mainWindow.isDestroyed()) {
+                            mainWindow.webContents.send('dismiss-update-prompt');
+                        }
+                        
+                        // Call the ignore action (same as "Ignore Until Restart")
+                        Updater.HandleUpdateAction('ignore', actionData);
+                        log.info(`[NotificationAction] Ignored update ${actionData.tagName} until restart`);
+                    }
+                    break;
+                    
+                default:
+                    log.info(`[NotificationAction] Unhandled action type: ${actionType}`);
+                    break;
+            }
+        } catch (error) {
+            log.error('Failed to handle notification action:', error);
+        }
+    });
+
+    // Forward notification window logs to main logging system
+    ipcMain.on('notification-log-debug', (event, message, data) => {
+        log.debug(message, data);
+    });
+    ipcMain.on('notification-log-info', (event, message, data) => {
+        log.info(message, data);
+    });
+    ipcMain.on('notification-log-warn', (event, message, data) => {
+        log.warn(message, data);
+    });
+    ipcMain.on('notification-log-error', (event, message, data) => {
+        log.error(message, data);
+    });
 });
 
 app.on('window-all-closed', () => app.quit());
 
 app.on('will-quit', async () => {
     // This won't be called if the application is quit by a Windows shutdown/logout/restart
+    
+    // Close all custom notifications
+    try {
+        NotificationManager.closeAllNotifications();
+        log.info('All custom notifications closed');
+    } catch (error) {
+        log.error('Failed to close custom notifications:', error);
+    }
+    
     // On quitting let's close our socket if exist
     await CVRWebsocket.DisconnectWebsocket(
         true,

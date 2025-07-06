@@ -85,6 +85,12 @@ contextBridge.exposeInMainWorld('API', {
     onInvites: (callback) => ipcRenderer.on('invites', callback),
     onInviteRequests: (callback) => ipcRenderer.on('invite-requests', callback),
 
+    // Dismissed Invites Tracking
+    markInviteDismissed: (inviteId) => ipcRenderer.invoke('mark-invite-dismissed', inviteId),
+    markInviteRequestDismissed: (inviteRequestId) => ipcRenderer.invoke('mark-invite-request-dismissed', inviteRequestId),
+    isInviteDismissed: (inviteId) => ipcRenderer.invoke('is-invite-dismissed', inviteId),
+    isInviteRequestDismissed: (inviteRequestId) => ipcRenderer.invoke('is-invite-request-dismissed', inviteRequestId),
+
     onFriendRequests: (callback) => ipcRenderer.on('friend-requests', callback),
 
     onWorldsByCategoryRefresh: (callback) => ipcRenderer.on('worlds-category-requests', callback),
@@ -138,6 +144,7 @@ contextBridge.exposeInMainWorld('API', {
     onUpdateDownloadStarted: (callback) => ipcRenderer.on('update-download-started', callback),
     onUpdateDownloadProgress: (callback) => ipcRenderer.on('update-download-progress', callback),
     onUpdateDownloadComplete: (callback) => ipcRenderer.on('update-download-complete', callback),
+    onDismissUpdatePrompt: (callback) => ipcRenderer.on('dismiss-update-prompt', callback),
 
     // Websocket
     reconnectWebSocket: () => ipcRenderer.send('reconnect-web-socket'),
@@ -206,6 +213,11 @@ contextBridge.exposeInMainWorld('API', {
     hasAvatarAdvancedSettings: (avatarId) => ipcRenderer.invoke('has-avatar-advanced-settings', avatarId),
     getAvatarAdvancedSettings: (avatarId) => ipcRenderer.invoke('get-avatar-advanced-settings', avatarId),
     saveAvatarAdvancedSettings: (avatarId, settings) => ipcRenderer.invoke('save-avatar-advanced-settings', avatarId, settings),
+
+    // Custom Notification System
+    showCustomNotification: (notificationData) => ipcRenderer.invoke('custom-notification-show', notificationData),
+    closeAllCustomNotifications: () => ipcRenderer.invoke('custom-notification-close-all'),
+    getCustomNotificationCount: () => ipcRenderer.invoke('custom-notification-get-count'),
 
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),

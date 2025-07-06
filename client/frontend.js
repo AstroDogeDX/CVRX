@@ -73,6 +73,64 @@ let currentActiveUser = null;
 let activeInstances = [];
 let currentWorldDetailsId = null; // Track the currently open world details
 
+// Dismissed invites tracking system
+// This prevents dismissed invites from reappearing when API updates come in
+const dismissedInvites = new Map(); // Map<inviteId, timestamp>
+const dismissedInviteRequests = new Map(); // Map<inviteRequestId, timestamp>
+const DISMISS_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds (longer than API timeout)
+
+// Function to clean up old dismissed entries
+function cleanupDismissedEntries() {
+    const now = Date.now();
+    
+    // Clean up dismissed invites
+    for (const [inviteId, timestamp] of dismissedInvites.entries()) {
+        if (now - timestamp > DISMISS_TIMEOUT) {
+            dismissedInvites.delete(inviteId);
+        }
+    }
+    
+    // Clean up dismissed invite requests
+    for (const [inviteRequestId, timestamp] of dismissedInviteRequests.entries()) {
+        if (now - timestamp > DISMISS_TIMEOUT) {
+            dismissedInviteRequests.delete(inviteRequestId);
+        }
+    }
+}
+
+// Function to check if an invite is dismissed
+function isInviteDismissed(inviteId) {
+    return dismissedInvites.has(inviteId);
+}
+
+// Function to check if an invite request is dismissed
+function isInviteRequestDismissed(inviteRequestId) {
+    return dismissedInviteRequests.has(inviteRequestId);
+}
+
+// Function to mark an invite as dismissed
+function markInviteDismissed(inviteId) {
+    dismissedInvites.set(inviteId, Date.now());
+    log(`Marked invite ${inviteId} as dismissed`);
+    // Also notify the server to prevent desktop notifications
+    window.API.markInviteDismissed(inviteId).catch(error => {
+        log('Failed to mark invite as dismissed on server:', error);
+    });
+}
+
+// Function to mark an invite request as dismissed
+function markInviteRequestDismissed(inviteRequestId) {
+    dismissedInviteRequests.set(inviteRequestId, Date.now());
+    log(`Marked invite request ${inviteRequestId} as dismissed`);
+    // Also notify the server to prevent desktop notifications
+    window.API.markInviteRequestDismissed(inviteRequestId).catch(error => {
+        log('Failed to mark invite request as dismissed on server:', error);
+    });
+}
+
+// Clean up dismissed entries every 5 minutes
+setInterval(cleanupDismissedEntries, 5 * 60 * 1000);
+
 const PrivacyLevel = Object.freeze({
     Public: 0,
     FriendsOfFriends: 1,
@@ -561,6 +619,18 @@ window.API.onUpdateDownloadComplete((_event, data) => {
         downloadProgressStatus.classList.add('download-progress-complete');
     }
     // Modal will be closed when app restarts
+});
+
+// Handle dismiss update prompt event (when notification actions are used)
+window.API.onDismissUpdatePrompt((_event) => {
+    log('Dismissing update prompt due to notification action');
+    const promptShade = document.querySelector('.prompt-layer');
+    const updatePrompt = promptShade.querySelector('.prompt');
+    if (updatePrompt && promptShade.style.display === 'flex') {
+        updatePrompt.remove();
+        promptShade.style.display = 'none';
+        log('Update prompt dismissed successfully');
+    }
 });
 
 // Pages handling
@@ -1915,8 +1985,15 @@ window.API.onInvites((_event, invites) => {
     // Remove previous invites
     document.querySelectorAll('.notification-invite').forEach(el => el.remove());
 
+    // Filter out dismissed invites
+    const filteredInvites = invites.filter(invite => !isInviteDismissed(invite.id));
+    
+    if (filteredInvites.length < invites.length) {
+        log(`Filtered out ${invites.length - filteredInvites.length} dismissed invites`);
+    }
+
     // Create the invite notification elements
-    for (const invite of invites) {
+    for (const invite of filteredInvites) {
         const userImageNode = createElement('img', {
             className: 'notification-avatar',
             src: 'img/ui/placeholder.png',
@@ -1994,6 +2071,8 @@ window.API.onInvites((_event, invites) => {
             innerHTML: '<span class="material-symbols-outlined">close</span>',
             tooltip: 'Dismiss Invite',
             onClick: () => {
+                // Mark the invite as dismissed to prevent it from reappearing
+                markInviteDismissed(invite.id);
                 // Remove the notification from DOM
                 inviteNode.remove();
                 // Update notification count
@@ -2056,8 +2135,15 @@ window.API.onInviteRequests((_event, requestInvites) => {
     // Remove previous invite requests
     document.querySelectorAll('.notification-invite-request').forEach(el => el.remove());
 
+    // Filter out dismissed invite requests
+    const filteredInviteRequests = requestInvites.filter(requestInvite => !isInviteRequestDismissed(requestInvite.id));
+    
+    if (filteredInviteRequests.length < requestInvites.length) {
+        log(`Filtered out ${requestInvites.length - filteredInviteRequests.length} dismissed invite requests`);
+    }
+
     // Create the invite request notification elements
-    for (const requestInvite of requestInvites) {
+    for (const requestInvite of filteredInviteRequests) {
         const userImageNode = createElement('img', {
             className: 'notification-avatar',
             src: 'img/ui/placeholder.png',
@@ -2071,6 +2157,8 @@ window.API.onInviteRequests((_event, requestInvites) => {
             innerHTML: '<span class="material-symbols-outlined">close</span>',
             tooltip: 'Dismiss Invite Request',
             onClick: () => {
+                // Mark the invite request as dismissed to prevent it from reappearing
+                markInviteRequestDismissed(requestInvite.id);
                 // Remove the notification from DOM
                 requestInviteNode.remove();
                 // Update notification count
@@ -2607,6 +2695,9 @@ const friendNotificationsCheckbox = document.getElementById('setting-friend-noti
 const inviteNotificationsCheckbox = document.getElementById('setting-invite-notifications-enabled');
 const inviteRequestNotificationsCheckbox = document.getElementById('setting-invite-request-notifications-enabled');
 
+// Handle "Notification Sounds" setting
+const notificationSoundsCheckbox = document.getElementById('setting-notification-sounds-enabled');
+
 // Function to apply thumbnail shape to all existing thumbnail containers
 function applyThumbnailShape(shape) {
     const thumbnailContainers = document.querySelectorAll('.details-thumbnail-container');
@@ -2693,6 +2784,10 @@ window.API.getConfig().then(config => {
     
     if (config && config.ShowInviteRequestNotifications !== undefined) {
         inviteRequestNotificationsCheckbox.checked = config.ShowInviteRequestNotifications;
+    }
+    
+    if (config && config.NotificationSoundsEnabled !== undefined) {
+        notificationSoundsCheckbox.checked = config.NotificationSoundsEnabled;
     }
     
     // Load mature content setting
@@ -2845,6 +2940,22 @@ inviteRequestNotificationsCheckbox.addEventListener('change', () => {
             // Revert checkbox state if save failed
             window.API.getConfig().then(config => {
                 inviteRequestNotificationsCheckbox.checked = config.ShowInviteRequestNotifications || false;
+            });
+        });
+});
+
+// Update config when "Notification Sounds" setting is changed
+notificationSoundsCheckbox.addEventListener('change', () => {
+    window.API.updateConfig({ NotificationSoundsEnabled: notificationSoundsCheckbox.checked })
+        .then(() => {
+            const statusText = notificationSoundsCheckbox.checked ? 'enabled' : 'disabled';
+            pushToast(`Notification sounds ${statusText}`, 'confirm');
+        })
+        .catch(err => {
+            pushToast(`Error saving setting: ${err}`, 'error');
+            // Revert checkbox state if save failed
+            window.API.getConfig().then(config => {
+                notificationSoundsCheckbox.checked = config.NotificationSoundsEnabled !== false;
             });
         });
 });
