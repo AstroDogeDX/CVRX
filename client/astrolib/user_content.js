@@ -1385,10 +1385,8 @@ export function setupPropsTextFilter() {
 // RESET UTILITY FOR USER SWITCHING
 // ===========
 
-/**
- * Reset all user content caching when switching users
- * This clears cached data and resets page loading states
- */
+// Reset all user content caching when switching users
+// This clears cached data and resets page loading states
 export function resetUserContentCache() {
     log('Resetting user content cache for user switch');
     
@@ -1474,11 +1472,9 @@ export function resetUserContentCache() {
 // REFRESH UTILITY FOR FAVORITES
 // ===========
 
-/**
- * Trigger content refresh after favorites are updated
- * @param {string} entityType - The type of entity (user, avatar, prop, world)
- * @param {string} entityId - The ID of the entity (not used currently, but may be useful for future)
- */
+// Trigger content refresh after favorites are updated
+// entityType - The type of entity (user, avatar, prop, world)
+// entityId - The ID of the entity (not used currently, but may be useful for future)
 export function refreshContentAfterFavoritesUpdate(entityType, entityId) {
     log(`Triggering content refresh for ${entityType} after favorites update`);
     
@@ -1506,10 +1502,8 @@ export function refreshContentAfterFavoritesUpdate(entityType, entityId) {
     }
 }
 
-/**
- * Force reload a specific content page by clearing its loaded attribute
- * @param {string} pageType - The page type ('avatars', 'worlds', 'props')
- */
+// Force reload a specific content page by clearing its loaded attribute
+// pageType - The page type ('avatars', 'worlds', 'props')
 export function forceReloadContentPage(pageType) {
     log(`Forcing reload for ${pageType} page`);
     

@@ -31,12 +31,10 @@ const DeepLinkType = Object.freeze({
 // DEEP LINK GENERATORS
 // ===========
 
-/**
- * Generate a deep link to join a ChilloutVR instance
- * @param {string} instanceId - The full instance ID (with or without the 'i+' prefix)
- * @param {boolean} startInVR - Whether to start in VR mode (default: false)
- * @returns {string} The formatted deep link
- */
+// Generate a deep link to join a ChilloutVR instance
+// instanceId - The full instance ID (with or without the 'i+' prefix)
+// startInVR - Whether to start in VR mode (default: false)
+// Returns: The formatted deep link
 function generateInstanceJoinLink(instanceId, startInVR = false) {
     if (!instanceId) {
         throw new Error('Instance ID is required');
@@ -62,11 +60,9 @@ function generateInstanceJoinLink(instanceId, startInVR = false) {
     return finalUrl;
 }
 
-/**
- * Generate a deep link to view user details
- * @param {string} userId - The user ID
- * @returns {string} The formatted deep link
- */
+// Generate a deep link to view user details
+// userId - The user ID
+// Returns: The formatted deep link
 function generateUserDetailsLink(userId) {
     if (!userId) {
         throw new Error('User ID is required');
@@ -75,11 +71,9 @@ function generateUserDetailsLink(userId) {
     return `${CHILLOUTVR_PROTOCOL}details/user?id=${userId}`;
 }
 
-/**
- * Generate a deep link to view avatar details
- * @param {string} avatarId - The avatar ID
- * @returns {string} The formatted deep link
- */
+// Generate a deep link to view avatar details
+// avatarId - The avatar ID
+// Returns: The formatted deep link
 function generateAvatarDetailsLink(avatarId) {
     if (!avatarId) {
         throw new Error('Avatar ID is required');
@@ -88,11 +82,9 @@ function generateAvatarDetailsLink(avatarId) {
     return `${CHILLOUTVR_PROTOCOL}details/avatar?id=${avatarId}`;
 }
 
-/**
- * Generate a deep link to view world details
- * @param {string} worldId - The world ID
- * @returns {string} The formatted deep link
- */
+// Generate a deep link to view world details
+// worldId - The world ID
+// Returns: The formatted deep link
 function generateWorldDetailsLink(worldId) {
     if (!worldId) {
         throw new Error('World ID is required');
@@ -101,11 +93,9 @@ function generateWorldDetailsLink(worldId) {
     return `${CHILLOUTVR_PROTOCOL}details/world?id=${worldId}`;
 }
 
-/**
- * Generate a deep link to view prop details
- * @param {string} propId - The prop ID
- * @returns {string} The formatted deep link
- */
+// Generate a deep link to view prop details
+// propId - The prop ID
+// Returns: The formatted deep link
 function generatePropDetailsLink(propId) {
     if (!propId) {
         throw new Error('Prop ID is required');
@@ -114,11 +104,9 @@ function generatePropDetailsLink(propId) {
     return `${CHILLOUTVR_PROTOCOL}details/prop?id=${propId}`;
 }
 
-/**
- * Generate a deep link to view instance details
- * @param {string} instanceId - The full instance ID (with or without the 'i+' prefix)
- * @returns {string} The formatted deep link
- */
+// Generate a deep link to view instance details
+// instanceId - The full instance ID (with or without the 'i+' prefix)
+// Returns: The formatted deep link
 function generateInstanceDetailsLink(instanceId) {
     if (!instanceId) {
         throw new Error('Instance ID is required');
@@ -142,11 +130,9 @@ function generateInstanceDetailsLink(instanceId) {
 // DEEP LINK HANDLERS
 // ===========
 
-/**
- * Open a deep link in the default system handler (ChilloutVR)
- * @param {string} deepLink - The deep link URL to open
- * @returns {Promise<boolean>} Success status
- */
+// Open a deep link in the default system handler (ChilloutVR)
+// deepLink - The deep link URL to open
+// Returns: Success status
 async function openDeepLink(deepLink) {
     try {
         log('🔗 Attempting to open deep link:', { deepLink });
@@ -177,11 +163,9 @@ async function openDeepLink(deepLink) {
     }
 }
 
-/**
- * Copy a deep link to the clipboard
- * @param {string} deepLink - The deep link URL to copy
- * @returns {Promise<boolean>} Success status
- */
+// Copy a deep link to the clipboard
+// deepLink - The deep link URL to copy
+// Returns: Success status
 async function copyDeepLinkToClipboard(deepLink) {
     try {
         if (!deepLink || !deepLink.startsWith(CHILLOUTVR_PROTOCOL)) {
@@ -200,11 +184,9 @@ async function copyDeepLinkToClipboard(deepLink) {
 // UTILITY FUNCTIONS
 // ===========
 
-/**
- * Parse a ChilloutVR deep link to extract its components
- * @param {string} deepLink - The deep link to parse
- * @returns {object} Parsed deep link components
- */
+// Parse a ChilloutVR deep link to extract its components
+// deepLink - The deep link to parse
+// Returns: Parsed deep link components
 function parseDeepLink(deepLink) {
     try {
         if (!deepLink || !deepLink.startsWith(CHILLOUTVR_PROTOCOL)) {
@@ -239,11 +221,9 @@ function parseDeepLink(deepLink) {
     }
 }
 
-/**
- * Validate if a string is a valid ChilloutVR deep link
- * @param {string} deepLink - The string to validate
- * @returns {boolean} Whether the string is a valid deep link
- */
+// Validate if a string is a valid ChilloutVR deep link
+// deepLink - The string to validate
+// Returns: Whether the string is a valid deep link
 function isValidDeepLink(deepLink) {
     if (!deepLink || typeof deepLink !== 'string') {
         return false;
@@ -257,11 +237,9 @@ function isValidDeepLink(deepLink) {
     return parsed !== null;
 }
 
-/**
- * Get the deep link type from a parsed deep link
- * @param {object} parsedLink - The parsed deep link object
- * @returns {string|null} The deep link type or null if invalid
- */
+// Get the deep link type from a parsed deep link
+// parsedLink - The parsed deep link object
+// Returns: The deep link type or null if invalid
 function getDeepLinkType(parsedLink) {
     if (!parsedLink || !parsedLink.action || !parsedLink.type) {
         return null;
@@ -295,13 +273,11 @@ function getDeepLinkType(parsedLink) {
 // CONVENIENCE FUNCTIONS
 // ===========
 
-/**
- * Create a button element that opens a deep link when clicked
- * @param {string} deepLink - The deep link to open
- * @param {string} buttonText - The text to display on the button
- * @param {object} options - Additional options for the button
- * @returns {HTMLButtonElement} The created button element
- */
+// Create a button element that opens a deep link when clicked
+// deepLink - The deep link to open
+// buttonText - The text to display on the button
+// options - Additional options for the button
+// Returns: The created button element
 function createDeepLinkButton(deepLink, buttonText, options = {}) {
     const button = document.createElement('button');
     button.textContent = buttonText;
@@ -325,13 +301,11 @@ function createDeepLinkButton(deepLink, buttonText, options = {}) {
     return button;
 }
 
-/**
- * Create a button that copies a deep link to clipboard
- * @param {string} deepLink - The deep link to copy
- * @param {string} buttonText - The text to display on the button
- * @param {object} options - Additional options for the button
- * @returns {HTMLButtonElement} The created button element
- */
+// Create a button that copies a deep link to clipboard
+// deepLink - The deep link to copy
+// buttonText - The text to display on the button
+// options - Additional options for the button
+// Returns: The created button element
 function createCopyLinkButton(deepLink, buttonText, options = {}) {
     const button = document.createElement('button');
     button.textContent = buttonText;

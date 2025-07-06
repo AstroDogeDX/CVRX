@@ -3,16 +3,12 @@ const NotificationManager = require('./notification-manager');
 const Config = require('./config');
 const log = require('./logger').GetLogger('NotificationHelper');
 
-/**
- * Unified notification helper that chooses between custom and native notifications
- */
+// Unified notification helper that chooses between custom and native notifications
 class NotificationHelper {
     
-    /**
-     * Show a notification using the appropriate system
-     * @param {Object} notificationOptions - Notification options
-     * @returns {Promise<Object>} Result object with success status
-     */
+    // Show a notification using the appropriate system
+    // notificationOptions - Notification options
+    // Returns: Result object with success status
     static async showNotification(notificationOptions) {
         try {
             // Check if custom notifications are enabled and available
@@ -38,11 +34,9 @@ class NotificationHelper {
         }
     }
 
-    /**
-     * Show a custom notification using the NotificationManager
-     * @param {Object} options - Notification options
-     * @returns {Promise<Object>} Result object
-     */
+    // Show a custom notification using the NotificationManager
+    // options - Notification options
+    // Returns: Result object
     static async showCustomNotification(options) {
         try {
             // Convert options to custom notification format
@@ -61,11 +55,9 @@ class NotificationHelper {
         }
     }
 
-    /**
-     * Show a native Electron notification
-     * @param {Object} options - Notification options
-     * @returns {Object} Result object
-     */
+    // Show a native Electron notification
+    // options - Notification options
+    // Returns: Result object
     static showNativeNotification(options) {
         try {
             // Convert to native notification format
@@ -91,11 +83,9 @@ class NotificationHelper {
         }
     }
 
-    /**
-     * Convert unified options to custom notification format
-     * @param {Object} options - Unified notification options
-     * @returns {Object} Custom notification data
-     */
+    // Convert unified options to custom notification format
+    // options - Unified notification options
+    // Returns: Custom notification data
     static convertToCustomFormat(options) {
         const customData = {
             title: options.title || 'Notification',
@@ -134,11 +124,9 @@ class NotificationHelper {
         return customData;
     }
 
-    /**
-     * Convert unified options to native Electron notification format
-     * @param {Object} options - Unified notification options
-     * @returns {Object} Native notification options
-     */
+    // Convert unified options to native Electron notification format
+    // options - Unified notification options
+    // Returns: Native notification options
     static convertToNativeFormat(options) {
         const nativeOptions = {
             title: options.title || 'CVRX',
@@ -162,10 +150,8 @@ class NotificationHelper {
         return nativeOptions;
     }
 
-    /**
-     * Close all custom notifications
-     * @returns {Promise<Object>} Result object
-     */
+    // Close all custom notifications
+    // Returns: Result object
     static async closeAllCustomNotifications() {
         try {
             NotificationManager.closeAllNotifications();
@@ -176,10 +162,8 @@ class NotificationHelper {
         }
     }
 
-    /**
-     * Get notification counts
-     * @returns {Object} Notification counts
-     */
+    // Get notification counts
+    // Returns: Notification counts
     static getNotificationCounts() {
         try {
             return {
@@ -192,9 +176,7 @@ class NotificationHelper {
         }
     }
 
-    /**
-     * Convenience methods for different notification types
-     */
+    // Convenience methods for different notification types
     
     static async showInviteNotification(inviteData) {
         const userName = inviteData.user?.name || 'Someone';

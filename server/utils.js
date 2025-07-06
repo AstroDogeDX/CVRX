@@ -8,10 +8,8 @@ const execAsync = promisify(exec);
 
 exports.GetUserAgent = () => `CVRX/${app.getVersion()} (deployment:${app.isPackaged ? 'production' : 'development'})`;
 
-/**
- * Checks if ChilloutVR.exe process is currently running
- * @returns {Promise<boolean>} True if ChilloutVR.exe is running, false otherwise
- */
+// Checks if ChilloutVR.exe process is currently running
+// Returns: True if ChilloutVR.exe is running, false otherwise
 exports.IsChilloutVRRunning = async () => {
     try {
         const platform = process.platform;
@@ -41,24 +39,18 @@ exports.IsChilloutVRRunning = async () => {
     }
 };
 
-/**
- * Deep clones an object using JSON methods.
- * This approach works for plain objects without circular references.
- *
- * @param {Object} obj - The object to be cloned.
- * @returns {Object} The deep cloned object.
- */
+// Deep clones an object using JSON methods.
+// This approach works for plain objects without circular references.
+// obj - The object to be cloned.
+// Returns: The deep cloned object.
 exports.DeepClone = (obj) => {
     return JSON.parse(JSON.stringify(obj));
 };
 
-/**
- * Renames properties of an entity based on a given mapping.
- *
- * @param {Object} entity - The object to rename properties for.
- * @param {Object} mapping - An object where keys are api property names and values are our property names.
- * @returns {Object} The entity with renamed properties.
- */
+// Renames properties of an entity based on a given mapping.
+// entity - The object to rename properties for.
+// mapping - An object where keys are api property names and values are our property names.
+// Returns: The entity with renamed properties.
 exports.MapEntity = (entity, mapping) => {
 
     // If it's an array, handle each entity separately

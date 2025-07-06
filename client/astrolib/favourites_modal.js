@@ -78,15 +78,13 @@ function getCategoriesForEntityType(categories, entityType) {
 // MAIN MODAL FUNCTION
 // ===========
 
-/**
- * Show the favourites modal for a specific entity
- * @param {string} entityType - The type of entity (user, avatar, prop, world)
- * @param {string} entityId - The ID of the entity
- * @param {string} entityName - The name of the entity for display
- * @param {Array} currentCategories - Array of current category IDs the entity belongs to
- * @param {Function} createElement - Helper function to create elements
- * @param {Function} onSuccess - Optional callback to call after successful category update
- */
+// Show the favourites modal for a specific entity
+// entityType - The type of entity (user, avatar, prop, world)
+// entityId - The ID of the entity
+// entityName - The name of the entity for display
+// currentCategories - Array of current category IDs the entity belongs to
+// createElement - Helper function to create elements
+// onSuccess - Optional callback to call after successful category update
 export async function showFavouritesModal(entityType, entityId, entityName, currentCategories = [], createElement, onSuccess = null) {
     try {
         // Get all categories from the API

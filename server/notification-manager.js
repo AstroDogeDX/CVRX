@@ -17,10 +17,8 @@ class NotificationManager {
         log.info('NotificationManager initialized');
     }
 
-    /**
-     * Get current config values
-     * @returns {Object} Current configuration
-     */
+    // Get current config values
+    // Returns: Current configuration object
     getConfig() {
         return {
             maxActiveNotifications: Config.GetCustomNotificationMaxCount() || 5,
@@ -29,11 +27,9 @@ class NotificationManager {
         };
     }
 
-    /**
-     * Calculate the appropriate height for a notification based on its content
-     * @param {Object} notificationData - The notification data
-     * @returns {number} The calculated height in pixels
-     */
+    // Calculate the appropriate height for a notification based on its content
+    // notificationData - The notification data
+    // Returns: The calculated height in pixels
     calculateNotificationHeight(notificationData) {
         let height = this.baseNotificationHeight;
         
@@ -69,10 +65,8 @@ class NotificationManager {
         return height;
     }
 
-    /**
-     * Get the primary display and calculate positioning
-     * @returns {Object} Display bounds and positioning info
-     */
+    // Get the primary display and calculate positioning
+    // Returns: Display bounds and positioning info
     getDisplayInfo() {
         try {
             const primaryDisplay = screen.getPrimaryDisplay();
@@ -104,12 +98,10 @@ class NotificationManager {
         }
     }
 
-    /**
-     * Calculate position for a new notification
-     * @param {number} index - Index in the active notifications array
-     * @param {number} notificationHeight - Height of the notification being positioned
-     * @returns {Object} Position coordinates
-     */
+    // Calculate position for a new notification
+    // index - Index in the active notifications array
+    // notificationHeight - Height of the notification being positioned
+    // Returns: Position coordinates
     calculateNotificationPosition(index, notificationHeight) {
         const displayInfo = this.getDisplayInfo();
         
@@ -130,12 +122,10 @@ class NotificationManager {
         };
     }
 
-    /**
-     * Create a new notification window
-     * @param {Object} notificationData - Notification data for height calculation
-     * @param {Object} options - Notification options
-     * @returns {BrowserWindow} The created notification window
-     */
+    // Create a new notification window
+    // notificationData - Notification data for height calculation
+    // options - Notification options
+    // Returns: The created notification window
     createNotificationWindow(notificationData, options = {}) {
         try {
             const notificationHeight = this.calculateNotificationHeight(notificationData);
@@ -192,11 +182,9 @@ class NotificationManager {
         }
     }
 
-    /**
-     * Show a notification with the given content
-     * @param {Object} notificationData - The notification content and options
-     * @returns {Promise<BrowserWindow>} The notification window
-     */
+    // Show a notification with the given content
+    // notificationData - The notification content and options
+    // Returns: The notification window
     async showNotification(notificationData) {
         try {
             const config = this.getConfig();
@@ -255,10 +243,8 @@ class NotificationManager {
         }
     }
 
-    /**
-     * Animate notification window appearing (slide up from bottom)
-     * @param {BrowserWindow} notificationWindow 
-     */
+    // Animate notification window appearing (slide up from bottom)
+    // notificationWindow - The notification window to animate
     animateNotificationIn(notificationWindow) {
         try {
             if (!notificationWindow || notificationWindow.isDestroyed()) return;
@@ -304,11 +290,9 @@ class NotificationManager {
         }
     }
 
-    /**
-     * Animate notification window disappearing (slide down and out)
-     * @param {BrowserWindow} notificationWindow 
-     * @param {Function} callback - Called when animation completes
-     */
+    // Animate notification window disappearing (slide down and out)
+    // notificationWindow - The notification window to animate
+    // callback - Called when animation completes
     animateNotificationOut(notificationWindow, callback) {
         try {
             if (!notificationWindow || notificationWindow.isDestroyed()) {
@@ -360,10 +344,8 @@ class NotificationManager {
         }
     }
 
-    /**
-     * Close a specific notification
-     * @param {BrowserWindow} notificationWindow 
-     */
+    // Close a specific notification
+    // notificationWindow - The notification window to close
     closeNotification(notificationWindow) {
         if (!notificationWindow || notificationWindow.isDestroyed()) return;
 
@@ -376,10 +358,8 @@ class NotificationManager {
         });
     }
 
-    /**
-     * Remove a notification from the active list
-     * @param {BrowserWindow} notificationWindow 
-     */
+    // Remove a notification from the active list
+    // notificationWindow - The notification window to remove
     removeNotification(notificationWindow) {
         const index = this.activeNotifications.findIndex(
             notification => notification.window === notificationWindow
@@ -400,9 +380,7 @@ class NotificationManager {
         }
     }
 
-    /**
-     * Reposition all active notifications to fill gaps
-     */
+    // Reposition all active notifications to fill gaps
     repositionNotifications() {
         this.activeNotifications.forEach((notification, index) => {
             if (!notification.window.isDestroyed()) {
@@ -413,9 +391,7 @@ class NotificationManager {
         });
     }
 
-    /**
-     * Process the notification queue
-     */
+    // Process the notification queue
     processQueue() {
         const config = this.getConfig();
         if (this.notificationQueue.length > 0 && 
@@ -425,9 +401,7 @@ class NotificationManager {
         }
     }
 
-    /**
-     * Close all active notifications
-     */
+    // Close all active notifications
     closeAllNotifications() {
         log.info('Closing all notifications');
         const windows = [...this.activeNotifications.map(n => n.window)];
@@ -440,26 +414,20 @@ class NotificationManager {
         this.notificationQueue = [];
     }
 
-    /**
-     * Get the count of active notifications
-     * @returns {number}
-     */
+    // Get the count of active notifications
+    // Returns: Number of active notifications
     getActiveNotificationCount() {
         return this.activeNotifications.length;
     }
 
-    /**
-     * Get the count of queued notifications
-     * @returns {number}
-     */
+    // Get the count of queued notifications
+    // Returns: Number of queued notifications
     getQueuedNotificationCount() {
         return this.notificationQueue.length;
     }
 
-    /**
-     * Play a notification sound based on the notification type
-     * @param {string} notificationType - The type of notification
-     */
+    // Play a notification sound based on the notification type
+    // notificationType - The type of notification
     async playNotificationSound(notificationType) {
         try {
             if (notificationType) {
@@ -470,11 +438,9 @@ class NotificationManager {
         }
     }
 
-    /**
-     * Start the auto-dismiss timer for a notification
-     * @param {BrowserWindow} notificationWindow - The notification window
-     * @param {number} timeout - Timeout in milliseconds
-     */
+    // Start the auto-dismiss timer for a notification
+    // notificationWindow - The notification window
+    // timeout - Timeout in milliseconds
     startAutoDismissTimer(notificationWindow, timeout) {
         const notification = this.activeNotifications.find(n => n.window === notificationWindow);
         if (!notification) return;
@@ -496,10 +462,8 @@ class NotificationManager {
         log.debug(`Auto-dismiss timer started for notification: ${timeout}ms`);
     }
 
-    /**
-     * Pause the auto-dismiss timer for a notification
-     * @param {BrowserWindow} notificationWindow - The notification window
-     */
+    // Pause the auto-dismiss timer for a notification
+    // notificationWindow - The notification window
     pauseAutoDismissTimer(notificationWindow) {
         const notification = this.activeNotifications.find(n => n.window === notificationWindow);
         if (!notification || !notification.autoDismissTimer) return;
@@ -515,10 +479,8 @@ class NotificationManager {
         log.debug(`Auto-dismiss timer paused. Remaining: ${notification.remainingTimeout}ms`);
     }
 
-    /**
-     * Resume the auto-dismiss timer for a notification
-     * @param {BrowserWindow} notificationWindow - The notification window
-     */
+    // Resume the auto-dismiss timer for a notification
+    // notificationWindow - The notification window
     resumeAutoDismissTimer(notificationWindow) {
         const notification = this.activeNotifications.find(n => n.window === notificationWindow);
         if (!notification || notification.autoDismissTimer || !notification.remainingTimeout) return;
@@ -534,10 +496,8 @@ class NotificationManager {
         }
     }
 
-    /**
-     * Handle mouse enter event for a notification
-     * @param {BrowserWindow} notificationWindow - The notification window
-     */
+    // Handle mouse enter event for a notification
+    // notificationWindow - The notification window
     handleMouseEnter(notificationWindow) {
         const notification = this.activeNotifications.find(n => n.window === notificationWindow);
         if (!notification) return;
@@ -547,10 +507,8 @@ class NotificationManager {
         log.debug('Mouse entered notification - auto-dismiss paused');
     }
 
-    /**
-     * Handle mouse leave event for a notification
-     * @param {BrowserWindow} notificationWindow - The notification window
-     */
+    // Handle mouse leave event for a notification
+    // notificationWindow - The notification window
     handleMouseLeave(notificationWindow) {
         const notification = this.activeNotifications.find(n => n.window === notificationWindow);
         if (!notification) return;
@@ -560,10 +518,8 @@ class NotificationManager {
         log.debug('Mouse left notification - auto-dismiss resumed');
     }
 
-    /**
-     * Clear auto-dismiss timer for a notification
-     * @param {BrowserWindow} notificationWindow - The notification window
-     */
+    // Clear auto-dismiss timer for a notification
+    // notificationWindow - The notification window
     clearAutoDismissTimer(notificationWindow) {
         const notification = this.activeNotifications.find(n => n.window === notificationWindow);
         if (!notification) return;

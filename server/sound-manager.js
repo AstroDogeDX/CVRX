@@ -39,9 +39,7 @@ class SoundManager {
         this.validateSoundFiles();
     }
 
-    /**
-     * Validate that all sound files exist
-     */
+    // Validate that all sound files exist
     validateSoundFiles() {
         try {
             for (const [type, filename] of Object.entries(this.soundFiles)) {
@@ -57,11 +55,9 @@ class SoundManager {
         }
     }
 
-    /**
-     * Play a notification sound based on the notification type
-     * @param {string} notificationType - The type of notification ('friend', 'invite', 'info', 'update')
-     * @returns {Promise<boolean>} Whether the sound was played successfully
-     */
+    // Play a notification sound based on the notification type
+    // notificationType - The type of notification ('friend', 'invite', 'info', 'update')
+    // Returns: Whether the sound was played successfully
     async playNotificationSound(notificationType) {
         try {
             // Check if notification sounds are enabled
@@ -118,11 +114,9 @@ class SoundManager {
         }
     }
 
-    /**
-     * Play an audio file using a temporary BrowserWindow
-     * @param {string} soundPath - Full path to the sound file
-     * @returns {Promise<boolean>} Whether the sound was played successfully
-     */
+    // Play an audio file using a temporary BrowserWindow
+    // soundPath - Full path to the sound file
+    // Returns: Whether the sound was played successfully
     async playAudioFile(soundPath) {
         return new Promise((resolve) => {
             try {
@@ -199,11 +193,9 @@ class SoundManager {
         });
     }
 
-    /**
-     * Get the sound file path for a notification type
-     * @param {string} notificationType - The notification type
-     * @returns {string|null} The sound file path or null if not found
-     */
+    // Get the sound file path for a notification type
+    // notificationType - The notification type
+    // Returns: The sound file path or null if not found
     getSoundFilePath(notificationType) {
         const soundFile = this.soundFiles[notificationType];
         if (soundFile) {
@@ -212,18 +204,14 @@ class SoundManager {
         return null;
     }
 
-    /**
-     * Get all available sound files
-     * @returns {Object} Object mapping notification types to sound files
-     */
+    // Get all available sound files
+    // Returns: Object mapping notification types to sound files
     getAvailableSounds() {
         return { ...this.soundFiles };
     }
 
-    /**
-     * Reset debounce timers for all notification types
-     * This can be useful for testing or if you want to allow sounds immediately
-     */
+    // Reset debounce timers for all notification types
+    // This can be useful for testing or if you want to allow sounds immediately
     resetDebounceTimers() {
         log.debug('Resetting all sound debounce timers');
         for (const notificationType in this.soundDebounce) {
@@ -231,10 +219,8 @@ class SoundManager {
         }
     }
 
-    /**
-     * Reset debounce timer for a specific notification type
-     * @param {string} notificationType - The notification type to reset
-     */
+    // Reset debounce timer for a specific notification type
+    // notificationType - The notification type to reset
     resetDebounceTimer(notificationType) {
         if (this.soundDebounce[notificationType]) {
             log.debug(`Resetting debounce timer for ${notificationType}`);
@@ -242,10 +228,8 @@ class SoundManager {
         }
     }
 
-    /**
-     * Get debounce status for all notification types
-     * @returns {Object} Object containing debounce information
-     */
+    // Get debounce status for all notification types
+    // Returns: Object containing debounce information
     getDebounceStatus() {
         const now = Date.now();
         const status = {};
