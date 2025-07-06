@@ -237,12 +237,49 @@ class NotificationHelper {
     }
 
     static async showFriendOnlineNotification(friendData) {
+        const friendName = friendData.name || 'Friend';
+        
+        // Determine friend's current state and instance information
+        let notificationMessage = `${friendName} is now online`;
+        let notificationActions = [];
+        
+        // Check if friend is in an accessible instance (not Offline Instance or Private Instance)
+        if (friendData.isOnline && friendData.isConnected && friendData.instance) {
+            // Friend is in an accessible instance
+            const instanceName = friendData.instance.name || 'Unknown Instance';
+            notificationMessage = `${friendName} is now online in ${instanceName}`;
+            
+            // Add deeplink buttons to join them
+            notificationActions = [
+                {
+                    text: 'Join Desktop',
+                    type: 'join-desktop',
+                    data: { instanceId: friendData.instance.id },
+                    icon: 'desktop_windows',
+                    primary: true
+                },
+                {
+                    text: 'Join VR',
+                    type: 'join-vr',
+                    data: { instanceId: friendData.instance.id },
+                    icon: 'view_in_ar'
+                }
+            ];
+        } else if (friendData.isOnline && !friendData.isConnected) {
+            // Friend is in an Offline Instance
+            notificationMessage = `${friendName} is now online in an Offline Instance`;
+        } else if (friendData.isOnline && friendData.isConnected && !friendData.instance) {
+            // Friend is in a Private Instance
+            notificationMessage = `${friendName} is now online in a Private Instance`;
+        }
+        
         return this.showNotification({
             title: 'Friend Online',
-            message: `${friendData.name} is now online`,
+            message: notificationMessage,
             type: 'friend',
             icon: 'person',
-            image: friendData.imageUrl
+            image: friendData.imageUrl,
+            actions: notificationActions
         });
     }
 
