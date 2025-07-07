@@ -10,6 +10,7 @@ class NotificationManager {
         this.activeNotifications = [];
         this.notificationQueue = [];
         this.notificationSpacing = 10;
+        this.topPadding = 5; // Additional padding for top corners to avoid appearing at very top
         this.notificationWidth = 350;
         this.baseNotificationHeight = 80; // Base height for title + message
         this.animationDuration = 300;
@@ -80,11 +81,11 @@ class NotificationManager {
                 corners: {
                     'top-left': {
                         x: workArea.x + this.notificationSpacing,
-                        y: workArea.y + this.notificationSpacing
+                        y: workArea.y + this.notificationSpacing + this.topPadding
                     },
                     'top-right': {
                         x: workArea.x + workArea.width - this.notificationWidth - this.notificationSpacing,
-                        y: workArea.y + this.notificationSpacing
+                        y: workArea.y + this.notificationSpacing + this.topPadding
                     },
                     'bottom-left': {
                         x: workArea.x + this.notificationSpacing,
@@ -106,8 +107,8 @@ class NotificationManager {
                 bounds: { x: 0, y: 0, width: 1920, height: 1080 },
                 workArea: { x: 0, y: 0, width: 1920, height: 1080 },
                 corners: {
-                    'top-left': { x: 10, y: 10 },
-                    'top-right': { x: 1920 - this.notificationWidth - 10, y: 10 },
+                    'top-left': { x: 10, y: 10 + this.topPadding },
+                    'top-right': { x: 1920 - this.notificationWidth - 10, y: 10 + this.topPadding },
                     'bottom-left': { x: 10, y: 1080 - 10 },
                     'bottom-right': { x: 1920 - this.notificationWidth - 10, y: 1080 - 10 }
                 }
