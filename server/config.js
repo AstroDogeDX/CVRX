@@ -72,6 +72,7 @@ exports.Load = async () => {
         UseCustomNotifications: true,
         CustomNotificationTimeout: 5000,
         CustomNotificationMaxCount: 5,
+        CustomNotificationCorner: 'bottom-right',
         NotificationSoundsEnabled: true,
     };
     config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, defaultObjectConfig);
@@ -399,6 +400,17 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.CustomNotificationMaxCount = maxCount;
     }
 
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'CustomNotificationCorner')) {
+        const corner = newConfigSettings.CustomNotificationCorner;
+        const validCorners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+
+        if (typeof corner !== 'string' || !validCorners.includes(corner)) {
+            throw new Error('[UpdateConfig] CustomNotificationCorner should be one of: top-left, top-right, bottom-left, bottom-right.');
+        }
+
+        config.CustomNotificationCorner = corner;
+    }
+
     if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'NotificationSoundsEnabled')) {
         const enabled = newConfigSettings.NotificationSoundsEnabled;
 
@@ -429,6 +441,7 @@ exports.GetConfig = () => ({
     UseCustomNotifications: config.UseCustomNotifications,
     CustomNotificationTimeout: config.CustomNotificationTimeout,
     CustomNotificationMaxCount: config.CustomNotificationMaxCount,
+    CustomNotificationCorner: config.CustomNotificationCorner,
     NotificationSoundsEnabled: config.NotificationSoundsEnabled,
 });
 
@@ -477,6 +490,8 @@ exports.GetCustomNotificationsEnabled = () => config.UseCustomNotifications;
 exports.GetCustomNotificationTimeout = () => config.CustomNotificationTimeout;
 
 exports.GetCustomNotificationMaxCount = () => config.CustomNotificationMaxCount;
+
+exports.GetCustomNotificationCorner = () => config.CustomNotificationCorner;
 
 exports.GetNotificationSoundsEnabled = () => config.NotificationSoundsEnabled;
 

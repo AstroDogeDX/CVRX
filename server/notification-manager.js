@@ -23,7 +23,8 @@ class NotificationManager {
         return {
             maxActiveNotifications: Config.GetCustomNotificationMaxCount() || 5,
             defaultDisplayTimeout: Config.GetCustomNotificationTimeout() || 5000,
-            enabled: Config.GetCustomNotificationsEnabled() !== false
+            enabled: Config.GetCustomNotificationsEnabled() !== false,
+            corner: Config.GetCustomNotificationCorner() || 'bottom-right'
         };
     }
 
@@ -76,9 +77,23 @@ class NotificationManager {
             const displayInfo = {
                 bounds,
                 workArea,
-                bottomRight: {
-                    x: workArea.x + workArea.width - this.notificationWidth - this.notificationSpacing,
-                    y: workArea.y + workArea.height - this.notificationSpacing
+                corners: {
+                    'top-left': {
+                        x: workArea.x + this.notificationSpacing,
+                        y: workArea.y + this.notificationSpacing
+                    },
+                    'top-right': {
+                        x: workArea.x + workArea.width - this.notificationWidth - this.notificationSpacing,
+                        y: workArea.y + this.notificationSpacing
+                    },
+                    'bottom-left': {
+                        x: workArea.x + this.notificationSpacing,
+                        y: workArea.y + workArea.height - this.notificationSpacing
+                    },
+                    'bottom-right': {
+                        x: workArea.x + workArea.width - this.notificationWidth - this.notificationSpacing,
+                        y: workArea.y + workArea.height - this.notificationSpacing
+                    }
                 }
             };
             
@@ -90,9 +105,11 @@ class NotificationManager {
             return {
                 bounds: { x: 0, y: 0, width: 1920, height: 1080 },
                 workArea: { x: 0, y: 0, width: 1920, height: 1080 },
-                bottomRight: {
-                    x: 1920 - this.notificationWidth - this.notificationSpacing,
-                    y: 1080 - this.notificationSpacing
+                corners: {
+                    'top-left': { x: 10, y: 10 },
+                    'top-right': { x: 1920 - this.notificationWidth - 10, y: 10 },
+                    'bottom-left': { x: 10, y: 1080 - 10 },
+                    'bottom-right': { x: 1920 - this.notificationWidth - 10, y: 1080 - 10 }
                 }
             };
         }
@@ -103,23 +120,69 @@ class NotificationManager {
     // notificationHeight - Height of the notification being positioned
     // Returns: Position coordinates
     calculateNotificationPosition(index, notificationHeight) {
-        const displayInfo = this.getDisplayInfo();
-        
-        // Calculate Y offset based on the actual heights of all notifications below this one
-        let yOffset = notificationHeight; // Start with this notification's height
-        
-        // Add heights of all notifications that will be below this one
-        for (let i = 0; i < index; i++) {
-            if (this.activeNotifications[i] && !this.activeNotifications[i].window.isDestroyed()) {
-                const bounds = this.activeNotifications[i].window.getBounds();
-                yOffset += bounds.height + this.notificationSpacing;
+        try {
+            const displayInfo = this.getDisplayInfo();
+            const config = this.getConfig();
+            const corner = config.corner || 'bottom-right';
+            const cornerPos = displayInfo.corners[corner];
+            
+            // Validate inputs
+            if (!Number.isFinite(notificationHeight) || notificationHeight <= 0) {
+                log.error('Invalid notification height:', notificationHeight);
+                notificationHeight = this.baseNotificationHeight; // fallback
             }
+            
+            if (!cornerPos || !Number.isFinite(cornerPos.x) || !Number.isFinite(cornerPos.y)) {
+                log.error('Invalid corner position:', cornerPos);
+                // Fallback to bottom-right corner
+                const fallbackPos = displayInfo.corners['bottom-right'] || { x: 100, y: 100 };
+                return { x: fallbackPos.x, y: fallbackPos.y };
+            }
+            
+            // Calculate offset based on the actual heights of all notifications
+            let offset = 0;
+            
+            // Add heights of all notifications that should be positioned before this one
+            for (let i = 0; i < index; i++) {
+                try {
+                    if (this.activeNotifications[i] && !this.activeNotifications[i].window.isDestroyed()) {
+                        const bounds = this.activeNotifications[i].window.getBounds();
+                        if (Number.isFinite(bounds.height) && bounds.height > 0) {
+                            offset += bounds.height + this.notificationSpacing;
+                        }
+                    }
+                } catch (error) {
+                    log.error('Error getting bounds for notification positioning:', error);
+                    // Skip this notification in positioning calculation
+                    continue;
+                }
+            }
+            
+            let x = cornerPos.x;
+            let y = cornerPos.y;
+            
+            // Adjust position based on corner and stacking direction
+            if (corner.startsWith('top-')) {
+                // Top corners: stack downward
+                y += offset;
+            } else {
+                // Bottom corners: stack upward
+                y -= (notificationHeight + offset);
+            }
+            
+            // Final validation of calculated position
+            if (!Number.isFinite(x) || !Number.isFinite(y)) {
+                log.error('Invalid position calculated:', { x, y });
+                // Return safe fallback position
+                return { x: 100, y: 100 };
+            }
+            
+            return { x, y };
+        } catch (error) {
+            log.error('Error calculating notification position:', error);
+            // Return safe fallback position
+            return { x: 100, y: 100 };
         }
-        
-        return {
-            x: displayInfo.bottomRight.x,
-            y: displayInfo.bottomRight.y - yOffset
-        };
     }
 
     // Create a new notification window
@@ -243,40 +306,90 @@ class NotificationManager {
         }
     }
 
-    // Animate notification window appearing (slide up from bottom)
+    // Animate notification window appearing (slide in from edge)
     // notificationWindow - The notification window to animate
     animateNotificationIn(notificationWindow) {
         try {
             if (!notificationWindow || notificationWindow.isDestroyed()) return;
 
-            // Start off-screen at the bottom
-            const finalPosition = {
-                x: notificationWindow.getPosition()[0],
-                y: notificationWindow.getPosition()[1]
-            };
+            const config = this.getConfig();
+            const corner = config.corner;
             
-            const windowHeight = notificationWindow.getBounds().height;
-            notificationWindow.setPosition(finalPosition.x, finalPosition.y + windowHeight + 20);
-            notificationWindow.show();
+            // Safely get position and bounds with validation
+            let finalPosition, windowHeight;
+            try {
+                finalPosition = {
+                    x: notificationWindow.getPosition()[0],
+                    y: notificationWindow.getPosition()[1]
+                };
+                windowHeight = notificationWindow.getBounds().height;
+                
+                // Validate position values
+                if (!Number.isFinite(finalPosition.x) || !Number.isFinite(finalPosition.y) || !Number.isFinite(windowHeight)) {
+                    throw new Error('Invalid position or window dimensions');
+                }
+            } catch (error) {
+                log.error('Failed to get window position/bounds for animation:', error);
+                // Fallback: just show the window
+                if (!notificationWindow.isDestroyed()) {
+                    notificationWindow.show();
+                }
+                return;
+            }
+            
+            let startY = finalPosition.y;
+            
+            // Set initial off-screen position based on corner
+            if (corner.startsWith('top-')) {
+                // Top corners: start above the screen
+                startY = finalPosition.y - windowHeight - 20;
+            } else {
+                // Bottom corners: start below the screen
+                startY = finalPosition.y + windowHeight + 20;
+            }
+            
+            // Safely set initial position
+            try {
+                notificationWindow.setPosition(finalPosition.x, startY);
+                notificationWindow.show();
+            } catch (error) {
+                log.error('Failed to set initial animation position:', error);
+                if (!notificationWindow.isDestroyed()) {
+                    notificationWindow.show();
+                }
+                return;
+            }
 
-            // Animate to final position (slide up)
+            // Animate to final position
             const startTime = Date.now();
-            const startY = notificationWindow.getPosition()[1];
             
             const animate = () => {
-                if (notificationWindow.isDestroyed()) return;
-                
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / this.animationDuration, 1);
-                
-                // Easing function for smooth animation (ease out)
-                const easeOut = 1 - Math.pow(1 - progress, 3);
-                const currentY = startY + (finalPosition.y - startY) * easeOut;
-                
-                notificationWindow.setPosition(finalPosition.x, Math.round(currentY));
-                
-                if (progress < 1) {
-                    setImmediate(animate);
+                try {
+                    // Double-check window state before each frame
+                    if (!notificationWindow || notificationWindow.isDestroyed()) return;
+                    
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / this.animationDuration, 1);
+                    
+                    // Easing function for smooth animation (ease out)
+                    const easeOut = 1 - Math.pow(1 - progress, 3);
+                    const currentY = startY + (finalPosition.y - startY) * easeOut;
+                    
+                    // Validate calculated position
+                    if (!Number.isFinite(currentY)) {
+                        log.error('Invalid Y position calculated during animation:', currentY);
+                        return;
+                    }
+                    
+                    // Safely set position
+                    notificationWindow.setPosition(finalPosition.x, Math.round(currentY));
+                    
+                    if (progress < 1) {
+                        setImmediate(animate);
+                    }
+                } catch (error) {
+                    log.error('Error during notification animation frame:', error);
+                    // Stop animation on error to prevent ghost windows
                 }
             };
             
@@ -284,13 +397,17 @@ class NotificationManager {
         } catch (error) {
             log.error('Failed to animate notification in:', error);
             // Fallback: just show the window
-            if (!notificationWindow.isDestroyed()) {
-                notificationWindow.show();
+            try {
+                if (!notificationWindow.isDestroyed()) {
+                    notificationWindow.show();
+                }
+            } catch (fallbackError) {
+                log.error('Failed to show notification window as fallback:', fallbackError);
             }
         }
     }
 
-    // Animate notification window disappearing (slide down and out)
+    // Animate notification window disappearing (slide out to edge)
     // notificationWindow - The notification window to animate
     // callback - Called when animation completes
     animateNotificationOut(notificationWindow, callback) {
@@ -300,35 +417,115 @@ class NotificationManager {
                 return;
             }
 
-            const startPosition = {
-                x: notificationWindow.getPosition()[0],
-                y: notificationWindow.getPosition()[1]
-            };
-            
-            // Calculate end position (slide down and out of view)
+            const config = this.getConfig();
+            const corner = config.corner;
             const displayInfo = this.getDisplayInfo();
-            const endY = displayInfo.workArea.y + displayInfo.workArea.height + 20;
+            
+            // Safely get position and bounds with validation
+            let startPosition, windowHeight;
+            try {
+                startPosition = {
+                    x: notificationWindow.getPosition()[0],
+                    y: notificationWindow.getPosition()[1]
+                };
+                windowHeight = notificationWindow.getBounds().height;
+                
+                // Validate position and dimension values
+                if (!Number.isFinite(startPosition.x) || !Number.isFinite(startPosition.y) || !Number.isFinite(windowHeight)) {
+                    throw new Error('Invalid position or window dimensions');
+                }
+            } catch (error) {
+                log.error('Failed to get window position/bounds for exit animation:', error);
+                // Fallback: just close the window
+                try {
+                    if (!notificationWindow.isDestroyed()) {
+                        notificationWindow.close();
+                    }
+                } catch (closeError) {
+                    log.error('Failed to close notification window:', closeError);
+                }
+                if (callback) callback();
+                return;
+            }
+            
+            // Calculate end position based on corner
+            let endY;
+            if (corner.startsWith('top-')) {
+                // Top corners: slide up and out of view
+                endY = displayInfo.workArea.y - windowHeight - 20;
+            } else {
+                // Bottom corners: slide down and out of view
+                endY = displayInfo.workArea.y + displayInfo.workArea.height + 20;
+            }
+            
+            // Validate end position
+            if (!Number.isFinite(endY)) {
+                log.error('Invalid end position calculated for exit animation:', endY);
+                try {
+                    if (!notificationWindow.isDestroyed()) {
+                        notificationWindow.close();
+                    }
+                } catch (closeError) {
+                    log.error('Failed to close notification window:', closeError);
+                }
+                if (callback) callback();
+                return;
+            }
+            
             const startTime = Date.now();
             
             const animate = () => {
-                if (notificationWindow.isDestroyed()) {
-                    if (callback) callback();
-                    return;
-                }
-                
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / this.animationDuration, 1);
-                
-                // Easing function for smooth animation (ease in, sliding down)
-                const easeIn = Math.pow(progress, 3);
-                const currentY = startPosition.y + (endY - startPosition.y) * easeIn;
-                
-                notificationWindow.setPosition(startPosition.x, Math.round(currentY));
-                
-                if (progress < 1) {
-                    setImmediate(animate);
-                } else {
-                    notificationWindow.close();
+                try {
+                    // Double-check window state before each frame
+                    if (!notificationWindow || notificationWindow.isDestroyed()) {
+                        if (callback) callback();
+                        return;
+                    }
+                    
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / this.animationDuration, 1);
+                    
+                    // Easing function for smooth animation (ease in)
+                    const easeIn = Math.pow(progress, 3);
+                    const currentY = startPosition.y + (endY - startPosition.y) * easeIn;
+                    
+                    // Validate calculated position
+                    if (!Number.isFinite(currentY)) {
+                        log.error('Invalid Y position calculated during exit animation:', currentY);
+                        try {
+                            if (!notificationWindow.isDestroyed()) {
+                                notificationWindow.close();
+                            }
+                        } catch (closeError) {
+                            log.error('Failed to close notification window:', closeError);
+                        }
+                        if (callback) callback();
+                        return;
+                    }
+                    
+                    // Safely set position
+                    notificationWindow.setPosition(startPosition.x, Math.round(currentY));
+                    
+                    if (progress < 1) {
+                        setImmediate(animate);
+                    } else {
+                        try {
+                            notificationWindow.close();
+                        } catch (closeError) {
+                            log.error('Failed to close notification window at animation end:', closeError);
+                        }
+                        if (callback) callback();
+                    }
+                } catch (error) {
+                    log.error('Error during notification exit animation frame:', error);
+                    // Stop animation and close window on error
+                    try {
+                        if (!notificationWindow.isDestroyed()) {
+                            notificationWindow.close();
+                        }
+                    } catch (closeError) {
+                        log.error('Failed to close notification window after animation error:', closeError);
+                    }
                     if (callback) callback();
                 }
             };
@@ -337,8 +534,12 @@ class NotificationManager {
         } catch (error) {
             log.error('Failed to animate notification out:', error);
             // Fallback: just close the window
-            if (!notificationWindow.isDestroyed()) {
-                notificationWindow.close();
+            try {
+                if (!notificationWindow.isDestroyed()) {
+                    notificationWindow.close();
+                }
+            } catch (closeError) {
+                log.error('Failed to close notification window as fallback:', closeError);
             }
             if (callback) callback();
         }
@@ -361,34 +562,89 @@ class NotificationManager {
     // Remove a notification from the active list
     // notificationWindow - The notification window to remove
     removeNotification(notificationWindow) {
-        const index = this.activeNotifications.findIndex(
-            notification => notification.window === notificationWindow
-        );
-        
-        if (index !== -1) {
-            const notification = this.activeNotifications[index];
+        try {
+            const index = this.activeNotifications.findIndex(
+                notification => notification.window === notificationWindow
+            );
             
-            // Clean up the auto-dismiss timer
-            if (notification.autoDismissTimer) {
-                clearTimeout(notification.autoDismissTimer);
+            if (index !== -1) {
+                const notification = this.activeNotifications[index];
+                
+                // Clean up the auto-dismiss timer
+                try {
+                    if (notification.autoDismissTimer) {
+                        clearTimeout(notification.autoDismissTimer);
+                        notification.autoDismissTimer = null;
+                    }
+                } catch (timerError) {
+                    log.error('Error clearing auto-dismiss timer:', timerError);
+                }
+                
+                this.activeNotifications.splice(index, 1);
+                log.debug('Notification removed from active list');
+                
+                // Safely reposition and process queue
+                try {
+                    this.repositionNotifications();
+                } catch (repositionError) {
+                    log.error('Error repositioning notifications after removal:', repositionError);
+                }
+                
+                try {
+                    this.processQueue();
+                } catch (queueError) {
+                    log.error('Error processing notification queue:', queueError);
+                }
             }
-            
-            this.activeNotifications.splice(index, 1);
-            log.debug('Notification removed from active list');
-            this.repositionNotifications();
-            this.processQueue();
+        } catch (error) {
+            log.error('Error removing notification:', error);
+            // Emergency cleanup: remove any destroyed windows from the active list
+            this.activeNotifications = this.activeNotifications.filter(
+                notification => {
+                    try {
+                        return notification.window && !notification.window.isDestroyed();
+                    } catch (checkError) {
+                        return false; // Remove any notifications we can't check
+                    }
+                }
+            );
         }
     }
 
     // Reposition all active notifications to fill gaps
     repositionNotifications() {
         this.activeNotifications.forEach((notification, index) => {
-            if (!notification.window.isDestroyed()) {
+            try {
+                if (!notification.window || notification.window.isDestroyed()) return;
+                
                 const windowHeight = notification.window.getBounds().height;
                 const newPosition = this.calculateNotificationPosition(index, windowHeight);
+                
+                // Validate position values
+                if (!Number.isFinite(newPosition.x) || !Number.isFinite(newPosition.y)) {
+                    log.error('Invalid position calculated for repositioning:', newPosition);
+                    return;
+                }
+                
                 notification.window.setPosition(newPosition.x, newPosition.y);
+            } catch (error) {
+                log.error('Error repositioning notification:', error);
+                // If we can't reposition, the notification might be in a bad state
+                // Remove it from active notifications to prevent further issues
+                try {
+                    if (!notification.window.isDestroyed()) {
+                        notification.window.close();
+                    }
+                } catch (closeError) {
+                    log.error('Failed to close problematic notification during repositioning:', closeError);
+                }
             }
         });
+        
+        // Clean up any notifications that might have been closed due to errors
+        this.activeNotifications = this.activeNotifications.filter(
+            notification => !notification.window.isDestroyed()
+        );
     }
 
     // Process the notification queue

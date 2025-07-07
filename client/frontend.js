@@ -2698,6 +2698,9 @@ const inviteRequestNotificationsCheckbox = document.getElementById('setting-invi
 // Handle "Notification Sounds" setting
 const notificationSoundsCheckbox = document.getElementById('setting-notification-sounds-enabled');
 
+// Handle "Notification Corner" setting
+const notificationCornerDropdown = document.getElementById('setting-notification-corner');
+
 // Function to apply thumbnail shape to all existing thumbnail containers
 function applyThumbnailShape(shape) {
     const thumbnailContainers = document.querySelectorAll('.details-thumbnail-container');
@@ -2788,6 +2791,13 @@ window.API.getConfig().then(config => {
     
     if (config && config.NotificationSoundsEnabled !== undefined) {
         notificationSoundsCheckbox.checked = config.NotificationSoundsEnabled;
+    }
+    
+    if (config && config.CustomNotificationCorner !== undefined) {
+        notificationCornerDropdown.value = config.CustomNotificationCorner;
+    } else {
+        // Default to 'bottom-right' if not set
+        notificationCornerDropdown.value = 'bottom-right';
     }
     
     // Load mature content setting
@@ -2956,6 +2966,29 @@ notificationSoundsCheckbox.addEventListener('change', () => {
             // Revert checkbox state if save failed
             window.API.getConfig().then(config => {
                 notificationSoundsCheckbox.checked = config.NotificationSoundsEnabled !== false;
+            });
+        });
+});
+
+// Update config when "Notification Corner" setting is changed
+notificationCornerDropdown.addEventListener('change', () => {
+    const selectedCorner = notificationCornerDropdown.value;
+    const cornerNames = {
+        'bottom-right': 'Bottom Right',
+        'bottom-left': 'Bottom Left',
+        'top-right': 'Top Right',
+        'top-left': 'Top Left'
+    };
+    
+    window.API.updateConfig({ CustomNotificationCorner: selectedCorner })
+        .then(() => {
+            pushToast(`Notification corner set to ${cornerNames[selectedCorner]}`, 'confirm');
+        })
+        .catch(err => {
+            pushToast(`Error saving setting: ${err}`, 'error');
+            // Revert dropdown state if save failed
+            window.API.getConfig().then(config => {
+                notificationCornerDropdown.value = config.CustomNotificationCorner || 'bottom-right';
             });
         });
 });
