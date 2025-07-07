@@ -2027,6 +2027,10 @@ window.API.onInvites((_event, invites) => {
                     const success = await openDeepLink(deepLink);
                     if (success) {
                         pushToast('Joining instance in Desktop mode...', 'confirm');
+                        // Mark the invite as dismissed and remove the notification
+                        markInviteDismissed(invite.id);
+                        inviteNode.remove();
+                        updateNotificationCount();
                     } else {
                         pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
                     }
@@ -2052,6 +2056,10 @@ window.API.onInvites((_event, invites) => {
                     const success = await openDeepLink(deepLink);
                     if (success) {
                         pushToast('Joining instance in VR mode...', 'confirm');
+                        // Mark the invite as dismissed and remove the notification
+                        markInviteDismissed(invite.id);
+                        inviteNode.remove();
+                        updateNotificationCount();
                     } else {
                         pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
                     }
