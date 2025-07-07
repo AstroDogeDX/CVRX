@@ -212,7 +212,7 @@ class NotificationHelper {
         return this.showNotification({
             title: 'ChilloutVR Invite Request',
             message: `${senderName} requested an invite from you`,
-            type: 'info',
+            type: 'invite',
             icon: 'person_add',
             image: requestData.sender?.imageUrl
         });
