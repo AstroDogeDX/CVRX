@@ -218,6 +218,7 @@ contextBridge.exposeInMainWorld('API', {
     showCustomNotification: (notificationData) => ipcRenderer.invoke('custom-notification-show', notificationData),
     closeAllCustomNotifications: () => ipcRenderer.invoke('custom-notification-close-all'),
     getCustomNotificationCount: () => ipcRenderer.invoke('custom-notification-get-count'),
+    forceNotificationStartupComplete: () => ipcRenderer.invoke('custom-notification-force-startup-complete'),
 
     // Test
     // closeTest: (closeCode, close) => ipcRenderer.send('close-socket-server', closeCode, close),

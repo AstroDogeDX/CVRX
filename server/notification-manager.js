@@ -14,8 +14,15 @@ class NotificationManager {
         this.notificationWidth = 350;
         this.baseNotificationHeight = 80; // Base height for title + message
         this.animationDuration = 300;
+        this.isAppStarting = true; // Track if app is in startup phase
+        this.startupCompleteTimer = null; // Timer to mark startup as complete
         
-        log.info('NotificationManager initialized');
+        // Mark startup as complete after a reasonable delay (5 seconds)
+        this.startupCompleteTimer = setTimeout(() => {
+            this.markStartupComplete();
+        }, 5000);
+        
+        log.info('NotificationManager initialized - startup phase active');
     }
 
     // Get current config values
@@ -25,8 +32,36 @@ class NotificationManager {
             maxActiveNotifications: Config.GetCustomNotificationMaxCount() || 5,
             defaultDisplayTimeout: Config.GetCustomNotificationTimeout() || 5000,
             enabled: Config.GetCustomNotificationsEnabled() !== false,
-            corner: Config.GetCustomNotificationCorner() || 'bottom-right'
+            corner: Config.GetCustomNotificationCorner() || 'bottom-right',
+            suppressBootNotifications: Config.GetSuppressBootNotifications() !== false
         };
+    }
+
+    // Mark startup as complete - allows notifications to be shown normally
+    markStartupComplete() {
+        if (this.isAppStarting) {
+            this.isAppStarting = false;
+            log.info('App startup phase completed - notifications enabled');
+            
+            // Clear the startup timer if it's still active
+            if (this.startupCompleteTimer) {
+                clearTimeout(this.startupCompleteTimer);
+                this.startupCompleteTimer = null;
+            }
+        }
+    }
+
+    // Force startup phase to end immediately (for testing or manual control)
+    forceStartupComplete() {
+        this.markStartupComplete();
+        log.info('Startup phase force completed');
+    }
+
+    // Check if we should suppress notifications due to startup phase
+    // Returns: true if notifications should be suppressed
+    shouldSuppressBootNotifications() {
+        const config = this.getConfig();
+        return this.isAppStarting && config.suppressBootNotifications;
     }
 
     // Calculate the appropriate height for a notification based on its content
@@ -256,6 +291,12 @@ class NotificationManager {
             // Check if custom notifications are enabled
             if (!config.enabled) {
                 log.debug('Custom notifications are disabled, skipping');
+                return null;
+            }
+
+            // Check if we should suppress notifications during startup
+            if (this.shouldSuppressBootNotifications()) {
+                log.debug('Suppressing notification during app startup:', notificationData.title || 'Untitled');
                 return null;
             }
 
@@ -787,6 +828,20 @@ class NotificationManager {
         }
         notification.remainingTimeout = null;
         log.debug('Auto-dismiss timer cleared');
+    }
+
+    // Cleanup method for app shutdown
+    cleanup() {
+        // Clear startup timer if still active
+        if (this.startupCompleteTimer) {
+            clearTimeout(this.startupCompleteTimer);
+            this.startupCompleteTimer = null;
+        }
+        
+        // Close all notifications
+        this.closeAllNotifications();
+        
+        log.info('NotificationManager cleanup completed');
     }
 }
 

@@ -272,6 +272,16 @@ app.on('ready', () => {
         }
     });
 
+    ipcMain.handle('custom-notification-force-startup-complete', async (event) => {
+        try {
+            NotificationManager.forceStartupComplete();
+            return { success: true };
+        } catch (error) {
+            log.error('Failed to force startup complete:', error);
+            return { success: false, error: error.message };
+        }
+    });
+
     // Handle notification window events
     ipcMain.on('notification-close', (event) => {
         try {

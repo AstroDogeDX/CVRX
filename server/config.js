@@ -74,6 +74,7 @@ exports.Load = async () => {
         CustomNotificationMaxCount: 5,
         CustomNotificationCorner: 'bottom-right',
         NotificationSoundsEnabled: true,
+        SuppressBootNotifications: true,
     };
     config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, defaultObjectConfig);
     MergeDefaultConfig(config, defaultObjectConfig);
@@ -421,6 +422,16 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.NotificationSoundsEnabled = enabled;
     }
 
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'SuppressBootNotifications')) {
+        const enabled = newConfigSettings.SuppressBootNotifications;
+
+        if (typeof enabled !== 'boolean') {
+            throw new Error('[UpdateConfig] SuppressBootNotifications should be a boolean value.');
+        }
+
+        config.SuppressBootNotifications = enabled;
+    }
+
     await UpdateJsonFile(FileType.CONFIG);
 
     return exports.GetConfig();
@@ -443,6 +454,7 @@ exports.GetConfig = () => ({
     CustomNotificationMaxCount: config.CustomNotificationMaxCount,
     CustomNotificationCorner: config.CustomNotificationCorner,
     NotificationSoundsEnabled: config.NotificationSoundsEnabled,
+    SuppressBootNotifications: config.SuppressBootNotifications,
 });
 
 
@@ -494,6 +506,8 @@ exports.GetCustomNotificationMaxCount = () => config.CustomNotificationMaxCount;
 exports.GetCustomNotificationCorner = () => config.CustomNotificationCorner;
 
 exports.GetNotificationSoundsEnabled = () => config.NotificationSoundsEnabled;
+
+exports.GetSuppressBootNotifications = () => config.SuppressBootNotifications;
 
 exports.GetUpdaterIgnoreVersion = () => config.UpdaterIgnoreVersion;
 

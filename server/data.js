@@ -6,6 +6,7 @@ const Config = require('./config');
 const Updater = require('./updater');
 const Utils = require('./utils');
 const NotificationHelper = require('./notification-helper');
+const NotificationManager = require('./notification-manager');
 const {CategoryType} = require('./api_cvr_http');
 const path = require('path');
 
@@ -970,7 +971,8 @@ class Core {
                 // Send friend online notification if friend just came online and notifications are enabled
                 if (!isRefresh && // Don't send notifications during refresh/initial load
                     !wasOnline && isNowOnline && // Friend went from offline to online
-                    Config.IsFriendNotificationEnabled(friendInstance.id)) { // Notifications enabled for this friend
+                    Config.IsFriendNotificationEnabled(friendInstance.id) && // Notifications enabled for this friend
+                    !NotificationManager.shouldSuppressBootNotifications()) { // Not suppressing boot notifications
                     
                     try {
                         await NotificationHelper.showFriendOnlineNotification(friendInstance);
@@ -1046,7 +1048,9 @@ class Core {
         this.SendToRenderer('invites', invites);
 
         // Send system notifications for new invites if enabled
-        if (Config.GetInviteNotificationsEnabled() && invites.length > 0) {
+        if (Config.GetInviteNotificationsEnabled() && 
+            invites.length > 0 && 
+            !NotificationManager.shouldSuppressBootNotifications()) {
             // Filter out dismissed invites and invites we've already notified about
             const newInvitesToNotify = invites.filter(invite => {
                 const isDismissed = this.dismissedInvites.has(invite.id);
@@ -1096,7 +1100,9 @@ class Core {
         this.SendToRenderer('invite-requests', requestInvites);
 
         // Send system notifications for new invite requests if enabled
-        if (Config.GetInviteRequestNotificationsEnabled() && requestInvites.length > 0) {
+        if (Config.GetInviteRequestNotificationsEnabled() && 
+            requestInvites.length > 0 && 
+            !NotificationManager.shouldSuppressBootNotifications()) {
             // Filter out dismissed invite requests and invite requests we've already notified about
             const newInviteRequestsToNotify = requestInvites.filter(requestInvite => {
                 const isDismissed = this.dismissedInviteRequests.has(requestInvite.id);
