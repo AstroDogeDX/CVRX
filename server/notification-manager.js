@@ -14,15 +14,15 @@ class NotificationManager {
         this.notificationWidth = 350;
         this.baseNotificationHeight = 80; // Base height for title + message
         this.animationDuration = 300;
-        this.isAppStarting = true; // Track if app is in startup phase
-        this.startupCompleteTimer = null; // Timer to mark startup as complete
+        this.isPostLogin = false; // Track if app is in post-login phase
+        this.postLoginSuppressionTimer = null; // Timer to mark post-login suppression as complete
         
-        // Mark startup as complete after a reasonable delay (5 seconds)
-        this.startupCompleteTimer = setTimeout(() => {
-            this.markStartupComplete();
+        // Mark post-login suppression as complete after a reasonable delay (5 seconds)
+        this.postLoginSuppressionTimer = setTimeout(() => {
+            this.markPostLoginSuppressionComplete();
         }, 5000);
         
-        log.info('NotificationManager initialized - startup phase active');
+        log.info('NotificationManager initialized - post-login phase active');
     }
 
     // Get current config values
@@ -33,35 +33,40 @@ class NotificationManager {
             defaultDisplayTimeout: Config.GetCustomNotificationTimeout() || 5000,
             enabled: Config.GetCustomNotificationsEnabled() !== false,
             corner: Config.GetCustomNotificationCorner() || 'bottom-right',
-            suppressBootNotifications: Config.GetSuppressBootNotifications() !== false
+            suppressPostLoginNotifications: Config.GetSuppressPostLoginNotifications() !== false
         };
     }
 
-    // Mark startup as complete - allows notifications to be shown normally
-    markStartupComplete() {
-        if (this.isAppStarting) {
-            this.isAppStarting = false;
-            log.info('App startup phase completed - notifications enabled');
-            
-            // Clear the startup timer if it's still active
-            if (this.startupCompleteTimer) {
-                clearTimeout(this.startupCompleteTimer);
-                this.startupCompleteTimer = null;
+    // Mark post-login suppression as complete - allows notifications to be shown normally
+    markPostLoginSuppressionComplete() {
+        if (this.isPostLogin) {
+            this.isPostLogin = false;
+            log.info('Post-login notification suppression completed - notifications enabled');
+            if (this.postLoginSuppressionTimer) {
+                clearTimeout(this.postLoginSuppressionTimer);
+                this.postLoginSuppressionTimer = null;
             }
         }
     }
 
-    // Force startup phase to end immediately (for testing or manual control)
-    forceStartupComplete() {
-        this.markStartupComplete();
-        log.info('Startup phase force completed');
+    // Start post-login suppression (call after login)
+    startPostLoginSuppression() {
+        this.isPostLogin = true;
+        if (this.postLoginSuppressionTimer) {
+            clearTimeout(this.postLoginSuppressionTimer);
+        }
+        // Default suppression period: 5 seconds
+        this.postLoginSuppressionTimer = setTimeout(() => {
+            this.markPostLoginSuppressionComplete();
+        }, 5000);
+        log.info('Post-login notification suppression started');
     }
 
-    // Check if we should suppress notifications due to startup phase
+    // Check if we should suppress notifications due to post-login phase
     // Returns: true if notifications should be suppressed
-    shouldSuppressBootNotifications() {
+    shouldSuppressPostLoginNotifications() {
         const config = this.getConfig();
-        return this.isAppStarting && config.suppressBootNotifications;
+        return this.isPostLogin && config.suppressPostLoginNotifications;
     }
 
     // Calculate the appropriate height for a notification based on its content
@@ -294,9 +299,9 @@ class NotificationManager {
                 return null;
             }
 
-            // Check if we should suppress notifications during startup
-            if (this.shouldSuppressBootNotifications()) {
-                log.debug('Suppressing notification during app startup:', notificationData.title || 'Untitled');
+            // Check if we should suppress notifications during post-login
+            if (this.shouldSuppressPostLoginNotifications()) {
+                log.debug('Suppressing notification during post-login:', notificationData.title || 'Untitled');
                 return null;
             }
 
@@ -832,10 +837,10 @@ class NotificationManager {
 
     // Cleanup method for app shutdown
     cleanup() {
-        // Clear startup timer if still active
-        if (this.startupCompleteTimer) {
-            clearTimeout(this.startupCompleteTimer);
-            this.startupCompleteTimer = null;
+        // Clear post-login suppression timer if still active
+        if (this.postLoginSuppressionTimer) {
+            clearTimeout(this.postLoginSuppressionTimer);
+            this.postLoginSuppressionTimer = null;
         }
         
         // Close all notifications

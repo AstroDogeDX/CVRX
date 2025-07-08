@@ -317,7 +317,10 @@ class Core {
         ipcMain.handle('login-authenticate', async (_event, credentialUser, credentialSecret, isAccessKey, saveCredentials) => {
             return await this.Authenticate(credentialUser, credentialSecret, isAccessKey, saveCredentials);
         });
-        ipcMain.on('logout', async (_event) => await this.Disconnect('The CVRX User is logging out...'));
+        ipcMain.on('logout', async (_event) => {
+            NotificationManager.markPostLoginSuppressionComplete();
+            await this.Disconnect('The CVRX User is logging out...');
+        });
         ipcMain.handle('delete-credentials', async (_event, username) => Config.ClearCredentials(username));
         ipcMain.handle('import-game-credentials', async (_event) => {
             await Config.ImportCVRCredentials();
@@ -598,6 +601,9 @@ class Core {
                     failedTimes++;
                 }
             }, recurringIntervalMinutes * 60 * 1000);
+
+            // After successful authentication (login), start post-login suppression
+            NotificationManager.startPostLoginSuppression();
 
         }
         catch (e) {
@@ -972,7 +978,7 @@ class Core {
                 if (!isRefresh && // Don't send notifications during refresh/initial load
                     !wasOnline && isNowOnline && // Friend went from offline to online
                     Config.IsFriendNotificationEnabled(friendInstance.id) && // Notifications enabled for this friend
-                    !NotificationManager.shouldSuppressBootNotifications()) { // Not suppressing boot notifications
+                    !NotificationManager.shouldSuppressPostLoginNotifications()) { // Not suppressing post-login notifications
                     
                     try {
                         await NotificationHelper.showFriendOnlineNotification(friendInstance);
@@ -1050,7 +1056,7 @@ class Core {
         // Send system notifications for new invites if enabled
         if (Config.GetInviteNotificationsEnabled() && 
             invites.length > 0 && 
-            !NotificationManager.shouldSuppressBootNotifications()) {
+            !NotificationManager.shouldSuppressPostLoginNotifications()) {
             // Filter out dismissed invites and invites we've already notified about
             const newInvitesToNotify = invites.filter(invite => {
                 const isDismissed = this.dismissedInvites.has(invite.id);
@@ -1102,7 +1108,7 @@ class Core {
         // Send system notifications for new invite requests if enabled
         if (Config.GetInviteRequestNotificationsEnabled() && 
             requestInvites.length > 0 && 
-            !NotificationManager.shouldSuppressBootNotifications()) {
+            !NotificationManager.shouldSuppressPostLoginNotifications()) {
             // Filter out dismissed invite requests and invite requests we've already notified about
             const newInviteRequestsToNotify = requestInvites.filter(requestInvite => {
                 const isDismissed = this.dismissedInviteRequests.has(requestInvite.id);

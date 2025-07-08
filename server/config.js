@@ -74,10 +74,15 @@ exports.Load = async () => {
         CustomNotificationMaxCount: 5,
         CustomNotificationCorner: 'bottom-right',
         NotificationSoundsEnabled: true,
-        SuppressBootNotifications: true,
+        SuppressPostLoginNotifications: true,
         NotificationVolume: 1.0,
     };
     config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, defaultObjectConfig);
+    // Migrate old config key if present
+    if (config.SuppressBootNotifications !== undefined) {
+        config.SuppressPostLoginNotifications = config.SuppressBootNotifications;
+        delete config.SuppressBootNotifications;
+    }
     MergeDefaultConfig(config, defaultObjectConfig);
 
     // Load the credentials file
@@ -423,14 +428,14 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.NotificationSoundsEnabled = enabled;
     }
 
-    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'SuppressBootNotifications')) {
-        const enabled = newConfigSettings.SuppressBootNotifications;
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'SuppressPostLoginNotifications')) {
+        const enabled = newConfigSettings.SuppressPostLoginNotifications;
 
         if (typeof enabled !== 'boolean') {
-            throw new Error('[UpdateConfig] SuppressBootNotifications should be a boolean value.');
+            throw new Error('[UpdateConfig] SuppressPostLoginNotifications should be a boolean value.');
         }
 
-        config.SuppressBootNotifications = enabled;
+        config.SuppressPostLoginNotifications = enabled;
     }
 
     if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'NotificationVolume')) {
@@ -465,7 +470,7 @@ exports.GetConfig = () => ({
     CustomNotificationMaxCount: config.CustomNotificationMaxCount,
     CustomNotificationCorner: config.CustomNotificationCorner,
     NotificationSoundsEnabled: config.NotificationSoundsEnabled,
-    SuppressBootNotifications: config.SuppressBootNotifications,
+    SuppressPostLoginNotifications: config.SuppressPostLoginNotifications,
     NotificationVolume: config.NotificationVolume,
 });
 
@@ -519,7 +524,7 @@ exports.GetCustomNotificationCorner = () => config.CustomNotificationCorner;
 
 exports.GetNotificationSoundsEnabled = () => config.NotificationSoundsEnabled;
 
-exports.GetSuppressBootNotifications = () => config.SuppressBootNotifications;
+exports.GetSuppressPostLoginNotifications = () => config.SuppressPostLoginNotifications;
 
 exports.GetNotificationVolume = function() {
     return typeof config.NotificationVolume === 'number' ? config.NotificationVolume : 1.0;

@@ -2706,8 +2706,8 @@ const inviteRequestNotificationsCheckbox = document.getElementById('setting-invi
 // Handle "Notification Sounds" setting
 const notificationSoundsCheckbox = document.getElementById('setting-notification-sounds-enabled');
 
-// Handle "Suppress Boot Notifications" setting
-const suppressBootNotificationsCheckbox = document.getElementById('setting-suppress-boot-notifications');
+// Handle "Suppress Post-Login Notifications" setting
+const suppressPostLoginNotificationsCheckbox = document.getElementById('setting-suppress-post-login-notifications');
 
 // Handle "Notification Corner" setting
 const notificationCornerDropdown = document.getElementById('setting-notification-corner');
@@ -2804,8 +2804,8 @@ window.API.getConfig().then(config => {
         notificationSoundsCheckbox.checked = config.NotificationSoundsEnabled;
     }
     
-    if (config && config.SuppressBootNotifications !== undefined) {
-        suppressBootNotificationsCheckbox.checked = config.SuppressBootNotifications;
+    if (config && config.SuppressPostLoginNotifications !== undefined) {
+        suppressPostLoginNotificationsCheckbox.checked = config.SuppressPostLoginNotifications;
     }
     
     if (config && config.CustomNotificationCorner !== undefined) {
@@ -2985,18 +2985,18 @@ notificationSoundsCheckbox.addEventListener('change', () => {
         });
 });
 
-// Update config when "Suppress Boot Notifications" setting is changed
-suppressBootNotificationsCheckbox.addEventListener('change', () => {
-    window.API.updateConfig({ SuppressBootNotifications: suppressBootNotificationsCheckbox.checked })
+// Update config when "Suppress Post-Login Notifications" setting is changed
+suppressPostLoginNotificationsCheckbox.addEventListener('change', () => {
+    window.API.updateConfig({ SuppressPostLoginNotifications: suppressPostLoginNotificationsCheckbox.checked })
         .then(() => {
-            const statusText = suppressBootNotificationsCheckbox.checked ? 'enabled' : 'disabled';
-            pushToast(`Boot notification suppression ${statusText}`, 'confirm');
+            const statusText = suppressPostLoginNotificationsCheckbox.checked ? 'enabled' : 'disabled';
+            pushToast(`Post-login notification suppression ${statusText}`, 'confirm');
         })
         .catch(err => {
             pushToast(`Error saving setting: ${err}`, 'error');
             // Revert checkbox state if save failed
             window.API.getConfig().then(config => {
-                suppressBootNotificationsCheckbox.checked = config.SuppressBootNotifications !== false;
+                suppressPostLoginNotificationsCheckbox.checked = config.SuppressPostLoginNotifications !== false;
             });
         });
 });
