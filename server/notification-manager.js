@@ -10,7 +10,7 @@ class NotificationManager {
         this.activeNotifications = [];
         this.notificationQueue = [];
         this.notificationSpacing = 10;
-        this.topPadding = 5; // Additional padding for top corners to avoid appearing at very top
+        this.topPadding = 15; // Additional padding for top corners to avoid appearing at very top
         this.notificationWidth = 350;
         this.baseNotificationHeight = 80; // Base height for title + message
         this.animationDuration = 300;
