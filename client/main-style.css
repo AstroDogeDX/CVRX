@@ -5925,6 +5925,105 @@ button {
     font-size: 12px;
 }
 
+/* Transfer Parameters Modal */
+.transfer-parameters-modal {
+    max-width: 500px;
+}
+
+.transfer-parameters-info {
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background: var(--color-background-light);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+}
+
+.transfer-parameters-info strong {
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+.transfer-parameters-list {
+    margin: 0.5rem 0 0 0;
+    padding-left: 1.5rem;
+    list-style-type: disc;
+}
+
+.transfer-parameters-list li {
+    margin: 0.25rem 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.transfer-profiles-container {
+    margin: 1rem 0;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-background-light);
+}
+
+.transfer-profile-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.transfer-profile-item:last-child {
+    border-bottom: none;
+}
+
+.transfer-profile-item:hover {
+    background: var(--color-background-lighter);
+}
+
+.transfer-profile-checkbox {
+    margin: 0 0.75rem 0 0;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.transfer-profile-label {
+    flex: 1;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.transfer-profile-name {
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.transfer-profile-count {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+}
+
+.transfer-note {
+    margin: 1rem 0 0 0;
+    padding: 0.5rem;
+    background: rgba(135, 206, 235, 0.1);
+    border: 1px solid rgba(135, 206, 235, 0.3);
+    border-radius: 4px;
+}
+
+.transfer-note small {
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.transfer-apply-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Categories Management Styles */
 .categories-container {
     padding: 0;
@@ -6575,6 +6674,7 @@ button {
 .aas-enter-selection-btn,
 .aas-select-all-btn,
 .aas-delete-selected-btn,
+.aas-transfer-selected-btn,
 .aas-cancel-selection-btn {
     display: flex;
     align-items: center;
@@ -6619,6 +6719,23 @@ button {
     color: var(--color-text-secondary);
 }
 
+.aas-transfer-selected-btn {
+    background: rgba(135, 206, 235, 0.1);
+    border-color: rgba(135, 206, 235, 0.3);
+}
+
+.aas-transfer-selected-btn:hover:not(.disabled) {
+    background: rgba(135, 206, 235, 0.2);
+    border-color: var(--color-accent);
+}
+
+.aas-transfer-selected-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--color-background-light);
+    color: var(--color-text-secondary);
+}
+
 .aas-cancel-selection-btn:hover {
     background: var(--color-background-lighter);
     border-color: var(--color-border-light);
@@ -6638,6 +6755,7 @@ button {
 
 .aas-enter-selection-btn .material-symbols-outlined,
 .aas-delete-selected-btn .material-symbols-outlined,
+.aas-transfer-selected-btn .material-symbols-outlined,
 .aas-cancel-selection-btn .material-symbols-outlined {
     font-size: 0.9rem;
 }

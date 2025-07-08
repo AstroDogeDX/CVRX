@@ -201,6 +201,103 @@ function showUnsavedChangesModal(callback) {
     promptShade.style.display = 'flex';
 }
 
+function showTransferParametersModal(sourceProfileIndex, selectedParameterIndices, onTransfer) {
+    const promptShade = document.querySelector('.prompt-layer');
+    const modal = document.createElement('div');
+    modal.className = 'prompt transfer-parameters-modal';
+    
+    const sourceProfile = currentSettings.savedSettings[sourceProfileIndex];
+    const selectedParams = Array.from(selectedParameterIndices).map(index => sourceProfile.values[index]);
+    
+    // Get all profiles except the source profile
+    const targetProfiles = currentSettings.savedSettings.filter((_, index) => index !== sourceProfileIndex);
+    
+    if (targetProfiles.length === 0) {
+        pushToast('No other profiles available to transfer to', 'info');
+        return;
+    }
+    
+    modal.innerHTML = `
+        <div class="prompt-title">Transfer Parameters</div>
+        <div class="prompt-text">
+            <p>Select profiles to transfer <strong>${selectedParams.length} parameter${selectedParams.length === 1 ? '' : 's'}</strong> from "${sourceProfile.profileName}" to:</p>
+            <div class="transfer-parameters-info">
+                <strong>Parameters to transfer:</strong>
+                <ul class="transfer-parameters-list">
+                    ${selectedParams.map(param => `<li>"${param.name}" (${param.value})</li>`).join('')}
+                </ul>
+            </div>
+            <div class="transfer-profiles-container">
+                ${targetProfiles.map((profile, index) => {
+                    const originalIndex = currentSettings.savedSettings.findIndex(p => p === profile);
+                    return `
+                        <div class="transfer-profile-item">
+                            <input type="checkbox" class="transfer-profile-checkbox" value="${originalIndex}" id="transfer-profile-${originalIndex}" />
+                            <label for="transfer-profile-${originalIndex}" class="transfer-profile-label">
+                                <div class="transfer-profile-name">${profile.profileName}</div>
+                                <div class="transfer-profile-count">${profile.values.length} existing parameters</div>
+                            </label>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            <div class="transfer-note">
+                <small><strong>Note:</strong> If a parameter already exists in the target profile, it will be updated with the new value. If it doesn't exist, it will be added.</small>
+            </div>
+        </div>
+        <div class="prompt-buttons">
+            <button class="prompt-btn-confirm transfer-apply-btn">Transfer Parameters</button>
+            <button class="prompt-btn-neutral">Cancel</button>
+        </div>
+    `;
+    
+    // Add event listeners
+    const transferBtn = modal.querySelector('.transfer-apply-btn');
+    const cancelBtn = modal.querySelector('.prompt-btn-neutral');
+    const checkboxes = modal.querySelectorAll('.transfer-profile-checkbox');
+    
+    // Update transfer button state based on selection
+    const updateTransferButton = () => {
+        const selectedProfiles = Array.from(checkboxes).filter(cb => cb.checked);
+        transferBtn.disabled = selectedProfiles.length === 0;
+        transferBtn.classList.toggle('disabled', selectedProfiles.length === 0);
+    };
+    
+    // Set up checkbox event listeners
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateTransferButton);
+    });
+    
+    // Initial button state
+    updateTransferButton();
+    
+    transferBtn.addEventListener('click', () => {
+        const selectedProfileIndices = Array.from(checkboxes)
+            .filter(cb => cb.checked)
+            .map(cb => parseInt(cb.value));
+        
+        if (selectedProfileIndices.length === 0) {
+            pushToast('Please select at least one profile to transfer to', 'error');
+            return;
+        }
+        
+        modal.remove();
+        promptShade.style.display = 'none';
+        
+        if (onTransfer) {
+            onTransfer(selectedProfileIndices);
+        }
+    });
+    
+    cancelBtn.addEventListener('click', () => {
+        modal.remove();
+        promptShade.style.display = 'none';
+    });
+    
+    promptShade.appendChild(modal);
+    promptShade.style.display = 'flex';
+}
+
 // ===========
 // PROFILE MANAGEMENT
 // ===========
@@ -456,11 +553,17 @@ function updateParameterCheckboxes() {
 
 function updateBatchControls() {
     const deleteSelectedBtn = document.querySelector('.aas-delete-selected-btn');
+    const transferSelectedBtn = document.querySelector('.aas-transfer-selected-btn');
     const selectionCount = document.querySelector('.aas-selection-count');
     
     if (deleteSelectedBtn) {
         deleteSelectedBtn.disabled = selectedParameters.size === 0;
         deleteSelectedBtn.classList.toggle('disabled', selectedParameters.size === 0);
+    }
+    
+    if (transferSelectedBtn) {
+        transferSelectedBtn.disabled = selectedParameters.size === 0;
+        transferSelectedBtn.classList.toggle('disabled', selectedParameters.size === 0);
     }
     
     if (selectionCount) {
@@ -528,6 +631,66 @@ function deleteSelectedParameters(profileIndex) {
     
     confirmShade.appendChild(confirmPrompt);
     confirmShade.style.display = 'flex';
+}
+
+function transferSelectedParameters(sourceProfileIndex) {
+    const sourceProfile = currentSettings.savedSettings[sourceProfileIndex];
+    if (!sourceProfile || selectedParameters.size === 0) return;
+    
+    // Get selected parameters data
+    const selectedParamIndices = Array.from(selectedParameters);
+    const selectedParams = selectedParamIndices.map(index => sourceProfile.values[index]);
+    
+    showTransferParametersModal(sourceProfileIndex, selectedParameters, (targetProfileIndices) => {
+        let updatedCount = 0;
+        let addedCount = 0;
+        
+        // Perform the transfer to each selected target profile
+        targetProfileIndices.forEach(targetIndex => {
+            const targetProfile = currentSettings.savedSettings[targetIndex];
+            
+            selectedParams.forEach(sourceParam => {
+                // Check if parameter already exists in target profile
+                const existingParamIndex = targetProfile.values.findIndex(p => p.name === sourceParam.name);
+                
+                if (existingParamIndex !== -1) {
+                    // Update existing parameter
+                    targetProfile.values[existingParamIndex].value = sourceParam.value;
+                    updatedCount++;
+                } else {
+                    // Add new parameter
+                    targetProfile.values.push({
+                        name: sourceParam.name,
+                        value: sourceParam.value
+                    });
+                    addedCount++;
+                }
+            });
+        });
+        
+        // Clear selection and exit selection mode
+        selectedParameters.clear();
+        selectionMode = false;
+        
+        markAsModified();
+        renderProfiles();
+        renderParameters(sourceProfileIndex);
+        
+        // Show success message
+        const profileCount = targetProfileIndices.length;
+        const paramCount = selectedParams.length;
+        let message = `Transferred ${paramCount} parameter${paramCount === 1 ? '' : 's'} to ${profileCount} profile${profileCount === 1 ? '' : 's'}`;
+        
+        if (addedCount > 0 || updatedCount > 0) {
+            const parts = [];
+            if (addedCount > 0) parts.push(`${addedCount} added`);
+            if (updatedCount > 0) parts.push(`${updatedCount} updated`);
+            message += ` (${parts.join(', ')})`;
+        }
+        
+        message += `. Click "Save Changes" to persist to file.`;
+        pushToast(message, 'confirm');
+    });
 }
 
 function updateParameterValue(profileIndex, paramIndex, newValue) {
@@ -739,6 +902,10 @@ function renderParameters(profileIndex) {
                                 <span class="material-symbols-outlined">delete</span>
                                 Delete Selected
                             </button>
+                            <button class="aas-transfer-selected-btn disabled" disabled>
+                                <span class="material-symbols-outlined">content_copy</span>
+                                Transfer to...
+                            </button>
                             <button class="aas-cancel-selection-btn">
                                 <span class="material-symbols-outlined">close</span>
                                 Cancel
@@ -809,6 +976,11 @@ function renderParameters(profileIndex) {
     const deleteSelectedBtn = parametersList.querySelector('.aas-delete-selected-btn');
     if (deleteSelectedBtn) {
         deleteSelectedBtn.addEventListener('click', () => deleteSelectedParameters(profileIndex));
+    }
+    
+    const transferSelectedBtn = parametersList.querySelector('.aas-transfer-selected-btn');
+    if (transferSelectedBtn) {
+        transferSelectedBtn.addEventListener('click', () => transferSelectedParameters(profileIndex));
     }
     
     const parametersContainer = parametersList.querySelector('.aas-parameters-container');
