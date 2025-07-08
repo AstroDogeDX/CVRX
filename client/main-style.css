@@ -6508,10 +6508,18 @@ button {
     flex-shrink: 0;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 5px;
     padding-bottom: 5px;
     border-bottom: 1px solid var(--color-border);
+    gap: 1rem;
+}
+
+.aas-parameters-title {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .aas-parameters-header h4 {
@@ -6543,6 +6551,95 @@ button {
 
 .aas-add-parameter-btn .material-symbols-outlined {
     font-size: 1rem;
+}
+
+.aas-batch-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.aas-selection-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.aas-selection-count {
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.aas-enter-selection-btn,
+.aas-select-all-btn,
+.aas-delete-selected-btn,
+.aas-cancel-selection-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background: var(--color-background-light);
+    color: var(--color-text);
+}
+
+.aas-enter-selection-btn:hover {
+    background: var(--color-background-lighter);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.aas-select-all-btn:hover {
+    background: var(--color-background-lighter);
+    border-color: var(--color-accent);
+}
+
+.aas-delete-selected-btn {
+    background: rgba(255, 99, 71, 0.1);
+    border-color: rgba(255, 99, 71, 0.3);
+    color: #ff6347;
+}
+
+.aas-delete-selected-btn:hover:not(.disabled) {
+    background: rgba(255, 99, 71, 0.2);
+    border-color: #ff6347;
+}
+
+.aas-delete-selected-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--color-background-light);
+    color: var(--color-text-secondary);
+}
+
+.aas-cancel-selection-btn:hover {
+    background: var(--color-background-lighter);
+    border-color: var(--color-border-light);
+}
+
+.aas-select-all-btn {
+    background: var(--color-background-light);
+    border: 1px solid var(--color-border);
+    padding: 0.4rem 0.6rem;
+}
+
+.aas-select-all-checkbox {
+    margin: 0;
+    margin-right: 0.3rem;
+    cursor: pointer;
+}
+
+.aas-enter-selection-btn .material-symbols-outlined,
+.aas-delete-selected-btn .material-symbols-outlined,
+.aas-cancel-selection-btn .material-symbols-outlined {
+    font-size: 0.9rem;
 }
 
 .aas-parameters-container {
@@ -6753,11 +6850,31 @@ button {
     border: 1px solid var(--color-border);
     border-radius: 6px;
     transition: all 0.2s ease;
+    cursor: default;
 }
 
 .aas-parameter-item:hover {
     background: var(--color-background-lighter);
     border-color: var(--color-border-light);
+}
+
+.aas-parameter-item.selected {
+    background: rgba(135, 206, 235, 0.1);
+    border-color: var(--color-accent);
+}
+
+.aas-parameter-selection {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.aas-parameter-checkbox {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--color-accent);
 }
 
 .aas-parameter-content {
@@ -6835,28 +6952,7 @@ button {
     background: var(--color-background-dark);
 }
 
-.aas-parameter-actions {
-    flex-shrink: 0;
-}
 
-.aas-delete-parameter-btn {
-    padding: 0.5rem;
-    background: rgba(255, 99, 71, 0.1);
-    border: 1px solid rgba(255, 99, 71, 0.3);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #ff6347;
-}
-
-.aas-delete-parameter-btn:hover {
-    background: rgba(255, 99, 71, 0.2);
-    border-color: #ff6347;
-}
-
-.aas-delete-parameter-btn .material-symbols-outlined {
-    font-size: 1.1rem;
-}
 
 .aas-no-parameters {
     display: flex;
@@ -7492,4 +7588,26 @@ button {
 .manage-notifications-view-profile-button .material-symbols-outlined,
 .manage-notifications-remove-button .material-symbols-outlined {
     font-size: 18px;
+}
+
+.aas-delete-parameter-btn {
+    padding: 0.5rem;
+    background: rgba(255, 99, 71, 0.1);
+    border: 1px solid rgba(255, 99, 71, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #ff6347;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.aas-delete-parameter-btn:hover {
+    background: rgba(255, 99, 71, 0.2);
+    border-color: #ff6347;
+    color: #ff6347;
+}
+.aas-delete-parameter-btn .material-symbols-outlined {
+    font-size: 1.1rem;
+    color: inherit;
 }
