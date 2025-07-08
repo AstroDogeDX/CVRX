@@ -3773,3 +3773,87 @@ function showManageFriendNotificationsModal(friendsWithNotifications) {
     // Apply tooltips to newly created elements
     applyTooltips();
 }
+
+// ======= SETTINGS ELEMENTS =======
+const notificationVolumeSlider = document.getElementById('setting-notification-volume');
+const notificationVolumeValue = document.getElementById('notification-volume-value');
+const notificationStyleAdvanced = document.getElementById('notification-style-advanced');
+const notificationStyleLegacy = document.getElementById('notification-style-legacy');
+// ... existing code ...
+window.API.getConfig().then(config => {
+    // ... existing code ...
+    if (config && config.NotificationVolume !== undefined) {
+        const volume = Math.round(config.NotificationVolume * 100);
+        notificationVolumeSlider.value = volume;
+        notificationVolumeValue.textContent = `${volume}%`;
+    } else {
+        notificationVolumeSlider.value = 100;
+        notificationVolumeValue.textContent = '100%';
+    }
+    if (config && config.UseCustomNotifications !== undefined) {
+        if (config.UseCustomNotifications) {
+            notificationStyleAdvanced.checked = true;
+        } else {
+            notificationStyleLegacy.checked = true;
+        }
+    } else {
+        notificationStyleAdvanced.checked = true;
+    }
+});
+// ... existing code ...
+notificationVolumeSlider.addEventListener('input', () => {
+    const volume = parseInt(notificationVolumeSlider.value, 10);
+    notificationVolumeValue.textContent = `${volume}%`;
+});
+notificationVolumeSlider.addEventListener('change', () => {
+    const volume = Math.max(0, Math.min(100, parseInt(notificationVolumeSlider.value, 10)));
+    window.API.updateConfig({ NotificationVolume: volume / 100 })
+        .then(() => {
+            pushToast('Notification volume updated', 'confirm');
+        })
+        .catch(err => {
+            pushToast(`Error saving setting: ${err}`, 'error');
+            window.API.getConfig().then(config => {
+                const fallback = config.NotificationVolume !== undefined ? Math.round(config.NotificationVolume * 100) : 100;
+                notificationVolumeSlider.value = fallback;
+                notificationVolumeValue.textContent = `${fallback}%`;
+            });
+        });
+});
+notificationStyleAdvanced.addEventListener('change', () => {
+    if (notificationStyleAdvanced.checked) {
+        window.API.updateConfig({ UseCustomNotifications: true })
+            .then(() => {
+                pushToast('Advanced notifications enabled', 'confirm');
+            })
+            .catch(err => {
+                pushToast(`Error saving setting: ${err}`, 'error');
+                window.API.getConfig().then(config => {
+                    if (config.UseCustomNotifications) {
+                        notificationStyleAdvanced.checked = true;
+                    } else {
+                        notificationStyleLegacy.checked = true;
+                    }
+                });
+            });
+    }
+});
+notificationStyleLegacy.addEventListener('change', () => {
+    if (notificationStyleLegacy.checked) {
+        window.API.updateConfig({ UseCustomNotifications: false })
+            .then(() => {
+                pushToast('Legacy notifications enabled', 'confirm');
+            })
+            .catch(err => {
+                pushToast(`Error saving setting: ${err}`, 'error');
+                window.API.getConfig().then(config => {
+                    if (config.UseCustomNotifications) {
+                        notificationStyleAdvanced.checked = true;
+                    } else {
+                        notificationStyleLegacy.checked = true;
+                    }
+                });
+            });
+    }
+});
+// ... existing code ...

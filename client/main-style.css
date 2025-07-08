@@ -7611,3 +7611,18 @@ button {
     font-size: 1.1rem;
     color: inherit;
 }
+
+/* Volume control styling */
+.volume-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+#notification-volume-value {
+    min-width: 40px;
+    text-align: right;
+    font-weight: 500;
+    color: var(--accent-color);
+}

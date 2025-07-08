@@ -128,15 +128,27 @@ class NotificationHelper {
     // options - Unified notification options
     // Returns: Native notification options
     static convertToNativeFormat(options) {
+        const path = require('path');
+        const { app } = require('electron');
+        
         const nativeOptions = {
             title: options.title || 'CVRX',
             body: options.body || options.message || '',
             silent: options.silent || false
         };
 
-        // Add icon if specified
+        // Add icon - use app icon as fallback
         if (options.icon && typeof options.icon === 'string') {
-            nativeOptions.icon = options.icon;
+            // If it's a file path, use it directly
+            if (options.icon.includes('.') || options.icon.includes('/') || options.icon.includes('\\')) {
+                nativeOptions.icon = options.icon;
+            } else {
+                // Otherwise, use the app's icon as fallback
+                nativeOptions.icon = path.resolve(app.getAppPath(), "client", "img", "cvrx-ico-256.ico");
+            }
+        } else {
+            // Use app icon as default
+            nativeOptions.icon = path.resolve(app.getAppPath(), "client", "img", "cvrx-ico-256.ico");
         }
 
         // Add action buttons for supported platforms

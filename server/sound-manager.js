@@ -99,7 +99,8 @@ class SoundManager {
             }
 
             // Play the sound using HTML5 Audio API in a hidden BrowserWindow
-            const success = await this.playAudioFile(soundPath);
+            const volume = Config.GetNotificationVolume ? Config.GetNotificationVolume() : 1.0;
+            const success = await this.playAudioFile(soundPath, volume);
             
             if (success) {
                 log.debug(`Successfully played notification sound: ${soundFile}`);
@@ -117,7 +118,7 @@ class SoundManager {
     // Play an audio file using a temporary BrowserWindow
     // soundPath - Full path to the sound file
     // Returns: Whether the sound was played successfully
-    async playAudioFile(soundPath) {
+    async playAudioFile(soundPath, volume = 1.0) {
         return new Promise((resolve) => {
             try {
                 const { BrowserWindow } = require('electron');
@@ -143,7 +144,7 @@ class SoundManager {
                     <body>
                         <script>
                             const audio = new Audio('file://${soundPath.replace(/\\/g, '/')}');
-                            audio.volume = 0.7; // Set volume to 70%
+                            audio.volume = ${volume}; // Set volume from config
                             
                             audio.onended = () => {
                                 window.close();

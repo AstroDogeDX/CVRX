@@ -231,6 +231,7 @@
         <div class="settings-tabs">
           <button class="settings-tab active" data-tab="general">General</button>
           <button class="settings-tab" data-tab="appearance">Appearance</button>
+          <button class="settings-tab" data-tab="notifications">Notifications</button>
           <button class="settings-tab" data-tab="advanced">Advanced</button>
         </div>
         <div class="settings-content">
@@ -251,60 +252,6 @@
                   <span class="setting-description">Keep CVRX running in the system tray when closing the window</span>
                 </label>
               </div>
-            </div>
-            <div class="settings-section" data-section="notifications">
-              <h3>Desktop Notifications</h3>
-              <div class="settings-option">
-                <input type="checkbox" id="setting-friend-notifications-enabled">
-                <label for="setting-friend-notifications-enabled">
-                  Friend Online Notifications
-                  <span class="setting-description">Show system notifications when selected friends come online</span>
-                </label>
-              </div>
-              <div class="settings-option">
-                <input type="checkbox" id="setting-invite-notifications-enabled">
-                <label for="setting-invite-notifications-enabled">
-                  Invite Notifications
-                  <span class="setting-description">Show system notifications when you receive invites with join options</span>
-                </label>
-              </div>
-              <div class="settings-option">
-                <input type="checkbox" id="setting-invite-request-notifications-enabled">
-                <label for="setting-invite-request-notifications-enabled">
-                  Invite Request Notifications
-                  <span class="setting-description">Show system notifications when you receive invite requests</span>
-                </label>
-              </div>
-              <div class="settings-option">
-                <input type="checkbox" id="setting-notification-sounds-enabled">
-                <label for="setting-notification-sounds-enabled">
-                  Notification Sounds
-                  <span class="setting-description">Play sound effects when notifications are shown</span>
-                </label>
-              </div>
-              <div class="settings-option">
-                <input type="checkbox" id="setting-suppress-boot-notifications">
-                <label for="setting-suppress-boot-notifications">
-                  Suppress Boot Notifications
-                  <span class="setting-description">Don't show notifications for existing friends/invites when the app starts</span>
-                </label>
-              </div>
-              <div class="settings-option">
-                <label for="setting-notification-corner">
-                  Notification Corner
-                  <span class="setting-description">Choose which corner of the screen to show notifications</span>
-                </label>
-                <select id="setting-notification-corner" class="settings-dropdown">
-                  <option value="bottom-right">Bottom Right</option>
-                  <option value="bottom-left">Bottom Left</option>
-                  <option value="top-right">Top Right</option>
-                  <option value="top-left">Top Left</option>
-                </select>
-              </div>
-              <button id="manage-friend-notifications-button" class="settings-button">
-                <span class="material-symbols-outlined">manage_accounts</span>
-                Manage Friend Notifications
-              </button>
             </div>
             <div class="settings-section" data-section="account">
               <h3>Account</h3>
@@ -365,6 +312,96 @@
                   <option value="1000">1000</option>
                 </select>
               </div>
+            </div>
+          </div>
+          <div class="settings-page" id="settings-notifications">
+            <div class="settings-section" data-section="notification-style">
+              <h3>Notification Style</h3>
+              <div class="settings-option">
+                <input type="radio" name="notification-style" id="notification-style-advanced" value="advanced">
+                <label for="notification-style-advanced">Advanced Notifications
+                  <span class="setting-description">Content-rich, interactive notifications with actions</span>
+                </label>
+              </div>
+              <div class="settings-option">
+                <input type="radio" name="notification-style" id="notification-style-legacy" value="legacy">
+                <label for="notification-style-legacy">Legacy Notifications
+                  <span class="setting-description">OS-integrated, plain title/text notifications</span>
+                </label>
+              </div>
+            </div>
+            <div class="settings-section" data-section="notification-types">
+              <h3>Notification Types</h3>
+              <div class="settings-option">
+                <input type="checkbox" id="setting-friend-notifications-enabled">
+                <label for="setting-friend-notifications-enabled">
+                  Friend Online Notifications
+                  <span class="setting-description">Show system notifications when selected friends come online</span>
+                </label>
+              </div>
+              <div class="settings-option">
+                <input type="checkbox" id="setting-invite-notifications-enabled">
+                <label for="setting-invite-notifications-enabled">
+                  Invite Notifications
+                  <span class="setting-description">Show system notifications when you receive invites with join options</span>
+                </label>
+              </div>
+              <div class="settings-option">
+                <input type="checkbox" id="setting-invite-request-notifications-enabled">
+                <label for="setting-invite-request-notifications-enabled">
+                  Invite Request Notifications
+                  <span class="setting-description">Show system notifications when you receive invite requests</span>
+                </label>
+              </div>
+            </div>
+            <div class="settings-section" data-section="notification-sounds">
+              <h3>Notification Sounds</h3>
+              <div class="settings-option">
+                <input type="checkbox" id="setting-notification-sounds-enabled">
+                <label for="setting-notification-sounds-enabled">
+                  Notification Sounds
+                  <span class="setting-description">Play sound effects when notifications are shown</span>
+                </label>
+              </div>
+              <div class="settings-option">
+                <input type="range" id="setting-notification-volume" min="0" max="100" step="1">
+                <label for="setting-notification-volume">
+                  <div class="volume-control">
+                    <span>Notification Volume</span>
+                    <span id="notification-volume-value">100%</span>
+                  </div>
+                  <span class="setting-description">Adjust the volume level for notification sounds</span>
+                </label>
+              </div>
+            </div>
+            <div class="settings-section" data-section="notification-display">
+              <h3>Notification Display</h3>
+              <div class="settings-option">
+                <label for="setting-notification-corner">
+                  Notification Corner
+                  <span class="setting-description">Choose which corner of the screen to show notifications</span>
+                </label>
+                <select id="setting-notification-corner" class="settings-dropdown">
+                  <option value="bottom-right">Bottom Right</option>
+                  <option value="bottom-left">Bottom Left</option>
+                  <option value="top-right">Top Right</option>
+                  <option value="top-left">Top Left</option>
+                </select>
+              </div>
+            </div>
+            <div class="settings-section" data-section="notification-other">
+              <h3>Other Notification Options</h3>
+              <div class="settings-option">
+                <input type="checkbox" id="setting-suppress-boot-notifications">
+                <label for="setting-suppress-boot-notifications">
+                  Suppress Boot Notifications
+                  <span class="setting-description">Don't show notifications for existing friends/invites when the app starts</span>
+                </label>
+              </div>
+              <button id="manage-friend-notifications-button" class="settings-button">
+                <span class="material-symbols-outlined">manage_accounts</span>
+                Manage Friend Notifications
+              </button>
             </div>
           </div>
           <div class="settings-page" id="settings-advanced">

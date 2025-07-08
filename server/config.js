@@ -75,6 +75,7 @@ exports.Load = async () => {
         CustomNotificationCorner: 'bottom-right',
         NotificationSoundsEnabled: true,
         SuppressBootNotifications: true,
+        NotificationVolume: 1.0,
     };
     config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, defaultObjectConfig);
     MergeDefaultConfig(config, defaultObjectConfig);
@@ -432,6 +433,16 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.SuppressBootNotifications = enabled;
     }
 
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'NotificationVolume')) {
+        const volume = newConfigSettings.NotificationVolume;
+
+        if (typeof volume !== 'number' || volume < 0 || volume > 1) {
+            throw new Error('[UpdateConfig] NotificationVolume should be a number between 0 and 1.');
+        }
+
+        config.NotificationVolume = volume;
+    }
+
     await UpdateJsonFile(FileType.CONFIG);
 
     return exports.GetConfig();
@@ -455,6 +466,7 @@ exports.GetConfig = () => ({
     CustomNotificationCorner: config.CustomNotificationCorner,
     NotificationSoundsEnabled: config.NotificationSoundsEnabled,
     SuppressBootNotifications: config.SuppressBootNotifications,
+    NotificationVolume: config.NotificationVolume,
 });
 
 
@@ -508,6 +520,15 @@ exports.GetCustomNotificationCorner = () => config.CustomNotificationCorner;
 exports.GetNotificationSoundsEnabled = () => config.NotificationSoundsEnabled;
 
 exports.GetSuppressBootNotifications = () => config.SuppressBootNotifications;
+
+exports.GetNotificationVolume = function() {
+    return typeof config.NotificationVolume === 'number' ? config.NotificationVolume : 1.0;
+};
+
+exports.SetNotificationVolume = async function(volume) {
+    config.NotificationVolume = Math.max(0, Math.min(1, Number(volume)));
+    await UpdateJsonFile(FileType.CONFIG);
+};
 
 exports.GetUpdaterIgnoreVersion = () => config.UpdaterIgnoreVersion;
 
