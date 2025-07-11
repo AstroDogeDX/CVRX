@@ -22,7 +22,7 @@ module.exports = {
         },
         {
             name: '@electron-forge/maker-zip',
-            platforms: ['darwin', 'linux'],
+            platforms: ['linux'],
         },
         {
             name: '@electron-forge/maker-deb',
@@ -48,7 +48,7 @@ module.exports = {
             config: {
                 overwrite: true,
                 icon: 'icon/cvrx-logo.icns',
-                name: `CVRX-v${version}-MacOS-Universal`,
+                name: `CVRX-v${version}-MacOS`,
             },
         },
     ],
