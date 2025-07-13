@@ -115,3 +115,6 @@ out/
 
 # VSCodium Extensions
 *.keywords
+
+# Claude-Code
+CLAUDE.md*
