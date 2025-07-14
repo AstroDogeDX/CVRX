@@ -2709,6 +2709,9 @@ const notificationSoundsCheckbox = document.getElementById('setting-notification
 // Handle "Suppress Post-Login Notifications" setting
 const suppressPostLoginNotificationsCheckbox = document.getElementById('setting-suppress-post-login-notifications');
 
+// Handle "XSOverlay Notifications" setting
+const xsoverlayNotificationsCheckbox = document.getElementById('setting-xsoverlay-notifications-enabled');
+
 // Handle "Notification Corner" setting
 const notificationCornerDropdown = document.getElementById('setting-notification-corner');
 
@@ -2806,6 +2809,10 @@ window.API.getConfig().then(config => {
     
     if (config && config.SuppressPostLoginNotifications !== undefined) {
         suppressPostLoginNotificationsCheckbox.checked = config.SuppressPostLoginNotifications;
+    }
+    
+    if (config && config.XSOverlayNotificationsEnabled !== undefined) {
+        xsoverlayNotificationsCheckbox.checked = config.XSOverlayNotificationsEnabled;
     }
     
     if (config && config.CustomNotificationCorner !== undefined) {
@@ -2997,6 +3004,22 @@ suppressPostLoginNotificationsCheckbox.addEventListener('change', () => {
             // Revert checkbox state if save failed
             window.API.getConfig().then(config => {
                 suppressPostLoginNotificationsCheckbox.checked = config.SuppressPostLoginNotifications !== false;
+            });
+        });
+});
+
+// Update config when "XSOverlay Notifications" setting is changed
+xsoverlayNotificationsCheckbox.addEventListener('change', () => {
+    window.API.updateConfig({ XSOverlayNotificationsEnabled: xsoverlayNotificationsCheckbox.checked })
+        .then(() => {
+            const statusText = xsoverlayNotificationsCheckbox.checked ? 'enabled' : 'disabled';
+            pushToast(`XSOverlay notifications ${statusText}`, 'confirm');
+        })
+        .catch(err => {
+            pushToast(`Error saving setting: ${err}`, 'error');
+            // Revert checkbox state if save failed
+            window.API.getConfig().then(config => {
+                xsoverlayNotificationsCheckbox.checked = config.XSOverlayNotificationsEnabled !== false;
             });
         });
 });

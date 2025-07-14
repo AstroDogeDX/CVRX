@@ -1,6 +1,7 @@
 const { Notification } = require('electron');
 const NotificationManager = require('./notification-manager');
 const Config = require('./config');
+const { getXSOverlayClient } = require('./xsoverlay-client');
 const log = require('./logger').GetLogger('NotificationHelper');
 
 // Unified notification helper that chooses between custom and native notifications
@@ -11,22 +12,30 @@ class NotificationHelper {
     // Returns: Result object with success status
     static async showNotification(notificationOptions) {
         try {
+            let primaryResult = null;
+            
             // Check if custom notifications are enabled and available
             const useCustom = Config.GetCustomNotificationsEnabled() !== false;
             
             if (useCustom) {
                 // Try to show custom notification first
-                const result = await this.showCustomNotification(notificationOptions);
-                if (result.success) {
-                    return result;
+                primaryResult = await this.showCustomNotification(notificationOptions);
+                if (!primaryResult.success) {
+                    // If custom notification failed, fall back to native
+                    log.warn('Custom notification failed, falling back to native notification');
+                    primaryResult = this.showNativeNotification(notificationOptions);
                 }
-                
-                // If custom notification failed, fall back to native
-                log.warn('Custom notification failed, falling back to native notification');
+            } else {
+                // Use native Electron notification
+                primaryResult = this.showNativeNotification(notificationOptions);
             }
             
-            // Use native Electron notification as fallback
-            return this.showNativeNotification(notificationOptions);
+            // Send to XSOverlay if enabled (in parallel, don't block main notification)
+            this.sendToXSOverlay(notificationOptions).catch(error => {
+                log.debug('XSOverlay notification failed (this is normal if XSOverlay is not running):', error.message);
+            });
+            
+            return primaryResult;
             
         } catch (error) {
             log.error('Failed to show notification:', error);
@@ -100,7 +109,12 @@ class NotificationHelper {
 
         // Handle image/avatar
         if (options.image || options.avatar) {
-            customData.image = options.image || options.avatar;
+            const imageSource = options.image || options.avatar;
+            // If it's an object with imageUrl, use that for the custom notification
+            // If it's a string URL, use it directly
+            customData.image = (typeof imageSource === 'object' && imageSource.imageUrl) 
+                ? imageSource.imageUrl 
+                : imageSource;
             customData.imageAlt = options.imageAlt || options.title || '';
         }
 
@@ -138,10 +152,20 @@ class NotificationHelper {
         };
 
         // Add icon - use app icon as fallback
-        if (options.icon && typeof options.icon === 'string') {
+        let iconPath = options.icon;
+        
+        // Handle image object with imageUrl property
+        if (options.image && typeof options.image === 'object' && options.image.imageUrl) {
+            // For native notifications, we can't use URLs directly, so fall back to app icon
+            iconPath = null;
+        } else if (options.image && typeof options.image === 'string') {
+            iconPath = options.image;
+        }
+        
+        if (iconPath && typeof iconPath === 'string') {
             // If it's a file path, use it directly
-            if (options.icon.includes('.') || options.icon.includes('/') || options.icon.includes('\\')) {
-                nativeOptions.icon = options.icon;
+            if (iconPath.includes('.') || iconPath.includes('/') || iconPath.includes('\\')) {
+                nativeOptions.icon = iconPath;
             } else {
                 // Otherwise, use the app's icon as fallback
                 nativeOptions.icon = path.resolve(app.getAppPath(), "client", "img", "cvrx-ico-256.ico");
@@ -160,6 +184,119 @@ class NotificationHelper {
         }
 
         return nativeOptions;
+    }
+
+    // Send notification to XSOverlay if enabled
+    // options - Unified notification options
+    // Returns: Promise
+    static async sendToXSOverlay(options) {
+        // Check if XSOverlay notifications are enabled
+        if (!Config.GetXSOverlayNotificationsEnabled()) {
+            log.debug('XSOverlay notifications disabled, skipping');
+            return Promise.resolve();
+        }
+
+        try {
+            log.info('[XSOverlay] Attempting to send notification:', {
+                title: options.title,
+                hasImage: !!(options.image || options.avatar),
+                imageType: typeof (options.image || options.avatar)
+            });
+            
+            const xsClient = getXSOverlayClient();
+            
+            // Ensure client is connected
+            if (!xsClient.isReady()) {
+                log.info('[XSOverlay] Client not ready, connecting...');
+                await xsClient.connect();
+            }
+
+            // Convert to XSOverlay format
+            const xsNotification = await this.convertToXSOverlayFormat(options);
+            log.debug('[XSOverlay] Converted notification:', xsNotification);
+            
+            // Send the notification
+            const result = await xsClient.sendNotification(xsNotification);
+            log.info('[XSOverlay] Notification processing completed');
+            return result;
+            
+        } catch (error) {
+            log.warn('Failed to send XSOverlay notification:', error.message);
+            throw error;
+        }
+    }
+
+    // Convert unified options to XSOverlay notification format
+    // options - Unified notification options
+    // Returns: XSOverlay notification object
+    static async convertToXSOverlayFormat(options) {
+        const xsNotification = {
+            title: options.title || 'CVRX',
+            content: options.body || options.message || '',
+            timeout: 5.0, // Longer timeout for visibility
+            height: 175,  // Default height
+            opacity: 1.0, // Full opacity
+            icon: ''      // Will be set below
+        };
+
+        // Handle cached image file path for XSOverlay
+        if (options.image || options.avatar) {
+            try {
+                const cachedImagePath = await this.getCachedImagePath(options.image || options.avatar);
+                if (cachedImagePath) {
+                    xsNotification.icon = cachedImagePath;
+                    log.debug('[XSOverlay] Using cached image file:', cachedImagePath);
+                } else {
+                    log.debug('[XSOverlay] No cached image available, using default icon');
+                    xsNotification.icon = 'default';
+                }
+            } catch (error) {
+                log.debug('Failed to get cached image path for XSOverlay:', error.message);
+                xsNotification.icon = 'default';
+            }
+        } else {
+            // Use default icon if no image provided
+            xsNotification.icon = 'default';
+            log.debug('[XSOverlay] No image provided, using default icon');
+        }
+
+        return xsNotification;
+    }
+
+    // Get cached image file path for XSOverlay
+    // imageSource - Image URL, path, or object with imageUrl property
+    // Returns: File path string or null
+    static async getCachedImagePath(imageSource) {
+        if (!imageSource) return null;
+        
+        try {
+            let imageUrl = null;
+            
+            // If it's an object with imageUrl property (from CVRX cache system)
+            if (typeof imageSource === 'object' && imageSource.imageUrl) {
+                imageUrl = imageSource.imageUrl;
+            }
+            // If it's a string URL
+            else if (typeof imageSource === 'string' && !imageSource.startsWith('data:image')) {
+                imageUrl = imageSource;
+            }
+
+            if (imageUrl) {
+                const cache = require('./cache');
+                const cachedPath = await cache.GetCachedImagePath(imageUrl);
+                if (cachedPath) {
+                    log.debug('[XSOverlay] Found cached image file:', cachedPath);
+                    return cachedPath;
+                }
+                log.debug('[XSOverlay] Image not found in cache:', imageUrl);
+            }
+            
+            return null;
+            
+        } catch (error) {
+            log.debug('Error getting cached image path:', error.message);
+            return null;
+        }
     }
 
     // Close all custom notifications
@@ -199,7 +336,7 @@ class NotificationHelper {
             message: `${userName} invited you to ${worldName}`,
             type: 'invite',
             icon: 'mail',
-            image: inviteData.user?.imageUrl,
+            image: inviteData.user, // Pass the whole user object for base64 access
             actions: [
                 {
                     text: 'Join Desktop',
@@ -226,7 +363,7 @@ class NotificationHelper {
             message: `${senderName} requested an invite from you`,
             type: 'invite',
             icon: 'person_add',
-            image: requestData.sender?.imageUrl
+            image: requestData.sender // Pass the whole sender object for base64 access
         });
     }
 
@@ -272,7 +409,7 @@ class NotificationHelper {
             message: notificationMessage,
             type: 'friend',
             icon: 'person',
-            image: friendData.imageUrl,
+            image: friendData, // Pass the whole friend object for base64 access
             actions: notificationActions
         });
     }
@@ -317,6 +454,16 @@ class NotificationHelper {
             message: 'CVRX is still running in the System Tray',
             type: 'info',
             icon: 'minimize'
+        });
+    }
+
+    // Test method for XSOverlay - can be called from main process for testing
+    static async testXSOverlayNotification() {
+        log.info('[XSOverlay] Sending test notification...');
+        return this.showNotification({
+            title: 'XSOverlay Test',
+            message: 'This is a test notification from CVRX',
+            type: 'info'
         });
     }
 }

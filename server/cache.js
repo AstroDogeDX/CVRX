@@ -266,3 +266,20 @@ async function ClearAllCachedImages() {
 }
 
 exports.ClearAllCachedImages = ClearAllCachedImages;
+
+// Get cached image file path for XSOverlay notifications
+exports.GetCachedImagePath = async (imageUrl) => {
+    if (!imageUrl) return null;
+    
+    try {
+        const hash = await exports.GetHash(imageUrl);
+        const fileExtension = path.extname(urlLib.parse(imageUrl).pathname) || '.png';
+        const imagePath = path.join(CacheImagesPath, hash + fileExtension);
+        
+        // Check if file exists
+        await fs.promises.access(imagePath, fs.constants.R_OK);
+        return imagePath;
+    } catch (err) {
+        return null; // Image not cached or not accessible
+    }
+};

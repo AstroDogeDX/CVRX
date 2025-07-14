@@ -76,6 +76,7 @@ exports.Load = async () => {
         NotificationSoundsEnabled: true,
         SuppressPostLoginNotifications: true,
         NotificationVolume: 1.0,
+        XSOverlayNotificationsEnabled: false,
     };
     config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, defaultObjectConfig);
     // Migrate old config key if present
@@ -448,6 +449,16 @@ exports.UpdateConfig = async (newConfigSettings) => {
         config.NotificationVolume = volume;
     }
 
+    if (Object.prototype.hasOwnProperty.call(newConfigSettings, 'XSOverlayNotificationsEnabled')) {
+        const enabled = newConfigSettings.XSOverlayNotificationsEnabled;
+
+        if (typeof enabled !== 'boolean') {
+            throw new Error('[UpdateConfig] XSOverlayNotificationsEnabled should be a boolean value.');
+        }
+
+        config.XSOverlayNotificationsEnabled = enabled;
+    }
+
     await UpdateJsonFile(FileType.CONFIG);
 
     return exports.GetConfig();
@@ -472,6 +483,7 @@ exports.GetConfig = () => ({
     NotificationSoundsEnabled: config.NotificationSoundsEnabled,
     SuppressPostLoginNotifications: config.SuppressPostLoginNotifications,
     NotificationVolume: config.NotificationVolume,
+    XSOverlayNotificationsEnabled: config.XSOverlayNotificationsEnabled,
 });
 
 
@@ -534,6 +546,8 @@ exports.SetNotificationVolume = async function(volume) {
     config.NotificationVolume = Math.max(0, Math.min(1, Number(volume)));
     await UpdateJsonFile(FileType.CONFIG);
 };
+
+exports.GetXSOverlayNotificationsEnabled = () => config.XSOverlayNotificationsEnabled;
 
 exports.GetUpdaterIgnoreVersion = () => config.UpdaterIgnoreVersion;
 
