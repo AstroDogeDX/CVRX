@@ -76,7 +76,7 @@ exports.Load = async () => {
         NotificationSoundsEnabled: true,
         SuppressPostLoginNotifications: true,
         NotificationVolume: 1.0,
-        XSOverlayNotificationsEnabled: false,
+        XSOverlayNotificationsEnabled: true,
     };
     config = await GetOrCreateJsonFile(ConfigsPath, ConfigFileName, defaultObjectConfig);
     // Migrate old config key if present
