@@ -196,6 +196,12 @@ class NotificationHelper {
             return Promise.resolve();
         }
 
+        // Skip system tray/minimize notifications for XSOverlay
+        if (options.type === 'mute') {
+            log.debug('XSOverlay: Skipping system tray notification (type: mute)');
+            return Promise.resolve();
+        }
+
         try {
             log.info('[XSOverlay] Attempting to send notification:', {
                 title: options.title,
