@@ -452,7 +452,7 @@ class NotificationHelper {
         return this.showNotification({
             title: 'CVRX',
             message: 'CVRX is still running in the System Tray',
-            type: 'info',
+            type: 'mute',
             icon: 'minimize'
         });
     }

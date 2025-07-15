@@ -12,7 +12,8 @@ class SoundManager {
             'friend': 'friend-online.ogg',
             'invite': 'instance-invite.ogg',
             'info': 'update-available.ogg',
-            'update': 'update-available.ogg'
+            'update': 'update-available.ogg',
+            'mute': ''
         };
         
         // Debouncing mechanism to prevent audio spam
