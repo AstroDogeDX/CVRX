@@ -117,7 +117,7 @@ body, html {
 /* Row 2: Body with user avatar and message */
 .notification-body {
     display: flex;
-    align-items: flex-start;
+    align-items: center; /* Center content vertically */
     gap: 10px;
     flex: 1;
     min-height: 0;
@@ -223,7 +223,7 @@ body, html {
     flex-shrink: 0;
     width: 36px;
     height: 36px;
-    align-self: flex-start;
+    align-self: center; /* Center avatar with the message */
 }
 
 .notification-image img {

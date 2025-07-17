@@ -10,7 +10,7 @@ class NotificationManager {
         this.activeNotifications = [];
         this.notificationQueue = [];
         this.notificationSpacing = 10;
-        this.topPadding = 15; // Additional padding for top corners to avoid appearing at very top
+        this.topPadding = 10; // Adequate padding to ensure notifications don't touch the workspace edge
         this.notificationWidth = 350;
         this.notificationHeight = 120; // Fixed height for all notifications
         this.animationDuration = 300;
@@ -89,11 +89,11 @@ class NotificationManager {
                 corners: {
                     'top-left': {
                         x: workArea.x + this.notificationSpacing,
-                        y: workArea.y + this.notificationSpacing + this.topPadding
+                        y: workArea.y + this.notificationSpacing
                     },
                     'top-right': {
                         x: workArea.x + workArea.width - this.notificationWidth - this.notificationSpacing,
-                        y: workArea.y + this.notificationSpacing + this.topPadding
+                        y: workArea.y + this.notificationSpacing
                     },
                     'bottom-left': {
                         x: workArea.x + this.notificationSpacing,
@@ -115,8 +115,8 @@ class NotificationManager {
                 bounds: { x: 0, y: 0, width: 1920, height: 1080 },
                 workArea: { x: 0, y: 0, width: 1920, height: 1080 },
                 corners: {
-                    'top-left': { x: 10, y: 10 + this.topPadding },
-                    'top-right': { x: 1920 - this.notificationWidth - 10, y: 10 + this.topPadding },
+                    'top-left': { x: 10, y: this.topPadding },
+                    'top-right': { x: 1920 - this.notificationWidth - 10, y: this.topPadding },
                     'bottom-left': { x: 10, y: 1080 - 10 },
                     'bottom-right': { x: 1920 - this.notificationWidth - 10, y: 1080 - 10 }
                 }
@@ -174,10 +174,12 @@ class NotificationManager {
     // Create a new notification window with consistent sizing
     // notificationData - Notification data 
     // options - Notification options
+    // index - The position index for this notification
     // Returns: The created notification window
-    createNotificationWindow(notificationData, options = {}) {
+    createNotificationWindow(notificationData, options = {}, index = null) {
         try {
-            const position = this.calculateNotificationPosition(this.activeNotifications.length);
+            const notificationIndex = index !== null ? index : this.activeNotifications.length;
+            const position = this.calculateNotificationPosition(notificationIndex);
             
             const notificationWindow = new BrowserWindow({
                 width: this.notificationWidth,
@@ -256,20 +258,31 @@ class NotificationManager {
                 return null;
             }
 
-            const notificationWindow = this.createNotificationWindow(notificationData, notificationData.options);
-            if (!notificationWindow) {
-                throw new Error('Failed to create notification window');
-            }
-
-            // Add to active notifications
-            this.activeNotifications.push({
-                window: notificationWindow,
+            // Reserve the position first to prevent race conditions
+            const notificationIndex = this.activeNotifications.length;
+            
+            // Create notification entry placeholder  
+            const notificationEntry = {
+                window: null, // Will be set after window creation
                 data: notificationData,
                 createdAt: Date.now(),
                 autoDismissTimer: null,
                 isHovered: false,
                 remainingTimeout: null
-            });
+            };
+            
+            // Add to active notifications before window creation to reserve position
+            this.activeNotifications.push(notificationEntry);
+
+            const notificationWindow = this.createNotificationWindow(notificationData, notificationData.options, notificationIndex);
+            if (!notificationWindow) {
+                // Remove the placeholder entry if window creation failed
+                this.activeNotifications.pop();
+                throw new Error('Failed to create notification window');
+            }
+
+            // Update the entry with the actual window
+            notificationEntry.window = notificationWindow;
 
             // Wait for the window to be ready, then send data and show
             notificationWindow.webContents.once('did-finish-load', () => {
@@ -604,19 +617,29 @@ class NotificationManager {
 
     // Reposition all active notifications to fill gaps - simplified with consistent height
     repositionNotifications() {
+        // Only reposition if we have notifications and gaps need to be filled
+        if (this.activeNotifications.length === 0) return;
+        
         this.activeNotifications.forEach((notification, index) => {
             try {
+                // Skip notifications without windows (during creation) or destroyed windows
                 if (!notification.window || notification.window.isDestroyed()) return;
                 
                 const newPosition = this.calculateNotificationPosition(index);
+                const currentPosition = notification.window.getPosition();
                 
-                // Validate position values
-                if (!Number.isFinite(newPosition.x) || !Number.isFinite(newPosition.y)) {
-                    log.error('Invalid position calculated for repositioning:', newPosition);
-                    return;
+                // Only reposition if the position actually needs to change (avoid unnecessary moves)
+                if (Math.abs(currentPosition[0] - newPosition.x) > 5 || 
+                    Math.abs(currentPosition[1] - newPosition.y) > 5) {
+                    
+                    // Validate position values
+                    if (!Number.isFinite(newPosition.x) || !Number.isFinite(newPosition.y)) {
+                        log.error('Invalid position calculated for repositioning:', newPosition);
+                        return;
+                    }
+                    
+                    notification.window.setPosition(newPosition.x, newPosition.y);
                 }
-                
-                notification.window.setPosition(newPosition.x, newPosition.y);
             } catch (error) {
                 log.error('Error repositioning notification:', error);
                 // If we can't reposition, the notification might be in a bad state
