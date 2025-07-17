@@ -2,6 +2,7 @@ const { Notification } = require('electron');
 const NotificationManager = require('./notification-manager');
 const Config = require('./config');
 const { getXSOverlayClient } = require('./xsoverlay-client');
+const { IsChilloutVRRunning } = require('./utils');
 const log = require('./logger').GetLogger('NotificationHelper');
 
 // Unified notification helper that chooses between custom and native notifications
@@ -337,13 +338,29 @@ class NotificationHelper {
         const userName = inviteData.user?.name || 'Someone';
         const worldName = inviteData.world?.name || 'Unknown World';
         
-        return this.showNotification({
-            title: 'ChilloutVR Invite',
-            message: `${userName} invited you to ${worldName}`,
-            type: 'invite',
-            icon: 'mail',
-            image: inviteData.user, // Pass the whole user object for base64 access
-            actions: [
+        // Check if ChilloutVR is running to determine button layout
+        let isChilloutVRRunning = false;
+        try {
+            isChilloutVRRunning = await IsChilloutVRRunning();
+        } catch (error) {
+            log('Failed to check ChilloutVR status for invite notification:', error);
+        }
+        
+        let actions;
+        if (isChilloutVRRunning) {
+            // Show single "Join In-Game" button when CVR is running
+            actions = [
+                {
+                    text: 'Join In-Game',
+                    type: 'join-desktop', // Use join-desktop type since VR flag is ignored when game is running
+                    data: { instanceId: inviteData.instanceId },
+                    icon: 'sports_esports',
+                    primary: true
+                }
+            ];
+        } else {
+            // Show split buttons when CVR is not running
+            actions = [
                 {
                     text: 'Join Desktop',
                     type: 'join-desktop',
@@ -357,7 +374,16 @@ class NotificationHelper {
                     data: { instanceId: inviteData.instanceId },
                     icon: 'view_in_ar'
                 }
-            ]
+            ];
+        }
+        
+        return this.showNotification({
+            title: 'ChilloutVR Invite',
+            message: `${userName} invited you to ${worldName}`,
+            type: 'invite',
+            icon: 'mail',
+            image: inviteData.user, // Pass the whole user object for base64 access
+            actions: actions
         });
     }
 
@@ -386,22 +412,43 @@ class NotificationHelper {
             const instanceName = friendData.instance.name || 'Unknown Instance';
             notificationMessage = `${friendName} is now online in ${instanceName}`;
             
-            // Add deeplink buttons to join them
-            notificationActions = [
-                {
-                    text: 'Join Desktop',
-                    type: 'join-desktop',
-                    data: { instanceId: friendData.instance.id },
-                    icon: 'desktop_windows',
-                    primary: true
-                },
-                {
-                    text: 'Join VR',
-                    type: 'join-vr',
-                    data: { instanceId: friendData.instance.id },
-                    icon: 'view_in_ar'
-                }
-            ];
+            // Check if ChilloutVR is running to determine button layout
+            let isChilloutVRRunning = false;
+            try {
+                isChilloutVRRunning = await IsChilloutVRRunning();
+            } catch (error) {
+                log('Failed to check ChilloutVR status for friend online notification:', error);
+            }
+            
+            if (isChilloutVRRunning) {
+                // Show single "Join In-Game" button when CVR is running
+                notificationActions = [
+                    {
+                        text: 'Join In-Game',
+                        type: 'join-desktop', // Use join-desktop type since VR flag is ignored when game is running
+                        data: { instanceId: friendData.instance.id },
+                        icon: 'sports_esports',
+                        primary: true
+                    }
+                ];
+            } else {
+                // Show split buttons when CVR is not running
+                notificationActions = [
+                    {
+                        text: 'Join Desktop',
+                        type: 'join-desktop',
+                        data: { instanceId: friendData.instance.id },
+                        icon: 'desktop_windows',
+                        primary: true
+                    },
+                    {
+                        text: 'Join VR',
+                        type: 'join-vr',
+                        data: { instanceId: friendData.instance.id },
+                        icon: 'view_in_ar'
+                    }
+                ];
+            }
         } else if (friendData.isOnline && !friendData.isConnected) {
             // Friend is in an Offline Instance
             notificationMessage = `${friendName} is now online in an Offline Instance`;

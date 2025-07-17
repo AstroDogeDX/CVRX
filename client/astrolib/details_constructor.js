@@ -937,6 +937,116 @@ async function ShowDetails(entityType, entityId, dependencies) {
                     });
                 }
 
+                // Join Instance buttons (only show if user is in a joinable instance)
+                let joinSplitButton = null;
+                if (entityInfo.onlineState && entityInfo.isConnected && entityInfo.instance && entityInfo.instance.id) {
+                    // Create split button container for Join Instance
+                    joinSplitButton = createElement('div', {
+                        className: 'user-details-split-button',
+                    });
+
+                    // Check if ChilloutVR is running to determine button text
+                    // Default to false (show split buttons) if detection fails
+                    let isChilloutVRRunning = false;
+                    try {
+                        isChilloutVRRunning = await windowAPI.isChilloutVRRunning();
+                        log('ChilloutVR running status for user details:', isChilloutVRRunning);
+                    } catch (error) {
+                        log('Failed to check ChilloutVR status for user details:', error);
+                        // Explicitly set to false to ensure split buttons show
+                        isChilloutVRRunning = false;
+                    }
+
+                    if (isChilloutVRRunning) {
+                        // Show single "Join In-Game" button when CVR is running
+                        const joinInGameButton = createElement('button', {
+                            className: 'user-details-action-button',
+                            innerHTML: '<span class="material-symbols-outlined">sports_esports</span>Join In-Game',
+                            onClick: async () => {
+                                try {
+                                    const instanceIdForJoin = entityInfo.instance.id;
+                                    
+                                    if (!instanceIdForJoin) {
+                                        pushToast('Could not get instance ID', 'error');
+                                        return;
+                                    }
+                                    
+                                    // When game is running, VR flag is ignored, so use false
+                                    const deepLink = generateInstanceJoinLink(instanceIdForJoin, false);
+                                    const success = await openDeepLink(deepLink);
+                                    if (success) {
+                                        pushToast(`Joining ${entityInfo.name}'s instance...`, 'confirm');
+                                    } else {
+                                        pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                                    }
+                                } catch (error) {
+                                    log('Failed to join instance:', error);
+                                    pushToast('Failed to generate join link', 'error');
+                                }
+                            },
+                        });
+                        joinSplitButton.appendChild(joinInGameButton);
+                    } else {
+                        // Show split buttons when CVR is not running
+                        // Join Instance Desktop button (left side of split)
+                        const joinDesktopButton = createElement('button', {
+                            className: 'user-details-action-button split-button-left',
+                            innerHTML: '<span class="material-symbols-outlined">desktop_windows</span>Join in Desktop',
+                            onClick: async () => {
+                                try {
+                                    const instanceIdForJoin = entityInfo.instance.id;
+                                    
+                                    if (!instanceIdForJoin) {
+                                        pushToast('Could not get instance ID', 'error');
+                                        return;
+                                    }
+                                    
+                                    const deepLink = generateInstanceJoinLink(instanceIdForJoin, false);
+                                    const success = await openDeepLink(deepLink);
+                                    if (success) {
+                                        pushToast(`Joining ${entityInfo.name}'s instance in Desktop mode...`, 'confirm');
+                                    } else {
+                                        pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                                    }
+                                } catch (error) {
+                                    log('Failed to join instance in desktop:', error);
+                                    pushToast('Failed to generate join link', 'error');
+                                }
+                            },
+                        });
+
+                        // Join Instance VR button (right side of split)
+                        const joinVRButton = createElement('button', {
+                            className: 'user-details-action-button split-button-right',
+                            innerHTML: '<span class="material-symbols-outlined">view_in_ar</span>Join in VR',
+                            onClick: async () => {
+                                try {
+                                    const instanceIdForJoin = entityInfo.instance.id;
+                                    
+                                    if (!instanceIdForJoin) {
+                                        pushToast('Could not get instance ID', 'error');
+                                        return;
+                                    }
+                                    
+                                    const deepLink = generateInstanceJoinLink(instanceIdForJoin, true);
+                                    const success = await openDeepLink(deepLink);
+                                    if (success) {
+                                        pushToast(`Joining ${entityInfo.name}'s instance in VR mode...`, 'confirm');
+                                    } else {
+                                        pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                                    }
+                                } catch (error) {
+                                    log('Failed to join instance in VR:', error);
+                                    pushToast('Failed to generate join link', 'error');
+                                }
+                            },
+                        });
+
+                        // Add both buttons to the split button container
+                        joinSplitButton.append(joinDesktopButton, joinVRButton);
+                    }
+                }
+
                 // Friend Notification Toggle button (only show for friends)
                 let notificationButton = null;
                 if (entityInfo.isFriend) {
@@ -1050,8 +1160,11 @@ async function ShowDetails(entityType, entityId, dependencies) {
                     const insertIndex = categoriesButton ? 2 : 1; // Insert after categoriesButton if it exists, otherwise after friendActionButton
                     buttonsToAdd.splice(insertIndex, 0, notificationButton);
                 }
+                if (joinSplitButton) {
+                    buttonsToAdd.unshift(joinSplitButton); // Add join buttons at the beginning
+                }
                 if (viewInGameButton) {
-                    buttonsToAdd.unshift(viewInGameButton); // Add at the beginning
+                    buttonsToAdd.unshift(viewInGameButton); // Add at the very beginning
                 }
                 buttonContainer.append(...buttonsToAdd);
 
@@ -1842,6 +1955,18 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 headerElements.segmentsContainer.appendChild(instanceIdSegment);
             }
 
+            // Check if ChilloutVR is running (needed for both viewInGameButton and join buttons)
+            // Default to false (show split buttons) if detection fails
+            let isChilloutVRRunning = false;
+            try {
+                isChilloutVRRunning = await windowAPI.isChilloutVRRunning();
+                log('ChilloutVR running status for instance details:', isChilloutVRRunning);
+            } catch (error) {
+                log('Failed to check ChilloutVR status for instance details:', error);
+                // Explicitly set to false to ensure split buttons show
+                isChilloutVRRunning = false;
+            }
+
             // Add instance action buttons
             // Remove any existing button container
             removeAllButtonContainers(detailsHeader);
@@ -1874,69 +1999,102 @@ async function ShowDetails(entityType, entityId, dependencies) {
                 });
             }
 
-            // Create split button container for Join Instance
+            // Create dynamic join button(s) based on ChilloutVR running status
             const joinSplitButton = createElement('div', {
                 className: 'instance-details-split-button',
             });
 
-            // Join Instance Desktop button (left side of split)
-            const joinDesktopButton = createElement('button', {
-                className: 'instance-details-action-button split-button-left',
-                innerHTML: '<span class="material-symbols-outlined">desktop_windows</span>Join in Desktop',
-                onClick: async () => {
-                    try {
-                        // Use the full instance ID from entityInfo.id
-                        const instanceIdForJoin = entityInfo.id;
-                        
-                        if (!instanceIdForJoin) {
-                            pushToast('Could not get instance ID', 'error');
-                            return;
+            if (isChilloutVRRunning) {
+                // Show single "Join In-Game" button when CVR is running
+                const joinInGameButton = createElement('button', {
+                    className: 'instance-details-action-button',
+                    innerHTML: '<span class="material-symbols-outlined">sports_esports</span>Join In-Game',
+                    onClick: async () => {
+                        try {
+                            // Use the full instance ID from entityInfo.id
+                            const instanceIdForJoin = entityInfo.id;
+                            
+                            if (!instanceIdForJoin) {
+                                pushToast('Could not get instance ID', 'error');
+                                return;
+                            }
+                            
+                            // When game is running, VR flag is ignored, so use false
+                            const deepLink = generateInstanceJoinLink(instanceIdForJoin, false);
+                            const success = await openDeepLink(deepLink);
+                            if (success) {
+                                pushToast('Joining instance...', 'confirm');
+                            } else {
+                                pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                            }
+                        } catch (error) {
+                            log('Failed to join instance:', error);
+                            pushToast('Failed to generate join link', 'error');
                         }
-                        
-                        const deepLink = generateInstanceJoinLink(instanceIdForJoin, false);
-                        const success = await openDeepLink(deepLink);
-                        if (success) {
-                            pushToast('Joining instance in Desktop mode...', 'confirm');
-                        } else {
-                            pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                    },
+                });
+                joinSplitButton.appendChild(joinInGameButton);
+            } else {
+                // Show split buttons when CVR is not running
+                // Join Instance Desktop button (left side of split)
+                const joinDesktopButton = createElement('button', {
+                    className: 'instance-details-action-button split-button-left',
+                    innerHTML: '<span class="material-symbols-outlined">desktop_windows</span>Join in Desktop',
+                    onClick: async () => {
+                        try {
+                            // Use the full instance ID from entityInfo.id
+                            const instanceIdForJoin = entityInfo.id;
+                            
+                            if (!instanceIdForJoin) {
+                                pushToast('Could not get instance ID', 'error');
+                                return;
+                            }
+                            
+                            const deepLink = generateInstanceJoinLink(instanceIdForJoin, false);
+                            const success = await openDeepLink(deepLink);
+                            if (success) {
+                                pushToast('Joining instance in Desktop mode...', 'confirm');
+                            } else {
+                                pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                            }
+                        } catch (error) {
+                            log('Failed to join instance in desktop:', error);
+                            pushToast('Failed to generate join link', 'error');
                         }
-                    } catch (error) {
-                        log('Failed to join instance in desktop:');
-                        pushToast('Failed to generate join link', 'error');
-                    }
-                },
-            });
+                    },
+                });
 
-            // Join Instance VR button (right side of split)
-            const joinVRButton = createElement('button', {
-                className: 'instance-details-action-button split-button-right',
-                innerHTML: '<span class="material-symbols-outlined">view_in_ar</span>Join in VR',
-                onClick: async () => {
-                    try {
-                        // Use the full instance ID from entityInfo.id
-                        const instanceIdForJoin = entityInfo.id;
-                        
-                        if (!instanceIdForJoin) {
-                            pushToast('Could not get instance ID', 'error');
-                            return;
+                // Join Instance VR button (right side of split)
+                const joinVRButton = createElement('button', {
+                    className: 'instance-details-action-button split-button-right',
+                    innerHTML: '<span class="material-symbols-outlined">view_in_ar</span>Join in VR',
+                    onClick: async () => {
+                        try {
+                            // Use the full instance ID from entityInfo.id
+                            const instanceIdForJoin = entityInfo.id;
+                            
+                            if (!instanceIdForJoin) {
+                                pushToast('Could not get instance ID', 'error');
+                                return;
+                            }
+                            
+                            const deepLink = generateInstanceJoinLink(instanceIdForJoin, true);
+                            const success = await openDeepLink(deepLink);
+                            if (success) {
+                                pushToast('Joining instance in VR mode...', 'confirm');
+                            } else {
+                                pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                            }
+                        } catch (error) {
+                            log('Failed to join instance in VR:', error);
+                            pushToast('Failed to generate join link', 'error');
                         }
-                        
-                        const deepLink = generateInstanceJoinLink(instanceIdForJoin, true);
-                        const success = await openDeepLink(deepLink);
-                        if (success) {
-                            pushToast('Joining instance in VR mode...', 'confirm');
-                        } else {
-                            pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
-                        }
-                    } catch (error) {
-                        log('Failed to join instance in VR:');
-                        pushToast('Failed to generate join link', 'error');
-                    }
-                },
-            });
+                    },
+                });
 
-            // Add both buttons to the split button container
-            joinSplitButton.append(joinDesktopButton, joinVRButton);
+                // Add both buttons to the split button container
+                joinSplitButton.append(joinDesktopButton, joinVRButton);
+            }
 
             // Add buttons to container
             const buttonsToAdd = [joinSplitButton];

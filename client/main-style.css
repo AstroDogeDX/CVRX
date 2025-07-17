@@ -5518,7 +5518,8 @@ button {
 }
 
 /* Split Button Styles */
-.instance-details-split-button {
+.instance-details-split-button,
+.user-details-split-button {
     display: flex;
     border-radius: var(--border-radii);
     overflow: hidden;
@@ -5545,14 +5546,18 @@ button {
 
 /* Ensure split buttons maintain consistent styling with other action buttons */
 .split-button-left.instance-details-action-button,
-.split-button-right.instance-details-action-button {
+.split-button-right.instance-details-action-button,
+.split-button-left.user-details-action-button,
+.split-button-right.user-details-action-button {
     border-radius: 0 !important;
     min-width: auto;
     flex: 1;
 }
 
 .split-button-left.instance-details-action-button:hover,
-.split-button-right.instance-details-action-button:hover {
+.split-button-right.instance-details-action-button:hover,
+.split-button-left.user-details-action-button:hover,
+.split-button-right.user-details-action-button:hover {
     border-radius: 0 !important;
 }
 

@@ -1976,7 +1976,7 @@ window.API.onUserStats((_event, userStats) => {
 });
 
 // Janky invite listener
-window.API.onInvites((_event, invites) => {
+window.API.onInvites(async (_event, invites) => {
     log('Invites Received!');
     log(invites);
 
@@ -2007,71 +2007,113 @@ window.API.onInvites((_event, invites) => {
         });
         worldImageNode.dataset.hash = invite.world.imageHash;
 
-        // Create split button for joining the instance
+        // Create dynamic join button(s) based on ChilloutVR running status
         const joinSplitButton = createElement('div', {
             className: 'notification-split-button',
         });
 
-        // Join Desktop button (left side of split)
-        const joinDesktopButton = createElement('button', {
-            className: 'split-button-left',
-            innerHTML: '<span class="material-symbols-outlined">desktop_windows</span>Desktop',
-            onClick: async () => {
-                try {
-                    if (!invite.instanceId) {
-                        pushToast('Could not get instance ID from invite', 'error');
-                        return;
-                    }
-                    
-                    const deepLink = generateInstanceJoinLink(invite.instanceId, false);
-                    const success = await openDeepLink(deepLink);
-                    if (success) {
-                        pushToast('Joining instance in Desktop mode...', 'confirm');
-                        // Mark the invite as dismissed and remove the notification
-                        markInviteDismissed(invite.id);
-                        inviteNode.remove();
-                        updateNotificationCount();
-                    } else {
-                        pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
-                    }
-                } catch (error) {
-                    log('Failed to join instance in desktop:', error);
-                    pushToast('Failed to generate join link', 'error');
-                }
-            },
-        });
+        // Check if ChilloutVR is running to determine button layout
+        let isChilloutVRRunning = false;
+        try {
+            isChilloutVRRunning = await windowAPI.isChilloutVRRunning();
+        } catch (error) {
+            log('Failed to check ChilloutVR status for invite notification:', error);
+        }
 
-        // Join VR button (right side of split)
-        const joinVRButton = createElement('button', {
-            className: 'split-button-right',
-            innerHTML: '<span class="material-symbols-outlined">view_in_ar</span>VR',
-            onClick: async () => {
-                try {
-                    if (!invite.instanceId) {
-                        pushToast('Could not get instance ID from invite', 'error');
-                        return;
+        if (isChilloutVRRunning) {
+            // Show single "Join In-Game" button when CVR is running
+            const joinInGameButton = createElement('button', {
+                className: 'notification-action-button',
+                innerHTML: '<span class="material-symbols-outlined">sports_esports</span>Join In-Game',
+                onClick: async () => {
+                    try {
+                        if (!invite.instanceId) {
+                            pushToast('Could not get instance ID from invite', 'error');
+                            return;
+                        }
+                        
+                        // When game is running, VR flag is ignored, so use false
+                        const deepLink = generateInstanceJoinLink(invite.instanceId, false);
+                        const success = await openDeepLink(deepLink);
+                        if (success) {
+                            pushToast('Joining instance...', 'confirm');
+                            // Mark the invite as dismissed and remove the notification
+                            markInviteDismissed(invite.id);
+                            inviteNode.remove();
+                            updateNotificationCount();
+                        } else {
+                            pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                        }
+                    } catch (error) {
+                        log('Failed to join instance:', error);
+                        pushToast('Failed to generate join link', 'error');
                     }
-                    
-                    const deepLink = generateInstanceJoinLink(invite.instanceId, true);
-                    const success = await openDeepLink(deepLink);
-                    if (success) {
-                        pushToast('Joining instance in VR mode...', 'confirm');
-                        // Mark the invite as dismissed and remove the notification
-                        markInviteDismissed(invite.id);
-                        inviteNode.remove();
-                        updateNotificationCount();
-                    } else {
-                        pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                },
+            });
+            joinSplitButton.appendChild(joinInGameButton);
+        } else {
+            // Show split buttons when CVR is not running
+            // Join Desktop button (left side of split)
+            const joinDesktopButton = createElement('button', {
+                className: 'split-button-left',
+                innerHTML: '<span class="material-symbols-outlined">desktop_windows</span>Desktop',
+                onClick: async () => {
+                    try {
+                        if (!invite.instanceId) {
+                            pushToast('Could not get instance ID from invite', 'error');
+                            return;
+                        }
+                        
+                        const deepLink = generateInstanceJoinLink(invite.instanceId, false);
+                        const success = await openDeepLink(deepLink);
+                        if (success) {
+                            pushToast('Joining instance in Desktop mode...', 'confirm');
+                            // Mark the invite as dismissed and remove the notification
+                            markInviteDismissed(invite.id);
+                            inviteNode.remove();
+                            updateNotificationCount();
+                        } else {
+                            pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                        }
+                    } catch (error) {
+                        log('Failed to join instance in desktop:', error);
+                        pushToast('Failed to generate join link', 'error');
                     }
-                } catch (error) {
-                    log('Failed to join instance in VR:', error);
-                    pushToast('Failed to generate join link', 'error');
-                }
-            },
-        });
+                },
+            });
 
-        // Add both buttons to the split button container
-        joinSplitButton.append(joinDesktopButton, joinVRButton);
+            // Join VR button (right side of split)
+            const joinVRButton = createElement('button', {
+                className: 'split-button-right',
+                innerHTML: '<span class="material-symbols-outlined">view_in_ar</span>VR',
+                onClick: async () => {
+                    try {
+                        if (!invite.instanceId) {
+                            pushToast('Could not get instance ID from invite', 'error');
+                            return;
+                        }
+                        
+                        const deepLink = generateInstanceJoinLink(invite.instanceId, true);
+                        const success = await openDeepLink(deepLink);
+                        if (success) {
+                            pushToast('Joining instance in VR mode...', 'confirm');
+                            // Mark the invite as dismissed and remove the notification
+                            markInviteDismissed(invite.id);
+                            inviteNode.remove();
+                            updateNotificationCount();
+                        } else {
+                            pushToast('Failed to open ChilloutVR. Make sure it\'s installed.', 'error');
+                        }
+                    } catch (error) {
+                        log('Failed to join instance in VR:', error);
+                        pushToast('Failed to generate join link', 'error');
+                    }
+                },
+            });
+
+            // Add both buttons to the split button container
+            joinSplitButton.append(joinDesktopButton, joinVRButton);
+        }
 
         // Create dismiss button for invites
         const dismissInviteButton = createElement('button', {
