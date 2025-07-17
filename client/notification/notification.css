@@ -48,15 +48,11 @@ body, html {
     justify-content: center;
     padding: 4px;
     cursor: default;
-    transition: transform var(--transition-fast);
-}
-
-.notification-container:hover {
-    transform: scale(1.02);
 }
 
 .notification-content {
     width: 100%;
+    height: 120px; /* Fixed height for consistent sizing */
     background: var(--color-background-dark);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius);
@@ -65,6 +61,8 @@ body, html {
     overflow: hidden;
     position: relative;
     transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+    display: flex;
+    flex-direction: column;
 }
 
 .notification-container:hover .notification-content {
@@ -72,60 +70,77 @@ body, html {
     border-color: rgba(229, 62, 62, 0.3);
 }
 
-/* Main notification layout */
+/* Main notification layout - 3-row grid structure */
 .notification-main {
     display: flex;
-    align-items: flex-start;
-    gap: 12px;
+    flex-direction: column;
     padding: 12px;
-    min-height: 60px;
+    flex: 1;
+    gap: 8px;
+}
+
+/* Row 1: Header with icon, title, and close button */
+.notification-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 20px;
+    flex-shrink: 0;
 }
 
 .notification-icon {
     flex-shrink: 0;
-    width: 24px;
-    height: 24px;
+    width: 16px;
+    height: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 2px;
-}
-
-/* Adjust icon margin when avatar is present */
-.notification-main.has-avatar .notification-icon {
-    margin-left: -4px; /* Slightly closer to avatar when both are visible */
 }
 
 .notification-icon .material-symbols-outlined {
-    font-size: 20px;
+    font-size: 16px;
     color: var(--color-accent);
 }
 
-.notification-text {
-    flex: 1;
-    min-width: 0;
-}
-
 .notification-title {
+    flex: 1;
     font-size: 14px;
     font-weight: 600;
     color: var(--color-text);
-    line-height: 1.3;
-    margin-bottom: 4px;
+    line-height: 1.2;
     word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Row 2: Body with user avatar and message */
+.notification-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
 }
 
 .notification-message {
-    font-size: 13px;
+    flex: 1;
+    font-size: 12px;
     color: var(--color-text-secondary);
-    line-height: 1.4;
+    line-height: 1.3;
     word-wrap: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    max-height: 2.6em; /* ~2 lines at 1.3 line-height */
+    align-self: center;
 }
 
 .notification-close {
     flex-shrink: 0;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
 }
 
 .notification-close-btn {
@@ -133,7 +148,7 @@ body, html {
     height: 100%;
     background: none;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--color-text-muted);
     cursor: pointer;
     display: flex;
@@ -151,12 +166,16 @@ body, html {
     font-size: 18px;
 }
 
-/* Action buttons */
+/* Row 3: Action buttons */
 .notification-actions {
-    padding: 0 12px 12px 12px;
+    padding: 0 12px 8px 12px;
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    flex-shrink: 0;
+    justify-content: flex-end;
+    margin-top: auto; /* Push to bottom of notification */
 }
 
 .notification-action-btn {
@@ -165,13 +184,16 @@ body, html {
     border: 1px solid var(--color-border);
     border-radius: 4px;
     color: var(--color-text);
-    font-size: 12px;
+    font-size: 11px;
+    font-weight: 500;
     cursor: pointer;
     transition: var(--transition-fast);
     display: flex;
     align-items: center;
     gap: 4px;
     white-space: nowrap;
+    min-width: fit-content;
+    height: 24px; /* Fixed height for consistency */
 }
 
 .notification-action-btn:hover {
@@ -181,8 +203,10 @@ body, html {
 
 .notification-action-btn.primary {
     background: var(--color-accent);
-    color: #000;
+    color: #ffffff;
     border-color: var(--color-accent);
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(229, 62, 62, 0.2);
 }
 
 .notification-action-btn.primary:hover {
@@ -191,16 +215,15 @@ body, html {
 }
 
 .notification-action-btn .material-symbols-outlined {
-    font-size: 14px;
+    font-size: 12px;
 }
 
-/* Image/avatar (positioned on left within main notification) */
+/* User avatar in row 2 */
 .notification-image {
     flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    margin-right: 12px;
-    margin-top: 2px; /* Align with icon */
+    width: 36px;
+    height: 36px;
+    align-self: flex-start;
 }
 
 .notification-image img {
@@ -209,6 +232,18 @@ body, html {
     border-radius: 8px;
     object-fit: cover;
     border: 1px solid var(--color-border);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* When no avatar is present, adjust message spacing */
+.notification-body:not(:has(.notification-image[style*="block"])) .notification-message {
+    padding-left: 8px; /* Align with title when no avatar */
+    margin-top: 2px;
+}
+
+/* Ensure consistent spacing in notification body */
+.notification-body {
+    min-height: 36px; /* Match avatar height for consistent spacing */
 }
 
 /* Progress bar */
@@ -296,22 +331,7 @@ body, html {
     }
 }
 
-/* Responsive adjustments for different notification sizes */
-@media (max-height: 100px) {
-    .notification-main {
-        padding: 8px;
-        min-height: auto;
-    }
-    
-    .notification-title {
-        font-size: 13px;
-        margin-bottom: 2px;
-    }
-    
-    .notification-message {
-        font-size: 12px;
-    }
-}
+/* Removed responsive height adjustments - all notifications now have consistent 120px height */
 
 /* Disable text selection */
 .notification-content * {

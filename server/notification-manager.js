@@ -12,7 +12,7 @@ class NotificationManager {
         this.notificationSpacing = 10;
         this.topPadding = 15; // Additional padding for top corners to avoid appearing at very top
         this.notificationWidth = 350;
-        this.baseNotificationHeight = 80; // Base height for title + message
+        this.notificationHeight = 120; // Fixed height for all notifications
         this.animationDuration = 300;
         this.isPostLogin = false; // Track if app is in post-login phase
         this.postLoginSuppressionTimer = null; // Timer to mark post-login suppression as complete
@@ -69,42 +69,10 @@ class NotificationManager {
         return this.isPostLogin && config.suppressPostLoginNotifications;
     }
 
-    // Calculate the appropriate height for a notification based on its content
-    // notificationData - The notification data
-    // Returns: The calculated height in pixels
-    calculateNotificationHeight(notificationData) {
-        let height = this.baseNotificationHeight;
-        
-        // Add extra height for long messages (estimate based on character count)
-        if (notificationData.message && notificationData.message.length > 60) {
-            const extraLines = Math.ceil((notificationData.message.length - 60) / 50);
-            height += extraLines * 18; // ~18px per extra line
-        }
-        
-        // Add height for action buttons
-        if (notificationData.actions && notificationData.actions.length > 0) {
-            height += 40; // Space for action buttons (padding + button height)
-        }
-        
-        // Add height for progress bar
-        if (notificationData.progress !== undefined) {
-            height += 3; // Progress bar height
-        }
-        
-        // Ensure minimum height when image/avatar is present
-        if (notificationData.image || notificationData.avatar) {
-            height = Math.max(height, 92); // Minimum to accommodate 40px avatar + padding
-        }
-        
-        // Add some padding buffer to prevent clipping
-        height += 8;
-        
-        // Ensure reasonable bounds
-        height = Math.max(height, 70);  // Minimum height
-        height = Math.min(height, 200); // Maximum height
-        
-        log.debug(`Calculated notification height: ${height}px for notification:`, notificationData.title);
-        return height;
+    // Get the consistent height for all notifications
+    // Returns: The fixed height in pixels
+    getNotificationHeight() {
+        return this.notificationHeight;
     }
 
     // Get the primary display and calculate positioning
@@ -156,22 +124,15 @@ class NotificationManager {
         }
     }
 
-    // Calculate position for a new notification
+    // Calculate position for a new notification with simplified logic using fixed height
     // index - Index in the active notifications array
-    // notificationHeight - Height of the notification being positioned
     // Returns: Position coordinates
-    calculateNotificationPosition(index, notificationHeight) {
+    calculateNotificationPosition(index) {
         try {
             const displayInfo = this.getDisplayInfo();
             const config = this.getConfig();
             const corner = config.corner || 'bottom-right';
             const cornerPos = displayInfo.corners[corner];
-            
-            // Validate inputs
-            if (!Number.isFinite(notificationHeight) || notificationHeight <= 0) {
-                log.error('Invalid notification height:', notificationHeight);
-                notificationHeight = this.baseNotificationHeight; // fallback
-            }
             
             if (!cornerPos || !Number.isFinite(cornerPos.x) || !Number.isFinite(cornerPos.y)) {
                 log.error('Invalid corner position:', cornerPos);
@@ -180,24 +141,8 @@ class NotificationManager {
                 return { x: fallbackPos.x, y: fallbackPos.y };
             }
             
-            // Calculate offset based on the actual heights of all notifications
-            let offset = 0;
-            
-            // Add heights of all notifications that should be positioned before this one
-            for (let i = 0; i < index; i++) {
-                try {
-                    if (this.activeNotifications[i] && !this.activeNotifications[i].window.isDestroyed()) {
-                        const bounds = this.activeNotifications[i].window.getBounds();
-                        if (Number.isFinite(bounds.height) && bounds.height > 0) {
-                            offset += bounds.height + this.notificationSpacing;
-                        }
-                    }
-                } catch (error) {
-                    log.error('Error getting bounds for notification positioning:', error);
-                    // Skip this notification in positioning calculation
-                    continue;
-                }
-            }
+            // Calculate offset using consistent notification height - much simpler now!
+            const offset = index * (this.notificationHeight + this.notificationSpacing);
             
             let x = cornerPos.x;
             let y = cornerPos.y;
@@ -208,7 +153,7 @@ class NotificationManager {
                 y += offset;
             } else {
                 // Bottom corners: stack upward
-                y -= (notificationHeight + offset);
+                y -= (this.notificationHeight + offset);
             }
             
             // Final validation of calculated position
@@ -226,18 +171,17 @@ class NotificationManager {
         }
     }
 
-    // Create a new notification window
-    // notificationData - Notification data for height calculation
+    // Create a new notification window with consistent sizing
+    // notificationData - Notification data 
     // options - Notification options
     // Returns: The created notification window
     createNotificationWindow(notificationData, options = {}) {
         try {
-            const notificationHeight = this.calculateNotificationHeight(notificationData);
-            const position = this.calculateNotificationPosition(this.activeNotifications.length, notificationHeight);
+            const position = this.calculateNotificationPosition(this.activeNotifications.length);
             
             const notificationWindow = new BrowserWindow({
                 width: this.notificationWidth,
-                height: notificationHeight,
+                height: this.notificationHeight,
                 x: position.x,
                 y: position.y,
                 frame: false,
@@ -278,7 +222,7 @@ class NotificationManager {
                 }
             });
 
-            log.debug('Notification window created at position:', position, 'with height:', notificationHeight);
+            log.debug('Notification window created at position:', position, 'with fixed height:', this.notificationHeight);
             return notificationWindow;
         } catch (error) {
             log.error('Failed to create notification window:', error);
@@ -369,7 +313,7 @@ class NotificationManager {
                     x: notificationWindow.getPosition()[0],
                     y: notificationWindow.getPosition()[1]
                 };
-                windowHeight = notificationWindow.getBounds().height;
+                windowHeight = this.notificationHeight; // Use consistent height
                 
                 // Validate position values
                 if (!Number.isFinite(finalPosition.x) || !Number.isFinite(finalPosition.y) || !Number.isFinite(windowHeight)) {
@@ -475,7 +419,7 @@ class NotificationManager {
                     x: notificationWindow.getPosition()[0],
                     y: notificationWindow.getPosition()[1]
                 };
-                windowHeight = notificationWindow.getBounds().height;
+                windowHeight = this.notificationHeight; // Use consistent height
                 
                 // Validate position and dimension values
                 if (!Number.isFinite(startPosition.x) || !Number.isFinite(startPosition.y) || !Number.isFinite(windowHeight)) {
@@ -658,14 +602,13 @@ class NotificationManager {
         }
     }
 
-    // Reposition all active notifications to fill gaps
+    // Reposition all active notifications to fill gaps - simplified with consistent height
     repositionNotifications() {
         this.activeNotifications.forEach((notification, index) => {
             try {
                 if (!notification.window || notification.window.isDestroyed()) return;
                 
-                const windowHeight = notification.window.getBounds().height;
-                const newPosition = this.calculateNotificationPosition(index, windowHeight);
+                const newPosition = this.calculateNotificationPosition(index);
                 
                 // Validate position values
                 if (!Number.isFinite(newPosition.x) || !Number.isFinite(newPosition.y)) {

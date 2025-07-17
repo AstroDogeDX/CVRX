@@ -10,30 +10,31 @@
 <body>
     <div class="notification-container">
         <div class="notification-content">
-            <!-- Main notification area -->
+            <!-- Main notification area with grid layout -->
             <div class="notification-main">
-                <!-- Optional image/avatar area (positioned on left) -->
-                <div class="notification-image" id="notification-image" style="display: none;">
-                    <img id="notification-img" src="" alt="" />
-                </div>
-                
-                <div class="notification-icon">
-                    <span class="material-symbols-outlined" id="notification-icon-symbol">info</span>
-                </div>
-                
-                <div class="notification-text">
+                <!-- Row 1: Notification type icon + title + close button -->
+                <div class="notification-header">
+                    <div class="notification-icon">
+                        <span class="material-symbols-outlined" id="notification-icon-symbol">info</span>
+                    </div>
                     <div class="notification-title" id="notification-title">
                         Notification Title
+                    </div>
+                    <div class="notification-close">
+                        <button class="notification-close-btn" id="notification-close-btn">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Row 2: User icon + message -->
+                <div class="notification-body">
+                    <div class="notification-image" id="notification-image" style="display: none;">
+                        <img id="notification-img" src="" alt="" />
                     </div>
                     <div class="notification-message" id="notification-message">
                         Notification message content goes here...
                     </div>
-                </div>
-                
-                <div class="notification-close">
-                    <button class="notification-close-btn" id="notification-close-btn">
-                        <span class="material-symbols-outlined">close</span>
-                    </button>
                 </div>
             </div>
             
