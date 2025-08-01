@@ -244,6 +244,7 @@ function ConnectWebsocket(username, accessKey) {
                 'User-Agent': Utils.GetUserAgent(),
                 'Platform': 'pc_standalone',
                 'CompatibleVersions': '0,1,2',
+                'MatureContentDlc': 'false',
             },
         });
 
