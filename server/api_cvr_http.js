@@ -13,6 +13,7 @@ let CVRApiV2;
 const UnauthenticatedCVRApi = axios.create({
     baseURL: APIBase,
     headers: {
+        'MatureContentDlc': 'false',
         'Content-Type': 'application/json',
     },
 });
@@ -123,6 +124,7 @@ async function Authenticate(authType, credentialUser, credentialSecret) {
             'User-Agent': utils.GetUserAgent(),
             'Platform': 'pc_standalone',
             'CompatibleVersions': '0,1,2',
+            'MatureContentDlc': 'false',
             'Content-Type': 'application/json',
         },
     });
@@ -134,6 +136,7 @@ async function Authenticate(authType, credentialUser, credentialSecret) {
             'User-Agent': utils.GetUserAgent(),
             'Platform': 'pc_standalone',
             'CompatibleVersions': '0,1,2',
+            'MatureContentDlc': 'false',
             'Content-Type': 'application/json',
         },
     });
