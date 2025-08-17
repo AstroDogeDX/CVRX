@@ -97,6 +97,18 @@ async function LoadUserImages(userObject) {
     }
 }
 
+async function LoadGroupImages(groupObject) {
+    if (groupObject?.banner) {
+        await LoadImage(groupObject.banner, groupObject);
+    }
+    if (groupObject?.image) {
+        await LoadImage(groupObject.image, groupObject);
+    }
+    if (groupObject?.owner?.image) {
+        await LoadImage(groupObject.owner.image, groupObject.owner);
+    }
+}
+
 function EscapeStringFromHtml(text) {
     return text.replace(/[&<>"']/g, (m) => { return htmlEscapeMap[m]; });
 }
@@ -168,46 +180,46 @@ class Core {
         // Dismissed invites tracking (shared from frontend)
         this.dismissedInvites = new Map(); // Map<inviteId, timestamp>
         this.dismissedInviteRequests = new Map(); // Map<inviteRequestId, timestamp>
-        
+
         // Notification tracking (server-side)
         this.notifiedInvites = new Map(); // Map<inviteId, timestamp>
         this.notifiedInviteRequests = new Map(); // Map<inviteRequestId, timestamp>
-        
+
         // Cleanup timeout (10 minutes, same as client)
         this.DISMISS_TIMEOUT = 10 * 60 * 1000;
     }
 
     #CleanupDismissedAndNotifiedEntries() {
         const now = Date.now();
-        
+
         // Clean up dismissed invites
         for (const [inviteId, timestamp] of this.dismissedInvites.entries()) {
             if (now - timestamp > this.DISMISS_TIMEOUT) {
                 this.dismissedInvites.delete(inviteId);
             }
         }
-        
+
         // Clean up dismissed invite requests
         for (const [inviteRequestId, timestamp] of this.dismissedInviteRequests.entries()) {
             if (now - timestamp > this.DISMISS_TIMEOUT) {
                 this.dismissedInviteRequests.delete(inviteRequestId);
             }
         }
-        
+
         // Clean up notified invites
         for (const [inviteId, timestamp] of this.notifiedInvites.entries()) {
             if (now - timestamp > this.DISMISS_TIMEOUT) {
                 this.notifiedInvites.delete(inviteId);
             }
         }
-        
+
         // Clean up notified invite requests
         for (const [inviteRequestId, timestamp] of this.notifiedInviteRequests.entries()) {
             if (now - timestamp > this.DISMISS_TIMEOUT) {
                 this.notifiedInviteRequests.delete(inviteRequestId);
             }
         }
-        
+
         log.debug(`[CleanupDismissedAndNotified] Cleanup completed. Dismissed invites: ${this.dismissedInvites.size}, Dismissed requests: ${this.dismissedInviteRequests.size}, Notified invites: ${this.notifiedInvites.size}, Notified requests: ${this.notifiedInviteRequests.size}`);
     }
 
@@ -367,6 +379,54 @@ class Core {
         ipcMain.handle('reorder-categories-prop', async (_event, newOrderedCategoryIds) => await this.ReorderCategories(CategoryType.PROPS, newOrderedCategoryIds));
         ipcMain.handle('reorder-categories-world', async (_event, newOrderedCategoryIds) => await this.ReorderCategories(CategoryType.WORLDS, newOrderedCategoryIds));
 
+
+        //#region Groups
+
+        ipcMain.handle('get-my-groups', async (_event) => EscapeHtml(await this.GetMyGroups()));
+        ipcMain.handle('get-user-groups', async (_event, userId) => EscapeHtml(await this.GetUserGroups(userId)));
+        ipcMain.handle('get-group-detail', async (_event, groupId) => EscapeHtml(await this.GetGroupDetails(groupId)));
+        ipcMain.handle('get-group-members', async (_event, groupId, page, sortOrder, sortAscending) => EscapeHtml(await this.GetGroupMembers(groupId, page, sortOrder, sortAscending)));
+
+        //#region Management
+        ipcMain.handle('create-group', async (_event, tag, name) => EscapeHtml(await CVRHttp.CreateGroup(tag, name)));
+        ipcMain.handle('delete-group', async (_event, groupId) => EscapeHtml(await CVRHttp.DeleteGroup(groupId)));
+        ipcMain.handle('join-group', async (_event, groupId) => EscapeHtml(await CVRHttp.JoinGroup(groupId)));
+        ipcMain.handle('leave-group', async (_event, groupId) => EscapeHtml(await CVRHttp.LeaveGroup(groupId)));
+        ipcMain.handle('set-featured-group', async (_event, groupId) => EscapeHtml(await CVRHttp.SetFeaturedGroup(groupId)));
+        //#endregion Management
+
+        //#region Management Details
+        ipcMain.handle('update-group-name', async (_event, groupId, name) => EscapeHtml(await CVRHttp.UpdateGroupName(groupId, name)));
+        ipcMain.handle('update-group-description', async (_event, groupId, description) => EscapeHtml(await CVRHttp.UpdateGroupDescription(groupId, description)));
+        ipcMain.handle('update-group-image', async (_event, groupId, imageFilePath) => EscapeHtml(await CVRHttp.UpdateGroupImage(groupId, imageFilePath)));
+        ipcMain.handle('update-group-settings', async (_event, groupId, listed, memberPublicity, eventPublicity, privacyJoin) =>
+            EscapeHtml(await CVRHttp.UpdateGroupSettings(groupId, listed, memberPublicity, eventPublicity, privacyJoin)));
+        //#endregion Management Details
+
+        //#region Management Members
+        ipcMain.handle('invite-user-to-group', async (_event, groupId, userId) => EscapeHtml(await CVRHttp.InviteUserToGroup(groupId, userId)));
+        ipcMain.handle('kick-member-from-group', async (_event, groupId, userId) => EscapeHtml(await CVRHttp.KickMemberFromGroup(groupId, userId)));
+        ipcMain.handle('assign-group-role-to-member', async (_event, groupId, userId, role) => EscapeHtml(await CVRHttp.AssignGroupRoleToMember(groupId, userId, role)));
+        ipcMain.handle('transfer-group-ownership', async (_event, groupId, userId) => EscapeHtml(await CVRHttp.TransferGroupOwnership(groupId, userId)));
+        //#endregion Management Members
+
+        //#region Invites & Invite Requests
+        ipcMain.handle('get-group-invites', async (_event) => EscapeHtml(await CVRHttp.GetGroupInvites()));
+        ipcMain.handle('decline-group-invite', async (_event, groupId) => EscapeHtml(await CVRHttp.DeclineGroupInvite(groupId)));
+        ipcMain.handle('request-to-join-group', async (_event, groupId) => EscapeHtml(await CVRHttp.RequestJoinGroup(groupId)));
+        ipcMain.handle('decline-group-invite-request', async (_event, groupId, userId) => EscapeHtml(await CVRHttp.DeclineGroupInviteRequest(groupId, userId)));
+        ipcMain.handle('get-group-invite-requests', async (_event, groupId) => EscapeHtml(await CVRHttp.GetGroupInviteRequests(groupId)));
+        //#endregion Invites & Invite Requests
+
+        //#endregion Groups
+
+
+        //#region Badges
+        ipcMain.handle('get-user-badges', async (_event, userId) => EscapeHtml(await CVRHttp.GetUserBadges(userId)));
+        ipcMain.handle('set-featured-badge', async (_event, badgeId) => EscapeHtml(await CVRHttp.SetFeaturedBadge(badgeId)));
+        //#endregion Badges
+
+
         // Cache
         ipcMain.handle('clear-cached-images', async (_event) => await cache.ClearAllCachedImages());
 
@@ -386,6 +446,9 @@ class Core {
         // Logs Folder
         ipcMain.on('open-logs-folder', async (_event) => await openLogsFolder());
 
+
+        //#region Websocket Event Handlers
+
         // Socket Events
         CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.CONNECTED, () => this.recentActivityInitialFriends = true);
         CVRWebsocket.EventEmitter.on(CVRWebsocket.SocketEvents.DEAD, () => this.SendToRenderer('socket-died'));
@@ -404,6 +467,14 @@ class Core {
 
         // Mature Content
         CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.MATURE_CONTENT_UPDATE, (matureContentInfo) => this.UpdateMatureContentConfigWs(matureContentInfo));
+
+        // Groups
+        CVRWebsocket.EventEmitter.on(CVRWebsocket.ResponseType.GROUP_INVITE, () => this.FetchAndUpdateGroupInvites());
+
+        //#endregion Websocket Event Handlers
+
+
+        //#region AAS
 
         // Advanced Avatar Settings
         ipcMain.handle('get-avatar-advanced-settings', async (_event, avatarId) => {
@@ -436,6 +507,8 @@ class Core {
                 };
             }
         });
+
+        //#endregion AAS
 
         // Friend Notifications
         ipcMain.handle('set-friend-notification', async (_event, userId, enabled) => {
@@ -569,6 +642,7 @@ class Core {
                 this.ActiveInstancesUpdate(true),
                 this.UpdateCategories(),
                 this.UpdateMatureContentConfig(),
+                this.FetchAndUpdateGroupInvites(),
             ]);
 
             // Initialize the websocket
@@ -1719,6 +1793,185 @@ class Core {
         return prop;
     }
 
+    //#region Groups
+
+    async ProcessGroupsResponse(groups) {
+        for (const ownerGroup of groups?.owned ?? []) {
+            await LoadGroupImages(ownerGroup);
+        }
+        for (const memberGroup of groups?.member ?? []) {
+            await LoadGroupImages(memberGroup);
+        }
+    }
+
+    async GetMyGroups() {
+        const groups = await CVRHttp.GetMyGroups();
+        await this.ProcessGroupsResponse(groups);
+        return groups;
+
+        // {
+        //     "owned": [
+        //         {
+        //             "permissions": 63,
+        //             "id": "ce6ed5e9-13b2-4b54-83a7-2cc1192d0ce2",
+        //             "tag": "CVRXTE",
+        //             "name": "CVRX Test2",
+        //             "description": "CVRX Description wooo",
+        //             "owner": {
+        //                 "image": "https://files.abidata.io/user_images/c4eee443-98a0-bab8-a583-f1d9fa10a7d7-63d814b1e3920.png",
+        //                 "id": "c4eee443-98a0-bab8-a583-f1d9fa10a7d7",
+        //                 "name": "CVRX"
+        //             },
+        //             "createdAt": "2025-08-17T11:36:08",
+        //             "memberCount": 1,
+        //             "banner": "https://files.abidata.io/groups/00000000-0000-0000-0000-000000000000/banners/00000000-0000-0000-0000-000000000000.png",
+        //             "image": "https://files.abidata.io/groups/ce6ed5e9-13b2-4b54-83a7-2cc1192d0ce2/images/8136460e-ce1a-4a86-b113-67524efba65e.png",
+        //             "settingListed": false,
+        //             "settingPrivacyJoin": "Invite",
+        //             "settingMemberPublicity": "Hidden",
+        //             "settingEventPublicity": "Public"
+        //         }
+        //     ],
+        //     "member": [
+        //         {
+        //             "permissions": 0,
+        //             "id": "64c90a65-78a2-4b24-a5dc-36f815311d7b",
+        //             "tag": "CVRX",
+        //             "name": "CVRX",
+        //             "description": "Contributors and collaborators on the companion app; CVRX!",
+        //             "owner": {
+        //                 "image": "https://files.abidata.io/user_images/2ff016ef-1d3b-4aff-defb-c167ed99b416-656a5a9ece4c5.png",
+        //                 "id": "2ff016ef-1d3b-4aff-defb-c167ed99b416",
+        //                 "name": "AstroDoge"
+        //             },
+        //             "createdAt": "2025-07-27T04:35:01",
+        //             "memberCount": 3,
+        //             "banner": "https://files.abidata.io/groups/00000000-0000-0000-0000-000000000000/banners/00000000-0000-0000-0000-000000000000.png",
+        //             "image": "https://files.abidata.io/groups/64c90a65-78a2-4b24-a5dc-36f815311d7b/images/a67fd8e8-3773-49f5-af8a-2c303657e3ff.png",
+        //             "settingListed": true,
+        //             "settingPrivacyJoin": "Invite",
+        //             "settingMemberPublicity": "Public",
+        //             "settingEventPublicity": "Public"
+        //         }
+        //     ]
+        // }
+    }
+
+    async GetUserGroups(userId) {
+        const groups = await CVRHttp.GetUserGroups(userId);
+        await this.ProcessGroupsResponse(groups);
+        return groups;
+
+        // {
+        //     "owned": [
+        //         {
+        //             "banner": "https://files.abidata.io/groups/00000000-0000-0000-0000-000000000000/banners/00000000-0000-0000-0000-000000000000.png",
+        //             "memberCount": 1,
+        //             "id": "560912fc-5ffd-41c2-abf2-ddbc26e79831",
+        //             "name": "Lop",
+        //             "image": "https://files.abidata.io/groups/00000000-0000-0000-0000-000000000000/images/00000000-0000-0000-0000-000000000000.png"
+        //         }
+        //     ],
+        //     "member": [
+        //         {
+        //             "banner": "https://files.abidata.io/groups/00000000-0000-0000-0000-000000000000/banners/00000000-0000-0000-0000-000000000000.png",
+        //             "memberCount": 8,
+        //             "id": "10cdf7a8-4131-4ac3-90ea-30db8d60a9cc",
+        //             "name": "Melons",
+        //             "image": "https://files.abidata.io/groups/10cdf7a8-4131-4ac3-90ea-30db8d60a9cc/images/29309b44-d99f-4a66-89e0-867e7919f848.png"
+        //         }
+        //     ]
+        // }
+    }
+
+    async GetGroupDetails(groupId) {
+        const group = await CVRHttp.GetGroupDetail(groupId);
+        await LoadGroupImages(group);
+        return group;
+
+        // {
+        //     "relation": {
+        //         "memberStatus": "Owner",
+        //         "permissions": 63
+        //     },
+        //     "id": "ce6ed5e9-13b2-4b54-83a7-2cc1192d0ce2",
+        //     "tag": "CVRXTE",
+        //     "name": "CVRX Test2",
+        //     "description": "CVRX Description wooo",
+        //     "owner": {
+        //         "image": "https://files.abidata.io/user_images/c4eee443-98a0-bab8-a583-f1d9fa10a7d7-63d814b1e3920.png",
+        //         "id": "c4eee443-98a0-bab8-a583-f1d9fa10a7d7",
+        //         "name": "CVRX"
+        //     },
+        //     "createdAt": "2025-08-17T11:36:08",
+        //     "memberCount": 1,
+        //     "banner": "https://files.abidata.io/groups/00000000-0000-0000-0000-000000000000/banners/00000000-0000-0000-0000-000000000000.png",
+        //     "image": "https://files.abidata.io/groups/ce6ed5e9-13b2-4b54-83a7-2cc1192d0ce2/images/8136460e-ce1a-4a86-b113-67524efba65e.png",
+        //     "settingListed": false,
+        //     "settingPrivacyJoin": "Invite",
+        //     "settingMemberPublicity": "Hidden",
+        //     "settingEventPublicity": "Public"
+        // }
+    }
+
+    async GetGroupMembers(groupId, page, sortOrder, sortAscending) {
+        const members = await CVRHttp.GetGroupMembers(groupId, page, sortOrder, sortAscending);
+        for (const member of members?.entries ?? []) {
+            if (member?.image) {
+                await LoadImage(member.image, member);
+            }
+        }
+        return members;
+
+        // {
+        //     "totalPages": 1,
+        //     "entries": [
+        //         {
+        //             "joinedAt": "2025-05-12T20:22:25",
+        //             "role": "Member",
+        //             "image": "https://files.abidata.io/user_images/5301af21-eb8d-7b36-3ef4-b623fa51c2c6-62fd92346d9ea.png",
+        //             "id": "5301af21-eb8d-7b36-3ef4-b623fa51c2c6",
+        //             "name": "DDAkebono"
+        //         },
+        //         {
+        //             "joinedAt": "2025-01-27T19:20:12",
+        //             "role": "Member",
+        //             "image": "https://files.abidata.io/user_images/b3005d19-e487-bafc-70ac-76d2190d5a29.png",
+        //             "id": "b3005d19-e487-bafc-70ac-76d2190d5a29",
+        //             "name": "NotAKid"
+        //         }
+        //     ]
+        // }
+    }
+
+    async FetchAndUpdateGroupInvites() {
+        const groupInvites = await CVRHttp.GetGroupInvites();
+
+        for (const invite of groupInvites?.invites ?? []) {
+            if (invite?.groupImage) {
+                await LoadImage(invite.groupImage, invite);
+            }
+        }
+
+        // {
+        //     "invites": [
+        //         {
+        //             "groupId": "64c90a65-78a2-4b24-a5dc-36f815311d7b",
+        //             "groupName": "CVRX",
+        //             "groupImage": "https://files.abidata.io/groups/64c90a65-78a2-4b24-a5dc-36f815311d7b/images/a67fd8e8-3773-49f5-af8a-2c303657e3ff.png",
+        //             "invitedByName": "AstroDoge",
+        //             "inviteDate": "2025-08-17T15:04:37"
+        //         }
+        //     ]
+        // }
+
+        this.SendToRenderer('group-invites-updated', groupInvites);
+    }
+
+    //#endregion Groups
+
+    //#region AAS
+
     // Advanced Avatar Settings methods
     async GetAvatarAdvancedSettings(avatarId) {
         const fs = require('fs');
@@ -1839,17 +2092,19 @@ class Core {
         return advAvatarPath;
     }
 
+    //#endregion AAS
+
     async GetWorldsByCategory(categoryId, page = 0, sort = 'Default', direction = 'Ascending') {
         try {
             const reqResult = await CVRHttp.GetWorldsByCategory(categoryId, page, sort, direction);
-            
+
             // Load images for all worlds
             for (const world of reqResult.entries || []) {
                 if (world?.imageUrl) {
                     await LoadImage(world.imageUrl, world);
                 }
             }
-            
+
             log.info(`[GetWorldsByCategory] Loaded ${reqResult.entries?.length || 0} worlds from category ${categoryId}, page ${page}`);
             return reqResult.entries || [];
         } catch (error) {

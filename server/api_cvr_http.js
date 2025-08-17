@@ -1,5 +1,6 @@
 const axios = require('axios');
 const utils = require('./utils');
+const {createReadStream} = require('node:fs');
 
 const log = require('./logger').GetLogger('API_HTTP');
 
@@ -63,6 +64,36 @@ async function Patch(url, data, authenticated = true, apiVersion = 1) {
     }
 }
 
+async function Put(url, filePathsMap, authenticated = true, apiVersion = 1) {
+    try {
+        const form = new FormData();
+        // Iterate over the filePathsMap and append each file to the form
+        for (const [fieldName, filePath] of Object.entries(filePathsMap)) {
+            form.append(fieldName, createReadStream(filePath));
+        }
+        const axiosClient = authenticated ? (apiVersion === 1 ? CVRApi : CVRApiV2) : UnauthenticatedCVRApi;
+        const response = await axiosClient.put(
+            url,
+            form,
+            {
+                headers: {
+                    ...axiosClient.defaults.headers.common,
+                    ...form.getHeaders(),
+                },
+                maxBodyLength: Infinity,
+            });
+        log.debug(`[Put] [${response.status}] [${authenticated ? '' : 'Non-'}Auth] ${url}`, response.data);
+        return response.data;
+    }
+    catch (error) {
+        log.error(`[Put] [Error] [${authenticated ? '' : 'Non-'}Auth] ${url}`, error.toString(), error.stack, error?.response?.data);
+        if (error?.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        }
+        throw new Error(`Error:\n${error.stack}\n${error.toString()}`);
+    }
+}
+
 async function Delete(url, authenticated = true, apiVersion = 1) {
     try {
         const response = await (authenticated ? (apiVersion === 1 ? CVRApi : CVRApiV2) : UnauthenticatedCVRApi).delete(url);
@@ -80,6 +111,9 @@ async function Delete(url, authenticated = true, apiVersion = 1) {
 
 // API Constants
 
+/**
+ * @enum {string}
+ */
 const CategoryType = Object.freeze({
     AVATARS: 'Avatars',
     FRIENDS: 'Friends',
@@ -88,11 +122,17 @@ const CategoryType = Object.freeze({
 });
 exports.CategoryType = CategoryType;
 
+/**
+ * @enum {number}
+ */
 const AuthMethod = Object.freeze({
     ACCESS_KEY: 1,
     PASSWORD: 2,
 });
 
+/**
+ * @enum {number}
+ */
 const PrivacyLevel = Object.freeze({
     Public: 0,
     FriendsOfFriends: 1,
@@ -103,6 +143,73 @@ const PrivacyLevel = Object.freeze({
     GroupsPlus: 6,
 });
 exports.PrivacyLevel = PrivacyLevel;
+
+/**
+ * @enum {number}
+ */
+const GroupMemberRole = Object.freeze({
+    Trial: 0,
+    Member: 1,
+    Moderator: 2,
+    Admin: 3,
+    0: 'Trial',
+    1: 'Member',
+    2: 'Moderator',
+    3: 'Admin',
+});
+exports.GroupMemberRole = GroupMemberRole;
+
+/**
+ * @enum {number}
+ */
+const SettingPrivacyJoin = Object.freeze({
+    Public: 0,
+    Request: 1,
+    Invite: 2,
+    Locked: 3,
+    0: 'Public',
+    1: 'Request',
+    2: 'Invite',
+    3: 'Locked',
+});
+exports.SettingPrivacyJoin = SettingPrivacyJoin;
+
+/**
+ * @enum {number}
+ */
+const SettingEventPublicity = Object.freeze({
+    Public: 0,
+    Members: 1,
+    0: 'Public',
+    1: 'Members',
+});
+exports.SettingEventPublicity = SettingEventPublicity;
+
+/**
+ * @enum {number}
+ */
+const SettingMemberPublicity = Object.freeze({
+    Public: 0,
+    Members: 1,
+    Hidden: 2,
+    0: 'Public',
+    1: 'Members',
+    2: 'Hidden',
+});
+exports.SettingMemberPublicity = SettingMemberPublicity;
+
+/**
+ * @enum {number}
+ */
+const GroupMemberOrder = Object.freeze({
+    Default: 0,
+    Joined: 1,
+    Name: 2,
+    0: 'Default',
+    1: 'Joined',
+    2: 'Name',
+});
+exports.GroupMemberOrder = GroupMemberOrder;
 
 
 // API Endpoints
@@ -209,4 +316,43 @@ exports.GetRandomProps = async (count = 20) => await Get(`/spawnables/lists/rand
 exports.GetRandomWorlds = async (count = 20) => await Get(`/worlds/lists/random?count=${count}`, true, 2);
 
 // Groups
-exports.GetGroups = async () => await Get('/groups');
+exports.GetMyGroups = async () => await Get('/groups');
+exports.GetUserGroups = async (userId) => await Get(`/users/${userId}/groups`);
+exports.GetGroupDetail = async (groupId) => await Get(`/groups/${groupId}`);
+/* sortOrder - [Default, Joined, Name] */
+exports.GetGroupMembers = async (id, page, sortOrder, sortAscending) => await Get(`/groups/${id}/members?page=${page}&sortOrder=${sortOrder}&sortAscending=${sortAscending}`);
+
+// Groups Management
+/* tag  - min: 3 max: 6 chars */
+/* name - min: 3 max: 32 chars */
+exports.CreateGroup = async (tag, name) => await Post('/groups', {tag: tag, name: name});
+exports.DeleteGroup = async (groupId) => await Delete(`/groups/${groupId}`);
+exports.JoinGroup = async (groupId) => await Post(`/groups/${groupId}/join`, null);
+exports.LeaveGroup = async (groupId) => await Post(`/groups/${groupId}/leave`, null);
+exports.SetFeaturedGroup = async (groupId) => await Post(`/groups/${groupId}/featured`, null);
+
+// Groups Details Management
+/* groupName   - min: 3 max: 32 chars */
+exports.UpdateGroupName = async (groupId, groupName) => await Post(`/groups/${groupId}/name`, {name: groupName});
+/* description - max: 1000 chars */
+exports.UpdateGroupDescription = async (groupId, description) => await Post(`/groups/${groupId}/description`, {description: description});
+exports.UpdateGroupImage = async (groupId, groupImgFilePath) => await Put(`/groups/${groupId}/image`, {file: groupImgFilePath});
+exports.UpdateGroupSettings = async (groupId, listed, memberPublicity, eventPublicity, privacyJoin) => await Post(`/groups/${groupId}/settings`, { listed: listed, memberPublicity: memberPublicity, eventPublicity: eventPublicity, privacyJoin: privacyJoin });
+
+// Groups Members Management
+exports.InviteUserToGroup = async (groupId, userId) => await Post(`/groups/${groupId}/${userId}/invite`, null);
+exports.KickMemberFromGroup = async (groupId, userId) => await Post(`/groups/${groupId}/member/${userId}/kick`, null);
+exports.AssignGroupRoleToMember = async (groupId, userId, role) => await Post(`/groups/${groupId}/member/${userId}/role/${role}`, null);
+exports.TransferGroupOwnership = async (groupId, userId) => await Post(`/groups/${groupId}/transfer/${userId}`, null);
+
+// Group Invites and Invite Requests
+exports.GetGroupInvites = async () => await Get('/groups/invites');
+exports.DeclineGroupInvite = async (groupId) => await Delete(`/groups/${groupId}/invite`, null);
+exports.RequestJoinGroup = async (groupId) => await Post(`/groups/${groupId}/join/request`, null);
+exports.DeclineGroupInviteRequest = async (groupId, userId) => await Delete(`/groups/${groupId}/${userId}/request`);
+exports.GetGroupInviteRequests = async (groupId) => await Get(`/groups/${groupId}/requestInvites`);
+
+// Badges
+exports.GetUserBadges = async (userId) => await Get(`/users/${userId}/badges`);
+exports.SetFeaturedBadge = async (badgeId) => await Post(`/badges/${badgeId}/featured`, null);
+

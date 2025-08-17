@@ -199,6 +199,154 @@ contextBridge.exposeInMainWorld('API', {
     reorderWorldCategories: (newOrderedCategoryIds) => ipcRenderer.invoke('reorder-categories-world', newOrderedCategoryIds),
 
 
+    //#region Groups
+
+    /**
+     * Get my current owned and joined groups
+     * @returns {Promise<any>} - The groups info with extra detail
+     */
+    getMyGroups: () => ipcRenderer.invoke('get-my-groups'),
+
+    /**
+     * Get a user's owned and joined groups
+     * @returns {Promise<any>} - The groups info with less detail than the previous one
+     */
+    getUserGroups: (userId) => ipcRenderer.invoke('get-user-groups', userId),
+
+    /**
+     * Gets the details of a certain group
+     * @param {string} groupId - Group unique identifier
+     * @returns {Promise<any>} The group info with extra detail
+     */
+    getGroupDetail: (groupId) => ipcRenderer.invoke('get-group-detail', groupId),
+
+    /**
+     * Get the current members of a group
+     * @param {string} groupId - Group unique identifier
+     * @param {integer} page - The page number to view the members for
+     * @param {GroupMemberOrder} sortOrder - The order of the results
+     * @param {bool} sortAscending - Whether the results should be in ascending or descending order
+     * @returns {Promise<any>} - The information about the members in the group requested
+     */
+    getGroupMembers: (groupId, page, sortOrder, sortAscending) => ipcRenderer.invoke('get-group-members', groupId, page, sortOrder, sortAscending),
+
+    /**
+     * Listener that will trigger when we receive/lost group invites
+     * Note1: This will trigger automatically 1 time at start
+     * Note2: Every time this triggers, it provides all currently pending group invites
+     * Note3: You can call the getGroupInvites() function to get the same thing obtained from here at any time
+     * @param callback - Your function to be called whenever this even is triggered
+     */
+    onGroupInvitesUpdated: (callback) => ipcRenderer.on('group-invites-updated', callback),
+
+    //#region Management
+
+    /**
+     * Creates a new group
+     * @param {string} tag  - Short identifier (min: 3, max: 6 characters)
+     * @param {string} name - Group name (min: 3, max: 32 characters)
+     * @returns {Promise<string>} The created group ID. Example: ce6ed5e9-13b2-4b54-83a7-2cc1192d0ce2
+     */
+    createGroup: (tag, name) => ipcRenderer.invoke('create-group', tag, name),
+
+    deleteGroup: (groupId) => ipcRenderer.invoke('delete-group', groupId),
+
+    /**
+     * Joins a public group (or accepts a join request if there's one pending)
+     * @param {string} groupId - Group unique identifier
+     */
+    joinGroup: (groupId) => ipcRenderer.invoke('join-group', groupId),
+
+    leaveGroup: (groupId) => ipcRenderer.invoke('leave-group', groupId),
+
+    setGroupFeatured: (groupId) => ipcRenderer.invoke('set-featured-group', groupId),
+
+    //#endregion Management
+
+    //#region Management Details
+
+    /**
+     * Updates a group's name
+     * @param {string} groupId - Group unique identifier
+     * @param {string} name    - Group name (min: 3, max: 32 characters)
+     */
+    updateGroupName: (groupId, name) => ipcRenderer.invoke('update-group-name', groupId, name),
+
+    /**
+     * updates a group's description
+     * @param {string} groupId     - Group unique identifier
+     * @param {string} description - Group name (min: 0, max: 1000 characters)
+     */
+    updateGroupDescription: (groupId, description) => ipcRenderer.invoke('update-group-description', groupId, description),
+
+    /**
+     * Updates a group's Image
+     * @param {string} groupId       - Group unique identifier
+     * @param {string} imageFilePath - Image file path on disk. This will be resized to 512x512 server side
+     */
+    updateGroupImage: (groupId, imageFilePath) => ipcRenderer.invoke('update-group-image', groupId, imageFilePath),
+
+    /**
+     * Updates a group's Settings
+     * @param {string} groupId - Group unique identifier
+     * @param {bool} listed - Whether the group should be publicly listed or not (in searches in the future I believe)
+     * @param {GroupMemberRole} memberPublicity - The visibility of the Group's member list
+     * @param {SettingEventPublicity} eventPublicity - The visibility of the Group's events (not sure since not implemented)
+     * @param {SettingPrivacyJoin} privacyJoin - The type of joining for the group
+     */
+    updateGroupSettings: (groupId, listed, memberPublicity, eventPublicity, privacyJoin) => ipcRenderer.invoke('update-group-settings', groupId, listed, memberPublicity, eventPublicity, privacyJoin),
+
+    //#endregion Management Details
+
+    //#region Management Members
+
+    inviteUserToGroup: (groupId, userId) => ipcRenderer.invoke('invite-user-to-group', groupId, userId),
+
+    kickMemberFromGroup: (groupId, userId) => ipcRenderer.invoke('kick-member-from-group', groupId, userId),
+
+    /**
+     * Assigns a role to a group member
+     * @param {string} groupId - Group unique identifier
+     * @param {string} userId - user unique identifier
+     * @param {GroupMemberRole} role - The role to Assign to the member
+     */
+    assignGroupRoleToMember: (groupId, userId, role) => ipcRenderer.invoke('assign-group-role-to-member', groupId, userId, role),
+
+    /**
+     * Transfers the group ownership to a group member.
+     * @param {string} groupId - Group unique identifier
+     * @param {string} userId - user unique identifier
+     */
+    transferGroupOwnership: (groupId, userId) => ipcRenderer.invoke('transfer-group-ownership', groupId, userId),
+
+    //#endregion Management Members
+
+    //#region Invites & Invite Requests
+
+    getGroupInvites: () => ipcRenderer.invoke('get-group-invites'),
+
+    declineGroupInvite: (groupId) => ipcRenderer.invoke('decline-group-invite', groupId),
+
+    requestJoinGroup: (groupId) => ipcRenderer.invoke('request-to-join-group', groupId),
+
+    declineGroupInviteRequest: (groupId, userId) => ipcRenderer.invoke('decline-group-invite-request', groupId, userId),
+
+    getGroupInviteRequests: (groupId) => ipcRenderer.invoke('get-group-invite-requests', groupId),
+
+    //#endregion Invites & Invite Requests
+
+    //#endregion Groups
+
+
+    //#region Badges
+
+    getUserBadges: (userId) => ipcRenderer.invoke('get-user-badges', userId),
+
+    setFeaturedBadge: (badgeId) => ipcRenderer.invoke('set-featured-badge', badgeId),
+
+    //#endregion Badges
+
+
     // Cache
     clearCachedImages: () => ipcRenderer.invoke('clear-cached-images'),
 

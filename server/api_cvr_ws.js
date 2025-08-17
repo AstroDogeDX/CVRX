@@ -41,6 +41,7 @@ const RESPONSE_TYPE = Object.freeze({
     REQUEST_INVITES: 20,
     FRIEND_REQUESTS: 25,
     MATURE_CONTENT_UPDATE: 30,
+    GROUP_INVITE: 50,
 });
 exports.ResponseType = RESPONSE_TYPE;
 const GetResponseTypeName = (value) => Object.keys(RESPONSE_TYPE).find(key => RESPONSE_TYPE[key] === value);
