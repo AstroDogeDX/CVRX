@@ -1237,46 +1237,66 @@ searchBar.addEventListener('keypress', async (event) => {
 
     event.preventDefault();
 
-    // Check for special GUID prefixes
-    const guidPrefixes = {
-        'a+': DetailsType.Avatar,
-        'p+': DetailsType.Prop,
-        'i+': DetailsType.Instance,
-        'u+': DetailsType.User
+    // Helper function to validate GUID format
+    const isValidGUID = (guid) => {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(guid);
     };
 
-    for (const [prefix, type] of Object.entries(guidPrefixes)) {
-        if (searchTerm.startsWith(prefix)) {
-            const guid = searchTerm.slice(prefix.length);
-            // Basic GUID format validation (8-4-4-4-12 format)
-            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(guid)) {
-                pushToast('Invalid GUID format', 'error');
-                return;
-            }
+    // Check if the search term starts with a prefix
+    let prefix = null;
+    let guidPart = null;
 
-            try {
-                // Show loading state
-                document.querySelector('.search-status').classList.add('hidden');
-                document.querySelector('.search-no-results').classList.add('hidden');
-                document.querySelector('.search-loading').classList.remove('hidden');
-                hideAllSearchCategories();
-
-                // Attempt to show details for the GUID
-                await ShowDetailsWrapper(type, guid);
-                
-                // Clear the search bar after successful search
-                searchBar.value = '';
-                
-                // Hide loading state
-                document.querySelector('.search-loading').classList.add('hidden');
-                return;
-            } catch (error) {
-                pushToast('Failed to load details for the specified GUID', 'error');
-                document.querySelector('.search-loading').classList.add('hidden');
-                // Don't clear the search bar on error so user can fix their input
-                return;
-            }
+    if (searchTerm.startsWith('w+') // World
+        || searchTerm.startsWith('a+') // Avatar
+        || searchTerm.startsWith('p+') // Prop
+        || searchTerm.startsWith('i+') // Instance
+        || searchTerm.startsWith('u+')) // User
+    {
+        prefix = searchTerm.slice(0, 2); // Prefix
+        if (prefix === 'i+') {
+            guidPart = searchTerm; // Instance ID is special - pass the whole string including prefix :)))
+        } else {
+            guidPart = searchTerm.slice(2, 38); // GUID
+            if (!isValidGUID(guidPart)) guidPart = null; // If the GUID is not valid, reset it
         }
+    }
+
+    // If the search is a valid GUID, show the details
+    if (prefix !== null && guidPart !== null) {
+        const typeMap = {
+            'w+': DetailsType.World,
+            'a+': DetailsType.Avatar,
+            'p+': DetailsType.Prop,
+            'i+': DetailsType.Instance,
+            'u+': DetailsType.User
+        };
+
+        try {
+            // Show loading state
+            document.querySelector('.search-status').classList.add('hidden');
+            document.querySelector('.search-no-results').classList.add('hidden');
+            document.querySelector('.search-loading').classList.remove('hidden');
+            hideAllSearchCategories();
+
+            // Attempt to show details for the GUID
+            await ShowDetailsWrapper(typeMap[prefix], guidPart);
+            
+            // Clear the search bar after successful search
+            searchBar.value = '';
+            
+            // Hide loading state
+            document.querySelector('.search-loading').classList.add('hidden');
+            return;
+        } catch (error) {
+            pushToast('Failed to load details for the specified GUID', 'error');
+            document.querySelector('.search-loading').classList.add('hidden');
+            // Don't clear the search bar on error so user can fix their input
+            return;
+        }
+    } else if (prefix !== null && guidPart === null) {
+        // Invalid GUID format for non-instance prefixes
+        pushToast('Invalid GUID format', 'error');
+        return;
     }
 
     if (!searchTerm || searchTerm.length < 3) {
