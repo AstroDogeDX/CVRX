@@ -659,16 +659,19 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback, entityId) {
         separator.className = 'details-separator-line';
     }
     
-    // Create avatar segment using universal details-segment
-    const avatarSegment = createDetailsSegment({
-        iconType: 'image',
-        iconHash: entityInfo.avatar?.imageHash,
-        text: entityInfo.avatar?.name || 'No Avatar',
-        clickable: entityInfo.avatar?.id ? true : false,
-        onClick: entityInfo.avatar?.id ? () => ShowDetailsCallback(DetailsType.Avatar, entityInfo.avatar.id) : null,
-        tooltip: entityInfo.avatar?.id ? 'Current Avatar' : null
-    });
-    avatarSegment.classList.add('user-details-avatar-segment');
+    // Create avatar segment using universal details-segment (only if avatar name exists and is not 'No Avatar')
+    let avatarSegment = null;
+    if (entityInfo.avatar?.name && entityInfo.avatar.name !== 'No Avatar') {
+        avatarSegment = createDetailsSegment({
+            iconType: 'image',
+            iconHash: entityInfo.avatar.imageHash,
+            text: entityInfo.avatar.name,
+            clickable: entityInfo.avatar?.id ? true : false,
+            onClick: entityInfo.avatar?.id ? () => ShowDetailsCallback(DetailsType.Avatar, entityInfo.avatar.id) : null,
+            tooltip: entityInfo.avatar?.id ? 'Current Avatar' : null
+        });
+        avatarSegment.classList.add('user-details-avatar-segment');
+    }
     
     // Create instance segment (only if user is online and connected)
     let instanceSegment = null;
@@ -713,7 +716,9 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback, entityId) {
     if (separator) {
         segmentsContainer.appendChild(separator);
     }
-    segmentsContainer.appendChild(avatarSegment);
+    if (avatarSegment) {
+        segmentsContainer.appendChild(avatarSegment);
+    }
     if (instanceSegment) {
         segmentsContainer.appendChild(instanceSegment);
     }
