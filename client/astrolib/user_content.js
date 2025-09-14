@@ -95,6 +95,7 @@ const PrivacyLevel = Object.freeze({
     EveryoneCanInvite: 4,
     OwnerMustInvite: 5,
     GroupsPlus: 6,
+    GroupPublic: 7,
 });
 
 const GetPrivacyLevelName = (privacyLevel) => {
@@ -104,6 +105,7 @@ const GetPrivacyLevelName = (privacyLevel) => {
         case PrivacyLevel.Friends: return 'Friends Only';
         case PrivacyLevel.Group: return 'Group';
         case PrivacyLevel.GroupsPlus: return 'Friends of Group';
+        case PrivacyLevel.GroupPublic: return 'Group Public';
         case PrivacyLevel.EveryoneCanInvite: return 'Everyone Can Invite';
         case PrivacyLevel.OwnerMustInvite: return 'Owner Must Invite';
         default: return 'Unknown';
@@ -252,10 +254,13 @@ export function handleFriendsRefresh(friends, isRefresh) {
 
     let totalFriends = 0;
 
-    // Friends Sidebar Categories
+    // Friends Sidebar Categories (ordered as they should appear)
     const categories = {
+        group: null,
         public: null,
+        groupPublic: null,
         friendsOfFriends: null,
+        friendsOfGroup: null,
         friendsOnly: null,
         anyoneCanInvite: null,
         ownerOnlyInvite: null,
@@ -270,8 +275,11 @@ export function handleFriendsRefresh(friends, isRefresh) {
 
     // Instance type to category map
     const instanceTypeToCategoryKey = {
+        'Group': 'group',
         'Public': 'public',
+        'Group Public': 'groupPublic',
         'Friends of Friends': 'friendsOfFriends',
+        'Friends of Group': 'friendsOfGroup',
         'Friends Only': 'friendsOnly',
         'Everyone Can Invite': 'anyoneCanInvite',
         'Owner Must Invite': 'ownerOnlyInvite',
