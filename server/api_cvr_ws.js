@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 
-const WebSocketAddress = 'wss://api.abinteractive.net/1/users/ws';
+const WebSocketAddress = 'wss://api.chilloutvr.net/1/users/ws';
 
 const log = require('./logger').GetLogger('API_WS');
 

@@ -4,7 +4,7 @@ const {createReadStream} = require('node:fs');
 
 const log = require('./logger').GetLogger('API_HTTP');
 
-const APIAddress = 'https://api.abinteractive.net';
+const APIAddress = 'https://api.chilloutvr.net';
 const APIBase = `${APIAddress}/1`;
 const APIBase2 = `${APIAddress}/2`;
 
