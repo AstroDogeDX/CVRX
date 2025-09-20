@@ -139,6 +139,7 @@ const PrivacyLevel = Object.freeze({
     EveryoneCanInvite: 4,
     OwnerMustInvite: 5,
     GroupsPlus: 6,
+    GroupPublic: 7,
 });
 
 const GetPrivacyLevelName = (privacyLevel) => {
@@ -148,6 +149,7 @@ const GetPrivacyLevelName = (privacyLevel) => {
         case PrivacyLevel.Friends: return 'Friends Only';
         case PrivacyLevel.Group: return 'Group';
         case PrivacyLevel.GroupsPlus: return 'Friends of Group';
+        case PrivacyLevel.GroupPublic: return 'Group Public';
         case PrivacyLevel.EveryoneCanInvite: return 'Everyone Can Invite';
         case PrivacyLevel.OwnerMustInvite: return 'Owner Must Invite';
         default: return 'Unknown';
@@ -1916,11 +1918,50 @@ window.API.onActiveInstancesUpdate((_event, activeInstancesData) => {
         let instanceName = result.name.substring(0, result.name.length - 10);
         let instanceID = result.name.slice(-9);
 
-        if (result.privacy === 'Public') {
-            instanceName = `<span class="instance-privacy-type material-symbols-outlined" data-tooltip="Public Instance">public</span> ${instanceName}`;
-        } else {
-            instanceName = `<span class="instance-privacy-type material-symbols-outlined" data-tooltip="Friends Instance">group</span> ${instanceName}`;
+        // Map instance privacy to proper display names and icons
+        let privacyIcon = 'group';
+        let privacyTooltip = 'Friends Instance';
+
+        switch (result.privacy) {
+            case 'Public':
+                privacyIcon = 'public';
+                privacyTooltip = 'Public Instance';
+                break;
+            case 'Friends':
+                privacyIcon = 'group';
+                privacyTooltip = 'Friends Only Instance';
+                break;
+            case 'FriendsOfFriends':
+                privacyIcon = 'group';
+                privacyTooltip = 'Friends of Friends Instance';
+                break;
+            case 'EveryoneCanInvite':
+                privacyIcon = 'group_add';
+                privacyTooltip = 'Everyone Can Invite Instance';
+                break;
+            case 'OwnerMustInvite':
+                privacyIcon = 'person_add';
+                privacyTooltip = 'Owner Must Invite Instance';
+                break;
+            case 'Group':
+                privacyIcon = 'circles_ext';
+                privacyTooltip = 'Group Instance';
+                break;
+            case 'GroupPlus':
+                privacyIcon = 'circles_ext';
+                privacyTooltip = 'Friends of Group Instance';
+                break;
+            case 'GroupPublic':
+                privacyIcon = 'circles_ext';
+                privacyTooltip = 'Group Public Instance';
+                break;
+            default:
+                // For unknown privacy types, use a generic group icon
+                privacyIcon = 'group';
+                privacyTooltip = 'Friends Instance';
         }
+
+        instanceName = `<span class="instance-privacy-type material-symbols-outlined" data-tooltip="${privacyTooltip}">${privacyIcon}</span>&nbsp;${instanceName}`;
 
         // Depending on whether it's a refresh or not the image might be already loaded
         const worldImageSource = result?.world?.imageBase64 ?? 'img/ui/placeholder.png';

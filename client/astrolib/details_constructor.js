@@ -1908,15 +1908,57 @@ async function ShowDetails(entityType, entityId, dependencies) {
             
             // Player Count segment
             const playerCountSegment = createDetailsSegment({
-                icon: 'group',
+                icon: 'groups',
                 text: `${entityInfo.currentPlayerCount || 0}/${entityInfo.maxPlayer || '?'} Players`
             });
             playerCountSegment.classList.add('instance-details-player-count-segment');
             
-            // Privacy segment
+            // Privacy segment with proper display mapping
+            let privacyDisplayName = entityInfo.instanceSettingPrivacy || 'Unknown';
+            let privacyIcon = 'group';
+
+            // Map internal privacy names to display names and choose appropriate icons
+            switch (entityInfo.instanceSettingPrivacy) {
+                case 'Public':
+                    privacyDisplayName = 'Public';
+                    privacyIcon = 'public';
+                    break;
+                case 'Friends':
+                    privacyDisplayName = 'Friends Only';
+                    privacyIcon = 'group';
+                    break;
+                case 'FriendsOfFriends':
+                    privacyDisplayName = 'Friends of Friends';
+                    privacyIcon = 'group';
+                    break;
+                case 'EveryoneCanInvite':
+                    privacyDisplayName = 'Everyone Can Invite';
+                    privacyIcon = 'group_add';
+                    break;
+                case 'OwnerMustInvite':
+                    privacyDisplayName = 'Owner Must Invite';
+                    privacyIcon = 'person_add';
+                    break;
+                case 'Group':
+                    privacyDisplayName = 'Group';
+                    privacyIcon = 'circles_ext';
+                    break;
+                case 'GroupPlus':
+                    privacyDisplayName = 'Friends of Group';
+                    privacyIcon = 'circles_ext';
+                    break;
+                case 'GroupPublic':
+                    privacyDisplayName = 'Group Public';
+                    privacyIcon = 'circles_ext';
+                    break;
+                default:
+                    // For unknown privacy types, use a generic group icon
+                    privacyIcon = 'group';
+            }
+
             const privacySegment = createDetailsSegment({
-                icon: entityInfo.instanceSettingPrivacy === 'Public' ? 'public' : 'group',
-                text: entityInfo.instanceSettingPrivacy || 'Unknown'
+                icon: privacyIcon,
+                text: privacyDisplayName
             });
             privacySegment.classList.add('instance-details-privacy-segment');
             
