@@ -15,6 +15,7 @@ import {
 } from './deeplinks.js';
 import { showFavouritesModal } from './favourites_modal.js';
 import { refreshContentAfterFavoritesUpdate } from './user_content.js';
+import { showGroupDetails } from './groups.js';
 
 // Logging function to prevent memory leaking when bundled
 let isPackaged = false;
@@ -385,9 +386,10 @@ function addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, load
             const avatarsTab = createTabButton('avatars', 'emoji_people', 'Avatars', classPrefix, true);
             const propsTab = createTabButton('props', 'view_in_ar', 'Props', classPrefix);
             const worldsTab = createTabButton('worlds', 'public', 'Worlds', classPrefix);
-            
-            tabs.push(avatarsTab, propsTab, worldsTab);
-            tabsLeft.append(avatarsTab, propsTab, worldsTab);
+            const groupsTab = createTabButton('groups', 'workspaces', 'Groups', classPrefix);
+
+            tabs.push(avatarsTab, propsTab, worldsTab, groupsTab);
+            tabsLeft.append(avatarsTab, propsTab, worldsTab, groupsTab);
             
             // Right side tabs for User Details
             if (entityInfo.isFriend) {
@@ -406,8 +408,9 @@ function addEntityTabs(entityType, entityInfo, entityId, currentActiveUser, load
             const avatarsPane = createTabPane('avatars', classPrefix, '<div class="' + classPrefix + '-grid"></div>', true);
             const propsPane = createTabPane('props', classPrefix, '<div class="' + classPrefix + '-grid"></div>');
             const worldsPane = createTabPane('worlds', classPrefix, '<div class="' + classPrefix + '-grid"></div>');
-            
-            tabPanes.push(avatarsPane, propsPane, worldsPane);
+            const groupsPane = createTabPane('groups', classPrefix, '<div class="' + classPrefix + '-grid"></div>');
+
+            tabPanes.push(avatarsPane, propsPane, worldsPane, groupsPane);
             
             if (entityInfo.isFriend) {
                 const notesPane = createTabPane('notes', classPrefix, '<div class="notes-container"></div>');
@@ -644,10 +647,14 @@ function createUserDetailsHeader(entityInfo, ShowDetailsCallback, entityId) {
     // Create group segment (only if user has a featured group and it's not the default)
     let groupSegment = null;
     if (entityInfo.featuredGroup && entityInfo.featuredGroup.name && entityInfo.featuredGroup.name !== 'No group featured') {
+        const hasGroupId = !!entityInfo.featuredGroup.id;
         groupSegment = createDetailsSegment({
             iconType: 'image',
             iconHash: entityInfo.featuredGroup.imageHash,
-            text: entityInfo.featuredGroup.name
+            text: entityInfo.featuredGroup.name,
+            clickable: hasGroupId,
+            onClick: hasGroupId ? () => showGroupDetails(entityInfo.featuredGroup.id) : null,
+            tooltip: hasGroupId ? 'View Group' : null,
         });
         groupSegment.classList.add('user-details-group-segment');
     }
@@ -764,6 +771,12 @@ async function ShowDetails(entityType, entityId, dependencies) {
     // Get loading and shade elements
     const detailsShade = document.querySelector('.details-shade');
     const detailsLoading = document.querySelector('.details-loading');
+
+    // Close the group details overlay if open
+    const groupShade = document.querySelector('.group-details-shade');
+    if (groupShade) {
+        groupShade.style.display = 'none';
+    }
 
     // Show the details shade immediately with loading spinner
     detailsShade.style.display = 'flex';

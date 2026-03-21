@@ -23,11 +23,16 @@ let groupsData = { owned: [], member: [] };
 // Dependencies that need to be injected
 let ShowDetailsWrapper = null;
 let DetailsType = null;
+let currentUserId = null;
 
 // Function to initialize dependencies
 export function initializeGroupsModule(dependencies) {
     ShowDetailsWrapper = dependencies.ShowDetailsWrapper;
     DetailsType = dependencies.DetailsType;
+}
+
+export function setCurrentUserId(userId) {
+    currentUserId = userId;
 }
 
 // Helper: decode HTML entities from API responses
@@ -39,7 +44,7 @@ function decodeHtmlEntities(text) {
 }
 
 // Helper: get role icon name
-function getRoleIcon(role) {
+export function getRoleIcon(role) {
     switch (role) {
         case 'Admin': return 'shield';
         case 'Moderator': return 'swords';
@@ -59,14 +64,28 @@ function formatDate(dateStr) {
     return `${dd}/${mm}/${yyyy}`;
 }
 
+// Helper: find current user's role in a group by searching through all member pages
+export async function findMyRole(groupId, userId) {
+    if (!userId) return null;
+    let page = 0;
+    while (true) {
+        const membersData = await window.API.getGroupMembers(groupId, page, 0, true);
+        if (!membersData?.entries?.length) return null;
+        const myEntry = membersData.entries.find(m => m.id === userId);
+        if (myEntry?.role) return myEntry.role;
+        page++;
+        if (page >= (membersData.totalPages || 1)) return null;
+    }
+}
+
 // Helper: check if user can manage members (Owner, Admin, or Moderator)
 function canManageMembers(memberStatus) {
     return ['Owner', 'Admin', 'Moderator'].includes(memberStatus);
 }
 
-// Helper: check if user can edit group settings (Owner or Admin)
+// Helper: check if user can edit group settings (Owner, Admin, or Moderator)
 function canEditSettings(memberStatus) {
-    return ['Owner', 'Admin'].includes(memberStatus);
+    return ['Owner', 'Admin', 'Moderator'].includes(memberStatus);
 }
 
 // Helper: get assignable roles based on the current user's role
@@ -221,6 +240,12 @@ export async function showGroupDetails(groupId) {
     tabs.innerHTML = '';
     tabContent.innerHTML = '';
 
+    // Close the other details overlay if open
+    const detailsShade = document.querySelector('.details-shade');
+    if (detailsShade) {
+        detailsShade.style.display = 'none';
+    }
+
     shade.style.display = 'flex';
     sidebar.innerHTML = '<div class="group-members-loading"><span class="material-symbols-outlined spinner">refresh</span></div>';
 
@@ -235,7 +260,23 @@ export async function showGroupDetails(groupId) {
         log('Group details:');
         log(group);
 
-        const myStatus = group.relation?.memberStatus || null;
+        // Determine actual role by checking members list, since relation.memberStatus is unreliable
+        let myStatus = null;
+
+        if (currentUserId) {
+            if (group.owner?.id && currentUserId === group.owner.id) {
+                myStatus = 'Owner';
+            } else {
+                try {
+                    const role = await findMyRole(group.id, currentUserId);
+                    if (role) {
+                        myStatus = role;
+                    }
+                } catch (_err) {
+                    log('Failed to resolve actual group role, using fallback');
+                }
+            }
+        }
 
         // ---- SIDEBAR ----
         sidebar.innerHTML = '';
@@ -245,9 +286,9 @@ export async function showGroupDetails(groupId) {
             className: 'group-sidebar-image',
             src: getCachedImage(group.imageHash),
         });
-        groupImg.dataset.tooltip = 'Click to copy Group ID';
+        groupImg.dataset.tooltip = 'Double-click to copy Group ID';
         groupImg.style.cursor = 'pointer';
-        groupImg.addEventListener('click', async () => {
+        groupImg.addEventListener('dblclick', async () => {
             try {
                 await navigator.clipboard.writeText(group.id);
                 pushToast(`Copied Group ID: ${group.id}`, 'confirm');
@@ -305,6 +346,12 @@ export async function showGroupDetails(groupId) {
         joinRow.innerHTML = `<span class="material-symbols-outlined">lock</span><span>Join: ${group.settingPrivacyJoin || 'Unknown'}</span>`;
         infoRows.appendChild(joinRow);
 
+        if (myStatus) {
+            const roleRow = createElement('div', { className: 'group-sidebar-row' });
+            roleRow.innerHTML = `<span class="material-symbols-outlined">${getRoleIcon(myStatus)}</span><span>Your Role: ${myStatus}</span>`;
+            infoRows.appendChild(roleRow);
+        }
+
         sidebar.appendChild(infoRows);
 
         // ---- ACTION BUTTONS ----
@@ -354,6 +401,7 @@ export async function showGroupDetails(groupId) {
                         await window.API.joinGroup(group.id);
                         pushToast('Joined group successfully!', 'success');
                         await loadGroups();
+                        await showGroupDetails(group.id);
                     } catch (_err) {
                         pushToast('Failed to join group', 'error');
                     }
@@ -855,7 +903,7 @@ function createSettingImagePicker(label) {
 // GROUPS LIST PAGE
 // =========================
 
-export function handleGroupsRefresh(groups) {
+export async function handleGroupsRefresh(groups) {
     log('[On] GetMyGroups');
     log(groups);
 
@@ -868,6 +916,8 @@ export function handleGroupsRefresh(groups) {
         ...(groupsData.owned || []).map(g => ({ ...g, _ownership: 'owned' })),
         ...(groupsData.member || []).map(g => ({ ...g, _ownership: 'joined' })),
     ];
+
+    const roleUpdateQueue = [];
 
     for (const group of allGroups) {
         const imgSrc = getCachedImage(group.imageHash);
@@ -883,8 +933,8 @@ export function handleGroupsRefresh(groups) {
                     <div class="card-detail">
                         <span class="material-symbols-outlined">group</span>${group.memberCount || 0} members
                     </div>
-                    <div class="card-detail">
-                        <span class="material-symbols-outlined">${group._ownership === 'owned' ? 'shield' : 'login'}</span>${group._ownership === 'owned' ? 'Owner' : 'Member'}
+                    <div class="card-detail card-role-detail">
+                        <span class="material-symbols-outlined">${group._ownership === 'owned' ? 'shield' : 'login'}</span>${group._ownership === 'owned' ? 'Owner' : 'Joined'}
                     </div>
                 </div>
             `,
@@ -896,10 +946,30 @@ export function handleGroupsRefresh(groups) {
         const thumbnailContainer = groupNode.querySelector('.thumbnail-container');
         setImageSource(thumbnailContainer, group.imageHash, true);
 
+        // Queue joined groups to resolve actual role
+        if (group._ownership === 'joined' && currentUserId) {
+            roleUpdateQueue.push({ groupId: group.id, node: groupNode });
+        }
+
         docFragment.appendChild(groupNode);
     }
 
     groupsWrapper.replaceChildren(docFragment);
+
+    // Resolve actual roles for joined groups in the background
+    for (const { groupId, node } of roleUpdateQueue) {
+        try {
+            const role = await findMyRole(groupId, currentUserId);
+            if (role) {
+                const roleDetail = node.querySelector('.card-role-detail');
+                if (roleDetail) {
+                    roleDetail.innerHTML = `<span class="material-symbols-outlined">${getRoleIcon(role)}</span>${role}`;
+                }
+            }
+        } catch (_err) {
+            log(`Failed to resolve role for group ${groupId}`);
+        }
+    }
 
     log(`Created ${allGroups.length} group cards in DOM`);
 

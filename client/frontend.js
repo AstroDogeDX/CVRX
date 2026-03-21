@@ -67,6 +67,7 @@ import {
     setupGroupsFilterButtons,
     setupGroupsRefreshButton,
     showGroupDetails,
+    setCurrentUserId,
 } from './astrolib/groups.js';
 
 // ===========
@@ -775,6 +776,7 @@ window.API.onGetActiveUser((_event, activeUser) => {
         ShowDetailsWrapper,
         DetailsType
     });
+    setCurrentUserId(activeUser.id);
 
     // Update the current active user in the friends module
     updateCurrentActiveUser(activeUser);
@@ -1049,6 +1051,14 @@ async function loadTabContent(tab, entityId) {
                 // Filter the global active instances by world ID
                 items = activeInstances.filter(instance => instance.world?.id === entityId) || [];
                 break;
+            case 'groups': {
+                const groupsData = await window.API.getUserGroups(entityId);
+                items = [
+                    ...(groupsData?.owned || []),
+                    ...(groupsData?.member || []),
+                ];
+                break;
+            }
             case 'stats':
                 // Stats tab is disabled, but we'll keep this case for future implementation
                 grid.innerHTML = '<div class="no-items-message">Stats feature coming soon!</div>';
@@ -1124,6 +1134,13 @@ async function loadTabContent(tab, entityId) {
                         </div>`;
                     break;
                 }
+                case 'groups':
+                    icon = 'group';
+                    additionalInfo = `
+                        <div class="card-detail">
+                            <span class="material-symbols-outlined">${icon}</span>${item.memberCount || 0} members
+                        </div>`;
+                    break;
                 case 'users': {
                     icon = 'person';
                     // Add friend indicator if applicable
@@ -1219,6 +1236,9 @@ async function loadTabContent(tab, entityId) {
                                 break;
                             case 'worlds':
                                 ShowDetailsWrapper(DetailsType.World, item.id);
+                                break;
+                            case 'groups':
+                                showGroupDetails(item.id);
                                 break;
                             case 'users':
                                 ShowDetailsWrapper(DetailsType.User, item.id);
@@ -1503,15 +1523,18 @@ searchBar.addEventListener('keypress', async (event) => {
         try {
             const myGroups = await window.API.getMyGroups();
             const allGroups = [
-                ...(myGroups?.owned || []),
-                ...(myGroups?.member || []),
+                ...(myGroups?.owned || []).map(g => ({ ...g, _ownership: 'owned' })),
+                ...(myGroups?.member || []).map(g => ({ ...g, _ownership: 'joined' })),
             ];
             const searchLower = searchTerm.toLowerCase();
             const matchedGroups = allGroups.filter(g =>
                 g.name && g.name.toLowerCase().includes(searchLower)
             );
 
+            const groupRoleUpdateQueue = [];
+
             for (const group of matchedGroups) {
+                const isOwned = group._ownership === 'owned';
                 const groupNode = createElement('div', {
                     className: 'search-output--node',
                     innerHTML: `
@@ -1523,6 +1546,9 @@ searchBar.addEventListener('keypress', async (event) => {
                             <p class="search-result-type">group</p>
                             <div class="search-result-detail">
                                 <span class="material-symbols-outlined">group</span>${group.memberCount || 0} members
+                            </div>
+                            <div class="search-result-detail search-role-detail">
+                                <span class="material-symbols-outlined">${isOwned ? 'shield' : 'login'}</span>${isOwned ? 'Owner' : 'Joined'}
                             </div>
                         </div>
                     `,
@@ -1537,6 +1563,26 @@ searchBar.addEventListener('keypress', async (event) => {
 
                 groupNode.onclick = () => showGroupDetails(group.id);
                 groupResults.push(groupNode);
+
+                if (!isOwned && currentActiveUser?.id) {
+                    groupRoleUpdateQueue.push({ groupId: group.id, node: groupNode });
+                }
+            }
+
+            // Resolve actual roles for joined groups in the background
+            const { findMyRole, getRoleIcon } = await import('./astrolib/groups.js');
+            for (const { groupId, node } of groupRoleUpdateQueue) {
+                try {
+                    const role = await findMyRole(groupId, currentActiveUser.id);
+                    if (role) {
+                        const roleDetail = node.querySelector('.search-role-detail');
+                        if (roleDetail) {
+                            roleDetail.innerHTML = `<span class="material-symbols-outlined">${getRoleIcon(role)}</span>${role}`;
+                        }
+                    }
+                } catch (_err) {
+                    log(`Failed to resolve role for group ${groupId}`);
+                }
             }
         } catch (_err) {
             log('Failed to search groups locally');

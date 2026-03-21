@@ -885,7 +885,8 @@ button {
 .search-output-category.collapsed .search-output--users,
 .search-output-category.collapsed .search-output--worlds,
 .search-output-category.collapsed .search-output--avatars,
-.search-output-category.collapsed .search-output--props {
+.search-output-category.collapsed .search-output--props,
+.search-output-category.collapsed .search-output--groups {
     max-height: 0;
     margin: 0;
     padding: 0;
@@ -896,7 +897,8 @@ button {
 .search-output--users,
 .search-output--worlds,
 .search-output--avatars,
-.search-output--props {
+.search-output--props,
+.search-output--groups {
     transition: max-height 0.3s ease, opacity 0.2s ease, margin 0.3s ease;
     opacity: 1;
     overflow: hidden;
@@ -1076,6 +1078,10 @@ button {
 .search-output--props .search-output--node::before {
     content: 'view_in_ar';
     background-color: rgba(147, 76, 175, 0.8);
+}
+
+.search-output--groups .search-output--node::before {
+    display: none;
 }
 
 .search-output--node .badge-indicator {
